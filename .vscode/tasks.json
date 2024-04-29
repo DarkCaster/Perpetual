@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "go",
+			"label": "go: build Perpetual",
+			"command": "build",
+			"args": [
+				"github.com/DarkCaster/Perpetual"
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build"
+		}
+	]
+}
