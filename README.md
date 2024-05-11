@@ -178,7 +178,7 @@ Example for go lang:
 - when generating annotations. it will be also listed to LLM at Stage 1 in generated project summary (only its annotation)
 - when manually selected for implementation using `-r` flag for the `implement` command. This allows you to write code with LLM for such files
 
-**For files you want to completely prevent from being uploaded to the LLM**, you can add a regular expression to the `.perpetual/project_files_whitelist.json` file. This will exclude those files from the list of project files available to **Perpetual**, effectively preventing them from being processed at all. You can verify the exclusion by running the perpetual `annotate` operation with the `-d` flag.
+**For files you want to completely prevent from being uploaded to the LLM**, you can add a regular expression to the `.perpetual/project_files_blacklist.json` file. This will exclude those files from the list of project files available to **Perpetual**, effectively preventing them from being processed at all. You can verify the exclusion by running the perpetual `annotate` operation with the `-d` flag.
 
 #### Examining logs
 
