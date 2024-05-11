@@ -2,6 +2,8 @@
 
 LLM-driven software development helper.
 
+This project is currently in an early stage of development, and users should expect to encounter various bugs and issues. The author(s) make no guarantees about the reliability, security, or suitability of this project for any particular use case.
+
 ## Description
 
 **Perpetual** is an LLM assistant created to boost the productivity and efficiency of software developers. Its key feature is the ability to write and modify code based on textual descriptions provided by the programmer. **Perpetual** can automatically generate new code, make changes to existing code, and even create new files - all by analyzing the project’s codebase and the programmer’s instructions embedded as special comments. With **Perpetual**, developers can focus on high-level problem-solving while the AI assistant handles the tedious task of implementing the required functionality.
