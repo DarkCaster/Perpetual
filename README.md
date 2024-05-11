@@ -12,6 +12,8 @@ This project is currently in an early stage of development, and users should exp
 
 All of **Perpetual’s** operations are limited to the user’s project directory, and it is not permitted to delete any files (at least for now).
 
+**[TL;DR, go straight to Example](#example)**
+
 ## Limitations
 
 Given **Perpetual’s** focus on direct codebase interaction and maintaining simplicity, the following limitations apply:
@@ -120,7 +122,7 @@ Next time, annotation will be run automatically before other operations, and **i
 
 Key function of **Perpetual** is to assist you in writing code for your project. **Perpetual** can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command line flags it may implement code for all files where `###IMPLEMENT###` comment found, or only for one specific file. It can also create new files to place the code it generate
 
-#### Example
+Example:
 
 ```go
 func ParseCustomer(jsonMessage string) (Customer,error) {
@@ -187,7 +189,9 @@ Example for go lang:
 - .chatlog.md: This file contains a human-readable log of the interactions between **Perpetual** and the LLM, in a formatted and simplified manner. It does not include the messages that are repeatedly sent to the LLM for each request. This log is similar to what you would get if you manually conversed with the LLM through a chat interface.
 - .raw_message_log.txt: This file contains a raw, unformatted log of the actual messages exchanged between **Perpetual** and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
 
-## Example. Writing simple Mandelbrot Set Fractal Visualizer in Golang using SDL2 library
+## Example
+
+Writing simple Mandelbrot Set Fractal Visualizer in Golang using SDL2 library
 
 ### Create main.go draft by yourself
 
