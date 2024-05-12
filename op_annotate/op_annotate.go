@@ -21,7 +21,6 @@ func annotateFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	logger.Debugln("Starting 'annotate' operation")
 	flags := annotateFlags()
 
 	var help, force, dryRun, verbose, trace bool
@@ -40,7 +39,9 @@ func Run(args []string, logger logging.ILogger) {
 	if trace {
 		logger.SetLevel(logging.TraceLevel)
 	}
-	logger.Traceln("Parsed flags:", "help:", help, "force:", force, "dryRun:", dryRun, "requestedFile:", requestedFile, "verbose:", verbose, "trace:", trace)
+
+	logger.Debugln("Starting 'annotate' operation")
+	logger.Traceln("Args:", args)
 
 	if help {
 		usage.PrintOperationUsage("", flags)
