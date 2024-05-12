@@ -24,8 +24,6 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	logger.Debugln("Starting 'implement' operation")
-
 	var help, noAnnotate, planning, verbose, trace bool
 	var manualFilePath string
 
@@ -45,7 +43,9 @@ func Run(args []string, logger logging.ILogger) {
 	if trace {
 		logger.SetLevel(logging.TraceLevel)
 	}
-	logger.Traceln("Parsed flags:", "help:", help, "noAnnotate:", noAnnotate, "manualFilePath:", manualFilePath, "verbose:", verbose, "trace:", trace)
+
+	logger.Debugln("Starting 'implement' operation")
+	logger.Traceln("Args:", args)
 
 	if help {
 		usage.PrintOperationUsage("", flags)
@@ -54,7 +54,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
-		logger.Panicln("error finding project root directory:", err)
+		logger.Panicln("Error finding project root directory:", err)
 	}
 
 	logger.Infoln("Project root directory:", projectRootDir)
@@ -65,41 +65,41 @@ func Run(args []string, logger logging.ILogger) {
 
 	err = utils.LoadEnvFile(filepath.Join(perpetualDir, utils.DotEnvFileName))
 	if err != nil {
-		logger.Panicln("error loading environment variables:", err)
+		logger.Panicln("Error loading environment variables:", err)
 	}
 
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
 	if err != nil {
-		logger.Panicln("error reading project-files whitelist regexps:", err)
+		logger.Panicln("Error reading project-files whitelist regexps:", err)
 	}
 
 	var projectFilesBlacklist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
-		logger.Panicln("error reading project-files blacklist regexps:", err)
+		logger.Panicln("Error reading project-files blacklist regexps:", err)
 	}
 
 	var implementRxStrings []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementCommentRXFileName), &implementRxStrings)
 	if err != nil {
-		logger.Panicln("error reading implement-operation regexps:", err)
+		logger.Panicln("Error reading implement-operation regexps:", err)
 	}
 
 	var noUploadRxStrings []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.NoUploadCommentRXFileName), &noUploadRxStrings)
 	if err != nil {
-		logger.Panicln("error reading no-upload regexps:", err)
+		logger.Panicln("Error reading no-upload regexps:", err)
 	}
 
 	loadStringPair := func(file string) []string {
 		var result []string
 		err = utils.LoadJsonFile(filepath.Join(perpetualDir, file), &result)
 		if err != nil {
-			logger.Panicln("error loading json:", err)
+			logger.Panicln("Error loading json:", err)
 		}
 		if len(result) != 2 {
-			logger.Panicln("file may only contain 2 tags and nothing more:", file)
+			logger.Panicln("File may only contain 2 tags and nothing more:", file)
 		}
 		return result
 	}
@@ -110,13 +110,13 @@ func Run(args []string, logger logging.ILogger) {
 	var fileNameEmbedRXString string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
 	if err != nil {
-		logger.Panicln("error loading filename-embed regexp json:", err)
+		logger.Panicln("Error loading filename-embed regexp json:", err)
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
-		logger.Panicln("error getting project file-list:", err)
+		logger.Panicln("Error getting project file-list:", err)
 	}
 
 	// Check fileNames array for case collisions
@@ -132,7 +132,7 @@ func Run(args []string, logger logging.ILogger) {
 	for _, rx := range implementRxStrings {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
-			logger.Panicln("failed to compile 'implement' comment search regexp: ", err)
+			logger.Panicln("Failed to compile 'implement' comment search regexp: ", err)
 		}
 		implementRegexps = append(implementRegexps, crx)
 	}
@@ -141,7 +141,7 @@ func Run(args []string, logger logging.ILogger) {
 	for _, rx := range noUploadRxStrings {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
-			logger.Panicln("failed to compile 'no-upload' comment search regexp: ", err)
+			logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
 		}
 		noUploadRegexps = append(noUploadRegexps, crx)
 	}
@@ -152,7 +152,7 @@ func Run(args []string, logger logging.ILogger) {
 		//check path relative to project root directory, and make it path relative to it
 		targetFile, err := utils.MakePathRelative(projectRootDir, manualFilePath, false)
 		if err != nil {
-			logger.Panicln("failed to process file path: ", err)
+			logger.Panicln("Failed to process file path: ", err)
 		}
 		targetFile, found := utils.CaseInsensitiveFileSearch(targetFile, fileNames)
 		if !found {
@@ -167,11 +167,12 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		targetFiles = append(targetFiles, targetFile)
 	} else {
+		logger.Debugln("Searching project files for implement comment")
 		for _, filePath := range fileNames {
-			logger.Debugln("File:", filePath)
+			logger.Traceln(filePath)
 			found, err := utils.FindInFile(filepath.Join(projectRootDir, filePath), implementRegexps)
 			if err != nil {
-				logger.Panicln("failed to search 'implement' comment in file: ", err)
+				logger.Panicln("Failed to search 'implement' comment in file: ", err)
 			}
 			if found {
 				targetFiles = append(targetFiles, filePath)
@@ -202,7 +203,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	systemPrompt, err := utils.LoadTextFile(filepath.Join(promptsDir, prompts.SystemPromptFile))
 	if err != nil {
-		logger.Warnln("failed to read system prompt:", err)
+		logger.Warnln("Failed to read system prompt:", err)
 	}
 
 	var filesToReview []string
@@ -210,7 +211,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Load annotations needed for stage1
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
 		if err != nil {
-			logger.Panicln("error reading annotations:", err)
+			logger.Panicln("Error reading annotations:", err)
 		}
 		// Find out do we have annotations for files not in targetFiles
 		nonTargetFilesAnnotationsCount := 0
@@ -239,14 +240,14 @@ func Run(args []string, logger logging.ILogger) {
 	checkNoUpload := func(filePath string) bool {
 		targetFile, err := utils.MakePathRelative(projectRootDir, filePath, true)
 		if err != nil {
-			logger.Panicln("failed to process file path: ", err)
+			logger.Panicln("Failed to process file path: ", err)
 		}
 		found, err := utils.FindInFile(filepath.Join(projectRootDir, targetFile), noUploadRegexps)
 		if os.IsNotExist(err) {
 			return true
 		}
 		if err != nil {
-			logger.Panicln("failed to search 'no-upload' comment in file: ", err)
+			logger.Panicln("Failed to search 'no-upload' comment in file: ", err)
 		}
 		return !found
 	}
