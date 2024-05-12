@@ -23,16 +23,16 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln("Stage1: Created LLM connector")
 
-	loadPrompt := func(filePath string, errorMsg string) string {
+	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln(errorMsg, err)
+			logger.Fatalln("Failed to load prompt:", err)
 		}
 		return text
 	}
 
 	// Create project-index request message
-	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile, "failed to load implement stage1-project-index prompt file:"))
+	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
 	for _, item := range fileNames {
 		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(stage1ProjectIndexRequestMessage, item)
 		annotation := annotations[item]
@@ -44,11 +44,11 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	logger.Debugln("Stage1: Created project-index request message")
 
 	// Create project-index simulated response
-	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage1ProjectIndexResponseFile, "failed to load ai-stage1-project-index response file:"))
+	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage1ProjectIndexResponseFile))
 	logger.Debugln("Stage1: Created project-index simulated response message")
 
 	// Create target files analisys request message
-	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1SourceAnalysisPromptFile, "failed to load implement stage1-source-analysis prompt file:"))
+	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1SourceAnalysisPromptFile))
 	for _, item := range targetFiles {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 		if err != nil {

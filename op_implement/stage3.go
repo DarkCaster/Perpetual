@@ -22,17 +22,17 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Fatalln("failed to create stage3 LLM connector:", err)
 	}
 
-	loadPrompt := func(filePath string, errorMsg string) string {
-		bytes, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
+	loadPrompt := func(filePath string) string {
+		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln(errorMsg, err)
+			logger.Fatalln("Failed to load prompt:", err)
 		}
-		return string(bytes)
+		return text
 	}
 
-	stage3ChangesDonePromptTemplate := loadPrompt(prompts.ImplementStage3ChangesDonePromptFile, "failed to load implement stage3-changes prompt file")
-	stage3ChangesDoneResponse := loadPrompt(prompts.AIImplementStage3ChangesDoneResponseFile, "failed to load implement stage3-changes ai response file")
-	stage3ProcessFilePromptTemplate := loadPrompt(prompts.ImplementStage3ProcessFilePromptFile, "failed to load implement stage3-process-file prompt file")
+	stage3ChangesDonePromptTemplate := loadPrompt(prompts.ImplementStage3ChangesDonePromptFile)
+	stage3ChangesDoneResponse := loadPrompt(prompts.AIImplementStage3ChangesDoneResponseFile)
+	stage3ProcessFilePromptTemplate := loadPrompt(prompts.ImplementStage3ProcessFilePromptFile)
 
 	processedFileContents := make(map[string]string)
 	var processedFiles []string

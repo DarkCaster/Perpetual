@@ -21,10 +21,10 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Fatalln("failed to create stage2 LLM connector:", err)
 	}
 
-	loadPrompt := func(filePath string, errorMsg string) string {
+	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln(errorMsg, err)
+			logger.Fatalln("Failed to load prompt:", err)
 		}
 		return text
 	}
@@ -32,7 +32,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	var messages []llm.Message
 
 	// Create target files analisys request message
-	stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile, "failed to load implement stage2-project-code prompt file:"))
+	stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
 	for _, item := range filesForReview {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 		if err != nil {
@@ -44,13 +44,13 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	logger.Debugln("Stage2: Project source code message created")
 
 	// Create simulated response
-	stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile, "failed to load ai-stage2-project-code response file:"))
+	stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile))
 	messages = append(messages, stage2ProjectSourceCodeResponseMessage)
 	logger.Debugln("Stage2: Project source code simulated response added")
 
 	if planning {
 		// Create files to change request message
-		stage2FilesToChangeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangePromptFile, "failed to load implement stage2-files-to-change prompt file:"))
+		stage2FilesToChangeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangePromptFile))
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
@@ -62,7 +62,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Stage2: Files to change message created")
 	} else {
 		// Create files to request for non-planning mode
-		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2NoPlanningPromptFile, "failed to load implement stage2-no-planning prompt file:"))
+		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2NoPlanningPromptFile))
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
@@ -74,7 +74,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Stage2: Files for no planning message created")
 
 		// Create simulated response
-		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2NoPlanningResponseFile, "failed to load ai-stage2-no-planning response file:"))
+		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2NoPlanningResponseFile))
 		messages = append(messages, stage2FilesNoPlanningResponseMessage)
 		logger.Debugln("Stage2: Files for no planning simulated response added")
 	}
