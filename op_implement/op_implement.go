@@ -51,14 +51,7 @@ func Run(args []string, logger *logrus.Logger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-
-	if !noAnnotate {
-		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, logger)
-	} else if !allFiles {
-		logger.Warnln("File-annotations update disabled, this may worsen the final result")
-	}
-
+	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
 		logger.Fatalln("error finding project root directory:", err)
@@ -66,6 +59,9 @@ func Run(args []string, logger *logrus.Logger) {
 
 	logger.Println("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
+
+	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
+	logger.Debugln("Prompts directory:", promptsDir)
 
 	err = utils.LoadEnvFile(filepath.Join(perpetualDir, utils.DotEnvFileName))
 	if err != nil {
@@ -117,6 +113,7 @@ func Run(args []string, logger *logrus.Logger) {
 		logger.Fatalln("error loading filename-embed regexp json:", err)
 	}
 
+	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
 		logger.Fatalln("error getting project file-list:", err)
@@ -149,9 +146,8 @@ func Run(args []string, logger *logrus.Logger) {
 		noUploadRegexps = append(noUploadRegexps, crx)
 	}
 
-	// Find files for operation
+	// Find files for operation. Select files that contains implement-mark
 	var targetFiles []string
-
 	if manualFilePath != "" {
 		//check path relative to project root directory, and make it path relative to it
 		targetFile, err := utils.MakePathRelative(projectRootDir, manualFilePath, false)
@@ -183,6 +179,45 @@ func Run(args []string, logger *logrus.Logger) {
 		}
 	}
 
+	// Log files to process
+	if len(targetFiles) < 1 {
+		logger.Fatalln("No files found for processing")
+	}
+	logger.Println("Files for processing:")
+	for _, targetFile := range targetFiles {
+		logger.Println(targetFile)
+	}
+
+	// Check if target files includes all project files, and run annotate if needed
+	skipStage1 := false
+	if len(targetFiles) == len(fileNames) {
+		logger.Warnln("All project files selected for processing, no need to run annotate and stage1")
+		skipStage1 = true
+	} else if !noAnnotate {
+		logger.Debugln("Running 'annotate' operation to update file annotations")
+		op_annotate.Run(nil, logger)
+	} else {
+		logger.Warnln("File-annotations update disabled, this may worsen the final result")
+	}
+
+	systemPrompt, err := utils.LoadTextFile(filepath.Join(promptsDir, prompts.SystemPromptFile))
+	if err != nil {
+		logger.Warnln("failed to read system prompt:", err)
+	}
+
+	var filesToReview []string
+	if !skipStage1 {
+		// Load annotations needed for stage1
+		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+		if err != nil {
+			logger.Fatalln("error reading annotations:", err)
+		}
+		// Announce start of new LLM session
+		llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
+		// Run stage 1
+		filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNames, annotations, targetFiles, logger)
+	}
+
 	checkNoUpload := func(filePath string) bool {
 		targetFile, err := utils.MakePathRelative(projectRootDir, filePath, true)
 		if err != nil {
@@ -197,38 +232,6 @@ func Run(args []string, logger *logrus.Logger) {
 		}
 		return !found
 	}
-
-	// Log files to process
-	if len(targetFiles) < 1 {
-		logger.Fatalln("No files found for processing")
-	}
-	logger.Println("Files for processing:")
-	for _, targetFile := range targetFiles {
-		logger.Println(targetFile)
-	}
-
-	// Create prompts
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	loadPrompt := func(filePath string, errorMsg string) string {
-		bytes, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Fatalln(errorMsg, err)
-		}
-		return string(bytes)
-	}
-
-	annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
-	if err != nil {
-		logger.Fatalln("error reading annotations:", err)
-	}
-
-	systemPrompt := loadPrompt(prompts.SystemPromptFile, "failed to read system prompt:")
-
-	// Announce start of new LLM session
-	llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
-
-	// Run stage 1
-	filesToReview := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNames, annotations, targetFiles, logger)
 
 	// Check filesToReview with checkNoUpload function and remove files from the list for which checkNoUpload returns false
 	var filteredFilesToReview []string
