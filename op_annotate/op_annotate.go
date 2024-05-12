@@ -128,17 +128,17 @@ func Run(args []string, logger *logrus.Logger) {
 
 	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
 
-	loadPrompt := func(filePath string, errorMsg string) string {
-		bytes, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
+	loadPrompt := func(filePath string) string {
+		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln(errorMsg, err)
+			logger.Fatalln("Failed to load prompt:", err)
 		}
-		return string(bytes)
+		return text
 	}
 
-	annotatePrompt := loadPrompt(prompts.AnnotatePromptFile, "failed to read annotation prompt:")
-	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile, "failed to read annotate response prompt:")
-	systemPrompt := loadPrompt(prompts.SystemPromptFile, "failed to read system prompt:")
+	annotatePrompt := loadPrompt(prompts.AnnotatePromptFile)
+	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile)
+	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
 	// Announce start of new LLM session
 	llm.LogStartSession(logger, perpetualDir, "annotate", args...)
