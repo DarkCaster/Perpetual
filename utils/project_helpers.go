@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 type AnnotationEntry struct {
@@ -57,7 +55,6 @@ func GetAnnotations(filePath string, fileChecksums map[string]string) (map[strin
 	var annotations AnnotationEntries
 	err := LoadJsonFile(filePath, &annotations)
 	if err != nil {
-		logrus.Warnln("Error loading source-files annotations data:", err)
 		annotations = nil
 	}
 
@@ -89,7 +86,6 @@ func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string
 	var annotations AnnotationEntries
 	err := LoadJsonFile(filePath, &annotations)
 	if err != nil {
-		logrus.Warnln("Error loading source-files annotation data:", err)
 		annotations = nil
 	}
 

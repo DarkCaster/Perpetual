@@ -7,14 +7,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 )
 
 const DotEnvFileName = ".env"
 const AnnotationsFileName = ".annotations.json"
 
-func FindProjectRoot(logger *logrus.Logger) (string, string, error) {
+func FindProjectRoot(logger logging.ILogger) (string, string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", "", err
@@ -23,7 +23,7 @@ func FindProjectRoot(logger *logrus.Logger) (string, string, error) {
 	return findProjectRoot(cwd, logger)
 }
 
-func findProjectRoot(startDir string, logger *logrus.Logger) (string, string, error) {
+func findProjectRoot(startDir string, logger logging.ILogger) (string, string, error) {
 	perpetualDir := filepath.Join(startDir, ".perpetual")
 	_, err := os.Stat(perpetualDir)
 	if err == nil {

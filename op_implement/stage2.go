@@ -4,13 +4,13 @@ import (
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/llm"
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/sirupsen/logrus"
 )
 
 func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, planning bool, fileNameTagsRxStrings []string, fileNameTags []string,
-	allFileNames []string, filesForReview []string, targetFiles []string, logger *logrus.Logger) ([]llm.Message, []string, []string) {
+	allFileNames []string, filesForReview []string, targetFiles []string, logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -18,13 +18,13 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage2 llm connector
 	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Fatalln("Failed to create stage2 LLM connector:", err)
+		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln("Failed to load prompt:", err)
+			logger.Panicln("Failed to load prompt:", err)
 		}
 		return text
 	}
@@ -37,7 +37,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Fatalln("Failed to add file contents to stage2 prompt", err)
+				logger.Panicln("Failed to add file contents to stage2 prompt", err)
 			}
 			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents)
 		}
@@ -49,7 +49,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
 		logger.Debugln("Stage2: Project source code simulated response added")
 	} else {
-		logger.Info("Not creating extra source-code review")
+		logger.Infoln("Not creating extra source-code review")
 	}
 
 	if planning {
@@ -58,7 +58,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Fatalln("Failed to add file contents to stage1 prompt", err)
+				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
 			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents)
 		}
@@ -70,7 +70,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Fatalln("Failed to add file contents to stage1 prompt", err)
+				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
 			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents)
 		}
@@ -94,10 +94,10 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Only perform real planning step if enabled
 	if planning {
 		// Request LLM to provide file list that will be modified (or created) while implementing code
-		logger.Println("Running stage2: planning changes")
+		logger.Infoln("Running stage2: planning changes")
 		aiResponse, err := stage2Connector.Query(messages...)
 		if err != nil {
-			logger.Fatalln("LLM query failed: ", err)
+			logger.Panicln("LLM query failed: ", err)
 		}
 		logger.Traceln("Stage2: LLM query completed")
 
@@ -109,12 +109,12 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		// Process response, parse files that will be created
 		filesToProcessRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
 		if err != nil {
-			logger.Fatalln("Failed to parse list of files for review", err)
+			logger.Panicln("Failed to parse list of files for review", err)
 		}
 		logger.Traceln("Stage2: Files to process parsed")
 
 		// Check all selected files
-		logger.Println("Files to modify selected by LLM:")
+		logger.Infoln("Files to modify selected by LLM:")
 		for _, check := range filesToProcessRaw {
 			// remove new line from the end of filename, if present
 			if check != "" && check[len(check)-1] == '\n' {
@@ -141,7 +141,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				} else {
 					// This file among files to modify
 					targetFilesToModify = append(targetFilesToModify, file)
-					logger.Println(file, "(requested by User)")
+					logger.Infoln(file, "(requested by User)")
 				}
 			} else {
 				file, found := utils.CaseInsensitiveFileSearch(file, otherFilesToModify)
@@ -152,15 +152,15 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 					file, found := utils.CaseInsensitiveFileSearch(file, filesForReview)
 					if found {
 						otherFilesToModify = append(otherFilesToModify, file)
-						logger.Println(file, "(requested by LLM)")
+						logger.Infoln(file, "(requested by LLM)")
 					} else {
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
-							logger.Fatalln("File requested by LLM is among project files not provided for review, this will cause file corruption:", file)
+							logger.Panicln("File requested by LLM is among project files not provided for review, this will cause file corruption:", file)
 						}
 						otherFilesToModify = append(otherFilesToModify, file)
-						logger.Println(file, "(requested by LLM, new file)")
+						logger.Infoln(file, "(requested by LLM, new file)")
 					}
 				}
 			}
@@ -182,7 +182,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Stage2: Simplified response message created")
 	} else {
 		// Just copy target files into results without real LLM interaction in order to save tokens
-		logger.Println("Running stage2: planning disabled")
+		logger.Infoln("Running stage2: planning disabled")
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
 		logger.Debugln("Stage2: Target files added to modify list")
 	}

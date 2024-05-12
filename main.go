@@ -6,14 +6,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_implement"
 	"github.com/DarkCaster/Perpetual/op_init"
 	"github.com/DarkCaster/Perpetual/usage"
-	"github.com/sirupsen/logrus"
 )
-
-var logger = logrus.New()
 
 func getOperations() map[string]string {
 	return map[string]string{
@@ -37,6 +35,11 @@ func main() {
 	if _, ok := operations[operation]; !ok {
 		usage.PrintMainUsage(fmt.Sprintf("Unknown operation: %s", operation), operations)
 		return
+	}
+
+	logger, err := logging.NewSimpleLogger(logging.InfoLevel)
+	if err != nil {
+		panic(err)
 	}
 
 	switch strings.ToLower(operation) {

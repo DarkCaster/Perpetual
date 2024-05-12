@@ -7,10 +7,10 @@ import (
 	"sort"
 
 	"github.com/DarkCaster/Perpetual/llm"
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/sirupsen/logrus"
 )
 
 const OpName = "annotate"
@@ -20,7 +20,7 @@ func annotateFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, logger *logrus.Logger) {
+func Run(args []string, logger logging.ILogger) {
 	logger.Debugln("Starting 'annotate' operation")
 	flags := annotateFlags()
 
@@ -35,10 +35,10 @@ func Run(args []string, logger *logrus.Logger) {
 	flags.Parse(args)
 
 	if verbose {
-		logger.SetLevel(logrus.DebugLevel)
+		logger.SetLevel(logging.DebugLevel)
 	}
 	if trace {
-		logger.SetLevel(logrus.TraceLevel)
+		logger.SetLevel(logging.TraceLevel)
 	}
 	logger.Traceln("Parsed flags:", "help:", help, "force:", force, "dryRun:", dryRun, "requestedFile:", requestedFile, "verbose:", verbose, "trace:", trace)
 
@@ -52,42 +52,42 @@ func Run(args []string, logger *logrus.Logger) {
 
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
-		logger.Fatalln("error finding project root directory:", err)
+		logger.Panicln("error finding project root directory:", err)
 	}
 
-	logger.Println("Project root directory:", projectRootDir)
+	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
 	err = utils.LoadEnvFile(filepath.Join(perpetualDir, utils.DotEnvFileName))
 
 	if err != nil {
-		logger.Fatalln("error loading environment variables:", err)
+		logger.Panicln("error loading environment variables:", err)
 	}
 
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
 	if err != nil {
-		logger.Fatalln("error reading project-files whitelist regexps:", err)
+		logger.Panicln("error reading project-files whitelist regexps:", err)
 	}
 
 	var projectFilesBlacklist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
-		logger.Fatalln("error reading project-files blacklist regexps:", err)
+		logger.Panicln("error reading project-files blacklist regexps:", err)
 	}
 
 	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
-		logger.Fatalln("error getting project file-list:", err)
+		logger.Panicln("error getting project file-list:", err)
 	}
 
 	// Check fileNames array for case collisions
 	if !utils.CheckFilenameCaseCollisions(fileNames) {
-		logger.Fatalln("Filename case collisions detected in project files")
+		logger.Panicln("Filename case collisions detected in project files")
 	}
 	// File names and dir-names must not contain path separators characters
 	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
-		logger.Fatalln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
 	annotationsFilePath := filepath.Join(perpetualDir, utils.AnnotationsFileName)
@@ -95,18 +95,18 @@ func Run(args []string, logger *logrus.Logger) {
 	if !force {
 		filesToAnnotate, err = utils.GetChangedFiles(annotationsFilePath, fileChecksums)
 		if err != nil {
-			logger.Fatalln("error getting changed files:", err)
+			logger.Panicln("error getting changed files:", err)
 		}
 	} else {
 		if requestedFile != "" {
 			// Check if requested file is within fileNames array
 			requestedFile, err := utils.MakePathRelative(projectRootDir, requestedFile, false)
 			if err != nil {
-				logger.Fatalln("Requested file is not inside project root", requestedFile)
+				logger.Panicln("Requested file is not inside project root", requestedFile)
 			}
 			requestedFile, found := utils.CaseInsensitiveFileSearch(requestedFile, fileNames)
 			if !found {
-				logger.Fatalln("Requested file not found in project")
+				logger.Panicln("Requested file not found in project")
 			}
 			filesToAnnotate = []string{requestedFile}
 		} else {
@@ -119,9 +119,9 @@ func Run(args []string, logger *logrus.Logger) {
 	}
 
 	if dryRun {
-		logger.Println("Files to annotate:")
+		logger.Infoln("Files to annotate:")
 		for _, file := range filesToAnnotate {
-			logger.Println(file)
+			logger.Infoln(file)
 		}
 		os.Exit(0)
 	}
@@ -131,7 +131,7 @@ func Run(args []string, logger *logrus.Logger) {
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln("Failed to load prompt:", err)
+			logger.Panicln("Failed to load prompt:", err)
 		}
 		return text
 	}
@@ -146,19 +146,19 @@ func Run(args []string, logger *logrus.Logger) {
 	// Create llm connector
 	connector, err := llm.NewLLMConnector(OpName, systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Fatalln("failed to create LLM connector:", err)
+		logger.Panicln("failed to create LLM connector:", err)
 	}
 
 	// Generate file annotations
-	logger.Println("Annotating files, count:", len(filesToAnnotate))
+	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
 	errorFlag := false
 	newAnnotations := make(map[string]string)
 	for _, filePath := range filesToAnnotate {
-		logger.Println(filePath)
+		logger.Infoln(filePath)
 		// Read file contents and generate annotation
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
-			logger.Fatalln("failed to read file:", err)
+			logger.Panicln("failed to read file:", err)
 		}
 		fileContents := string(fileBytes)
 
@@ -175,7 +175,7 @@ func Run(args []string, logger *logrus.Logger) {
 		annotation, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 
 		if err != nil {
-			logger.Error("LLM query failed: ", err)
+			logger.Errorln("LLM query failed: ", err)
 			errorFlag = true
 		} else {
 			newAnnotations[filePath] = annotation
@@ -189,7 +189,7 @@ func Run(args []string, logger *logrus.Logger) {
 	// Get annotations for files listed in fileChecksums
 	annotations, err := utils.GetAnnotations(annotationsFilePath, fileChecksums)
 	if err != nil {
-		logger.Fatalln("Failed to read old annotations:", err)
+		logger.Panicln("Failed to read old annotations:", err)
 	}
 
 	// Copy new annotations back to old annotations
@@ -198,12 +198,12 @@ func Run(args []string, logger *logrus.Logger) {
 	}
 
 	// Save updated annotations
-	logger.Println("Saving annotations")
+	logger.Infoln("Saving annotations")
 	if err := utils.SaveAnnotations(annotationsFilePath, fileChecksums, annotations); err != nil {
-		logger.Fatalln("Failed to save annotations:", err)
+		logger.Panicln("Failed to save annotations:", err)
 	}
 
 	if errorFlag {
-		logger.Fatalln("Not all files were successfully annotated. Run annotate again to try to index the failed files.")
+		logger.Panicln("Not all files were successfully annotated. Run annotate again to try to index the failed files.")
 	}
 }

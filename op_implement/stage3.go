@@ -4,14 +4,14 @@ import (
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/llm"
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
 func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, outputTagsRxStrings []string, fileNameEmbedTag string,
-	stage2Messages []llm.Message, otherFiles []string, targetFiles []string, logger *logrus.Logger) map[string]string {
+	stage2Messages []llm.Message, otherFiles []string, targetFiles []string, logger logging.ILogger) map[string]string {
 
 	logger.Traceln("Stage3: Starting")       // Add trace logging
 	defer logger.Traceln("Stage3: Finished") // Add trace logging
@@ -19,13 +19,13 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage3 llm connector
 	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Fatalln("failed to create stage3 LLM connector:", err)
+		logger.Panicln("failed to create stage3 LLM connector:", err)
 	}
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln("Failed to load prompt:", err)
+			logger.Panicln("Failed to load prompt:", err)
 		}
 		return text
 	}
@@ -85,10 +85,10 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 		// Log messages we are going to send
 		llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
 
-		logger.Println("Running stage3: implementing code for:", pendingFile)
+		logger.Infoln("Running stage3: implementing code for:", pendingFile)
 		aiResponse, err := stage3Connector.Query(stage3Messages...)
 		if err != nil {
-			logger.Fatalln("LLM query failed: ", err)
+			logger.Panicln("LLM query failed: ", err)
 		}
 
 		// Log LLM response

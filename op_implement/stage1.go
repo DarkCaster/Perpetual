@@ -4,13 +4,13 @@ import (
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/llm"
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/sirupsen/logrus"
 )
 
 func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, fileNameTagsRxStrings []string,
-	fileNames []string, annotations map[string]string, targetFiles []string, logger *logrus.Logger) []string {
+	fileNames []string, annotations map[string]string, targetFiles []string, logger logging.ILogger) []string {
 
 	// Add trace and debug logging
 	logger.Traceln("Stage1: Starting")
@@ -19,14 +19,14 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage1 llm connector
 	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Fatalln("failed to create stage1 LLM connector:", err)
+		logger.Panicln("failed to create stage1 LLM connector:", err)
 	}
 	logger.Debugln("Stage1: Created LLM connector")
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
-			logger.Fatalln("Failed to load prompt:", err)
+			logger.Panicln("Failed to load prompt:", err)
 		}
 		return text
 	}
@@ -52,7 +52,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	for _, item := range targetFiles {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 		if err != nil {
-			logger.Fatalln("failed to add file contents to stage1 prompt", err)
+			logger.Panicln("failed to add file contents to stage1 prompt", err)
 		}
 		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(stage1SourceAnalysisRequestMessage, item, contents)
 	}
@@ -63,13 +63,13 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1ProjectIndexResponseMessage)
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1SourceAnalysisRequestMessage)
 
-	logger.Println("Running stage1: find project files for review")
+	logger.Infoln("Running stage1: find project files for review")
 	aiResponse, err := stage1Connector.Query(
 		stage1ProjectIndexRequestMessage,
 		stage1ProjectIndexResponseMessage,
 		stage1SourceAnalysisRequestMessage)
 	if err != nil {
-		logger.Fatalln("LLM query failed: ", err)
+		logger.Panicln("LLM query failed: ", err)
 	}
 	logger.Debugln("Stage1: LLM query completed")
 
@@ -80,13 +80,13 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Process response, parse files of interest from ai response
 	filesForReviewRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
 	if err != nil {
-		logger.Fatalln("Failed to parse list of files for review", err)
+		logger.Panicln("Failed to parse list of files for review", err)
 	}
 	logger.Debugln("Stage1: Parsed list of files for review from LLM response")
 
 	// Check all requested files are among initial project file-list
 	var filesForReview []string
-	logger.Println("Files requested by LLM:")
+	logger.Infoln("Files requested by LLM:")
 	for _, check := range filesForReviewRaw {
 		//remove new line from the end of filename, if present
 		if check != "" && check[len(check)-1] == '\n' {
@@ -116,7 +116,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 				file, found := utils.CaseInsensitiveFileSearch(file, fileNames)
 				if found {
 					filesForReview = append(filesForReview, file)
-					logger.Println(file)
+					logger.Infoln(file)
 				} else {
 					logger.Warnln("Not adding file for review, it is not found in filtered project file-list:", file)
 				}

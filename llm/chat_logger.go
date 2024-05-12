@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/sirupsen/logrus"
 )
 
 //###NOUPLOAD###
@@ -17,13 +17,13 @@ import (
 const ChatLogFile = ".chatlog.md"
 const RawLogFile = ".raw_message_log.txt"
 
-func LogStartSession(logger *logrus.Logger, perpetualDir string, operation string, args ...string) {
+func LogStartSession(logger logging.ILogger, perpetualDir string, operation string, args ...string) {
 	now := time.Now().Format("2006-01-02 15:04:05")
 	caption := fmt.Sprintf("# New Session Started at %s\n\n**Operation:** %s  \n**Args:** %s  ", now, operation, strings.Join(args, " "))
 	logEntry := fmt.Sprintf("%s\n___\n", caption)
 	err := utils.AppendToTextFile(filepath.Join(perpetualDir, ChatLogFile), logEntry)
 	if err != nil {
-		logger.Fatalln("Failed to add start session log-record to chat-log", err)
+		logger.Panicln("Failed to add start session log-record to chat-log", err)
 	}
 }
 
@@ -45,13 +45,13 @@ func formatTagsInLine(line string) string {
 	return line
 }
 
-func LogMessages(logger *logrus.Logger, perpetualDir string, connector LLMConnector, messages []Message) {
+func LogMessages(logger logging.ILogger, perpetualDir string, connector LLMConnector, messages []Message) {
 	for index := range messages {
 		LogMessage(logger, perpetualDir, connector, &messages[index])
 	}
 }
 
-func LogMessage(logger *logrus.Logger, perpetualDir string, connector LLMConnector, message *Message) {
+func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnector, message *Message) {
 	// Skip already logger messages
 	if message.IsLogged {
 		return
@@ -137,7 +137,7 @@ func LogMessage(logger *logrus.Logger, perpetualDir string, connector LLMConnect
 					continue
 				}
 				if len(tags) < 2 {
-					logger.Errorln("Invalid tags count in metadata for tagged fragment with index:", index)
+					logger.Errorln("It must be 2 tags in metadata for tagged fragment with index:", index)
 					continue
 				}
 				builder.WriteString("```")
