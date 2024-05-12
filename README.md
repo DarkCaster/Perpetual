@@ -215,6 +215,7 @@ Create go.mod by running
 
 ```sh
 go mod init mandelbrot
+go mod tidy
 ```
 
 Initialize **Perpetual** project by running
