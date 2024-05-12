@@ -18,7 +18,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage2 llm connector
 	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Fatalln("failed to create stage2 LLM connector:", err)
+		logger.Fatalln("Failed to create stage2 LLM connector:", err)
 	}
 
 	loadPrompt := func(filePath string) string {
@@ -31,22 +31,26 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	var messages []llm.Message
 
-	// Create target files analisys request message
-	stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
-	for _, item := range filesForReview {
-		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-		if err != nil {
-			logger.Fatalln("failed to add file contents to stage2 prompt", err)
+	if len(filesForReview) > 0 {
+		// Create target files analisys request message
+		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
+		for _, item := range filesForReview {
+			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
+			if err != nil {
+				logger.Fatalln("Failed to add file contents to stage2 prompt", err)
+			}
+			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents)
 		}
-		stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents)
-	}
-	messages = append(messages, stage2ProjectSourceCodeMessage)
-	logger.Debugln("Stage2: Project source code message created")
+		messages = append(messages, stage2ProjectSourceCodeMessage)
+		logger.Debugln("Stage2: Project source code message created")
 
-	// Create simulated response
-	stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile))
-	messages = append(messages, stage2ProjectSourceCodeResponseMessage)
-	logger.Debugln("Stage2: Project source code simulated response added")
+		// Create simulated response
+		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile))
+		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
+		logger.Debugln("Stage2: Project source code simulated response added")
+	} else {
+		logger.Info("Not creating extra source-code review")
+	}
 
 	if planning {
 		// Create files to change request message
@@ -54,7 +58,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Fatalln("failed to add file contents to stage1 prompt", err)
+				logger.Fatalln("Failed to add file contents to stage1 prompt", err)
 			}
 			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents)
 		}
@@ -66,7 +70,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Fatalln("failed to add file contents to stage1 prompt", err)
+				logger.Fatalln("Failed to add file contents to stage1 prompt", err)
 			}
 			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents)
 		}
