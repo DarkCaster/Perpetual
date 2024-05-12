@@ -23,70 +23,74 @@ func newSimpleLogger(initialLevel LogLevel) (*SimpleLogger, error) {
 
 func (l *SimpleLogger) Tracef(format string, args ...any) {
 	if l.CurLevel >= TraceLevel {
-		l.NormalLogger.Printf("[TRACE] "+format, args...)
+		l.NormalLogger.Print("[TRC] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Debugf(format string, args ...any) {
 	if l.CurLevel >= DebugLevel {
-		l.NormalLogger.Printf("[DEBUG] "+format, args...)
+		l.NormalLogger.Print("[DBG] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Infof(format string, args ...any) {
 	if l.CurLevel >= InfoLevel {
-		l.NormalLogger.Printf("[INFO] "+format, args...)
+		l.NormalLogger.Print("[INF] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Warnf(format string, args ...any) {
 	if l.CurLevel >= WarnLevel {
-		l.NormalLogger.Printf("[WARN] "+format, args...)
+		l.NormalLogger.Print("[WRN] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Errorf(format string, args ...any) {
 	if l.CurLevel >= ErrorLevel {
-		l.ErrorLogger.Printf("[ERROR] "+format, args...)
+		l.ErrorLogger.Print("[ERR] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Panicf(format string, args ...any) {
-	l.ErrorLogger.Panicf("[PANIC] "+format, args...)
+	msg := fmt.Sprintf(format, args...)
+	l.ErrorLogger.Print("[PNC] ", msg)
+	panic(msg)
 }
 
 func (l *SimpleLogger) Traceln(args ...any) {
 	if l.CurLevel >= TraceLevel {
-		l.NormalLogger.Println(fmt.Sprint("[TRACE]", fmt.Sprint(args...)))
+		l.NormalLogger.Print("[TRC] ", fmt.Sprintln(args...))
 	}
 }
 
 func (l *SimpleLogger) Debugln(args ...any) {
 	if l.CurLevel >= DebugLevel {
-		l.NormalLogger.Println(fmt.Sprint("[DEBUG]", fmt.Sprint(args...)))
+		l.NormalLogger.Print("[DBG] ", fmt.Sprintln(args...))
 	}
 }
 
 func (l *SimpleLogger) Infoln(args ...any) {
 	if l.CurLevel >= InfoLevel {
-		l.NormalLogger.Println(fmt.Sprint("[INFO]", fmt.Sprint(args...)))
+		l.NormalLogger.Print("[INF] ", fmt.Sprintln(args...))
 	}
 }
 
 func (l *SimpleLogger) Warnln(args ...any) {
 	if l.CurLevel >= WarnLevel {
-		l.NormalLogger.Println(fmt.Sprint("[WARN]", fmt.Sprint(args...)))
+		l.NormalLogger.Print("[WRN] ", fmt.Sprintln(args...))
 	}
 }
 
 func (l *SimpleLogger) Errorln(args ...any) {
 	if l.CurLevel >= ErrorLevel {
-		l.ErrorLogger.Println(fmt.Sprint("[ERROR]", fmt.Sprint(args...)))
+		l.ErrorLogger.Print("[ERR] ", fmt.Sprintln(args...))
 	}
 }
 
 func (l *SimpleLogger) Panicln(args ...any) {
-	l.ErrorLogger.Panicln(fmt.Sprint("[PANIC]", fmt.Sprint(args...)))
+	msg := fmt.Sprintln(args...)
+	l.ErrorLogger.Print("[PNC] ", msg)
+	panic(msg)
 }
 
 func (l *SimpleLogger) SetLevel(newLevel LogLevel) {
