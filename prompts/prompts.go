@@ -88,6 +88,8 @@ func NewPrompts(targetLang string) (Prompts, error) {
 	switch targetLang {
 	case "GO":
 		return &GoPrompts{}, nil
+	case "DOTNETFW":
+		return &DotNetFWPrompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
