@@ -26,14 +26,13 @@ func implementFlags() *flag.FlagSet {
 func Run(args []string, logger *logrus.Logger) {
 	logger.Debugln("Starting 'implement' operation")
 
-	var help, noAnnotate, allFiles, planning, verbose, trace bool
+	var help, noAnnotate, planning, verbose, trace bool
 	var manualFilePath string
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
-	flags.BoolVar(&allFiles, "a", false, "Send all project files to context (warning: may incur high costs, may overflow LLM context)")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -46,16 +45,12 @@ func Run(args []string, logger *logrus.Logger) {
 	if trace {
 		logger.SetLevel(logrus.TraceLevel)
 	}
-	logger.Traceln("Parsed flags:", "help:", help, "noAnnotate:", noAnnotate, "allFiles:", allFiles, "manualFilePath:", manualFilePath, "verbose:", verbose, "trace:", trace)
+	logger.Traceln("Parsed flags:", "help:", help, "noAnnotate:", noAnnotate, "manualFilePath:", manualFilePath, "verbose:", verbose, "trace:", trace)
 
 	if help {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	// We do not need file annotations when sending all the files content to the context
-	if allFiles {
-		noAnnotate = true
-	}
 
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
