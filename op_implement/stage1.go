@@ -24,11 +24,11 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	logger.Debugln("Stage1: Created LLM connector")
 
 	loadPrompt := func(filePath string, errorMsg string) string {
-		bytes, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
+		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
 			logger.Fatalln(errorMsg, err)
 		}
-		return string(bytes)
+		return text
 	}
 
 	// Create project-index request message
