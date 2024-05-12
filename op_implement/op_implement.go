@@ -215,11 +215,15 @@ func Run(args []string, logger *logrus.Logger) {
 		// Find out do we have annotations for files not in targetFiles
 		nonTargetFilesAnnotationsCount := 0
 		for filename := range annotations {
+			found := false
 			for _, targetFile := range targetFiles {
 				if filename == targetFile {
-					nonTargetFilesAnnotationsCount++
+					found = true
 					break
 				}
+			}
+			if !found {
+				nonTargetFilesAnnotationsCount++
 			}
 		}
 		if nonTargetFilesAnnotationsCount > 0 {
