@@ -212,10 +212,28 @@ func Run(args []string, logger *logrus.Logger) {
 		if err != nil {
 			logger.Fatalln("error reading annotations:", err)
 		}
-		// Announce start of new LLM session
-		llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
-		// Run stage 1
-		filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNames, annotations, targetFiles, logger)
+		// Find out do we have annotations for files not in targetFiles
+		nonTargetFilesAnnotationsCount := 0
+		for filename := range annotations {
+			found := false
+			for _, targetFile := range targetFiles {
+				if filename == targetFile {
+					found = true
+					break
+				}
+			}
+			if !found {
+				nonTargetFilesAnnotationsCount++
+			}
+		}
+		if nonTargetFilesAnnotationsCount > 0 {
+			// Announce start of new LLM session
+			llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
+			// Run stage 1
+			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNames, annotations, targetFiles, logger)
+		} else {
+			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
+		}
 	}
 
 	checkNoUpload := func(filePath string) bool {
