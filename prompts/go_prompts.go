@@ -91,5 +91,5 @@ func (p *GoPrompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *GoPrompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*<output>\\n?", "(?m)<\\/output>\\s*$?"}
+	return []string{"(?m)\\s*<output>\\n?", "(?m)<\\/output>\\s*($|\\n)"}
 }
