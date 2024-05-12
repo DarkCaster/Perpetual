@@ -37,7 +37,9 @@ func Run(args []string, logger logging.ILogger) {
 	if trace {
 		logger.SetLevel(logging.TraceLevel)
 	}
-	logger.Traceln("Parsed flags:", "help:", help, "language:", lang, "verbose:", verbose, "trace:", trace)
+
+	logger.Debugln("Starting 'init' operation")
+	logger.Traceln("Args:", args)
 
 	if help {
 		usage.PrintOperationUsage("", initFlags)
@@ -51,20 +53,20 @@ func Run(args []string, logger logging.ILogger) {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		logger.Panicln("error getting current working directory:", err)
+		logger.Panicln("Error getting current working directory:", err)
 	}
 
 	perpetualDir := filepath.Join(cwd, ".perpetual")
 	_, err = os.Stat(perpetualDir)
 	if err == nil {
-		logger.Warnln("directory .perpetual already exists")
+		logger.Warnln("Directory .perpetual already exists")
 	} else if !os.IsNotExist(err) {
-		logger.Panicln("error checking for .perpetual directory:", err)
+		logger.Panicln("Error checking for .perpetual directory:", err)
 	} else {
 		logger.Traceln("Creating .perpetual directory")
 		err = os.Mkdir(perpetualDir, 0755)
 		if err != nil {
-			logger.Panicln("error creating .perpetual directory:", err)
+			logger.Panicln("Error creating .perpetual directory:", err)
 		}
 	}
 
@@ -74,13 +76,13 @@ func Run(args []string, logger logging.ILogger) {
 	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n", utils.DotEnvFileName, utils.AnnotationsFileName, llm.ChatLogFile, llm.RawLogFile)
 	err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
-		logger.Panicln("error creating .gitignore file:", err)
+		logger.Panicln("Error creating .gitignore file:", err)
 	}
 
 	logger.Traceln("Creating env example file")
 	err = utils.SaveTextFile(filepath.Join(perpetualDir, DotEnvExampleFileName), DotEnvExample)
 	if err != nil {
-		logger.Panicln("error creating env example file:", err)
+		logger.Panicln("Error creating env example file:", err)
 	}
 
 	// Create a prompts directory (if it doesn't exist)
@@ -90,10 +92,10 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Traceln("Creating prompts directory")
 		err = os.Mkdir(promptsDir, 0755)
 		if err != nil {
-			logger.Panicln("error creating prompts directory:", err)
+			logger.Panicln("Error creating prompts directory:", err)
 		}
 	} else if err != nil {
-		logger.Panicln("error checking prompts directory:", err)
+		logger.Panicln("Error checking prompts directory:", err)
 	}
 
 	// Create a prompt-files based on the selected language
@@ -103,39 +105,39 @@ func Run(args []string, logger logging.ILogger) {
 		usage.PrintOperationUsage(err.Error(), initFlags)
 	}
 
-	savePrompt := func(filePath string, prompt string, errorMsg string) {
+	savePrompt := func(filePath string, prompt string) {
 		logger.Traceln("Saving prompt:", filePath)
 		err = utils.SaveTextFile(filepath.Join(promptsDir, filePath), prompt)
 		if err != nil {
-			logger.Panicln(errorMsg, err)
+			logger.Panicln(err)
 		}
 	}
 
 	// Save the system prompt to a file
-	savePrompt(prompts.SystemPromptFile, promptsObj.GetSystemPrompt(), "error saving system prompt:")
+	savePrompt(prompts.SystemPromptFile, promptsObj.GetSystemPrompt())
 
 	// Save annotate-operation prompts
-	savePrompt(prompts.AnnotatePromptFile, promptsObj.GetAnnotatePrompt(), "error saving annotate prompt:")
-	savePrompt(prompts.AIAnnotateResponseFile, promptsObj.GetAIAnnotateResponse(), "error saving annotate response file:")
+	savePrompt(prompts.AnnotatePromptFile, promptsObj.GetAnnotatePrompt())
+	savePrompt(prompts.AIAnnotateResponseFile, promptsObj.GetAIAnnotateResponse())
 
 	// Save implement-operation stage1 prompts
-	savePrompt(prompts.ImplementStage1ProjectIndexPromptFile, promptsObj.GetImplementStage1ProjectIndexPrompt(), "error saving implement stage1-project-index prompt file:")
-	savePrompt(prompts.AIImplementStage1ProjectIndexResponseFile, promptsObj.GetAIImplementStage1ProjectIndexResponse(), "error saving implement ai-stage1-project-index response file:")
-	savePrompt(prompts.ImplementStage1SourceAnalysisPromptFile, promptsObj.GetImplementStage1SourceAnalysisPrompt(), "error saving implement stage1-source-analysis prompt file:")
+	savePrompt(prompts.ImplementStage1ProjectIndexPromptFile, promptsObj.GetImplementStage1ProjectIndexPrompt())
+	savePrompt(prompts.AIImplementStage1ProjectIndexResponseFile, promptsObj.GetAIImplementStage1ProjectIndexResponse())
+	savePrompt(prompts.ImplementStage1SourceAnalysisPromptFile, promptsObj.GetImplementStage1SourceAnalysisPrompt())
 
 	// Save implement-operation stage2 prompts
-	savePrompt(prompts.ImplementStage2ProjectCodePromptFile, promptsObj.GetImplementStage2ProjectCodePrompt(), "error saving implement stage2-project-code prompt file:")
-	savePrompt(prompts.AIImplementStage2ProjectCodeResponseFile, promptsObj.GetAIImplementStage2ProjectCodeResponse(), "error saving implement ai-stage2-project-code response file:")
-	savePrompt(prompts.ImplementStage2FilesToChangePromptFile, promptsObj.GetImplementStage2FilesToChangePrompt(), "error saving implement stage2-files-to-change prompt file:")
+	savePrompt(prompts.ImplementStage2ProjectCodePromptFile, promptsObj.GetImplementStage2ProjectCodePrompt())
+	savePrompt(prompts.AIImplementStage2ProjectCodeResponseFile, promptsObj.GetAIImplementStage2ProjectCodeResponse())
+	savePrompt(prompts.ImplementStage2FilesToChangePromptFile, promptsObj.GetImplementStage2FilesToChangePrompt())
 
 	// Save implement-operation stage2 no-planning prompts
-	savePrompt(prompts.ImplementStage2NoPlanningPromptFile, promptsObj.GetImplementStage2NoPlanningPrompt(), "error saving implement stage2-no-planning prompt file:")
-	savePrompt(prompts.AIImplementStage2NoPlanningResponseFile, promptsObj.GetAIImplementStage2NoPlanningResponse(), "error saving implement ai-stage2-no-planning response file:")
+	savePrompt(prompts.ImplementStage2NoPlanningPromptFile, promptsObj.GetImplementStage2NoPlanningPrompt())
+	savePrompt(prompts.AIImplementStage2NoPlanningResponseFile, promptsObj.GetAIImplementStage2NoPlanningResponse())
 
 	// Save implement-operation stage3 prompts
-	savePrompt(prompts.ImplementStage3ChangesDonePromptFile, promptsObj.GetImplementStage3ChangesDonePrompt(), "error saving implement stage3-changes-done prompt file:")
-	savePrompt(prompts.AIImplementStage3ChangesDoneResponseFile, promptsObj.GetAIImplementStage3ChangesDoneResponse(), "error saving implement ai-stage3-changes-done response file:")
-	savePrompt(prompts.ImplementStage3ProcessFilePromptFile, promptsObj.GetImplementStage3ProcessFilePrompt(), "error saving implement stage3-process-file prompt file:")
+	savePrompt(prompts.ImplementStage3ChangesDonePromptFile, promptsObj.GetImplementStage3ChangesDonePrompt())
+	savePrompt(prompts.AIImplementStage3ChangesDoneResponseFile, promptsObj.GetAIImplementStage3ChangesDoneResponse())
+	savePrompt(prompts.ImplementStage3ProcessFilePromptFile, promptsObj.GetImplementStage3ProcessFilePrompt())
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")
