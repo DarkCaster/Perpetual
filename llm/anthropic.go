@@ -25,11 +25,11 @@ type AnthropicLLMConnector struct {
 	RawMessageLogger func(v ...any)
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, rawMessageLogger func(v ...any)) *AnthropicLLMConnector {
-	return &AnthropicLLMConnector{BaseURL: customBaseURL, Token: token, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, RawMessageLogger: rawMessageLogger}
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
+	return &AnthropicLLMConnector{BaseURL: customBaseURL, Token: token, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, RawMessageLogger: llmRawMessageLogger}
 }
 
-func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, rawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	token := os.Getenv("ANTHROPIC_API_KEY")
@@ -59,7 +59,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 	}
 
 	customBaseURL := os.Getenv("ANTHROPIC_BASE_URL")
-	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), rawMessageLogger), nil
+	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), llmRawMessageLogger), nil
 }
 
 func (p *AnthropicLLMConnector) Query(messages ...Message) (string, error) {

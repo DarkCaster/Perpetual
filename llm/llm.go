@@ -10,14 +10,14 @@ import (
 type LLMConnector interface {
 	// Main interaction point with LLM
 	Query(messages ...Message) (string, error)
-	// Following functions needed for logging, consider not to use it anywhere else
+	// Following functions needed for LLM messages logging, consider not to use it anywhere else
 	GetProvider() string
 	GetModel() string
 	GetTemperature() float64
 	GetMaxTokens() int
 }
 
-func NewLLMConnector(operation string, systemPrompt string, rawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	operation = strings.ToUpper(operation)
 	provider := os.Getenv(fmt.Sprintf("LLM_PROVIDER_OP_%s", operation))
 	if provider == "" {
@@ -43,7 +43,7 @@ func NewLLMConnector(operation string, systemPrompt string, rawMessageLogger fun
 	}
 	switch provider {
 	case "ANTHROPIC":
-		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, temperature, rawMessageLogger)
+		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}

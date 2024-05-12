@@ -15,7 +15,7 @@ import (
 //###NOUPLOAD###
 
 const ChatLogFile = ".chatlog.md"
-const RawLogFile = ".raw_message_log.txt"
+const LLMRawLogFile = ".raw_message_log.txt"
 
 func LogStartSession(logger logging.ILogger, perpetualDir string, operation string, args ...string) {
 	now := time.Now().Format("2006-01-02 15:04:05")
@@ -209,7 +209,7 @@ func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
 	logFunc := func(v ...any) {
 		for _, msg := range v {
 			str := fmt.Sprintln(msg)
-			utils.AppendToTextFile(filepath.Join(perpetualDir, RawLogFile), str)
+			utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
 		}
 	}
 	return logFunc
