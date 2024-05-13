@@ -24,7 +24,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, verbose, trace bool
+	var help, noAnnotate, planning, reasonings, verbose, trace bool
 	var manualFilePath string
 
 	// Parse flags for the "implement" operation
@@ -32,6 +32,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
+	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -49,6 +50,15 @@ func Run(args []string, logger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	// Set planning mode
+	planningMode := 0
+	if planning {
+		planningMode = 1
+	}
+	if reasonings {
+		planningMode = 2
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
@@ -107,6 +117,9 @@ func Run(args []string, logger logging.ILogger) {
 	fileNameTagsRxStrings := loadStringPair(prompts.FileNameTagsRXFileName)
 	fileNameTagsStrings := loadStringPair(prompts.FileNameTagsFileName)
 	outputTagsRxStrings := loadStringPair(prompts.OutputTagsRXFileName)
+	reasoningsTagsRxStrings := loadStringPair(prompts.ReasoningsTagsRXFileName)
+	reasoningsTagsStrings := loadStringPair(prompts.ReasoningsTagsFileName)
+
 	var fileNameEmbedRXString string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
 	if err != nil {
@@ -267,7 +280,7 @@ func Run(args []string, logger logging.ILogger) {
 	llm.LogStartSession(logger, perpetualDir, "implement (stage2,stage3,stage4)", args...)
 
 	// Run stage 2
-	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planning, fileNameTagsRxStrings, fileNameTagsStrings, allFileNames, filesToReview, targetFiles, logger)
+	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTagsStrings, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {

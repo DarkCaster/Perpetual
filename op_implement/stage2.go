@@ -2,6 +2,7 @@ package op_implement
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -9,7 +10,8 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, planning bool, fileNameTagsRxStrings []string, fileNameTags []string,
+func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, planningMode int,
+	fileNameTagsRxStrings []string, fileNameTags []string, reasoningsTagsRxStrings []string, reasoningsNameTags []string,
 	allFileNames []string, filesForReview []string, targetFiles []string, logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage2: Starting")
@@ -52,9 +54,18 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Infoln("Not creating extra source-code review")
 	}
 
-	if planning {
+	if planningMode > 0 {
 		// Create files to change request message
-		stage2FilesToChangeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangePromptFile))
+		var stage2FilesToChangeMessage llm.Message
+		switch planningMode {
+		case 2:
+			stage2FilesToChangeMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile))
+		case 1:
+			fallthrough
+		default:
+			stage2FilesToChangeMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangePromptFile))
+		}
+		// Attach target files
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
@@ -92,7 +103,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	var otherFilesToModify []string
 
 	// Only perform real planning step if enabled
-	if planning {
+	if planningMode > 0 {
 		// Request LLM to provide file list that will be modified (or created) while implementing code
 		logger.Infoln("Running stage2: planning changes")
 		aiResponse, err := stage2Connector.Query(messages...)
@@ -105,6 +116,24 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
 		llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
 		logger.Debugln("Stage2: LLM response logged")
+
+		// Get reasonings
+		reasonings := ""
+		if planningMode == 2 {
+			reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
+			if err != nil {
+				logger.Warnln("Cannot find reasonings text blocks in LLM response")
+			}
+			if len(reasoningsArr) < 1 {
+				logger.Warnln("Reasonings text from LLM response is empty")
+				reasoningsArr = []string{""}
+			}
+			if len(reasoningsArr) > 1 {
+				logger.Warnln("More than 1 reasonings text block detected, joining it together")
+				reasoningsArr = []string{strings.Join(reasoningsArr, "\n\n")}
+			}
+			reasonings = reasoningsArr[0]
+		}
 
 		// Process response, parse files that will be created
 		filesToProcessRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
@@ -129,7 +158,8 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			//make file path relative to project root
 			file, err := utils.MakePathRelative(projectRootDir, check, true)
 			if err != nil {
-				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory", check)
+				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory, removing reasonings", check)
+				reasonings = ""
 				continue
 			}
 			// Sort files selected by LLM
@@ -167,13 +197,18 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		}
 		logger.Debugln("Stage2: Files to modify parsed")
 
-		// Generate simplified ai message, with just a list of files
+		// Generate simplified ai message, with list of files, and reasonings if present
 		simplifiedResponseMessage := llm.NewMessage(llm.SimulatedAIResponse)
+		// Append files
 		for _, item := range otherFilesToModify {
 			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
 		}
 		for _, item := range targetFilesToModify {
 			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
+		}
+		// Append reasonings if any
+		if reasonings != "" {
+			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
 		}
 
 		// Log message before response, to mark it as logged here, because stage3 actively copying and reusing old messages
