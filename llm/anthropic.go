@@ -149,61 +149,65 @@ func renderMessagesToAnthropicLangChainFormat(messages []Message) ([]llms.Messag
 		default:
 			return result, fmt.Errorf("invalid message type: %d", message.Type)
 		}
-		// Convert message content
-		var builder strings.Builder
-		for index, fragment := range message.Fragments {
-			switch fragment.Type {
-			case PlainTextFragment:
-				// Each additional plain text fragment should have a blank line between
-				if index > 0 {
+		if message.Type == SimulatedAIResponse && message.RawText != "" {
+			llmMessage.Parts = []llms.ContentPart{llms.TextContent{Text: message.RawText}}
+		} else {
+			// Convert message content
+			var builder strings.Builder
+			for index, fragment := range message.Fragments {
+				switch fragment.Type {
+				case PlainTextFragment:
+					// Each additional plain text fragment should have a blank line between
+					if index > 0 {
+						builder.WriteString("\n")
+					}
+					builder.WriteString(fragment.Payload)
+					// Add extra
+					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+						builder.WriteString("\n")
+					}
+				case IndexFragment:
+					// Each index fragment should have a blank line between it and previous text
+					if index > 0 {
+						builder.WriteString("\n")
+					}
+					builder.WriteString("# File: " + fragment.Payload)
 					builder.WriteString("\n")
-				}
-				builder.WriteString(fragment.Payload)
-				// Add extra
-				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+				case FileFragment:
+					// Each file fragment must have a blank line between it and previous text
+					if index > 0 {
+						builder.WriteString("\n")
+					}
+					builder.WriteString("<content filename=\"" + fragment.Metadata + "\">")
 					builder.WriteString("\n")
-				}
-			case IndexFragment:
-				// Each index fragment should have a blank line between it and previous text
-				if index > 0 {
+					builder.WriteString(fragment.Payload)
+					if fragment.Payload == "" || fragment.Payload[len(fragment.Payload)-1] != '\n' {
+						builder.WriteString("\n")
+					}
+					builder.WriteString("</content>")
 					builder.WriteString("\n")
-				}
-				builder.WriteString("# File: " + fragment.Payload)
-				builder.WriteString("\n")
-			case FileFragment:
-				// Each file fragment must have a blank line between it and previous text
-				if index > 0 {
+				case TaggedFragment:
+					if index > 0 {
+						builder.WriteString("\n")
+					}
+					var tags []string
+					err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+					if err != nil {
+						return result, err
+					}
+					if len(tags) < 2 {
+						return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
+					}
+					builder.WriteString(tags[0])
+					builder.WriteString(fragment.Payload)
+					builder.WriteString(tags[1])
 					builder.WriteString("\n")
+				default:
+					return result, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)
 				}
-				builder.WriteString("<content filename=\"" + fragment.Metadata + "\">")
-				builder.WriteString("\n")
-				builder.WriteString(fragment.Payload)
-				if fragment.Payload == "" || fragment.Payload[len(fragment.Payload)-1] != '\n' {
-					builder.WriteString("\n")
-				}
-				builder.WriteString("</content>")
-				builder.WriteString("\n")
-			case TaggedFragment:
-				if index > 0 {
-					builder.WriteString("\n")
-				}
-				var tags []string
-				err := json.Unmarshal([]byte(fragment.Metadata), &tags)
-				if err != nil {
-					return result, err
-				}
-				if len(tags) < 2 {
-					return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
-				}
-				builder.WriteString(tags[0])
-				builder.WriteString(fragment.Payload)
-				builder.WriteString(tags[1])
-				builder.WriteString("\n")
-			default:
-				return result, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)
 			}
+			llmMessage.Parts = []llms.ContentPart{llms.TextContent{Text: builder.String()}}
 		}
-		llmMessage.Parts = []llms.ContentPart{llms.TextContent{Text: builder.String()}}
 		result = append(result, llmMessage)
 	}
 	if len(result) < 1 {

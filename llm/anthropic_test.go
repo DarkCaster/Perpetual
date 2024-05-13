@@ -59,6 +59,7 @@ func TestRenderMessagesToAnthropicLangChainFormat(t *testing.T) {
 				AddFileFragment(AddPlainTextFragment(NewMessage(SimulatedAIResponse), "This is a file content."), "file.go", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}"),
 				AddTaggedFragment(NewMessage(UserRequest), "Tagged text", []string{"[", "]"}),
 				AddTaggedFragment(AddTaggedFragment(AddPlainTextFragment(NewMessage(UserRequest), "Hello"), "Tagged text", []string{"[", "]"}), "Tagged text", []string{"<tag>", "</tag>"}),
+				SetRawResponse(NewMessage(SimulatedAIResponse), "this is raw response"),
 			},
 			expected: []llms.MessageContent{
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n"}}},
@@ -68,6 +69,7 @@ func TestRenderMessagesToAnthropicLangChainFormat(t *testing.T) {
 				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "This is a file content.\n\n<content filename=\"file.go\">\npackage main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n</content>\n"}}},
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "[Tagged text]\n"}}},
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n\n[Tagged text]\n\n<tag>Tagged text</tag>\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "this is raw response"}}},
 			},
 			err: nil,
 		},

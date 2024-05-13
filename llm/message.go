@@ -42,8 +42,8 @@ func addMessageFragment(message Message, fragmentType FragmentType, payload stri
 }
 
 func SetRawResponse(message Message, rawResponse string) Message {
-	if message.Type != RealAIResponse {
-		panic("SetRawResponse only can be issued on RealAIResponse messages")
+	if message.Type != RealAIResponse && message.Type != SimulatedAIResponse {
+		panic("SetRawResponse only can be issued on RealAIResponse or SimulatedAIResponse messages")
 	}
 	message.RawText = rawResponse
 	return message
