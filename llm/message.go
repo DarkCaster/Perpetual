@@ -17,6 +17,7 @@ const (
 	IndexFragment
 	FileFragment
 	TaggedFragment
+	MultilineTaggedFragment
 )
 
 type Fragment struct {
@@ -70,17 +71,7 @@ func AddMultilineTaggedFragment(message Message, payload string, tags []string) 
 	if err != nil {
 		panic(err)
 	}
-	if payload == "" {
-		payload = "\n"
-	} else {
-		if payload[0] != '\n' {
-			payload = "\n" + payload
-		}
-		if payload[len(payload)-1] != '\n' {
-			payload = payload + "\n"
-		}
-	}
-	return addMessageFragment(message, TaggedFragment, payload, string(bTags))
+	return addMessageFragment(message, MultilineTaggedFragment, payload, string(bTags))
 }
 
 func AddFileFragment(message Message, filename string, contents string) Message {

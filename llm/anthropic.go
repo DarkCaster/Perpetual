@@ -181,7 +181,7 @@ func renderMessagesToAnthropicLangChainFormat(messages []Message) ([]llms.Messag
 					builder.WriteString("<content filename=\"" + fragment.Metadata + "\">")
 					builder.WriteString("\n")
 					builder.WriteString(fragment.Payload)
-					if fragment.Payload == "" || fragment.Payload[len(fragment.Payload)-1] != '\n' {
+					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
 						builder.WriteString("\n")
 					}
 					builder.WriteString("</content>")
@@ -200,6 +200,26 @@ func renderMessagesToAnthropicLangChainFormat(messages []Message) ([]llms.Messag
 					}
 					builder.WriteString(tags[0])
 					builder.WriteString(fragment.Payload)
+					builder.WriteString(tags[1])
+					builder.WriteString("\n")
+				case MultilineTaggedFragment:
+					if index > 0 {
+						builder.WriteString("\n")
+					}
+					var tags []string
+					err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+					if err != nil {
+						return result, err
+					}
+					if len(tags) < 2 {
+						return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
+					}
+					builder.WriteString(tags[0])
+					builder.WriteString("\n")
+					builder.WriteString(fragment.Payload)
+					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+						builder.WriteString("\n")
+					}
 					builder.WriteString(tags[1])
 					builder.WriteString("\n")
 				default:
