@@ -84,7 +84,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 		if message.RawText != "" && message.RawText[len(message.RawText)-1] != '\n' {
 			builder.WriteString("\n")
 		}
-		builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n\n")
+		builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n")
 	} else {
 		for index, fragment := range message.Fragments {
 			switch fragment.Type {
@@ -122,10 +122,21 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				builder.WriteString("\n")
 				builder.WriteString("````````````````````````````````````````````````````````````````````````````````" + getMarkdownCodeBlockType(fragment.Metadata) + "\n")
 				builder.WriteString(fragment.Payload)
-				if fragment.Payload == "" || fragment.Payload[len(fragment.Payload)-1] != '\n' {
+				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
 					builder.WriteString("\n")
 				}
-				builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n\n")
+				builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n")
+			case MultilineTaggedFragment:
+				// Each file fragment must have a blank line between it and previous text
+				if index > 0 {
+					builder.WriteString("\n")
+				}
+				builder.WriteString("````````````````````````````````````````````````````````````````````````````````text\n")
+				builder.WriteString(fragment.Payload)
+				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+					builder.WriteString("\n")
+				}
+				builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n")
 			case TaggedFragment:
 				if index > 0 {
 					builder.WriteString("\n")
@@ -152,7 +163,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 		}
 	}
 
-	builder.WriteString("___\n")
+	builder.WriteString("\n___\n")
 
 	logEntry := builder.String()
 	err := utils.AppendToTextFile(filepath.Join(perpetualDir, ChatLogFile), logEntry)
