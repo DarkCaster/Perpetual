@@ -2,7 +2,6 @@ package op_implement
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -119,20 +118,19 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		// Get reasonings
 		reasonings := ""
+		ambiguousReasonings := false
 		if planningMode == 2 {
 			reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
 			if err != nil {
-				logger.Warnln("Cannot find reasonings text blocks in LLM response")
+				logger.Warnln("Cannot extract reasonings text-block from LLM response")
+			} else if len(reasoningsArr) < 1 {
+				logger.Warnln("Reasonings text-block from LLM response is empty")
+			} else if len(reasoningsArr) > 1 {
+				logger.Warnln("More than 1 reasonings text-blocks detected")
+				ambiguousReasonings = true
+			} else {
+				reasonings = reasoningsArr[0]
 			}
-			if len(reasoningsArr) < 1 {
-				logger.Warnln("Reasonings text from LLM response is empty")
-				reasoningsArr = []string{""}
-			}
-			if len(reasoningsArr) > 1 {
-				logger.Warnln("More than 1 reasonings text block detected, joining it together")
-				reasoningsArr = []string{strings.Join(reasoningsArr, "\n\n")}
-			}
-			reasonings = reasoningsArr[0]
 		}
 
 		// Process response, parse files that will be created
@@ -160,6 +158,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory, removing reasonings", check)
 				reasonings = ""
+				ambiguousReasonings = false
 				continue
 			}
 			// Sort files selected by LLM
@@ -199,16 +198,21 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		// Generate simplified ai message, with list of files, and reasonings if present
 		simplifiedResponseMessage := llm.NewMessage(llm.SimulatedAIResponse)
-		// Append files
-		for _, item := range otherFilesToModify {
-			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
-		}
-		for _, item := range targetFilesToModify {
-			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
-		}
-		// Append reasonings if any
-		if reasonings != "" {
-			simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
+		if ambiguousReasonings {
+			logger.Warnln("Not attempting to reformat response because of ambiguous reasonings")
+			simplifiedResponseMessage = llm.SetRawResponse(simplifiedResponseMessage, aiResponse)
+		} else {
+			// Append files
+			for _, item := range otherFilesToModify {
+				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
+			}
+			for _, item := range targetFilesToModify {
+				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
+			}
+			// Append reasonings if any
+			if reasonings != "" {
+				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
+			}
 		}
 
 		// Log message before response, to mark it as logged here, because stage3 actively copying and reusing old messages
