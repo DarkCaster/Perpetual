@@ -211,7 +211,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 			// Append reasonings if any
 			if reasonings != "" {
-				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
+				simplifiedResponseMessage = llm.AddMultilineTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
 			}
 		}
 
