@@ -26,21 +26,21 @@ jobs:
 
     - name: Build linux amd64 binaries
       if: matrix.target == 'linux'
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_amd64 github.com/DarkCaster/Perpetual
+      run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_amd64.bin github.com/DarkCaster/Perpetual
 
-    - name: Build linux amd64 binaries
+    - name: Build linux arm64 binaries
       if: matrix.target == 'linux'
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_arm64 github.com/DarkCaster/Perpetual
+      run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_arm64.bin github.com/DarkCaster/Perpetual
 
     - name: Build linux x86 binaries
       if: matrix.target == 'linux'
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_x86 github.com/DarkCaster/Perpetual
+      run: env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_x86.bin github.com/DarkCaster/Perpetual
 
     - name: Build windows amd64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_amd64.exe github.com/DarkCaster/Perpetual
 
-    - name: Build windows amd64 binaries
+    - name: Build windows arm64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_arm64.exe github.com/DarkCaster/Perpetual
 
@@ -54,7 +54,7 @@ jobs:
       with:
         name: linux-binaries
         path: |
-          Perpetual_*
+          Perpetual_*.bin
 
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
