@@ -1,0 +1,4 @@
+[
+  "(?m)\\s*<reasonings>\\n?",
+  "(?m)<\\/reasonings>\\s*($|\\n)"
+]

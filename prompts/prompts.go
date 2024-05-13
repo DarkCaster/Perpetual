@@ -17,6 +17,8 @@ const NoUploadCommentRXFileName = "no_upload_comment_regexps.json"
 const OpImplementCommentRXFileName = "op_implement_comment_regexps.json"
 const FileNameEmbedRXFileName = "filename_embed_regexp.json"
 const OutputTagsRXFileName = "output_tags_regexps.json"
+const ReasoningsTagsRXFileName = "reasonings_tags_regexps.json"
+const ReasoningsTagsFileName = "reasonings_tags.json"
 const SystemPromptFile = "system_prompt.txt"
 
 // Annotate-operation prompt-filenames
@@ -32,6 +34,7 @@ const ImplementStage1SourceAnalysisPromptFile = "op_implement_stage1_source_anal
 const ImplementStage2ProjectCodePromptFile = "op_implement_stage2_project_code_prompt.txt"
 const AIImplementStage2ProjectCodeResponseFile = "op_implement_stage2_project_code_ai_response.txt"
 const ImplementStage2FilesToChangePromptFile = "op_implement_stage2_files_to_change_prompt.txt"
+const ImplementStage2FilesToChangeExtendedPromptFile = "op_implement_stage2_files_to_change_extended_prompt.txt"
 
 const ImplementStage2NoPlanningPromptFile = "op_implement_stage2_no_planning_prompt.txt"
 const AIImplementStage2NoPlanningResponseFile = "op_implement_stage2_no_planning_ai_response.txt"
@@ -60,6 +63,8 @@ type Prompts interface {
 	GetNoUploadCommentRegexps() []string
 	GetFileNameEmbedRegex() string
 	GetOutputTagsRegexps() []string
+	GetReasoningsTags() []string
+	GetReasoningsTagsRegexps() []string
 
 	// Implement stage 1 prompts
 	GetImplementStage1ProjectIndexPrompt() string
@@ -70,6 +75,7 @@ type Prompts interface {
 	GetImplementStage2ProjectCodePrompt() string
 	GetAIImplementStage2ProjectCodeResponse() string
 	GetImplementStage2FilesToChangePrompt() string
+	GetImplementStage2FilesToChangeExtendedPrompt() string
 
 	// Implamane stage 2 no planning prompts
 	GetImplementStage2NoPlanningPrompt() string

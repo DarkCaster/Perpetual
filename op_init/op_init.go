@@ -129,6 +129,7 @@ func Run(args []string, logger logging.ILogger) {
 	savePrompt(prompts.ImplementStage2ProjectCodePromptFile, promptsObj.GetImplementStage2ProjectCodePrompt())
 	savePrompt(prompts.AIImplementStage2ProjectCodeResponseFile, promptsObj.GetAIImplementStage2ProjectCodeResponse())
 	savePrompt(prompts.ImplementStage2FilesToChangePromptFile, promptsObj.GetImplementStage2FilesToChangePrompt())
+	savePrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile, promptsObj.GetImplementStage2FilesToChangeExtendedPrompt())
 
 	// Save implement-operation stage2 no-planning prompts
 	savePrompt(prompts.ImplementStage2NoPlanningPromptFile, promptsObj.GetImplementStage2NoPlanningPrompt())
@@ -182,9 +183,21 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("error writing file-name embed regexp JSON file: ", err)
 	}
 	// Save output tags to a json
-	logger.Traceln("Saving output tags")
+	logger.Traceln("Saving output-tags regexps")
 	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), promptsObj.GetOutputTagsRegexps())
 	if err != nil {
 		logger.Panicln("error writing output tags to JSON file: ", err)
+	}
+	// Save reasonings tags regexps to a json
+	logger.Traceln("Saving reasonings-tags regexps")
+	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ReasoningsTagsRXFileName), promptsObj.GetReasoningsTagsRegexps())
+	if err != nil {
+		logger.Panicln("error writing reasonings tags regexps to JSON file: ", err)
+	}
+	// Save reasonings tags to a json
+	logger.Traceln("Saving reasonings-tags")
+	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ReasoningsTagsFileName), promptsObj.GetReasoningsTags())
+	if err != nil {
+		logger.Panicln("error writing reasonings tags to JSON file: ", err)
 	}
 }
