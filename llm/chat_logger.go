@@ -131,11 +131,25 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				if index > 0 {
 					builder.WriteString("\n")
 				}
+				var tags []string
+				err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+				if err != nil {
+					logger.Errorln("Failed to unmarshal tags metadata for tagged fragment with index:", index, "error:", err)
+					continue
+				}
+				if len(tags) < 2 {
+					logger.Errorln("It must be 2 tags in metadata for tagged fragment with index:", index)
+					continue
+				}
 				builder.WriteString("````````````````````````````````````````````````````````````````````````````````text\n")
+				builder.WriteString(tags[0])
+				builder.WriteString("\n")
 				builder.WriteString(fragment.Payload)
 				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
 					builder.WriteString("\n")
 				}
+				builder.WriteString(tags[1])
+				builder.WriteString("\n")
 				builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n")
 			case TaggedFragment:
 				if index > 0 {
