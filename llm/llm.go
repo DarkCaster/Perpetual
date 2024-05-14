@@ -60,3 +60,7 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
 }
+
+func GetDebugString(llm LLMConnector) string {
+	return fmt.Sprintf("Provider: %s, Model: %s, Temperature: %5.3f, MaxTokens: %d, MaxTokensRetries: %d", llm.GetProvider(), llm.GetModel(), llm.GetTemperature(), llm.GetMaxTokens(), llm.GetMaxTokensRetryLimit())
+}
