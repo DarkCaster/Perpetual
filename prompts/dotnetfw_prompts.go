@@ -66,6 +66,10 @@ func (p *DotNetFWPrompts) GetImplementStage3ProcessFilePrompt() string {
 	return "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented and place its full contents between <output></output> tags. The response must only contain that file with implemented code and nothing else."
 }
 
+func (p *DotNetFWPrompts) GetImplementStage3ContinuePrompt() string {
+	return "Continue generation."
+}
+
 func (p *DotNetFWPrompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 }

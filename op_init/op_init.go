@@ -139,6 +139,7 @@ func Run(args []string, logger logging.ILogger) {
 	savePrompt(prompts.ImplementStage3ChangesDonePromptFile, promptsObj.GetImplementStage3ChangesDonePrompt())
 	savePrompt(prompts.AIImplementStage3ChangesDoneResponseFile, promptsObj.GetAIImplementStage3ChangesDoneResponse())
 	savePrompt(prompts.ImplementStage3ProcessFilePromptFile, promptsObj.GetImplementStage3ProcessFilePrompt())
+	savePrompt(prompts.ImplementStage3ContinuePromptFile, promptsObj.GetImplementStage3ContinuePrompt())
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")

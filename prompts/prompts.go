@@ -43,6 +43,7 @@ const AIImplementStage2NoPlanningResponseFile = "op_implement_stage2_no_planning
 const ImplementStage3ChangesDonePromptFile = "op_implement_stage3_changes_done_prompt.txt"
 const AIImplementStage3ChangesDoneResponseFile = "op_implement_stage3_changes_done_ai_response.txt"
 const ImplementStage3ProcessFilePromptFile = "op_implement_stage3_process_file_prompt.txt"
+const ImplementStage3ContinuePromptFile = "op_implement_stage3_continue_prompt.txt"
 
 const PromptsDir = "prompts"
 
@@ -85,6 +86,7 @@ type Prompts interface {
 	GetImplementStage3ChangesDonePrompt() string
 	GetAIImplementStage3ChangesDoneResponse() string
 	GetImplementStage3ProcessFilePrompt() string
+	GetImplementStage3ContinuePrompt() string
 }
 
 // Create particular Prompts implementation depending on requested language
