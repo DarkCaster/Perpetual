@@ -87,6 +87,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		var responses []string
 		continueGeneration := true
+		generateTry := 1
 		for continueGeneration {
 			// Log messages we are going to send
 			llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
@@ -97,8 +98,13 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("LLM query failed: ", err)
 			} else if status == llm.QueryMaxTokens {
-				logger.Warnln("LLM query reached token limit, attempting to continue")
-				continueGeneration = true
+				if generateTry >= stage3Connector.GetMaxTokensRetryLimit() {
+					logger.Errorln("LLM query reached token limit, and we are reached retry limit, not attempting to continue")
+				} else {
+					logger.Warnln("LLM query reached token limit, attempting to continue")
+					continueGeneration = true
+					generateTry++
+				}
 				// Add partial response to stage3 messages, with request to continue
 				stage3Messages = append(stage3Messages, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
 				stage3Messages = append(stage3Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ContinuePromptTemplate))
