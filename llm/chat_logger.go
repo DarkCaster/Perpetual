@@ -73,12 +73,12 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 		builder.WriteString(fmt.Sprintf("**Model:** %s  \n", connector.GetModel()))
 		builder.WriteString(fmt.Sprintf("**Temperature:** %f  \n", connector.GetTemperature()))
 		builder.WriteString(fmt.Sprintf("**Max Tokens:** %d  \n", connector.GetMaxTokens()))
-		builder.WriteString("___\n")
+		builder.WriteString("___\n\n")
 	}
 
 	// Log message content
 	if message.RawText != "" {
-		builder.WriteString("\n````````````````````````````````````````````````````````````````````````````````text\n")
+		builder.WriteString("````````````````````````````````````````````````````````````````````````````````text\n")
 		builder.WriteString(message.RawText)
 		// Ensure we have a new line at the end
 		if message.RawText != "" && message.RawText[len(message.RawText)-1] != '\n' {
