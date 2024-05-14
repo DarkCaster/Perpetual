@@ -67,7 +67,7 @@ func (p *GoPrompts) GetImplementStage3ProcessFilePrompt() string {
 }
 
 func (p *GoPrompts) GetImplementStage3ContinuePrompt() string {
-	return "Continue generation."
+	return "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 }
 
 func (p *GoPrompts) GetImplementCommentRegexps() []string {
