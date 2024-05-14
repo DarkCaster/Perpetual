@@ -56,6 +56,8 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 	switch provider {
 	case "ANTHROPIC":
 		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
+	case "OPENAI":
+		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
