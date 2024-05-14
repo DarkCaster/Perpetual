@@ -147,8 +147,9 @@ func Run(args []string, logger logging.ILogger) {
 	// Create llm connector
 	connector, err := llm.NewLLMConnector(OpName, systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Panicln("failed to create LLM connector:", err)
+		logger.Panicln("Failed to create LLM connector:", err)
 	}
+	logger.Debugln(llm.GetDebugString(connector))
 
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))

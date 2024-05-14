@@ -20,8 +20,9 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage3 llm connector
 	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Panicln("failed to create stage3 LLM connector:", err)
+		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
+	logger.Debugln(llm.GetDebugString(stage3Connector))
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
@@ -41,7 +42,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
-		logger.Debugln("Stage3: Work pending:", workPending) // Add debug logging
+		logger.Debugln("Work pending:", workPending) // Add debug logging
 
 		// Generate change-done message from already processed files
 		stage3ChangesDoneMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ChangesDonePromptTemplate)
@@ -73,7 +74,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			break
 		}
 
-		logger.Debugln("Stage3: Processing file:", pendingFile) // Add debug logging
+		logger.Debugln("Processing file:", pendingFile) // Add debug logging
 		// Create prompt from stage3ProcessFilePromptTemplate
 		stage3ProcessFilePrompt, err := utils.ReplaceTag(stage3ProcessFilePromptTemplate, fileNameEmbedTag, pendingFile)
 		if err != nil {
@@ -140,7 +141,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		// Save body to processedFileContents and add record to processedFiles
 		if len(fileBodies) > 0 {
-			logger.Debugln("Stage3: Found output for:", pendingFile)
+			logger.Debugln("Found output for:", pendingFile)
 			processedFileContents[pendingFile] = fileBodies[0]
 			processedFiles = append(processedFiles, pendingFile)
 		} else {

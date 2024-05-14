@@ -19,9 +19,9 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create stage1 llm connector
 	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Panicln("failed to create stage1 LLM connector:", err)
+		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
-	logger.Debugln("Stage1: Created LLM connector")
+	logger.Debugln(llm.GetDebugString(stage1Connector))
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
@@ -41,11 +41,11 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		}
 		stage1ProjectIndexRequestMessage = llm.AddPlainTextFragment(stage1ProjectIndexRequestMessage, annotation)
 	}
-	logger.Debugln("Stage1: Created project-index request message")
+	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
 	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage1ProjectIndexResponseFile))
-	logger.Debugln("Stage1: Created project-index simulated response message")
+	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analisys request message
 	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1SourceAnalysisPromptFile))
@@ -56,7 +56,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		}
 		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(stage1SourceAnalysisRequestMessage, item, contents)
 	}
-	logger.Debugln("Stage1: Created target files analysis request message")
+	logger.Debugln("Created target files analysis request message")
 
 	// Log messages
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1ProjectIndexRequestMessage)
@@ -73,7 +73,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	} else if status == llm.QueryMaxTokens {
 		logger.Panicln("LLM query reached token limit")
 	}
-	logger.Debugln("Stage1: LLM query completed")
+	logger.Debugln("LLM query completed")
 
 	// Log LLM response
 	responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
@@ -84,7 +84,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if err != nil {
 		logger.Panicln("Failed to parse list of files for review", err)
 	}
-	logger.Debugln("Stage1: Parsed list of files for review from LLM response")
+	logger.Debugln("Parsed list of files for review from LLM response")
 
 	// Check all requested files are among initial project file-list
 	var filesForReview []string

@@ -21,6 +21,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
+	logger.Debugln(llm.GetDebugString(stage2Connector))
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
@@ -43,12 +44,12 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents)
 		}
 		messages = append(messages, stage2ProjectSourceCodeMessage)
-		logger.Debugln("Stage2: Project source code message created")
+		logger.Debugln("Project source code message created")
 
 		// Create simulated response
 		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile))
 		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
-		logger.Debugln("Stage2: Project source code simulated response added")
+		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
 	}
@@ -73,7 +74,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents)
 		}
 		messages = append(messages, stage2FilesToChangeMessage)
-		logger.Debugln("Stage2: Files to change message created")
+		logger.Debugln("Files to change message created")
 	} else {
 		// Create files to request for non-planning mode
 		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2NoPlanningPromptFile))
@@ -85,17 +86,17 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents)
 		}
 		messages = append(messages, stage2FilesNoPlanningMessage)
-		logger.Debugln("Stage2: Files for no planning message created")
+		logger.Debugln("Files for no planning message created")
 
 		// Create simulated response
 		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2NoPlanningResponseFile))
 		messages = append(messages, stage2FilesNoPlanningResponseMessage)
-		logger.Debugln("Stage2: Files for no planning simulated response added")
+		logger.Debugln("Files for no planning simulated response added")
 	}
 
 	// Log messages
 	llm.LogMessages(logger, perpetualDir, stage2Connector, messages)
-	logger.Debugln("Stage2: Messages logged")
+	logger.Debugln("Messages logged")
 
 	// Resulted filenames
 	var targetFilesToModify []string
@@ -111,12 +112,12 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		} else if status == llm.QueryMaxTokens {
 			logger.Panicln("LLM query reached token limit")
 		}
-		logger.Traceln("Stage2: LLM query completed")
+		logger.Traceln("LLM query completed")
 
 		// Log LLM response
 		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
 		llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
-		logger.Debugln("Stage2: LLM response logged")
+		logger.Debugln("LLM response logged")
 
 		// Get reasonings
 		reasonings := ""
@@ -140,7 +141,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		if err != nil {
 			logger.Panicln("Failed to parse list of files for review", err)
 		}
-		logger.Traceln("Stage2: Files to process parsed")
+		logger.Traceln("Files to process parsed")
 
 		// Check all selected files
 		logger.Infoln("Files to modify selected by LLM:")
@@ -196,7 +197,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				}
 			}
 		}
-		logger.Debugln("Stage2: Files to modify parsed")
+		logger.Debugln("Files to modify parsed")
 
 		// Generate simplified ai message, with list of files, and reasonings if present
 		simplifiedResponseMessage := llm.NewMessage(llm.SimulatedAIResponse)
@@ -220,12 +221,12 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		// Log message before response, to mark it as logged here, because stage3 actively copying and reusing old messages
 		llm.LogMessage(logger, perpetualDir, stage2Connector, &simplifiedResponseMessage)
 		messages = append(messages, simplifiedResponseMessage)
-		logger.Debugln("Stage2: Simplified response message created")
+		logger.Debugln("Simplified response message created")
 	} else {
 		// Just copy target files into results without real LLM interaction in order to save tokens
 		logger.Infoln("Running stage2: planning disabled")
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
-		logger.Debugln("Stage2: Target files added to modify list")
+		logger.Debugln("Target files added to modify list")
 	}
 
 	return messages, otherFilesToModify, targetFilesToModify
