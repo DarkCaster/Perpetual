@@ -25,11 +25,12 @@ type AnthropicLLMConnector struct {
 	SystemPrompt     string
 	Temperature      float64
 	MaxTokens        int
+	MaxTokensRetries int
 	RawMessageLogger func(v ...any)
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
-	return &AnthropicLLMConnector{BaseURL: customBaseURL, Token: token, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, RawMessageLogger: llmRawMessageLogger}
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
+	return &AnthropicLLMConnector{BaseURL: customBaseURL, Token: token, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, MaxTokensRetries: maxTokensRetries, RawMessageLogger: llmRawMessageLogger}
 }
 
 func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
@@ -58,11 +59,21 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 
 	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert temperature env variable to float64: %s", err)
+		return nil, fmt.Errorf("failed to convert temperature env variable to int64: %s", err)
+	}
+
+	maxTokensRetriesStr := os.Getenv("ANTHROPIC_MAX_TOKENS_RETRIES")
+	if maxTokensRetriesStr == "" {
+		maxTokensRetriesStr = "3"
+	}
+
+	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int64: %s", err)
 	}
 
 	customBaseURL := os.Getenv("ANTHROPIC_BASE_URL")
-	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), llmRawMessageLogger), nil
+	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), llmRawMessageLogger), nil
 }
 
 func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -136,6 +147,10 @@ func (p *AnthropicLLMConnector) GetTemperature() float64 {
 
 func (p *AnthropicLLMConnector) GetMaxTokens() int {
 	return p.MaxTokens
+}
+
+func (p *AnthropicLLMConnector) GetMaxTokensRetryLimit() int {
+	return p.MaxTokensRetries
 }
 
 func renderMessagesToAnthropicLangChainFormat(messages []Message) ([]llms.MessageContent, error) {

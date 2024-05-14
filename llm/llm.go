@@ -20,6 +20,8 @@ type LLMConnector interface {
 
 	// Main interaction point with LLM
 	Query(messages ...Message) (string, QueryStatus, error)
+	// Limit maximum re-tries to get extra fragments of code when generation hits LLM token-limit
+	GetMaxTokensRetryLimit() int
 	// Following functions needed for LLM messages logging, consider not to use it anywhere else
 	GetProvider() string
 	GetModel() string
@@ -37,15 +39,15 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 		return nil, fmt.Errorf("LLM_PROVIDER_OP_%s or LLM_PROVIDER env var not set", operation)
 	}
 	provider = strings.ToUpper(provider)
-	tempStr := os.Getenv(fmt.Sprintf("TEMPERATURE_%s_OP_%s", provider, operation))
+	tempStr := os.Getenv(fmt.Sprintf("%s_TEMPERATURE_OP_%s", provider, operation))
 	if tempStr == "" {
-		tempStr = os.Getenv(fmt.Sprintf("TEMPERATURE_%s", provider))
+		tempStr = os.Getenv(fmt.Sprintf("%s_TEMPERATURE", provider))
 	}
 	if tempStr == "" {
 		tempStr = os.Getenv("TEMPERATURE")
 	}
 	if tempStr == "" {
-		return nil, fmt.Errorf("TEMPERATURE_%s_OP_%s or TEMPERATURE_%s or TEMPERATURE env var not set", provider, operation, provider)
+		return nil, fmt.Errorf("%s_TEMPERATURE_OP_%s or %s_TEMPERATURE or TEMPERATURE env var not set", provider, operation, provider)
 	}
 	temperature, err := strconv.ParseFloat(tempStr, 64)
 	if err != nil {
