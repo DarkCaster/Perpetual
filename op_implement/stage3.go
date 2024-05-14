@@ -2,6 +2,7 @@ package op_implement
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -33,6 +34,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	stage3ChangesDonePromptTemplate := loadPrompt(prompts.ImplementStage3ChangesDonePromptFile)
 	stage3ChangesDoneResponse := loadPrompt(prompts.AIImplementStage3ChangesDoneResponseFile)
 	stage3ProcessFilePromptTemplate := loadPrompt(prompts.ImplementStage3ProcessFilePromptFile)
+	stage3ContinuePromptTemplate := loadPrompt(prompts.ImplementStage3ContinuePromptFile)
 
 	processedFileContents := make(map[string]string)
 	var processedFiles []string
@@ -75,33 +77,65 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 		// Create prompt from stage3ProcessFilePromptTemplate
 		stage3ProcessFilePrompt, err := utils.ReplaceTag(stage3ProcessFilePromptTemplate, fileNameEmbedTag, pendingFile)
 		if err != nil {
-			logger.Errorln("Failed to replace filename tag at stage3-process-file prompt:", err)
+			logger.Errorln("Failed to replace filename tag", err)
 			stage3ProcessFilePrompt = stage3ProcessFilePromptTemplate
 		}
 
 		// Create prompt for to implement one of the files
 		stage3Messages = append(stage3Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ProcessFilePrompt))
 
-		// Log messages we are going to send
-		llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
+		var responses []string
+		continueGeneration := true
+		for continueGeneration {
+			// Log messages we are going to send
+			llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
 
-		logger.Infoln("Running stage3: implementing code for:", pendingFile)
-		aiResponse, status, err := stage3Connector.Query(stage3Messages...)
-		if err != nil {
-			logger.Panicln("LLM query failed: ", err)
-		} else if status == llm.QueryMaxTokens {
-			//TODO deal with partial implementation responses
-			logger.Panicln("LLM query reached token limit")
+			continueGeneration = false
+			logger.Infoln("Running stage3: implementing code for:", pendingFile)
+			aiResponse, status, err := stage3Connector.Query(stage3Messages...)
+			if err != nil {
+				logger.Panicln("LLM query failed: ", err)
+			} else if status == llm.QueryMaxTokens {
+				logger.Panicln("LLM query reached token limit, attempting to continue")
+				continueGeneration = true
+				// Add partial response to stage3 messages, with request to continue
+				stage3Messages = append(stage3Messages, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
+				stage3Messages = append(stage3Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ContinuePromptTemplate))
+			}
+
+			// Log LLM response
+			responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
+			llm.LogMessage(logger, perpetualDir, stage3Connector, &responseMessage)
+
+			// Append response fragment
+			responses = append(responses, aiResponse)
 		}
 
-		// Log LLM response
-		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-		llm.LogMessage(logger, perpetualDir, stage3Connector, &responseMessage)
+		// Remove extra output tag from the start from non first response-fragments
+		for i := range responses {
+			if i > 0 {
+				responses[i], err = utils.GetTextAfterFirstMatch(responses[i], outputTagsRxStrings[0])
+				if err != nil {
+					logger.Panicln("Error while parsing output response fragment:", err)
+				}
+			}
+		}
 
 		// Parse LLM output, detect file body in response
-		fileBodies, err := utils.ParseTaggedText(aiResponse, outputTagsRxStrings[0], outputTagsRxStrings[1])
+		combinedResponse := strings.Join(responses, "")
+		fileBodies, err := utils.ParseTaggedText(combinedResponse, outputTagsRxStrings[0], outputTagsRxStrings[1])
 		if err != nil {
 			logger.Errorln("Error while parsing LLM response with output file:", err)
+			// Try to remove only first match then
+			fileBody, err := utils.GetTextAfterFirstMatch(combinedResponse, outputTagsRxStrings[0])
+			if err != nil {
+				logger.Panicln("Error while parsing body from combined fragments:", err)
+			}
+			fileBodies = []string{fileBody}
+		}
+
+		if len(fileBodies) > 1 {
+			logger.Errorln("Multiple file bodies detected in LLM response:", len(fileBodies))
 		}
 
 		// Save body to processedFileContents and add record to processedFiles
