@@ -63,3 +63,28 @@ func ReplaceTag(text, searchRegex, replacement string) (string, error) {
 	parts = append(parts, text[start:])
 	return strings.Join(parts, ""), nil
 }
+
+func GetTextAfterFirstMatch(text, searchRegex string) (string, error) {
+	rx, err := regexp.Compile(searchRegex)
+	if err != nil {
+		return "", err
+	}
+	match := rx.FindStringIndex(text)
+	if match == nil {
+		return text, nil
+	}
+	return text[match[1]:], nil
+}
+
+func GetTextBeforeLastMatch(text, searchRegex string) (string, error) {
+	rx, err := regexp.Compile(searchRegex)
+	if err != nil {
+		return "", err
+	}
+	matches := rx.FindAllStringIndex(text, -1)
+	if len(matches) == 0 {
+		return text, nil
+	}
+	lastMatch := matches[len(matches)-1]
+	return text[:lastMatch[0]], nil
+}
