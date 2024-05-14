@@ -86,9 +86,12 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 		llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
 
 		logger.Infoln("Running stage3: implementing code for:", pendingFile)
-		aiResponse, err := stage3Connector.Query(stage3Messages...)
+		aiResponse, status, err := stage3Connector.Query(stage3Messages...)
 		if err != nil {
 			logger.Panicln("LLM query failed: ", err)
+		} else if status == llm.QueryMaxTokens {
+			//TODO deal with partial implementation responses
+			logger.Panicln("LLM query reached token limit")
 		}
 
 		// Log LLM response

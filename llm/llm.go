@@ -7,9 +7,19 @@ import (
 	"strings"
 )
 
+type QueryStatus int
+
+const (
+	QueryOk QueryStatus = iota
+	QueryInitFailed
+	QueryMaxTokens
+	QueryFailed
+)
+
 type LLMConnector interface {
+
 	// Main interaction point with LLM
-	Query(messages ...Message) (string, error)
+	Query(messages ...Message) (string, QueryStatus, error)
 	// Following functions needed for LLM messages logging, consider not to use it anywhere else
 	GetProvider() string
 	GetModel() string

@@ -64,12 +64,14 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1SourceAnalysisRequestMessage)
 
 	logger.Infoln("Running stage1: find project files for review")
-	aiResponse, err := stage1Connector.Query(
+	aiResponse, status, err := stage1Connector.Query(
 		stage1ProjectIndexRequestMessage,
 		stage1ProjectIndexResponseMessage,
 		stage1SourceAnalysisRequestMessage)
 	if err != nil {
 		logger.Panicln("LLM query failed: ", err)
+	} else if status == llm.QueryMaxTokens {
+		logger.Panicln("LLM query reached token limit")
 	}
 	logger.Debugln("Stage1: LLM query completed")
 

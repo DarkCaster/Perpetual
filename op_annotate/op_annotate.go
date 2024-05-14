@@ -173,11 +173,16 @@ func Run(args []string, logger logging.ILogger) {
 		llm.LogMessage(logger, perpetualDir, connector, &fileContentsRequest)
 
 		// Perform actual query
-		annotation, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+		annotation, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 
 		if err != nil {
-			logger.Errorln("LLM query failed: ", err)
+			logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 			errorFlag = true
+			fileChecksums[filePath] = "error"
+		} else if status == llm.QueryMaxTokens {
+			logger.Errorf("LLM response reached max tokens, try to increase the limit and run again")
+			errorFlag = true
+			fileChecksums[filePath] = "error"
 		} else {
 			newAnnotations[filePath] = annotation
 		}

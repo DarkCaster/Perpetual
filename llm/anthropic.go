@@ -65,9 +65,9 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), llmRawMessageLogger), nil
 }
 
-func (p *AnthropicLLMConnector) Query(messages ...Message) (string, error) {
+func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return "", errors.New("no prompts to query")
+		return "", QueryInitFailed, errors.New("no prompts to query")
 	}
 	// Create anthropic model
 	model, err := func() (*anthropic.LLM, error) {
@@ -83,7 +83,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, error) {
 		}
 	}()
 	if err != nil {
-		return "", err
+		return "", QueryInitFailed, err
 	}
 
 	var llmMessages []llms.MessageContent
@@ -92,7 +92,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, error) {
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToAnthropicLangChainFormat(messages)
 	if err != nil {
-		return "", err
+		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -105,17 +105,21 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, error) {
 	// Perform LLM query
 	response, err := model.GenerateContent(context.Background(), llmMessages, llms.WithTemperature(p.Temperature), llms.WithMaxTokens(p.MaxTokens))
 	if err != nil {
-		return "", err
+		return "", QueryFailed, err
 	}
 	if len(response.Choices) < 1 {
-		return "", errors.New("received empty response from model")
+		return "", QueryFailed, errors.New("received empty response from model")
 	}
 
 	if p.RawMessageLogger != nil {
 		p.RawMessageLogger(response.Choices[0].Content, "\n\n")
 	}
 
-	return response.Choices[0].Content, nil
+	if response.Choices[0].StopReason == "max_tokens" {
+		return response.Choices[0].Content, QueryMaxTokens, nil
+	}
+
+	return response.Choices[0].Content, QueryOk, nil
 }
 
 func (p *AnthropicLLMConnector) GetProvider() string {

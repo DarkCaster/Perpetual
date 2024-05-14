@@ -105,9 +105,11 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if planningMode > 0 {
 		// Request LLM to provide file list that will be modified (or created) while implementing code
 		logger.Infoln("Running stage2: planning changes")
-		aiResponse, err := stage2Connector.Query(messages...)
+		aiResponse, status, err := stage2Connector.Query(messages...)
 		if err != nil {
 			logger.Panicln("LLM query failed: ", err)
+		} else if status == llm.QueryMaxTokens {
+			logger.Panicln("LLM query reached token limit")
 		}
 		logger.Traceln("Stage2: LLM query completed")
 
