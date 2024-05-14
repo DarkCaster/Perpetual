@@ -96,7 +96,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("LLM query failed: ", err)
 			} else if status == llm.QueryMaxTokens {
-				logger.Panicln("LLM query reached token limit, attempting to continue")
+				logger.Warnln("LLM query reached token limit, attempting to continue")
 				continueGeneration = true
 				// Add partial response to stage3 messages, with request to continue
 				stage3Messages = append(stage3Messages, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
