@@ -10,6 +10,7 @@ import (
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_implement"
 	"github.com/DarkCaster/Perpetual/op_init"
+	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/usage"
 )
 
@@ -18,6 +19,7 @@ func getOperations() map[string]string {
 		op_init.OpName:      op_init.OpDesc,
 		op_annotate.OpName:  op_annotate.OpDesc,
 		op_implement.OpName: op_implement.OpDesc,
+		op_stash.OpName:     op_stash.OpDesc,
 	}
 }
 
@@ -49,5 +51,7 @@ func main() {
 		op_annotate.Run(args, logger)
 	case op_implement.OpName:
 		op_implement.Run(args, logger)
+	case op_stash.OpName:
+		op_stash.Run(args, logger)
 	}
 }

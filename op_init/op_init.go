@@ -73,7 +73,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
 
-	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n", utils.DotEnvFileName, utils.AnnotationsFileName, llm.ChatLogFile, llm.LLMRawLogFile)
+	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n/%s\n", utils.DotEnvFileName, utils.AnnotationsFileName, llm.ChatLogFile, llm.LLMRawLogFile, utils.StashesDirName)
 	err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
 		logger.Panicln("Error creating .gitignore file:", err)
