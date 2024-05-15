@@ -29,7 +29,7 @@ Implementing of such functionality is not currently planned
 
 ### Current gen LLM Code Writing Limitations
 
-While context window of current gen LLMs may be quire big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now **Perpetual** can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen `Anthropic Claude 3` and `OpenAI GPT-4o` models are good at this task. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
+While context window of current gen LLMs may be quite big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now **Perpetual** can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen `Anthropic Claude 3` and `OpenAI GPT-4o` models are good at this task. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
 
 ### Warning
 
