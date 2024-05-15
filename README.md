@@ -151,6 +151,12 @@ Command line example for running full implement operation with stage 2 enabled:
 Perpetual implement -p
 ```
 
+or
+
+```sh
+Perpetual implement -pr
+```
+
 ### Extra features, tips and tricks
 
 #### Tailoring Annotation Generation for Specific Project Files
