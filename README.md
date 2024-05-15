@@ -29,7 +29,7 @@ Implementing of such functionality is not currently planned
 
 ### Current gen LLM Code Writing Limitations
 
-While context window of current gen LLMs may be quire big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now **Perpetual** can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen Anthropic models are good at this task (even claude 3 haiku). Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
+While context window of current gen LLMs may be quire big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now **Perpetual** can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen Anthropic models are good at this task (even claude 3 haiku), latest OpenAI models also seem to work. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
 
 ### Warning
 
@@ -55,9 +55,11 @@ The key requirement for **Perpetual** is access to a Large Language Model (LLM) 
 
 This library provides the necessary integration with the LLM, allowing **Perpetual** to leverage the model’s capabilities for its core functionality.
 
-Currently, the project only supports the Anthropic LLM, as their models provide high-quality XML tag formatting, which significantly simplifies the interaction. Thanks to the LangChain library, there are plans to implement access to other popular LLMs, such as OpenAI. There is also a possibility of integrating with LLMs running locally on the user’s machine.
+Currently **Perpetual** supports working with OpenAI and Anthropic models, but it is much better suited for the Anthropic models, because they can provide high-quality XML tag formatting for information inside responses, which significantly simplifies the interaction.
 
-The quality of **Perpetual**’s work directly depends on the LLM being used. **Perpetual** allows you to offload different tasks to different LLMs to save on your costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku and Claude 3 Sonnet, while the actual code writing can be handled by a more advanced model like Claude 3 Opus. In the future, it will be possible to perform part of the work on models from different providers as well, for maximum efficiency.
+Thanks to the LangChain library, it is possible to add other popular LLMs. There is also a possibility of integrating with LLMs running locally on the user’s machine.
+
+The quality of **Perpetual**’s work directly depends on the LLM being used. **Perpetual** allows you to offload different tasks to different LLMs to save on your costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku and Claude 3 Sonnet, while the actual code writing can be handled by a more advanced model like Claude 3 Opus.
 
 ## Getting Started
 
@@ -232,7 +234,7 @@ Initialize **Perpetual** project by running
 Perpetual init -l go
 ```
 
-Prepare your .env file with your anthropic credentials and place it to `.perpetual` directory
+Prepare your .env file with your Anthropic and/or OpenAI credentials and place it to `.perpetual` directory
 
 ### Generate Code
 
