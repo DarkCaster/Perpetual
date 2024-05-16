@@ -57,9 +57,9 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 		return nil, fmt.Errorf("ANTHROPIC_MAX_TOKENS_OP_%s or ANTHROPIC_MAX_TOKENS env var not set", operation)
 	}
 
-	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 64)
+	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert temperature env variable to int64: %s", err)
+		return nil, fmt.Errorf("failed to convert temperature env variable to int: %s", err)
 	}
 
 	maxTokensRetriesStr := os.Getenv("ANTHROPIC_MAX_TOKENS_RETRIES")
@@ -67,9 +67,9 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 		maxTokensRetriesStr = "3"
 	}
 
-	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 64)
+	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int64: %s", err)
+		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int: %s", err)
 	}
 
 	customBaseURL := os.Getenv("ANTHROPIC_BASE_URL")
