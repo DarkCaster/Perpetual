@@ -33,11 +33,7 @@ While context window of current gen LLMs may be quite big even to fit all your p
 
 ### Warning
 
-While **Perpetual** tries to minimize the risk of destructive operations on the user’s computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM’s responses.
-
-To effectively manage this risk, it is recommended to use a convenient and fast version control system (VCS) like Git to easily revert or partially apply modifications. The modified files are written over the original files in their entirety.
-
-After the modification, there may be remnants of instructions for implementation in the code, or they can be removed completely. To ensure you can regenerate the code from scratch, save the instructions somewhere else (e.g., using Git stash).
+While **Perpetual** tries to minimize the risk of destructive operations on the user’s computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM’s responses. To reduce this risk, it automatically backs up the files it tries to change and creates a `stash` that can be (re)applied or reverted on command.
 
 Since the LLM never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run the **Perpetual's** `implement` operation multiple times to achieve a satisfactory result (see below how to use it).
 
