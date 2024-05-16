@@ -44,7 +44,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&listFiles, "lf", false, "List files in a stash")
 	flags.StringVar(&name, "n", "latest", "Set stash name to apply or revert")
 	flags.StringVar(&fileName, "f", "", "Select single file to apply or revert from stash")
-	flags.StringVar(&targetFile, "t", "", "Target file where selected single file from stash will be written")
+	flags.StringVar(&targetFile, "t", "", "Target file where selected single file from stash will be saved, relative to project root")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -144,7 +144,7 @@ func Run(args []string, logger logging.ILogger) {
 				continue
 			}
 			target := entry.Filename
-			if targetFile != "" {
+			if fileName != "" && targetFile != "" {
 				target = targetFile
 				target, err := utils.MakePathRelative(projectRootDir, target, true)
 				if err != nil {
