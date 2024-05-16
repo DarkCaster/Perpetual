@@ -278,7 +278,7 @@ func Run(args []string, logger logging.ILogger) {
 	filesToReview = filteredFilesToReview
 
 	// Announce start of new LLM session
-	llm.LogStartSession(logger, perpetualDir, "implement (stage2,stage3,stage4)", args...)
+	llm.LogStartSession(logger, perpetualDir, "implement (stage2,stage3)", args...)
 
 	// Run stage 2
 	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTagsStrings, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
