@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/usage"
@@ -23,7 +24,7 @@ type FileEntry struct {
 }
 
 const OpName = "stash"
-const OpDesc = "Rollback or re-apply generated code"
+const OpDesc = "(work in progress) Rollback or re-apply generated code"
 
 func stashFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -131,5 +132,58 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		return
+	}
+}
+
+// This function creates new stash from code generation results
+func CreateStash(results map[string]string, projectFiles []string, logger logging.ILogger) {
+	logger.Traceln("CreateStash: Starting")
+	defer logger.Traceln("CreateStash: Finished")
+
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	if err != nil {
+		logger.Panicln("Error finding project root directory:", err)
+	}
+
+	stashDir := filepath.Join(perpetualDir, utils.StashesDirName)
+
+	if _, err := os.Stat(stashDir); os.IsNotExist(err) {
+		err := os.Mkdir(stashDir, 0755)
+		if err != nil {
+			logger.Panicln("Error creating stash directory:", err)
+		}
+	}
+
+	var stash Stash
+	for filePathInitial, fileContent := range results {
+		// getting leading directories, case insensitive, trying to fix its cases from closest match from the projectFiles
+		leadingDirs := utils.CaseInsensitiveLeadingDirectoriesSearch(filePathInitial, projectFiles)
+		// recursively create leading dirs
+		fileDir := ""
+		for _, dir := range leadingDirs {
+			fileDir = filepath.Join(fileDir, dir)
+		}
+		// getting final file path
+		fileName := filepath.Base(filePathInitial)
+		filePathFinal := filepath.Join(fileDir, fileName)
+		// Check file exist on disk
+		_, err := os.Stat(filepath.Join(projectRootDir, filePathFinal))
+		if err == nil {
+			// Read file
+			backup, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
+			if err != nil {
+				logger.Errorf("Error reading project file for backing up:", err)
+			}
+			// Store file content to stash original files
+			stash.OriginalFiles = append(stash.OriginalFiles, FileEntry{Filename: filePathFinal, Contents: backup})
+		}
+		// Store file content to stash modified files
+		stash.ModifiedFiles = append(stash.ModifiedFiles, FileEntry{Filename: filePathFinal, Contents: fileContent})
+	}
+
+	stashFileName := time.Now().Format("2006-01-02_15-04-05") + ".json"
+	err = utils.SaveJsonFile(filepath.Join(stashDir, stashFileName), stash)
+	if err != nil {
+		logger.Panicln("Error saving stash:", err)
 	}
 }
