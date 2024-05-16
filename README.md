@@ -63,7 +63,7 @@ To get started with **Perpetual**, you need to obtain the necessary API keys to 
 
 ### Download or Compile Perpetual
 
-Next, you need to download or compile the **Perpetual** executable file (you can download binaries from GitHub Actions, stable releases not available yet)
+Next, you need to download or compile the **Perpetual** executable file (you can download binaries from GitHub releases, or latest build from Actions)
 
 ### Command Line Usage
 
