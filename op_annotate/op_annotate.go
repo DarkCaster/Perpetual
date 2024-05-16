@@ -14,7 +14,7 @@ import (
 )
 
 const OpName = "annotate"
-const OpDesc = "Annotate project files with LLM-generated comments"
+const OpDesc = "Generate annotations for project files"
 
 func annotateFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -26,7 +26,7 @@ func Run(args []string, logger logging.ILogger) {
 	var help, force, dryRun, verbose, trace bool
 	var requestedFile string
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
-	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated and annotations that will be removed")
+	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.BoolVar(&help, "h", false, "This help message")
 	flags.StringVar(&requestedFile, "r", "", "Only annotate single file provided with this flag, even if its annotation is already up to date (implies -f flag)")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
