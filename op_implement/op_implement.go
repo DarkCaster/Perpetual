@@ -9,6 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
+	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -313,6 +314,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	// Run stage 4
-	Stage4(projectRootDir, filteredResults, fileNames, logger)
+	// Create and apply stash from generated results
+	newStashFileName := op_stash.CreateStash(filteredResults, fileNames, logger)
+	op_stash.Run([]string{"-a", "-n", newStashFileName}, logger)
 }

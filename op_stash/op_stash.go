@@ -24,7 +24,7 @@ type FileEntry struct {
 }
 
 const OpName = "stash"
-const OpDesc = "(work in progress) Rollback or re-apply generated code"
+const OpDesc = "Rollback or re-apply generated code"
 
 func stashFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -65,7 +65,7 @@ func Run(args []string, logger logging.ILogger) {
 		return
 	}
 
-	_, perpetualDir, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}
@@ -125,10 +125,39 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("Error loading stash:", err)
 		}
 
+		writeFiles := func(entries []FileEntry) {
+			for _, entry := range entries {
+				// Get base dir
+				targetDir := filepath.Dir(entry.Filename)
+				// Split the corrected targetDir into path components
+				pathComponents := strings.Split(targetDir, string(os.PathSeparator))
+				if len(pathComponents) > 0 && pathComponents[0] == "." {
+					pathComponents = pathComponents[1:]
+				}
+				// Recursively create leading dirs
+				fileDir := ""
+				for _, dir := range pathComponents {
+					fileDir = filepath.Join(fileDir, dir)
+					err := os.Mkdir(filepath.Join(projectRootDir, fileDir), 0755)
+					if err != nil && !os.IsExist(err) {
+						logger.Errorln("Failed to create directory:", fileDir, err)
+					}
+				}
+				// Write file
+				logger.Infoln(entry.Filename)
+				err := utils.SaveTextFile(filepath.Join(projectRootDir, entry.Filename), entry.Contents)
+				if err != nil {
+					logger.Errorln("Failed to save file:", err)
+				}
+			}
+		}
+
 		if apply {
-			logger.Infoln("Applied stashed changes:", name)
+			logger.Infoln("Applying changes:", name)
+			writeFiles(stash.ModifiedFiles)
 		} else {
-			logger.Infoln("Stashed changes rolled back:", name)
+			logger.Infoln("Rolling back changes:", name)
+			writeFiles(stash.OriginalFiles)
 		}
 
 		return
@@ -154,6 +183,7 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		}
 	}
 
+	logger.Infoln("Creating new stash from generated results")
 	var stash Stash
 	for filePathInitial, fileContent := range results {
 		// getting leading directories, case insensitive, trying to fix its cases from closest match from the projectFiles
@@ -179,6 +209,13 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		}
 		// Store file content to stash modified files
 		stash.ModifiedFiles = append(stash.ModifiedFiles, FileEntry{Filename: filePathFinal, Contents: fileContent})
+	}
+
+	if len(stash.OriginalFiles) > 0 {
+		logger.Infoln("Files backed up:")
+		for _, entry := range stash.OriginalFiles {
+			logger.Infoln(entry.Filename)
+		}
 	}
 
 	stashFileName := time.Now().Format("2006-01-02_15-04-05")
