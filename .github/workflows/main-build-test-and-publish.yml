@@ -63,3 +63,31 @@ jobs:
         name: windows-binaries
         path: |
           Perpetual_*.exe
+
+    - name: Archive windows binaries for release
+      if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
+      run: zip Windows_Binaries.zip Perpetual_*.exe
+
+    - name: Archive linux binaries for release
+      if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
+      run: zip Linux_Binaries.zip Perpetual_*.bin
+
+    - name: Publish windows release
+      if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        omitBodyDuringUpdate: true
+        omitNameDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
+        artifacts: "Windows_Binaries.zip"
+
+    - name: Publish linux release
+      if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        omitBodyDuringUpdate: true
+        omitNameDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
+        artifacts: "Linux_Binaries.zip"
