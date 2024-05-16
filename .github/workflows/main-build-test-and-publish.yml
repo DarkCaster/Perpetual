@@ -1,5 +1,4 @@
 name: Go Build, Test and Publish Artifacts
-
 on:
   push:
     branches: [ main ]
@@ -7,33 +6,32 @@ on:
       - '*'
   pull_request:
     branches: [ main ]
-
 jobs:
-
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target: [linux, windows]
+    permissions:
+      contents: write
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repository code
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '>=1.22.3'
 
-    - name: Test
+    - name: Run tests
       run: go test -v ./...
 
     - name: Build linux amd64 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_amd64.bin github.com/DarkCaster/Perpetual
-
     - name: Build linux arm64 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_arm64.bin github.com/DarkCaster/Perpetual
-
     - name: Build linux x86 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_x86.bin github.com/DarkCaster/Perpetual
@@ -41,11 +39,9 @@ jobs:
     - name: Build windows amd64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_amd64.exe github.com/DarkCaster/Perpetual
-
     - name: Build windows arm64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_arm64.exe github.com/DarkCaster/Perpetual
-
     - name: Build windows x86 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
@@ -57,7 +53,6 @@ jobs:
         name: linux-binaries
         path: |
           Perpetual_*.bin
-
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
       uses: actions/upload-artifact@v4
@@ -69,7 +64,6 @@ jobs:
     - name: Archive windows binaries for release
       if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
       run: zip Windows_Binaries.zip Perpetual_*.exe
-
     - name: Archive linux binaries for release
       if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
       run: zip Linux_Binaries.zip Perpetual_*.bin
@@ -83,7 +77,6 @@ jobs:
         omitNameDuringUpdate: true
         omitPrereleaseDuringUpdate: true
         artifacts: "Windows_Binaries.zip"
-
     - name: Publish linux release
       if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
