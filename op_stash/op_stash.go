@@ -136,7 +136,7 @@ func Run(args []string, logger logging.ILogger) {
 }
 
 // This function creates new stash from code generation results
-func CreateStash(results map[string]string, projectFiles []string, logger logging.ILogger) {
+func CreateStash(results map[string]string, projectFiles []string, logger logging.ILogger) string {
 	logger.Traceln("CreateStash: Starting")
 	defer logger.Traceln("CreateStash: Finished")
 
@@ -181,9 +181,11 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		stash.ModifiedFiles = append(stash.ModifiedFiles, FileEntry{Filename: filePathFinal, Contents: fileContent})
 	}
 
-	stashFileName := time.Now().Format("2006-01-02_15-04-05") + ".json"
-	err = utils.SaveJsonFile(filepath.Join(stashDir, stashFileName), stash)
+	stashFileName := time.Now().Format("2006-01-02_15-04-05")
+	err = utils.SaveJsonFile(filepath.Join(stashDir, stashFileName+".json"), stash)
 	if err != nil {
 		logger.Panicln("Error saving stash:", err)
 	}
+
+	return stashFileName
 }
