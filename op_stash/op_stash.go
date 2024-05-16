@@ -32,8 +32,8 @@ func stashFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, list, verbose, apply, rollback, trace bool
-	var name string
+	var help, list, verbose, apply, rollback, trace, listFiles bool
+	var name, fileName, targetFile string
 
 	// Parse flags for the "stash" operation
 	flags := stashFlags()
@@ -41,7 +41,10 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&list, "l", false, "List current stashes")
 	flags.BoolVar(&apply, "a", false, "Apply changes of a stash")
 	flags.BoolVar(&rollback, "r", false, "Rollback changes of a stash")
+	flags.BoolVar(&listFiles, "lf", false, "List files in a stash")
 	flags.StringVar(&name, "n", "latest", "Set stash name to apply or revert")
+	flags.StringVar(&fileName, "f", "", "Select single file to apply or revert from stash")
+	flags.StringVar(&targetFile, "t", "", "Target file where selected single file from stash will be written")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -56,7 +59,7 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Debugln("Starting 'stash' operation")
 	logger.Traceln("Args:", args)
 
-	if !apply && !rollback && !list {
+	if !apply && !rollback && !list && !listFiles {
 		help = true
 	}
 
@@ -106,61 +109,79 @@ func Run(args []string, logger logging.ILogger) {
 		return
 	}
 
-	if apply || rollback {
-		if name == "latest" {
-			name = stashes[len(stashes)-1].Name()
-		}
-		logger.Infoln("Processing stash:", name)
-		// Add .json extension if not present
-		if filepath.Ext(name) != ".json" {
-			name += ".json"
-		}
-		stashFile := filepath.Join(stashDir, name)
-		if _, err := os.Stat(stashFile); os.IsNotExist(err) {
-			logger.Panicln("Stash not found:", name)
-		}
-		var stash Stash
-		err := utils.LoadJsonFile(stashFile, &stash)
-		if err != nil {
-			logger.Panicln("Error loading stash:", err)
-		}
+	if name == "latest" {
+		name = stashes[len(stashes)-1].Name()
+	}
+	logger.Infoln("Processing stash:", name)
+	// Add .json extension if not present
+	if filepath.Ext(name) != ".json" {
+		name += ".json"
+	}
+	stashFile := filepath.Join(stashDir, name)
+	if _, err := os.Stat(stashFile); os.IsNotExist(err) {
+		logger.Panicln("Stash not found:", name)
+	}
+	var stash Stash
+	err = utils.LoadJsonFile(stashFile, &stash)
+	if err != nil {
+		logger.Panicln("Error loading stash:", err)
+	}
 
-		writeFiles := func(entries []FileEntry) {
-			for _, entry := range entries {
-				// Get base dir
-				targetDir := filepath.Dir(entry.Filename)
-				// Split the corrected targetDir into path components
-				pathComponents := strings.Split(targetDir, string(os.PathSeparator))
-				if len(pathComponents) > 0 && pathComponents[0] == "." {
-					pathComponents = pathComponents[1:]
-				}
-				// Recursively create leading dirs
-				fileDir := ""
-				for _, dir := range pathComponents {
-					fileDir = filepath.Join(fileDir, dir)
-					err := os.Mkdir(filepath.Join(projectRootDir, fileDir), 0755)
-					if err != nil && !os.IsExist(err) {
-						logger.Errorln("Failed to create directory:", fileDir, err)
-					}
-				}
-				// Write file
-				logger.Infoln(entry.Filename)
-				err := utils.SaveTextFile(filepath.Join(projectRootDir, entry.Filename), entry.Contents)
+	if listFiles {
+		logger.Infoln("Listing files in stash:", name)
+		for _, entry := range stash.OriginalFiles {
+			fmt.Println("Original:", entry.Filename)
+		}
+		for _, entry := range stash.ModifiedFiles {
+			fmt.Println("Modified:", entry.Filename)
+		}
+		return
+	}
+
+	writeFiles := func(entries []FileEntry) {
+		for _, entry := range entries {
+			if fileName != "" && entry.Filename != fileName {
+				continue
+			}
+			target := entry.Filename
+			if targetFile != "" {
+				target = targetFile
+				target, err := utils.MakePathRelative(projectRootDir, target, true)
 				if err != nil {
-					logger.Errorln("Failed to save file:", err)
+					logger.Panicln("Requested file is not inside project root", target)
 				}
 			}
+			// Get base dir
+			targetDir := filepath.Dir(target)
+			// Split the corrected targetDir into path components
+			pathComponents := strings.Split(targetDir, string(os.PathSeparator))
+			if len(pathComponents) > 0 && pathComponents[0] == "." {
+				pathComponents = pathComponents[1:]
+			}
+			// Recursively create leading dirs
+			fileDir := ""
+			for _, dir := range pathComponents {
+				fileDir = filepath.Join(fileDir, dir)
+				err := os.Mkdir(filepath.Join(projectRootDir, fileDir), 0755)
+				if err != nil && !os.IsExist(err) {
+					logger.Errorln("Failed to create directory:", fileDir, err)
+				}
+			}
+			// Write file
+			logger.Infoln(target)
+			err := utils.SaveTextFile(filepath.Join(projectRootDir, target), entry.Contents)
+			if err != nil {
+				logger.Errorln("Failed to save file:", err)
+			}
 		}
+	}
 
-		if apply {
-			logger.Infoln("Applying changes:", name)
-			writeFiles(stash.ModifiedFiles)
-		} else {
-			logger.Infoln("Rolling back changes:", name)
-			writeFiles(stash.OriginalFiles)
-		}
-
-		return
+	if apply {
+		logger.Infoln("Applying changes:", name)
+		writeFiles(stash.ModifiedFiles)
+	} else if rollback {
+		logger.Infoln("Rolling back changes:", name)
+		writeFiles(stash.OriginalFiles)
 	}
 }
 
