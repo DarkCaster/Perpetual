@@ -45,7 +45,7 @@ Note that **Perpetual** is a tool designed mainly to assist programmers, with th
 
 The key requirement for **Perpetual** is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently **Perpetual** supports working with OpenAI and Anthropic models. It was originally developed for the Anthropic models, because of consistent XML tag formatting for responses. So, if using OpenAI - choose the latest GPT-4o model, it formats responses about as well as models from Anthropic. Avoid using GPT-3.5-Turbo and other legacy models - they simply don't work well enough to automate the process of code extraction from LLM responses.
+Currently **Perpetual** supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). It was originally developed for the Anthropic models, because of consistent XML tag formatting for responses. So, if using OpenAI - choose the latest GPT-4o model, it formats responses about as well as models from Anthropic. Avoid using GPT-3.5-Turbo and other legacy models - they simply don't work well enough to automate the process of code extraction from LLM responses.
 
 **Perpetual** utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
