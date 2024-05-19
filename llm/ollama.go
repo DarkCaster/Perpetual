@@ -24,11 +24,20 @@ type OllamaLLMConnector struct {
 	Temperature      float64
 	MaxTokens        int
 	MaxTokensRetries int
+	OnFailRetries    int
 	RawMessageLogger func(v ...any)
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, llmRawMessageLogger func(v ...any)) *OllamaLLMConnector {
-	return &OllamaLLMConnector{BaseURL: customBaseURL, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, MaxTokensRetries: maxTokensRetries, RawMessageLogger: llmRawMessageLogger}
+func NewOllamaLLMConnector(model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OllamaLLMConnector {
+	return &OllamaLLMConnector{
+		BaseURL:          customBaseURL,
+		Model:            model,
+		Temperature:      temperature,
+		SystemPrompt:     systemPrompt,
+		MaxTokens:        maxTokens,
+		MaxTokensRetries: maxTokensRetries,
+		OnFailRetries:    onFailRetries,
+		RawMessageLogger: llmRawMessageLogger}
 }
 
 func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
@@ -52,7 +61,7 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, tempera
 
 	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert temperature env variable to int: %s", err)
+		return nil, fmt.Errorf("failed to convert max tokens env variable to int: %s", err)
 	}
 
 	maxTokensRetriesStr := os.Getenv("OLLAMA_MAX_TOKENS_RETRIES")
@@ -65,8 +74,18 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, tempera
 		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int: %s", err)
 	}
 
+	onFailRetriesStr := os.Getenv("OLLAMA_ON_FAIL_RETRIES")
+	if onFailRetriesStr == "" {
+		onFailRetriesStr = "3"
+	}
+
+	onFailRetries, err := strconv.ParseInt(onFailRetriesStr, 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert on fail retries env variable to int: %s", err)
+	}
+
 	customBaseURL := os.Getenv("OLLAMA_BASE_URL")
-	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), llmRawMessageLogger), nil
+	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), int(onFailRetries), llmRawMessageLogger), nil
 }
 
 func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -144,7 +163,11 @@ func (p *OllamaLLMConnector) GetMaxTokensRetryLimit() int {
 	return p.MaxTokensRetries
 }
 
-// Use text formatting from OpenAI integration for now - it is more suitable for generic LLMs than Anthropic formatter
+func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
+	return p.OnFailRetries
+}
+
+// We are using text formatting from OpenAI  integration for now - it is more suitable for generic LLMs than Anthropic formatter
 func renderMessagesToOllamaAILangChainFormat(messages []Message) ([]llms.MessageContent, error) {
 	return renderMessagesToOpenAILangChainFormat(messages)
 }
