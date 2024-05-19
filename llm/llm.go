@@ -3,6 +3,8 @@ package llm
 import (
 	"fmt"
 	"strings"
+
+	"github.com/DarkCaster/Perpetual/utils"
 )
 
 type QueryStatus int
