@@ -39,8 +39,15 @@ func NewOllamaLLMConnector(model string, systemPrompt string, temperature float6
 		RawMessageLogger: llmRawMessageLogger}
 }
 
-func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
+
+	temperature, err := utils.GetEnvFloat(
+		fmt.Sprintf("OLLAMA_TEMPERATURE_OP_%s", operation),
+		"OLLAMA_TEMPERATURE")
+	if err != nil {
+		return nil, err
+	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("OLLAMA_MODEL_OP_%s", operation), "OLLAMA_MODEL")
 	if err != nil {

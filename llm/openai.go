@@ -42,8 +42,15 @@ func NewOpenAILLMConnector(token string, model string, systemPrompt string, temp
 		RawMessageLogger: llmRawMessageLogger}
 }
 
-func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
+
+	temperature, err := utils.GetEnvFloat(
+		fmt.Sprintf("OPENAI_TEMPERATURE_OP_%s", operation),
+		"OPENAI_TEMPERATURE")
+	if err != nil {
+		return nil, err
+	}
 
 	token, err := utils.GetEnvString("OPENAI_API_KEY")
 	if err != nil {

@@ -40,21 +40,13 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 		return nil, err
 	}
 
-	temperature, err := utils.GetEnvFloat(
-		fmt.Sprintf("%s_TEMPERATURE_OP_%s", provider, operation),
-		fmt.Sprintf("%s_TEMPERATURE", provider),
-		"TEMPERATURE")
-	if err != nil {
-		return nil, err
-	}
-
 	switch provider {
 	case "ANTHROPIC":
-		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
+		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
 	case "OPENAI":
-		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
+		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
 	case "OLLAMA":
-		return NewOllamaLLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}

@@ -42,8 +42,15 @@ func NewAnthropicLLMConnector(token string, model string, systemPrompt string, t
 		RawMessageLogger: llmRawMessageLogger}
 }
 
-func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
+
+	temperature, err := utils.GetEnvFloat(
+		fmt.Sprintf("ANTHROPIC_TEMPERATURE_OP_%s", operation),
+		"ANTHROPIC_TEMPERATURE")
+	if err != nil {
+		return nil, err
+	}
 
 	token, err := utils.GetEnvString("ANTHROPIC_API_KEY")
 	if err != nil {
