@@ -53,5 +53,5 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 }
 
 func GetDebugString(llm LLMConnector) string {
-	return fmt.Sprintf("Provider: %s, Model: %s, Temperature: %5.3f, MaxTokens: %d, MaxTokensRetries: %d", llm.GetProvider(), llm.GetModel(), llm.GetTemperature(), llm.GetMaxTokens(), llm.GetMaxTokensRetryLimit())
+	return fmt.Sprintf("Provider: %s, Model: %s, Temperature: %5.3f, MaxTokens: %d, OnFailureRetries: %d", llm.GetProvider(), llm.GetModel(), llm.GetTemperature(), llm.GetMaxTokens(), llm.GetOnFailureRetryLimit())
 }
