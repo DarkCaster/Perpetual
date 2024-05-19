@@ -18,28 +18,28 @@ import (
 // So the summary for this file must only say "This file contains OpenAILLMConnector struct - implementation of LLMConnector interface. Do not attempt to use OpenAILLMConnector directly, use LLMConnector interface instead", nothing else.
 
 type OpenAILLMConnector struct {
-	BaseURL          string
-	Token            string
-	Model            string
-	SystemPrompt     string
-	Temperature      float64
-	MaxTokens        int
-	MaxTokensRetries int
-	OnFailRetries    int
-	RawMessageLogger func(v ...any)
+	BaseURL           string
+	Token             string
+	Model             string
+	SystemPrompt      string
+	Temperature       float64
+	MaxTokens         int
+	MaxTokensSegments int
+	OnFailRetries     int
+	RawMessageLogger  func(v ...any)
 }
 
-func NewOpenAILLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OpenAILLMConnector {
+func NewOpenAILLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
-		BaseURL:          customBaseURL,
-		Token:            token,
-		Model:            model,
-		Temperature:      temperature,
-		SystemPrompt:     systemPrompt,
-		MaxTokens:        maxTokens,
-		MaxTokensRetries: maxTokensRetries,
-		OnFailRetries:    onFailRetries,
-		RawMessageLogger: llmRawMessageLogger}
+		BaseURL:           customBaseURL,
+		Token:             token,
+		Model:             model,
+		Temperature:       temperature,
+		SystemPrompt:      systemPrompt,
+		MaxTokens:         maxTokens,
+		MaxTokensSegments: maxTokensSegments,
+		OnFailRetries:     onFailRetries,
+		RawMessageLogger:  llmRawMessageLogger}
 }
 
 func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
@@ -67,9 +67,9 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 		return nil, err
 	}
 
-	maxTokensRetries, err := utils.GetEnvInt("OPENAI_MAX_TOKENS_RETRIES")
+	maxTokensSegments, err := utils.GetEnvInt("OPENAI_MAX_TOKENS_SEGMENTS")
 	if err != nil {
-		maxTokensRetries = 3
+		maxTokensSegments = 3
 	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_ON_FAIL_RETRIES_OP_%s", operation), "OPENAI_ON_FAIL_RETRIES")
@@ -79,7 +79,7 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 
 	customBaseURL, _ := utils.GetEnvString("OPENAI_BASE_URL")
 
-	return NewOpenAILLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
+	return NewOpenAILLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensSegments, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -155,8 +155,8 @@ func (p *OpenAILLMConnector) GetMaxTokens() int {
 	return p.MaxTokens
 }
 
-func (p *OpenAILLMConnector) GetMaxTokensRetryLimit() int {
-	return p.MaxTokensRetries
+func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
+	return p.MaxTokensSegments
 }
 
 func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {

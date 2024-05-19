@@ -18,28 +18,28 @@ import (
 // So the summary for this file must only say "This file contains AnthropicLLMConnector struct - implementation of LLMConnector interface. Do not attempt to use AnthropicLLMConnector directly, use LLMConnector interface instead", nothing else.
 
 type AnthropicLLMConnector struct {
-	BaseURL          string
-	Token            string
-	Model            string
-	SystemPrompt     string
-	Temperature      float64
-	MaxTokens        int
-	MaxTokensRetries int
-	OnFailRetries    int
-	RawMessageLogger func(v ...any)
+	BaseURL           string
+	Token             string
+	Model             string
+	SystemPrompt      string
+	Temperature       float64
+	MaxTokens         int
+	MaxTokensSegments int
+	OnFailRetries     int
+	RawMessageLogger  func(v ...any)
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, onFailRetries int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
-		BaseURL:          customBaseURL,
-		Token:            token,
-		Model:            model,
-		Temperature:      temperature,
-		SystemPrompt:     systemPrompt,
-		MaxTokens:        maxTokens,
-		MaxTokensRetries: maxTokensRetries,
-		OnFailRetries:    onFailRetries,
-		RawMessageLogger: llmRawMessageLogger}
+		BaseURL:           customBaseURL,
+		Token:             token,
+		Model:             model,
+		Temperature:       temperature,
+		SystemPrompt:      systemPrompt,
+		MaxTokens:         maxTokens,
+		MaxTokensSegments: maxTokensSegments,
+		OnFailRetries:     onFailRetries,
+		RawMessageLogger:  llmRawMessageLogger}
 }
 
 func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
@@ -67,9 +67,9 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmR
 		return nil, err
 	}
 
-	maxTokensRetries, err := utils.GetEnvInt("ANTHROPIC_MAX_TOKENS_RETRIES")
+	maxTokensSegments, err := utils.GetEnvInt("ANTHROPIC_MAX_TOKENS_SEGMENTS")
 	if err != nil {
-		maxTokensRetries = 3
+		maxTokensSegments = 3
 	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_ON_FAIL_RETRIES_OP_%s", operation), "ANTHROPIC_ON_FAIL_RETRIES")
@@ -79,7 +79,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmR
 
 	customBaseURL, _ := utils.GetEnvString("ANTHROPIC_BASE_URL")
 
-	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
+	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensSegments, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -155,8 +155,8 @@ func (p *AnthropicLLMConnector) GetMaxTokens() int {
 	return p.MaxTokens
 }
 
-func (p *AnthropicLLMConnector) GetMaxTokensRetryLimit() int {
-	return p.MaxTokensRetries
+func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
+	return p.MaxTokensSegments
 }
 
 func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {

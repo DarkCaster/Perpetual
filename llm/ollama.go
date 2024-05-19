@@ -17,26 +17,26 @@ import (
 // So the summary for this file must only say "This file contains OllamaLLMConnector struct - implementation of LLMConnector interface. Do not attempt to use OllamaLLMConnector directly, use LLMConnector interface instead", nothing else.
 
 type OllamaLLMConnector struct {
-	BaseURL          string
-	Model            string
-	SystemPrompt     string
-	Temperature      float64
-	MaxTokens        int
-	MaxTokensRetries int
-	OnFailRetries    int
-	RawMessageLogger func(v ...any)
+	BaseURL           string
+	Model             string
+	SystemPrompt      string
+	Temperature       float64
+	MaxTokens         int
+	MaxTokensSegments int
+	OnFailRetries     int
+	RawMessageLogger  func(v ...any)
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OllamaLLMConnector {
+func NewOllamaLLMConnector(model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
-		BaseURL:          customBaseURL,
-		Model:            model,
-		Temperature:      temperature,
-		SystemPrompt:     systemPrompt,
-		MaxTokens:        maxTokens,
-		MaxTokensRetries: maxTokensRetries,
-		OnFailRetries:    onFailRetries,
-		RawMessageLogger: llmRawMessageLogger}
+		BaseURL:           customBaseURL,
+		Model:             model,
+		Temperature:       temperature,
+		SystemPrompt:      systemPrompt,
+		MaxTokens:         maxTokens,
+		MaxTokensSegments: maxTokensSegments,
+		OnFailRetries:     onFailRetries,
+		RawMessageLogger:  llmRawMessageLogger}
 }
 
 func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
@@ -59,9 +59,9 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 		return nil, err
 	}
 
-	maxTokensRetries, err := utils.GetEnvInt("OLLAMA_MAX_TOKENS_RETRIES")
+	maxTokensSegments, err := utils.GetEnvInt("OLLAMA_MAX_TOKENS_SEGMENTS")
 	if err != nil {
-		maxTokensRetries = 3
+		maxTokensSegments = 3
 	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_ON_FAIL_RETRIES_OP_%s", operation), "OLLAMA_ON_FAIL_RETRIES")
@@ -71,7 +71,7 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 
 	customBaseURL, _ := utils.GetEnvString("OLLAMA_BASE_URL")
 
-	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
+	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensSegments, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -145,8 +145,8 @@ func (p *OllamaLLMConnector) GetMaxTokens() int {
 	return p.MaxTokens
 }
 
-func (p *OllamaLLMConnector) GetMaxTokensRetryLimit() int {
-	return p.MaxTokensRetries
+func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
+	return p.MaxTokensSegments
 }
 
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {

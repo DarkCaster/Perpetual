@@ -19,8 +19,8 @@ const (
 type LLMConnector interface {
 	// Main interaction point with LLM
 	Query(messages ...Message) (string, QueryStatus, error)
-	// Get retry limit to get extra fragments of code when generation hits LLM token-limit
-	GetMaxTokensRetryLimit() int
+	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
+	GetMaxTokensSegments() int
 	// Get retry limit on general query fail
 	GetOnFailureRetryLimit() int
 	// Following functions needed for LLM messages logging, consider not to use it anywhere else
