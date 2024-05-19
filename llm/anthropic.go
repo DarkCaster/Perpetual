@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/anthropic"
 )
@@ -26,54 +25,54 @@ type AnthropicLLMConnector struct {
 	Temperature      float64
 	MaxTokens        int
 	MaxTokensRetries int
+	OnFailRetries    int
 	RawMessageLogger func(v ...any)
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
-	return &AnthropicLLMConnector{BaseURL: customBaseURL, Token: token, Model: model, Temperature: temperature, SystemPrompt: systemPrompt, MaxTokens: maxTokens, MaxTokensRetries: maxTokensRetries, RawMessageLogger: llmRawMessageLogger}
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensRetries int, onFailRetries int, llmRawMessageLogger func(v ...any)) *AnthropicLLMConnector {
+	return &AnthropicLLMConnector{
+		BaseURL:          customBaseURL,
+		Token:            token,
+		Model:            model,
+		Temperature:      temperature,
+		SystemPrompt:     systemPrompt,
+		MaxTokens:        maxTokens,
+		MaxTokensRetries: maxTokensRetries,
+		OnFailRetries:    onFailRetries,
+		RawMessageLogger: llmRawMessageLogger}
 }
 
 func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	token := os.Getenv("ANTHROPIC_API_KEY")
-	if token == "" {
-		return nil, errors.New("ANTHROPIC_API_KEY env var not set")
-	}
-
-	model := os.Getenv(fmt.Sprintf("ANTHROPIC_MODEL_OP_%s", operation))
-	if model == "" {
-		model = os.Getenv("ANTHROPIC_MODEL")
-	}
-	if model == "" {
-		return nil, fmt.Errorf("ANTHROPIC_MODEL_OP_%s or ANTHROPIC_MODEL env var not set", operation)
-	}
-
-	maxTokensStr := os.Getenv(fmt.Sprintf("ANTHROPIC_MAX_TOKENS_OP_%s", operation))
-	if maxTokensStr == "" {
-		maxTokensStr = os.Getenv("ANTHROPIC_MAX_TOKENS")
-	}
-	if maxTokensStr == "" {
-		return nil, fmt.Errorf("ANTHROPIC_MAX_TOKENS_OP_%s or ANTHROPIC_MAX_TOKENS env var not set", operation)
-	}
-
-	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 32)
+	token, err := utils.GetEnvString("ANTHROPIC_API_KEY")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert temperature env variable to int: %s", err)
+		return nil, err
 	}
 
-	maxTokensRetriesStr := os.Getenv("ANTHROPIC_MAX_TOKENS_RETRIES")
-	if maxTokensRetriesStr == "" {
-		maxTokensRetriesStr = "3"
-	}
-
-	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 32)
+	model, err := utils.GetEnvString(fmt.Sprintf("ANTHROPIC_MODEL_OP_%s", operation), "ANTHROPIC_MODEL")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int: %s", err)
+		return nil, err
 	}
 
-	customBaseURL := os.Getenv("ANTHROPIC_BASE_URL")
-	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), llmRawMessageLogger), nil
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_MAX_TOKENS_OP_%s", operation), "ANTHROPIC_MAX_TOKENS")
+	if err != nil {
+		return nil, err
+	}
+
+	maxTokensRetries, err := utils.GetEnvInt("ANTHROPIC_MAX_TOKENS_RETRIES")
+	if err != nil {
+		maxTokensRetries = 3
+	}
+
+	onFailRetries, err := utils.GetEnvInt("ANTHROPIC_ON_FAIL_RETRIES")
+	if err != nil {
+		onFailRetries = 3
+	}
+
+	customBaseURL, _ := utils.GetEnvString("ANTHROPIC_BASE_URL")
+
+	return NewAnthropicLLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -151,6 +150,10 @@ func (p *AnthropicLLMConnector) GetMaxTokens() int {
 
 func (p *AnthropicLLMConnector) GetMaxTokensRetryLimit() int {
 	return p.MaxTokensRetries
+}
+
+func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
+	return p.OnFailRetries
 }
 
 func renderMessagesToAnthropicLangChainFormat(messages []Message) ([]llms.MessageContent, error) {
