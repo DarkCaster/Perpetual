@@ -2,8 +2,6 @@ package llm
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 )
 
@@ -17,11 +15,12 @@ const (
 )
 
 type LLMConnector interface {
-
 	// Main interaction point with LLM
 	Query(messages ...Message) (string, QueryStatus, error)
-	// Limit maximum re-tries to get extra fragments of code when generation hits LLM token-limit
+	// Get retry limit to get extra fragments of code when generation hits LLM token-limit
 	GetMaxTokensRetryLimit() int
+	// Get retry limit on general query fail
+	GetOnFailureRetryLimit() int
 	// Following functions needed for LLM messages logging, consider not to use it anywhere else
 	GetProvider() string
 	GetModel() string
@@ -31,28 +30,22 @@ type LLMConnector interface {
 
 func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	operation = strings.ToUpper(operation)
-	provider := os.Getenv(fmt.Sprintf("LLM_PROVIDER_OP_%s", operation))
-	if provider == "" {
-		provider = os.Getenv("LLM_PROVIDER")
-	}
-	if provider == "" {
-		return nil, fmt.Errorf("LLM_PROVIDER_OP_%s or LLM_PROVIDER env var not set", operation)
-	}
-	provider = strings.ToUpper(provider)
-	tempStr := os.Getenv(fmt.Sprintf("%s_TEMPERATURE_OP_%s", provider, operation))
-	if tempStr == "" {
-		tempStr = os.Getenv(fmt.Sprintf("%s_TEMPERATURE", provider))
-	}
-	if tempStr == "" {
-		tempStr = os.Getenv("TEMPERATURE")
-	}
-	if tempStr == "" {
-		return nil, fmt.Errorf("%s_TEMPERATURE_OP_%s or %s_TEMPERATURE or TEMPERATURE env var not set", provider, operation, provider)
-	}
-	temperature, err := strconv.ParseFloat(tempStr, 64)
+
+	provider, err := utils.GetEnvUpperString(
+		fmt.Sprintf("LLM_PROVIDER_OP_%s", operation),
+		"LLM_PROVIDER")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert temperature env variable to float64: %s", err)
+		return nil, err
 	}
+
+	temperature, err := utils.GetEnvFloat(
+		fmt.Sprintf("%s_TEMPERATURE_OP_%s", provider, operation),
+		fmt.Sprintf("%s_TEMPERATURE", provider),
+		"TEMPERATURE")
+	if err != nil {
+		return nil, err
+	}
+
 	switch provider {
 	case "ANTHROPIC":
 		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, temperature, llmRawMessageLogger)
