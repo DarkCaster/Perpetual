@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
 )
@@ -43,49 +42,29 @@ func NewOllamaLLMConnector(model string, systemPrompt string, temperature float6
 func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	model := os.Getenv(fmt.Sprintf("OLLAMA_MODEL_OP_%s", operation))
-	if model == "" {
-		model = os.Getenv("OLLAMA_MODEL")
-	}
-	if model == "" {
-		return nil, fmt.Errorf("OLLAMA_MODEL_OP_%s or OLLAMA_MODEL env var not set", operation)
-	}
-
-	maxTokensStr := os.Getenv(fmt.Sprintf("OLLAMA_MAX_TOKENS_OP_%s", operation))
-	if maxTokensStr == "" {
-		maxTokensStr = os.Getenv("OLLAMA_MAX_TOKENS")
-	}
-	if maxTokensStr == "" {
-		return nil, fmt.Errorf("OLLAMA_MAX_TOKENS_OP_%s or OLLAMA_MAX_TOKENS env var not set", operation)
-	}
-
-	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 32)
+	model, err := utils.GetEnvString(fmt.Sprintf("OLLAMA_MODEL_OP_%s", operation), "OLLAMA_MODEL")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens env variable to int: %s", err)
+		return nil, err
 	}
 
-	maxTokensRetriesStr := os.Getenv("OLLAMA_MAX_TOKENS_RETRIES")
-	if maxTokensRetriesStr == "" {
-		maxTokensRetriesStr = "3"
-	}
-
-	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 32)
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_MAX_TOKENS_OP_%s", operation), "OLLAMA_MAX_TOKENS")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int: %s", err)
+		return nil, err
 	}
 
-	onFailRetriesStr := os.Getenv("OLLAMA_ON_FAIL_RETRIES")
-	if onFailRetriesStr == "" {
-		onFailRetriesStr = "3"
-	}
-
-	onFailRetries, err := strconv.ParseInt(onFailRetriesStr, 10, 32)
+	maxTokensRetries, err := utils.GetEnvInt("OLLAMA_MAX_TOKENS_RETRIES")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert on fail retries env variable to int: %s", err)
+		maxTokensRetries = 3
 	}
 
-	customBaseURL := os.Getenv("OLLAMA_BASE_URL")
-	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), int(onFailRetries), llmRawMessageLogger), nil
+	onFailRetries, err := utils.GetEnvInt("OLLAMA_ON_FAIL_RETRIES")
+	if err != nil {
+		onFailRetries = 3
+	}
+
+	customBaseURL, _ := utils.GetEnvString("OLLAMA_BASE_URL")
+
+	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
