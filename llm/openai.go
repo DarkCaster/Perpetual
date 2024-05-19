@@ -65,7 +65,7 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, tempera
 		maxTokensRetries = 3
 	}
 
-	onFailRetries, err := utils.GetEnvInt("OPENAI_ON_FAIL_RETRIES")
+	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_ON_FAIL_RETRIES_OP_%s", operation), "OPENAI_ON_FAIL_RETRIES")
 	if err != nil {
 		onFailRetries = 3
 	}

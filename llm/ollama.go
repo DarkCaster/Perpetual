@@ -57,7 +57,7 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, tempera
 		maxTokensRetries = 3
 	}
 
-	onFailRetries, err := utils.GetEnvInt("OLLAMA_ON_FAIL_RETRIES")
+	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_ON_FAIL_RETRIES_OP_%s", operation), "OLLAMA_ON_FAIL_RETRIES")
 	if err != nil {
 		onFailRetries = 3
 	}

@@ -65,7 +65,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, temp
 		maxTokensRetries = 3
 	}
 
-	onFailRetries, err := utils.GetEnvInt("ANTHROPIC_ON_FAIL_RETRIES")
+	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_ON_FAIL_RETRIES_OP_%s", operation), "ANTHROPIC_ON_FAIL_RETRIES")
 	if err != nil {
 		onFailRetries = 3
 	}
