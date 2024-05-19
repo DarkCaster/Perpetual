@@ -63,21 +63,41 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1ProjectIndexResponseMessage)
 	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1SourceAnalysisRequestMessage)
 
-	logger.Infoln("Running stage1: find project files for review")
-	aiResponse, status, err := stage1Connector.Query(
-		stage1ProjectIndexRequestMessage,
-		stage1ProjectIndexResponseMessage,
-		stage1SourceAnalysisRequestMessage)
-	if err != nil {
-		logger.Panicln("LLM query failed: ", err)
-	} else if status == llm.QueryMaxTokens {
-		logger.Panicln("LLM query reached token limit")
+	aiResponse := ""
+	onFailRetriesLeft := stage1Connector.GetOnFailureRetryLimit()
+	if onFailRetriesLeft < 1 {
+		onFailRetriesLeft = 1
 	}
-	logger.Debugln("LLM query completed")
-
-	// Log LLM response
-	responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-	llm.LogMessage(logger, perpetualDir, stage1Connector, &responseMessage)
+	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+		logger.Infoln("Running stage1: find project files for review")
+		aiResponse, status, err := stage1Connector.Query(
+			stage1ProjectIndexRequestMessage,
+			stage1ProjectIndexResponseMessage,
+			stage1SourceAnalysisRequestMessage)
+		if err != nil {
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("LLM query failed: ", err)
+			} else {
+				logger.Warnln("LLM query failed, retrying: ", err)
+			}
+			continue
+		} else if status == llm.QueryMaxTokens {
+			// Log LLM response
+			responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
+			llm.LogMessage(logger, perpetualDir, stage1Connector, &responseMessage)
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("LLM query reached token limit")
+			} else {
+				logger.Warnln("LLM query reached token limit, retrying")
+			}
+			continue
+		}
+		logger.Debugln("LLM query completed")
+		// Log LLM response
+		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
+		llm.LogMessage(logger, perpetualDir, stage1Connector, &responseMessage)
+		break
+	}
 
 	// Process response, parse files of interest from ai response
 	filesForReviewRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
