@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 )
@@ -46,54 +45,34 @@ func NewOpenAILLMConnector(token string, model string, systemPrompt string, temp
 func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, temperature float64, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	token := os.Getenv("OPENAI_API_KEY")
-	if token == "" {
-		return nil, errors.New("OPENAI_API_KEY env var not set")
-	}
-
-	model := os.Getenv(fmt.Sprintf("OPENAI_MODEL_OP_%s", operation))
-	if model == "" {
-		model = os.Getenv("OPENAI_MODEL")
-	}
-	if model == "" {
-		return nil, fmt.Errorf("OPENAI_MODEL_OP_%s or OPENAI_MODEL env var not set", operation)
-	}
-
-	maxTokensStr := os.Getenv(fmt.Sprintf("OPENAI_MAX_TOKENS_OP_%s", operation))
-	if maxTokensStr == "" {
-		maxTokensStr = os.Getenv("OPENAI_MAX_TOKENS")
-	}
-	if maxTokensStr == "" {
-		return nil, fmt.Errorf("OPENAI_MAX_TOKENS_OP_%s or OPENAI_MAX_TOKENS env var not set", operation)
-	}
-
-	maxTokens, err := strconv.ParseInt(maxTokensStr, 10, 32)
+	token, err := utils.GetEnvString("OPENAI_API_KEY")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens env variable to int: %s", err)
+		return nil, err
 	}
 
-	maxTokensRetriesStr := os.Getenv("OPENAI_MAX_TOKENS_RETRIES")
-	if maxTokensRetriesStr == "" {
-		maxTokensRetriesStr = "3"
-	}
-
-	maxTokensRetries, err := strconv.ParseInt(maxTokensRetriesStr, 10, 32)
+	model, err := utils.GetEnvString(fmt.Sprintf("OPENAI_MODEL_OP_%s", operation), "OPENAI_MODEL")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert max tokens retries env variable to int: %s", err)
+		return nil, err
 	}
 
-	onFailRetriesStr := os.Getenv("OPENAI_ON_FAIL_RETRIES")
-	if onFailRetriesStr == "" {
-		onFailRetriesStr = "3"
-	}
-
-	onFailRetries, err := strconv.ParseInt(onFailRetriesStr, 10, 32)
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_MAX_TOKENS_OP_%s", operation), "OPENAI_MAX_TOKENS")
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert on fail retries env variable to int: %s", err)
+		return nil, err
 	}
 
-	customBaseURL := os.Getenv("OPENAI_BASE_URL")
-	return NewOpenAILLMConnector(token, model, systemPrompt, temperature, customBaseURL, int(maxTokens), int(maxTokensRetries), int(onFailRetries), llmRawMessageLogger), nil
+	maxTokensRetries, err := utils.GetEnvInt("OPENAI_MAX_TOKENS_RETRIES")
+	if err != nil {
+		maxTokensRetries = 3
+	}
+
+	onFailRetries, err := utils.GetEnvInt("OPENAI_ON_FAIL_RETRIES")
+	if err != nil {
+		onFailRetries = 3
+	}
+
+	customBaseURL, _ := utils.GetEnvString("OPENAI_BASE_URL")
+
+	return NewOpenAILLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensRetries, onFailRetries, llmRawMessageLogger), nil
 }
 
 func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
