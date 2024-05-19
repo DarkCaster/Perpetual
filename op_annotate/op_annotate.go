@@ -156,7 +156,6 @@ func Run(args []string, logger logging.ILogger) {
 	errorFlag := false
 	newAnnotations := make(map[string]string)
 	for _, filePath := range filesToAnnotate {
-		logger.Infoln(filePath)
 		// Read file contents and generate annotation
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
@@ -173,24 +172,37 @@ func Run(args []string, logger logging.ILogger) {
 		llm.LogMessage(logger, perpetualDir, connector, &annotateSimulatedResponse)
 		llm.LogMessage(logger, perpetualDir, connector, &fileContentsRequest)
 
-		// Perform actual query
-		annotation, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
-
-		if err != nil {
-			logger.Errorf("LLM query failed with status %d, error: %s", status, err)
-			errorFlag = true
-			fileChecksums[filePath] = "error"
-		} else if status == llm.QueryMaxTokens {
-			logger.Errorf("LLM response reached max tokens, try to increase the limit and run again")
-			errorFlag = true
-			fileChecksums[filePath] = "error"
-		} else {
-			newAnnotations[filePath] = annotation
+		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
+		if onFailRetriesLeft < 1 {
+			onFailRetriesLeft = 1
 		}
-
-		// Log LLM response
-		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), annotation)
-		llm.LogMessage(logger, perpetualDir, connector, &responseMessage)
+		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+			logger.Infoln(filePath)
+			// Perform actual query
+			annotation, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			if err != nil {
+				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
+				if onFailRetriesLeft < 1 {
+					fileChecksums[filePath] = "error"
+					errorFlag = true
+				}
+			} else if status == llm.QueryMaxTokens {
+				logger.Errorf("LLM response reached max tokens, consider increasing the limit")
+				if onFailRetriesLeft < 1 {
+					fileChecksums[filePath] = "error"
+					errorFlag = true
+				}
+				// Log LLM response
+				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), annotation)
+				llm.LogMessage(logger, perpetualDir, connector, &responseMessage)
+			} else {
+				newAnnotations[filePath] = annotation
+				// Log LLM response
+				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), annotation)
+				llm.LogMessage(logger, perpetualDir, connector, &responseMessage)
+				break
+			}
+		}
 	}
 
 	// Get annotations for files listed in fileChecksums
