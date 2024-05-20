@@ -70,7 +70,9 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		logger.Infoln("Running stage1: find project files for review")
-		aiResponse, status, err := stage1Connector.Query(
+		var status llm.QueryStatus
+		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
+		aiResponse, status, err = stage1Connector.Query(
 			stage1ProjectIndexRequestMessage,
 			stage1ProjectIndexResponseMessage,
 			stage1SourceAnalysisRequestMessage)
@@ -92,6 +94,10 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 			continue
 		}
+		if aiResponse == "" {
+			logger.Warnln("Got empty response from AI, retrying")
+			continue
+		}
 		logger.Debugln("LLM query completed")
 		// Log LLM response
 		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
@@ -100,6 +106,9 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 
 	// Process response, parse files of interest from ai response
+	if aiResponse == "" {
+		logger.Errorln("Got empty response from AI")
+	}
 	filesForReviewRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
 	if err != nil {
 		logger.Panicln("Failed to parse list of files for review", err)
@@ -108,6 +117,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	// Check all requested files are among initial project file-list
 	var filesForReview []string
+	logger.Debugln("Raw file-list requested by LLM:", filesForReviewRaw)
 	logger.Infoln("Files requested by LLM:")
 	for _, check := range filesForReviewRaw {
 		//remove new line from the end of filename, if present
