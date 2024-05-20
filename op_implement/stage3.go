@@ -120,7 +120,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 					if generateTry >= stage3Connector.GetMaxTokensSegments() {
 						logger.Errorln("LLM query reached token limit, and we are reached segment limit, not attempting to continue")
 					} else {
-						logger.Warnln("LLM query reached token limit, attempting to continue")
+						logger.Warnln("LLM query reached token limit, attempting to continue and file recover")
 						continueGeneration = true
 						generateTry++
 					}
