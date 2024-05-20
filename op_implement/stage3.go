@@ -141,23 +141,13 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 
 			// Remove extra output tag from the start from non first response-fragments
-			fileRetry = false
 			for i := range responses {
 				if i > 0 {
-					responses[i], err = utils.GetTextAfterFirstMatch(responses[i], outputTagsRxStrings[0])
+					responses[i], err = utils.GetTextAfterFirstMatches(responses[i], getEvenIndexElements(outputTagsRxStrings))
 					if err != nil {
-						if onFailRetriesLeft < 1 {
-							logger.Panicln("Error while parsing output response fragment:", err)
-						} else {
-							logger.Warnln("Error while parsing output response fragment, retrying:", err)
-							fileRetry = true
-							break
-						}
+						logger.Panicln("Error while parsing output response fragment:", err)
 					}
 				}
-			}
-			if fileRetry {
-				continue
 			}
 
 			// Parse LLM output, detect file body in response
@@ -171,7 +161,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody, err := utils.GetTextAfterFirstMatch(combinedResponse, outputTagsRxStrings[0])
+				fileBody, err := utils.GetTextAfterFirstMatches(combinedResponse, getEvenIndexElements(outputTagsRxStrings))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}
@@ -202,4 +192,12 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 
 	return processedFileContents
+}
+
+func getEvenIndexElements(arr []string) []string {
+	var evenIndexElements []string
+	for i := 0; i < len(arr); i += 2 {
+		evenIndexElements = append(evenIndexElements, arr[i])
+	}
+	return evenIndexElements
 }
