@@ -2,6 +2,7 @@ package op_implement
 
 import (
 	"flag"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -103,23 +104,29 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading no-upload regexps:", err)
 	}
 
-	loadStringPair := func(file string) []string {
+	loadStringPair := func(file string, minLen int, maxLen int, lenDivideBy int) []string {
 		var result []string
 		err = utils.LoadJsonFile(filepath.Join(perpetualDir, file), &result)
 		if err != nil {
 			logger.Panicln("Error loading json:", err)
 		}
-		if len(result) != 2 {
-			logger.Panicln("File may only contain 2 tags and nothing more:", file)
+		if len(result) < minLen {
+			logger.Panicln("There are less tags than needed:", file)
+		}
+		if len(result) > maxLen {
+			logger.Panicln("There are too much tags:", file)
+		}
+		if len(result)%lenDivideBy != 0 {
+			logger.Panicf("Tags count must be divisable by %d: %s", lenDivideBy, file)
 		}
 		return result
 	}
 
-	fileNameTagsRxStrings := loadStringPair(prompts.FileNameTagsRXFileName)
-	fileNameTagsStrings := loadStringPair(prompts.FileNameTagsFileName)
-	outputTagsRxStrings := loadStringPair(prompts.OutputTagsRXFileName)
-	reasoningsTagsRxStrings := loadStringPair(prompts.ReasoningsTagsRXFileName)
-	reasoningsTagsStrings := loadStringPair(prompts.ReasoningsTagsFileName)
+	fileNameTagsRxStrings := loadStringPair(prompts.FileNameTagsRXFileName, 2, 2, 2)
+	fileNameTagsStrings := loadStringPair(prompts.FileNameTagsFileName, 2, 2, 2)
+	outputTagsRxStrings := loadStringPair(prompts.OutputTagsRXFileName, 2, math.MaxInt, 2)
+	reasoningsTagsRxStrings := loadStringPair(prompts.ReasoningsTagsRXFileName, 2, 2, 2)
+	reasoningsTagsStrings := loadStringPair(prompts.ReasoningsTagsFileName, 2, 2, 2)
 
 	var fileNameEmbedRXString string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
