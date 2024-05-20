@@ -64,8 +64,8 @@ func ReplaceTag(text, searchRegex, replacement string) (string, error) {
 	return strings.Join(parts, ""), nil
 }
 
-func GetTextAfterFirstMatch(text, searchRegex string) (string, error) {
-	rx, err := regexp.Compile(searchRegex)
+func GetTextAfterFirstMatch(text, searchRegexp string) (string, error) {
+	rx, err := regexp.Compile(searchRegexp)
 	if err != nil {
 		return "", err
 	}
@@ -76,8 +76,19 @@ func GetTextAfterFirstMatch(text, searchRegex string) (string, error) {
 	return text[match[1]:], nil
 }
 
-func GetTextBeforeLastMatch(text, searchRegex string) (string, error) {
-	rx, err := regexp.Compile(searchRegex)
+func GetTextAfterFirstMatches(text string, searchRegexps []string) (string, error) {
+	for _, element := range searchRegexps {
+		var err error
+		text, err = GetTextAfterFirstMatch(text, element)
+		if err != nil {
+			return text, err
+		}
+	}
+	return text, nil
+}
+
+func GetTextBeforeLastMatch(text, searchRegexp string) (string, error) {
+	rx, err := regexp.Compile(searchRegexp)
 	if err != nil {
 		return "", err
 	}
@@ -87,4 +98,15 @@ func GetTextBeforeLastMatch(text, searchRegex string) (string, error) {
 	}
 	lastMatch := matches[len(matches)-1]
 	return text[:lastMatch[0]], nil
+}
+
+func GetTextBeforeLastMatches(text string, searchRegexps []string) (string, error) {
+	for _, element := range searchRegexps {
+		var err error
+		text, err = GetTextBeforeLastMatch(text, element)
+		if err != nil {
+			return text, err
+		}
+	}
+	return text, nil
 }

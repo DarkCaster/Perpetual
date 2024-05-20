@@ -404,6 +404,88 @@ func TestGetTextAfterFirstMatch(t *testing.T) {
 	}
 }
 
+func TestGetTextAfterFirstMatches(t *testing.T) {
+	testCases := []struct {
+		name           string
+		text           string
+		searchRegexps  []string
+		expectedResult string
+		expectedError  error
+	}{
+		{
+			name:           "All matches found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"world", "This"},
+			expectedResult: " is a test.",
+			expectedError:  nil,
+		},
+		{
+			name:           "1-st match found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"world", "xxx"},
+			expectedResult: "! This is a test.",
+			expectedError:  nil,
+		},
+		{
+			name:           "2-nd match found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"none", "This"},
+			expectedResult: " is a test.",
+			expectedError:  nil,
+		},
+		{
+			name:           "No match found",
+			text:           "This is a test without a match.",
+			searchRegexps:  []string{"<tag>", "<another_tag>"},
+			expectedResult: "This is a test without a match.",
+			expectedError:  nil,
+		},
+		{
+			name:           "Empty text",
+			text:           "",
+			searchRegexps:  []string{"match1", "match2"},
+			expectedResult: "",
+			expectedError:  nil,
+		},
+		{
+			name:           "Invalid 1-st regexp",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"[a-", "abc"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+		{
+			name:           "Invalid 2-nd regexp",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"abc", "[b-"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+		{
+			name:           "Invalid all regexps",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"[a-", "[b-"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := GetTextAfterFirstMatches(tc.text, tc.searchRegexps)
+			if tc.expectedError == nil && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			} else if tc.expectedError != nil && err == nil {
+				t.Errorf("Expected error: %v, but got nil", tc.expectedError)
+			} else if tc.expectedError != nil && err != nil && errors.Is(err, tc.expectedError) {
+				t.Errorf("Expected error: %v, but got: %v", tc.expectedError, err)
+			} else if result != tc.expectedResult {
+				t.Errorf("Expected result: %q, but got: %q", tc.expectedResult, result)
+			}
+		})
+	}
+}
+
 func TestGetTextBeforeLastMatch(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -445,6 +527,88 @@ func TestGetTextBeforeLastMatch(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := GetTextBeforeLastMatch(tc.text, tc.searchRegex)
+			if tc.expectedError == nil && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			} else if tc.expectedError != nil && err == nil {
+				t.Errorf("Expected error: %v, but got nil", tc.expectedError)
+			} else if tc.expectedError != nil && err != nil && errors.Is(err, tc.expectedError) {
+				t.Errorf("Expected error: %v, but got: %v", tc.expectedError, err)
+			} else if result != tc.expectedResult {
+				t.Errorf("Expected result: %q, but got: %q", tc.expectedResult, result)
+			}
+		})
+	}
+}
+
+func TestGetTextBeforeLastMatches(t *testing.T) {
+	testCases := []struct {
+		name           string
+		text           string
+		searchRegexps  []string
+		expectedResult string
+		expectedError  error
+	}{
+		{
+			name:           "All matches found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"world", "This"},
+			expectedResult: "Hello, ",
+			expectedError:  nil,
+		},
+		{
+			name:           "1-st match found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"world", "xxx"},
+			expectedResult: "Hello, ",
+			expectedError:  nil,
+		},
+		{
+			name:           "2-nd match found",
+			text:           "Hello, world! This is a test.",
+			searchRegexps:  []string{"none", "This"},
+			expectedResult: "Hello, world! ",
+			expectedError:  nil,
+		},
+		{
+			name:           "No match found",
+			text:           "This is a test without a match.",
+			searchRegexps:  []string{"<tag>", "<another_tag>"},
+			expectedResult: "This is a test without a match.",
+			expectedError:  nil,
+		},
+		{
+			name:           "Empty text",
+			text:           "",
+			searchRegexps:  []string{"match1", "match2"},
+			expectedResult: "",
+			expectedError:  nil,
+		},
+		{
+			name:           "Invalid 1-st regexp",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"[a-", "abc"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+		{
+			name:           "Invalid 2-nd regexp",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"abc", "[b-"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+		{
+			name:           "Invalid all regexps",
+			text:           "Hello, world!",
+			searchRegexps:  []string{"[a-", "[b-"},
+			expectedResult: "",
+			expectedError:  &syntax.Error{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := GetTextBeforeLastMatches(tc.text, tc.searchRegexps)
 			if tc.expectedError == nil && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			} else if tc.expectedError != nil && err == nil {
