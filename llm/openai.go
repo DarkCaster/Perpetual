@@ -132,7 +132,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		p.RawMessageLogger(response.Choices[0].Content, "\n\n")
 	}
 
-	if response.Choices[0].StopReason == "max_tokens" {
+	if response.Choices[0].StopReason == "length" {
 		return response.Choices[0].Content, QueryMaxTokens, nil
 	}
 
