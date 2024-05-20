@@ -104,44 +104,81 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	// Only perform real planning step if enabled
 	if planningMode > 0 {
-		// Request LLM to provide file list that will be modified (or created) while implementing code
-		logger.Infoln("Running stage2: planning changes")
-		aiResponse, status, err := stage2Connector.Query(messages...)
-		if err != nil {
-			logger.Panicln("LLM query failed: ", err)
-		} else if status == llm.QueryMaxTokens {
-			logger.Panicln("LLM query reached token limit")
-		}
-		logger.Traceln("LLM query completed")
-
-		// Log LLM response
-		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-		llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
-		logger.Debugln("LLM response logged")
-
-		// Get reasonings
+		var filesToProcessRaw []string
+		aiResponse := ""
 		reasonings := ""
 		ambiguousReasonings := false
-		if planningMode == 2 {
-			reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
+		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
+		if onFailRetriesLeft < 1 {
+			onFailRetriesLeft = 1
+		}
+		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+			reasonings = ""
+			ambiguousReasonings = false
+			// Request LLM to provide file list that will be modified (or created) while implementing code
+			logger.Infoln("Running stage2: planning changes")
+			var status llm.QueryStatus
+			//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
+			aiResponse, status, err = stage2Connector.Query(messages...)
 			if err != nil {
-				logger.Warnln("Cannot extract reasonings text-block from LLM response")
-			} else if len(reasoningsArr) < 1 {
-				logger.Warnln("Reasonings text-block from LLM response is empty")
-			} else if len(reasoningsArr) > 1 {
-				logger.Warnln("More than 1 reasonings text-blocks detected")
-				ambiguousReasonings = true
-			} else {
-				reasonings = reasoningsArr[0]
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("LLM query failed: ", err)
+				} else {
+					logger.Warnln("LLM query failed, retrying: ", err)
+				}
+				continue
+			} else if status == llm.QueryMaxTokens {
+				// Log LLM response
+				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
+				llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("LLM query reached token limit")
+				} else {
+					logger.Warnln("LLM query failed, retrying: ", err)
+				}
+				continue
 			}
+			if aiResponse == "" {
+				logger.Warnln("Got empty response from AI, retrying")
+				continue
+			}
+			// Log LLM response
+			responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
+			llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
+			// Get reasonings
+			if planningMode == 2 {
+				reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
+				if err != nil {
+					logger.Warnln("Cannot extract reasonings text-block from LLM response")
+				} else if len(reasoningsArr) < 1 {
+					logger.Warnln("Reasonings text-block from LLM response is empty")
+				} else if len(reasoningsArr) > 1 {
+					logger.Warnln("More than 1 reasonings text-blocks detected")
+					ambiguousReasonings = true
+				} else {
+					reasonings = reasoningsArr[0]
+				}
+			}
+			// Process response, parse files that will be created
+			filesToProcessRaw, err = utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
+			if err != nil {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("Failed to parse list of files for review", err)
+				} else {
+					logger.Warnln("Failed to parse list of files for review, retrying", err)
+				}
+				continue
+			}
+			break
 		}
 
-		// Process response, parse files that will be created
-		filesToProcessRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
-		if err != nil {
-			logger.Panicln("Failed to parse list of files for review", err)
+		// Extra checks
+		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
+		logger.Debugln("Reasonings length:", len(reasonings))
+		logger.Debugln("AmbiguousReasonings:", ambiguousReasonings)
+		if aiResponse == "" {
+			logger.Errorln("Got empty response from AI")
 		}
-		logger.Traceln("Files to process parsed")
 
 		// Check all selected files
 		logger.Infoln("Files to modify selected by LLM:")
