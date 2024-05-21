@@ -152,7 +152,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 			// Parse LLM output, detect file body in response
 			combinedResponse := strings.Join(responses, "")
-			fileBodies, err = utils.ParseTaggedText(combinedResponse, outputTagsRxStrings[0], outputTagsRxStrings[1])
+			fileBodies, err = utils.ParseMultiTaggedText(combinedResponse, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings))
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Errorln("Error while parsing LLM response with output file:", err)
@@ -197,6 +197,14 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 func getEvenIndexElements(arr []string) []string {
 	var evenIndexElements []string
 	for i := 0; i < len(arr); i += 2 {
+		evenIndexElements = append(evenIndexElements, arr[i])
+	}
+	return evenIndexElements
+}
+
+func getOddIndexElements(arr []string) []string {
+	var evenIndexElements []string
+	for i := 1; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}
 	return evenIndexElements
