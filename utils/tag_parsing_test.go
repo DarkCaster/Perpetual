@@ -350,6 +350,182 @@ func TestParseTaggedText(t *testing.T) {
 	}
 }
 
+func TestParseMultiTaggedText(t *testing.T) {
+	testCases := []struct {
+		name           string
+		sourceText     string
+		startTagRegex  []string
+		endTagRegex    []string
+		expectedResult []string
+		expectedError  error
+	}{
+		{
+			name:           "Single 1-st tag, 1 match",
+			sourceText:     "Line with <tag>text</tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Single 2-nd tag, 1 match",
+			sourceText:     "Line with <x>text</x>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Single 1-st tag, 2 matches",
+			sourceText:     "Line with <tag><x>text</x></tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Single 2-nd tag, 2 matches",
+			sourceText:     "Line with <x><tag>text</tag></x>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+
+		{
+			name:           "Single 1-st tag, 2 matches, 1-st tag reverse order",
+			sourceText:     "Line with <x><tag>text</x></tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Single 1-st tag, 2 matches, 2-nd tag reverse order",
+			sourceText:     "Line with <tag><x>text</tag></x>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  nil,
+		},
+
+		{
+			name:           "Multiple tags",
+			sourceText:     "Line with <tag>text</tag> and <tag>more text</tag>",
+			startTagRegex:  []string{"<tag>"},
+			endTagRegex:    []string{"</tag>"},
+			expectedResult: []string{"text", "more text"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Multiple tags, 2 matches",
+			sourceText:     "Line with <tag><x>text</x></tag> and <tag><x>more text</x></tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text", "more text"},
+			expectedError:  nil,
+		},
+
+		{
+			name:           "Multiple tags, 2 matches, reverse order",
+			sourceText:     "Line with <x><tag>text</tag></x> and <tag><x>more text</x></tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text", "more text"},
+			expectedError:  nil,
+		},
+
+		{
+			name:           "Multiple tags, 2 matches, partially reverse order",
+			sourceText:     "Line with <tag><x>text</tag></x> and <x><tag>more text</x></tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text", "more text"},
+			expectedError:  nil,
+		},
+
+		{
+			name:           "No tags",
+			sourceText:     "Line without tags",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{},
+			expectedError:  nil,
+		},
+		{
+			name:           "Unclosed tag",
+			sourceText:     "Line with <tag><x>unclosed",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: nil,
+			expectedError:  errors.New("unclosed tag"),
+		},
+		{
+			name:           "Invalid tag order",
+			sourceText:     "Line with </tag></x>invalid<x><tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: nil,
+			expectedError:  errors.New("invalid tag order"),
+		},
+		{
+			name:           "Invalid start tag regex, 1-st tag",
+			sourceText:     "Line with <tag>text</tag>",
+			startTagRegex:  []string{"[", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: nil,
+			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
+		},
+		{
+			name:           "Invalid start tag regex, 2-nd tag",
+			sourceText:     "Line with <tag>text</tag>",
+			startTagRegex:  []string{"<tag>", "["},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: nil,
+			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
+		},
+		{
+			name:           "Invalid end tag regex, 1-st tag",
+			sourceText:     "Line with <tag>text</tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"[", "</x>"},
+			expectedResult: nil,
+			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
+		},
+		{
+			name:           "Invalid end tag regex, 2-nd tag",
+			sourceText:     "Line with <tag>text</tag>",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "["},
+			expectedResult: nil,
+			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
+		},
+		{
+			name:           "Second match tag missing",
+			sourceText:     "Line 1 <tag><x>text</tag><tag>more text",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text"},
+			expectedError:  errors.New("unclosed tag"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := ParseMultiTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex)
+			if !equalSlices(result, tc.expectedResult) {
+				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
+			}
+			if tc.expectedError == nil && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if tc.expectedError != nil && (err == nil || tc.expectedError.Error() != err.Error()) {
+				t.Errorf("Expected error '%v', but got '%v'", tc.expectedError, err)
+			}
+		})
+	}
+}
+
 func TestGetTextAfterFirstMatch(t *testing.T) {
 	testCases := []struct {
 		name           string

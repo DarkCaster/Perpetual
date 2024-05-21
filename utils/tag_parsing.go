@@ -38,12 +38,16 @@ func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagReg
 			}
 		}
 
+		rightMostPos := 0
 		var endIndex []int
 		for _, tag := range endTags {
 			probe := tag.FindStringIndex(sourceText)
 			if probe != nil {
 				if endIndex == nil || endIndex[0] > probe[0] {
 					endIndex = probe
+				}
+				if probe[1] > rightMostPos {
+					rightMostPos = probe[1]
 				}
 			}
 		}
@@ -64,7 +68,7 @@ func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagReg
 		taggedText := sourceText[startIndex[1]:endIndex[0]]
 		result = append(result, taggedText)
 		// Trim the processed part of the text
-		sourceText = sourceText[endIndex[1]:]
+		sourceText = sourceText[rightMostPos:]
 	}
 	return result, nil
 }
