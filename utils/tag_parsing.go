@@ -6,21 +6,48 @@ import (
 	"strings"
 )
 
-// Parse multiline text enclosed with start and end tags provided as regexps.
-// Good for extracting data from whole text file output from LLM
-func ParseTaggedText(sourceText string, startTagRegex string, endTagRegex string) ([]string, error) {
-	startTag, err := regexp.Compile(startTagRegex)
-	if err != nil {
-		return nil, err
+// Parse text enclosed with multiple start and end tags provided as regexps.
+func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagRegexps []string) ([]string, error) {
+	var startTags []*regexp.Regexp
+	for _, startTagRegexp := range startTagRegexps {
+		startTag, err := regexp.Compile(startTagRegexp)
+		if err != nil {
+			return nil, err
+		}
+		startTags = append(startTags, startTag)
 	}
-	endTag, err := regexp.Compile(endTagRegex)
-	if err != nil {
-		return nil, err
+
+	var endTags []*regexp.Regexp
+	for _, endTagRegexp := range endTagRegexps {
+		endTag, err := regexp.Compile(endTagRegexp)
+		if err != nil {
+			return nil, err
+		}
+		endTags = append(endTags, endTag)
 	}
+
 	var result []string
 	for {
-		startIndex := startTag.FindStringIndex(sourceText)
-		endIndex := endTag.FindStringIndex(sourceText)
+		var startIndex []int
+		for _, tag := range startTags {
+			probe := tag.FindStringIndex(sourceText)
+			if probe != nil {
+				if startIndex == nil || startIndex[1] < probe[1] {
+					startIndex = probe
+				}
+			}
+		}
+
+		var endIndex []int
+		for _, tag := range endTags {
+			probe := tag.FindStringIndex(sourceText)
+			if probe != nil {
+				if endIndex == nil || endIndex[0] > probe[0] {
+					endIndex = probe
+				}
+			}
+		}
+
 		// If neither start nor end tags are found, exit the loop
 		if startIndex == nil && endIndex == nil {
 			break
@@ -40,6 +67,11 @@ func ParseTaggedText(sourceText string, startTagRegex string, endTagRegex string
 		sourceText = sourceText[endIndex[1]:]
 	}
 	return result, nil
+}
+
+// Parse text enclosed with start and end tags provided as regexps.
+func ParseTaggedText(sourceText string, startTagRegexp string, endTagRegexp string) ([]string, error) {
+	return ParseMultiTaggedText(sourceText, []string{startTagRegexp}, []string{endTagRegexp})
 }
 
 // Search and replace all matches of searchRegex in the text
