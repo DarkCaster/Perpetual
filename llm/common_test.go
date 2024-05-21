@@ -8,7 +8,7 @@ import (
 )
 
 // Tests for renderMessagesToLangChainFormat
-func TestRenderMessagesToAnthropicLangChainFormat(t *testing.T) {
+func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 	testCases := []struct {
 		name     string
 		messages []Message
@@ -73,13 +73,13 @@ func TestRenderMessagesToAnthropicLangChainFormat(t *testing.T) {
 			expected: []llms.MessageContent{
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n"}}},
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n\nWorld\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "World\n\n# File: main.go\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "This is a file content.\n\n<content filename=\"file.go\">\npackage main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n</content>\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "This is a file content.\n\n<content filename=\"file.go\">\npackage main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n</content>\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<content filename=\"file.go\">\nfile\n</content>\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<content filename=\"file.go\">\n\nfile\n</content>\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<content filename=\"file.go\">\n\n\nfile\n\n</content>\n"}}},
-				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<content filename=\"file.go\">\n</content>\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "World\n\n<filename>main.go</filename>\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "This is a file content.\n\n<filename>file.go</filename>\n```go\npackage main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n```\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "This is a file content.\n\n<filename>file.go</filename>\n```go\npackage main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n```\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<filename>file.go</filename>\n```go\nfile\n```\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<filename>file.go</filename>\n```go\n\nfile\n```\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<filename>file.go</filename>\n```go\n\n\nfile\n\n```\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "<filename>file.go</filename>\n```go\n```\n"}}},
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "[Tagged text]\n"}}},
 				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n\n[Tagged text]\n\n<tag>Tagged text</tag>\n"}}},
 				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "this is raw response"}}},
@@ -95,7 +95,7 @@ func TestRenderMessagesToAnthropicLangChainFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := renderMessagesToAnthropicLangChainFormat(tc.messages)
+			result, err := renderMessagesToGenericAILangChainFormat(tc.messages)
 			if err != nil && tc.err == nil || err == nil && tc.err != nil || (err != nil && tc.err != nil && err.Error() != tc.err.Error()) {
 				t.Errorf("Unexpected error: got %v, want %v", err, tc.err)
 			}
