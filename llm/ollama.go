@@ -97,7 +97,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToOllamaAILangChainFormat(messages)
+	convertedMessages, err := renderMessagesToGenericAILangChainFormat(messages)
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
@@ -151,9 +151,4 @@ func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
-}
-
-// We are using text formatting from OpenAI  integration for now - it is more suitable for generic LLMs than Anthropic formatter
-func renderMessagesToOllamaAILangChainFormat(messages []Message) ([]llms.MessageContent, error) {
-	return renderMessagesToOpenAILangChainFormat(messages)
 }

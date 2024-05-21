@@ -186,50 +186,6 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 	}
 }
 
-func getMarkdownCodeBlockType(fileName string) string {
-	ext := filepath.Ext(fileName)
-	switch strings.ToLower(ext) {
-	case ".go":
-		return "go"
-	case ".py":
-		return "python"
-	case ".js", ".ts":
-		return "javascript"
-	case ".java":
-		return "java"
-	case ".c", ".cpp", ".h", ".hpp":
-		return "c"
-	case ".rb":
-		return "ruby"
-	case ".php":
-		return "php"
-	case ".swift":
-		return "swift"
-	case ".rs":
-		return "rust"
-	case ".cs":
-		return "csharp"
-	case ".html", ".htm":
-		return "html"
-	case ".css":
-		return "css"
-	case ".md", ".markdown":
-		return "markdown"
-	case ".json":
-		return "json"
-	case ".yml", ".yaml":
-		return "yaml"
-	case ".xml":
-		return "xml"
-	case ".sh", ".bash":
-		return "bash"
-	case ".sql":
-		return "sql"
-	default:
-		return "text"
-	}
-}
-
 func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
 	logFunc := func(v ...any) {
 		for _, msg := range v {
