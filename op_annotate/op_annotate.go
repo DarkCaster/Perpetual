@@ -77,6 +77,15 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("error reading project-files blacklist regexps:", err)
 	}
 
+	var fileNameTags []string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), &fileNameTags)
+	if err != nil {
+		logger.Panicln("Error loading filename-tags json:", err)
+	}
+	if len(fileNameTags) != 2 {
+		logger.Panicln("filename-tags json must contain exact 2 tags:", err)
+	}
+
 	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("error getting project file-list:", err)
@@ -165,7 +174,7 @@ func Run(args []string, logger logging.ILogger) {
 
 		annotateRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotatePrompt)
 		annotateSimulatedResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), annotateResponse)
-		fileContentsRequest := llm.AddFileFragment(llm.NewMessage(llm.UserRequest), filePath, fileContents)
+		fileContentsRequest := llm.AddFileFragment(llm.NewMessage(llm.UserRequest), filePath, fileContents, fileNameTags)
 
 		// Log messages
 		llm.LogMessage(logger, perpetualDir, connector, &annotateRequest)

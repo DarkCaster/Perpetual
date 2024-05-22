@@ -94,7 +94,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				if index > 0 {
 					builder.WriteString("\n")
 				}
-				lines := strings.Split(fragment.Payload, "\n")
+				lines := strings.Split(fragment.Contents, "\n")
 				for index, line := range lines {
 					builder.WriteString(formatMDHeadingLine(formatTagsInLine(line)))
 					if index < len(lines)-1 {
@@ -102,7 +102,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 					}
 				}
 				// Add new line after end of plain text block, if missing
-				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+				if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 					builder.WriteString("\n")
 				}
 			case IndexFragment:
@@ -110,19 +110,19 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				if index > 0 {
 					builder.WriteString("\n")
 				}
-				builder.WriteString(formatMDHeadingLine("# File: " + fragment.Payload))
+				builder.WriteString(formatMDHeadingLine("# File: " + fragment.FileName))
 				builder.WriteString("\n")
 			case FileFragment:
 				// Each file fragment must have a blank line between it and previous text
 				if index > 0 {
 					builder.WriteString("\n")
 				}
-				builder.WriteString(formatMDHeadingLine("# Content of the file: " + fragment.Metadata))
+				builder.WriteString(formatMDHeadingLine("# Content of the file: " + fragment.FileName))
 				builder.WriteString("\n")
 				builder.WriteString("\n")
-				builder.WriteString("````````````````````````````````````````````````````````````````````````````````" + getMarkdownCodeBlockType(fragment.Metadata) + "\n")
-				builder.WriteString(fragment.Payload)
-				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+				builder.WriteString("````````````````````````````````````````````````````````````````````````````````" + getMarkdownCodeBlockType(fragment.FileName) + "\n")
+				builder.WriteString(fragment.Contents)
+				if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 					builder.WriteString("\n")
 				}
 				builder.WriteString("````````````````````````````````````````````````````````````````````````````````\n")
@@ -132,7 +132,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 					builder.WriteString("\n")
 				}
 				var tags []string
-				err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+				err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
 				if err != nil {
 					logger.Errorln("Failed to unmarshal tags metadata for tagged fragment with index:", index, "error:", err)
 					continue
@@ -144,8 +144,8 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				builder.WriteString("````````````````````````````````````````````````````````````````````````````````text\n")
 				builder.WriteString(tags[0])
 				builder.WriteString("\n")
-				builder.WriteString(fragment.Payload)
-				if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+				builder.WriteString(fragment.Contents)
+				if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 					builder.WriteString("\n")
 				}
 				builder.WriteString(tags[1])
@@ -156,7 +156,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 					builder.WriteString("\n")
 				}
 				var tags []string
-				err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+				err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
 				if err != nil {
 					logger.Errorln("Failed to unmarshal tags metadata for tagged fragment with index:", index, "error:", err)
 					continue
@@ -167,7 +167,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 				}
 				builder.WriteString("```")
 				builder.WriteString(tags[0])
-				builder.WriteString(fragment.Payload)
+				builder.WriteString(fragment.Contents)
 				builder.WriteString(tags[1])
 				builder.WriteString("```")
 				builder.WriteString("\n")

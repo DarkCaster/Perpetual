@@ -9,7 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, fileNameTagsRxStrings []string,
+func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, fileNameTagsRxStrings []string, fileNameTags []string,
 	fileNames []string, annotations map[string]string, targetFiles []string, logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -34,7 +34,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Create project-index request message
 	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
 	for _, item := range fileNames {
-		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(stage1ProjectIndexRequestMessage, item)
+		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(stage1ProjectIndexRequestMessage, item, fileNameTags)
 		annotation := annotations[item]
 		if annotation == "" {
 			annotation = "No annotation available"
@@ -54,7 +54,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		if err != nil {
 			logger.Panicln("failed to add file contents to stage1 prompt", err)
 		}
-		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(stage1SourceAnalysisRequestMessage, item, contents)
+		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(stage1SourceAnalysisRequestMessage, item, contents, fileNameTags)
 	}
 	logger.Debugln("Created target files analysis request message")
 

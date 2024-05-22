@@ -21,9 +21,10 @@ const (
 )
 
 type Fragment struct {
-	Type     FragmentType
-	Payload  string
-	Metadata string
+	Type         FragmentType
+	Contents     string
+	FileName     string
+	FileNameTags string
 }
 
 type Message struct {
@@ -37,8 +38,8 @@ func NewMessage(messageType MessageType) Message {
 	return Message{IsLogged: false, Type: messageType, Fragments: []Fragment{}, RawText: ""}
 }
 
-func addMessageFragment(message Message, fragmentType FragmentType, payload string, metadata string) Message {
-	message.Fragments = append(message.Fragments, Fragment{Type: fragmentType, Payload: payload, Metadata: metadata})
+func addMessageFragment(message Message, fragmentType FragmentType, contents string, filename string, tags string) Message {
+	message.Fragments = append(message.Fragments, Fragment{Type: fragmentType, Contents: contents, FileName: filename, FileNameTags: tags})
 	return message
 }
 
@@ -51,29 +52,37 @@ func SetRawResponse(message Message, rawResponse string) Message {
 }
 
 func AddPlainTextFragment(message Message, text string) Message {
-	return addMessageFragment(message, PlainTextFragment, text, "")
+	return addMessageFragment(message, PlainTextFragment, text, "", "")
 }
 
-func AddIndexFragment(message Message, index string) Message {
-	return addMessageFragment(message, IndexFragment, index, "")
-}
-
-func AddTaggedFragment(message Message, payload string, tags []string) Message {
+func AddIndexFragment(message Message, filename string, tags []string) Message {
 	bTags, err := json.Marshal(tags)
 	if err != nil {
 		panic(err)
 	}
-	return addMessageFragment(message, TaggedFragment, payload, string(bTags))
+	return addMessageFragment(message, IndexFragment, "", filename, string(bTags))
 }
 
-func AddMultilineTaggedFragment(message Message, payload string, tags []string) Message {
+func AddTaggedFragment(message Message, contents string, tags []string) Message {
 	bTags, err := json.Marshal(tags)
 	if err != nil {
 		panic(err)
 	}
-	return addMessageFragment(message, MultilineTaggedFragment, payload, string(bTags))
+	return addMessageFragment(message, TaggedFragment, contents, "", string(bTags))
 }
 
-func AddFileFragment(message Message, filename string, contents string) Message {
-	return addMessageFragment(message, FileFragment, contents, filename)
+func AddMultilineTaggedFragment(message Message, multilineContent string, tags []string) Message {
+	bTags, err := json.Marshal(tags)
+	if err != nil {
+		panic(err)
+	}
+	return addMessageFragment(message, MultilineTaggedFragment, multilineContent, "", string(bTags))
+}
+
+func AddFileFragment(message Message, filename string, contents string, tags []string) Message {
+	bTags, err := json.Marshal(tags)
+	if err != nil {
+		panic(err)
+	}
+	return addMessageFragment(message, FileFragment, contents, filename, string(bTags))
 }

@@ -11,7 +11,7 @@ import (
 )
 
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
-func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, outputTagsRxStrings []string, fileNameEmbedTag string,
+func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, outputTagsRxStrings []string, fileNameEmbedTag string, fileNameTags []string,
 	stage2Messages []llm.Message, otherFiles []string, targetFiles []string, logger logging.ILogger) map[string]string {
 
 	logger.Traceln("Stage3: Starting")       // Add trace logging
@@ -51,7 +51,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if !ok {
 				logger.Errorln("Failed to add file contents to stage3:", err)
 			} else {
-				stage3ChangesDoneMessage = llm.AddFileFragment(stage3ChangesDoneMessage, item, contents)
+				stage3ChangesDoneMessage = llm.AddFileFragment(stage3ChangesDoneMessage, item, contents, fileNameTags)
 			}
 		}
 

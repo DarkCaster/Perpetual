@@ -81,9 +81,9 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					builder.WriteString(fragment.Payload)
+					builder.WriteString(fragment.Contents)
 					// Add extra new line to the end of the fragment if missing
-					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 						builder.WriteString("\n")
 					}
 				case IndexFragment:
@@ -91,22 +91,31 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					// Placing filenames in a such way will serve as example how to deal with filenames in responses
-					// Because typical opensource LLMs available with Ollama is not trained well to format results with XML tags
-					builder.WriteString("<filename>" + fragment.Payload + "</filename>")
+					var tags []string
+					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
+					if err != nil {
+						return result, err
+					}
+					// Placing filenames in a such way between tags will serve as example for LLM how to deal with filenames in responses
+					builder.WriteString(tags[0] + fragment.FileName + tags[1])
 					builder.WriteString("\n")
 				case FileFragment:
 					// Each file fragment must have a blank line between it and previous text
 					if index > 0 {
 						builder.WriteString("\n")
 					}
+					var tags []string
+					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
+					if err != nil {
+						return result, err
+					}
 					// Following formatting will also show LLM how to deal with filenames and file contens in responses
-					builder.WriteString("<filename>" + fragment.Metadata + "</filename>")
+					builder.WriteString(tags[0] + fragment.FileName + tags[1])
 					builder.WriteString("\n")
-					builder.WriteString("```" + getMarkdownCodeBlockType(fragment.Metadata))
+					builder.WriteString("```" + getMarkdownCodeBlockType(fragment.FileName))
 					builder.WriteString("\n")
-					builder.WriteString(fragment.Payload)
-					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+					builder.WriteString(fragment.Contents)
+					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 						builder.WriteString("\n")
 					}
 					builder.WriteString("```")
@@ -116,7 +125,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 						builder.WriteString("\n")
 					}
 					var tags []string
-					err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
 					if err != nil {
 						return result, err
 					}
@@ -124,7 +133,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 						return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
 					}
 					builder.WriteString(tags[0])
-					builder.WriteString(fragment.Payload)
+					builder.WriteString(fragment.Contents)
 					builder.WriteString(tags[1])
 					builder.WriteString("\n")
 				case MultilineTaggedFragment:
@@ -132,7 +141,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 						builder.WriteString("\n")
 					}
 					var tags []string
-					err := json.Unmarshal([]byte(fragment.Metadata), &tags)
+					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
 					if err != nil {
 						return result, err
 					}
@@ -141,8 +150,8 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 					}
 					builder.WriteString(tags[0])
 					builder.WriteString("\n")
-					builder.WriteString(fragment.Payload)
-					if fragment.Payload != "" && fragment.Payload[len(fragment.Payload)-1] != '\n' {
+					builder.WriteString(fragment.Contents)
+					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 						builder.WriteString("\n")
 					}
 					builder.WriteString(tags[1])

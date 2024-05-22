@@ -123,7 +123,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	fileNameTagsRxStrings := loadStringPair(prompts.FileNameTagsRXFileName, 2, 2, 2)
-	fileNameTagsStrings := loadStringPair(prompts.FileNameTagsFileName, 2, 2, 2)
+	fileNameTags := loadStringPair(prompts.FileNameTagsFileName, 2, 2, 2)
 	outputTagsRxStrings := loadStringPair(prompts.OutputTagsRXFileName, 2, math.MaxInt, 2)
 	reasoningsTagsRxStrings := loadStringPair(prompts.ReasoningsTagsRXFileName, 2, 2, 2)
 	reasoningsTagsStrings := loadStringPair(prompts.ReasoningsTagsFileName, 2, 2, 2)
@@ -252,7 +252,7 @@ func Run(args []string, logger logging.ILogger) {
 			// Announce start of new LLM session
 			llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
 			// Run stage 1
-			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNames, annotations, targetFiles, logger)
+			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, targetFiles, logger)
 		} else {
 			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
 		}
@@ -288,7 +288,7 @@ func Run(args []string, logger logging.ILogger) {
 	llm.LogStartSession(logger, perpetualDir, "implement (stage2,stage3)", args...)
 
 	// Run stage 2
-	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTagsStrings, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
+	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTags, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
@@ -301,7 +301,7 @@ func Run(args []string, logger logging.ILogger) {
 	otherFilesToModify = filteredOtherFilesToModify
 
 	// Run stage 3
-	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, outputTagsRxStrings, fileNameEmbedRXString, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
+	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, outputTagsRxStrings, fileNameEmbedRXString, fileNameTags, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
 
 	// Filter results similar to filteredOtherFilesToModify: remove files from map that marked with no-upload comment
 	var filteredResults = make(map[string]string)

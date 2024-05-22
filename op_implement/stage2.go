@@ -41,7 +41,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage2 prompt", err)
 			}
-			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents)
+			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents, fileNameTags)
 		}
 		messages = append(messages, stage2ProjectSourceCodeMessage)
 		logger.Debugln("Project source code message created")
@@ -71,7 +71,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents)
+			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents, fileNameTags)
 		}
 		messages = append(messages, stage2FilesToChangeMessage)
 		logger.Debugln("Files to change message created")
@@ -83,7 +83,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents)
+			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents, fileNameTags)
 		}
 		messages = append(messages, stage2FilesNoPlanningMessage)
 		logger.Debugln("Files for no planning message created")
