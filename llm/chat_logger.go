@@ -189,7 +189,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
 	logFunc := func(v ...any) {
 		for _, msg := range v {
-			str := fmt.Sprintln(msg)
+			str := fmt.Sprintf("%s", msg)
 			utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
 		}
 	}

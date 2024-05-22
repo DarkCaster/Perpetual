@@ -105,12 +105,19 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {
-			p.RawMessageLogger(m, "\n\n")
+			p.RawMessageLogger(m, "\n\n\n")
 		}
 	}
 
+	streamFunc := func(ctx context.Context, chunk []byte) error {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+		return nil
+	}
+
 	// Perform LLM query
-	response, err := model.GenerateContent(context.Background(), llmMessages, llms.WithTemperature(p.Temperature), llms.WithMaxTokens(p.MaxTokens))
+	response, err := model.GenerateContent(context.Background(), llmMessages, llms.WithTemperature(p.Temperature), llms.WithMaxTokens(p.MaxTokens), llms.WithStreamingFunc(streamFunc))
 	if err != nil {
 		return "", QueryFailed, err
 	}
@@ -119,7 +126,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger(response.Choices[0].Content, "\n\n")
+		p.RawMessageLogger(response.Choices[0].Content, "\n\n\n")
 	}
 
 	if response.Choices[0].StopReason == "max_tokens" {

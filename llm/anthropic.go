@@ -114,7 +114,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {
-			p.RawMessageLogger(m, "\n\n")
+			p.RawMessageLogger(m, "\n\n\n")
 		}
 	}
 
@@ -128,7 +128,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 	}
 
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger(response.Choices[0].Content, "\n\n")
+		p.RawMessageLogger(response.Choices[0].Content, "\n\n\n")
 	}
 
 	if response.Choices[0].StopReason == "max_tokens" {
