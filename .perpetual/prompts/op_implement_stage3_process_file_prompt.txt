@@ -1,1 +1,1 @@
-Implement the required code for the following file: "###FILENAME###". Output the entire file with the code you implemented and place its full contents between <output></output> tags. The response must only contain that file with implemented code and nothing else.
+Implement the required code for the following file: "###FILENAME###". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else.
