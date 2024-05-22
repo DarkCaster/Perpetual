@@ -126,7 +126,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger(response.Choices[0].Content, "\n\n\n")
+		p.RawMessageLogger("\n\n\n")
 	}
 
 	if response.Choices[0].StopReason == "max_tokens" {
