@@ -146,18 +146,14 @@ func (p *OpenAILLMConnector) GetModel() string {
 	return p.Model
 }
 
-func (p *OpenAILLMConnector) GetTemperature() float64 {
-	return p.Temperature
-}
-
-func (p *OpenAILLMConnector) GetMaxTokens() int {
-	return p.MaxTokens
-}
-
 func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
 func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
+}
+
+func (p *OpenAILLMConnector) GetOptionsString() string {
+	return fmt.Sprintf("MaxTokens: %d, Temperature: %5.3f", p.MaxTokens, p.Temperature)
 }

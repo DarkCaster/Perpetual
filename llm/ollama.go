@@ -20,41 +20,27 @@ type OllamaLLMConnector struct {
 	BaseURL           string
 	Model             string
 	SystemPrompt      string
-	Temperature       float64
-	MaxTokens         int
 	MaxTokensSegments int
 	OnFailRetries     int
 	RawMessageLogger  func(v ...any)
+	Options           []llms.CallOption
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OllamaLLMConnector {
+func NewOllamaLLMConnector(model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		BaseURL:           customBaseURL,
 		Model:             model,
-		Temperature:       temperature,
 		SystemPrompt:      systemPrompt,
-		MaxTokens:         maxTokens,
 		MaxTokensSegments: maxTokensSegments,
 		OnFailRetries:     onFailRetries,
-		RawMessageLogger:  llmRawMessageLogger}
+		RawMessageLogger:  llmRawMessageLogger,
+		Options:           options}
 }
 
 func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	temperature, err := utils.GetEnvFloat(
-		fmt.Sprintf("OLLAMA_TEMPERATURE_OP_%s", operation),
-		"OLLAMA_TEMPERATURE")
-	if err != nil {
-		return nil, err
-	}
-
 	model, err := utils.GetEnvString(fmt.Sprintf("OLLAMA_MODEL_OP_%s", operation), "OLLAMA_MODEL")
-	if err != nil {
-		return nil, err
-	}
-
-	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_MAX_TOKENS_OP_%s", operation), "OLLAMA_MAX_TOKENS")
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +57,48 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 
 	customBaseURL, _ := utils.GetEnvString("OLLAMA_BASE_URL")
 
-	return NewOllamaLLMConnector(model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensSegments, onFailRetries, llmRawMessageLogger), nil
+	// parse extra options. it may be needed to finetune local models for the task
+	var extraOptions []llms.CallOption
+
+	temperature, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_TEMPERATURE_OP_%s", operation), "OLLAMA_TEMPERATURE")
+	if err != nil {
+		return nil, err
+	} else {
+		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+	}
+
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_MAX_TOKENS_OP_%s", operation), "OLLAMA_MAX_TOKENS")
+	if err != nil {
+		return nil, err
+	} else {
+		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+	}
+
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_TOP_K_OP_%s", operation), "OLLAMA_TOP_K"); err != nil {
+		extraOptions = append(extraOptions, llms.WithTopK(topK))
+	}
+
+	if topP, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_TOP_P_OP_%s", operation), "OLLAMA_TOP_P"); err != nil {
+		extraOptions = append(extraOptions, llms.WithTopP(topP))
+	}
+
+	if seed, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_SEED_OP_%s", operation), "OLLAMA_SEED"); err != nil {
+		extraOptions = append(extraOptions, llms.WithSeed(seed))
+	}
+
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_REPEAT_PENALTY_OP_%s", operation), "OLLAMA_REPEAT_PENALTY"); err != nil {
+		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
+	}
+
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_FREQ_PENALTY_OP_%s", operation), "OLLAMA_FREQ_PENALTY"); err != nil {
+		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+	}
+
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_PRESENCE_PENALTY_OP_%s", operation), "OLLAMA_PRESENCE_PENALTY"); err != nil {
+		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+	}
+
+	return NewOllamaLLMConnector(model, systemPrompt, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -116,8 +143,14 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		return nil
 	}
 
+	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc))
+
 	// Perform LLM query
-	response, err := model.GenerateContent(context.Background(), llmMessages, llms.WithTemperature(p.Temperature), llms.WithMaxTokens(p.MaxTokens), llms.WithStreamingFunc(streamFunc))
+	response, err := model.GenerateContent(
+		context.Background(),
+		llmMessages,
+		finalOptions...,
+	)
 	if err != nil {
 		return "", QueryFailed, err
 	}
@@ -144,18 +177,18 @@ func (p *OllamaLLMConnector) GetModel() string {
 	return p.Model
 }
 
-func (p *OllamaLLMConnector) GetTemperature() float64 {
-	return p.Temperature
-}
-
-func (p *OllamaLLMConnector) GetMaxTokens() int {
-	return p.MaxTokens
-}
-
 func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
+}
+
+func (p *OllamaLLMConnector) GetOptionsString() string {
+	var callOptions llms.CallOptions
+	for _, option := range p.Options {
+		option(&callOptions)
+	}
+	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
 }

@@ -26,8 +26,7 @@ type LLMConnector interface {
 	// Following functions needed for LLM messages logging, consider not to use it anywhere else
 	GetProvider() string
 	GetModel() string
-	GetTemperature() float64
-	GetMaxTokens() int
+	GetOptionsString() string
 }
 
 func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
@@ -53,5 +52,5 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 }
 
 func GetDebugString(llm LLMConnector) string {
-	return fmt.Sprintf("Provider: %s, Model: %s, Temperature: %5.3f, MaxTokens: %d, OnFailureRetries: %d", llm.GetProvider(), llm.GetModel(), llm.GetTemperature(), llm.GetMaxTokens(), llm.GetOnFailureRetryLimit())
+	return fmt.Sprintf("Provider: %s, Model: %s, OnFailureRetries: %d, %s", llm.GetProvider(), llm.GetModel(), llm.GetOnFailureRetryLimit(), llm.GetOptionsString())
 }

@@ -71,8 +71,7 @@ func LogMessage(logger logging.ILogger, perpetualDir string, connector LLMConnec
 		builder.WriteString("\n## AI Response\n\n")
 		builder.WriteString(fmt.Sprintf("**Provider:** %s  \n", connector.GetProvider()))
 		builder.WriteString(fmt.Sprintf("**Model:** %s  \n", connector.GetModel()))
-		builder.WriteString(fmt.Sprintf("**Temperature:** %5.3f  \n", connector.GetTemperature()))
-		builder.WriteString(fmt.Sprintf("**Max Tokens:** %d  \n", connector.GetMaxTokens()))
+		builder.WriteString(fmt.Sprintf("**Options:** %s  \n", connector.GetOptionsString()))
 		builder.WriteString("___\n\n")
 	}
 

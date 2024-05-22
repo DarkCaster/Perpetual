@@ -146,18 +146,14 @@ func (p *AnthropicLLMConnector) GetModel() string {
 	return p.Model
 }
 
-func (p *AnthropicLLMConnector) GetTemperature() float64 {
-	return p.Temperature
-}
-
-func (p *AnthropicLLMConnector) GetMaxTokens() int {
-	return p.MaxTokens
-}
-
 func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
 func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
+}
+
+func (p *AnthropicLLMConnector) GetOptionsString() string {
+	return fmt.Sprintf("MaxTokens: %d, Temperature: %5.3f", p.MaxTokens, p.Temperature)
 }
