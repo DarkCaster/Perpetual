@@ -74,27 +74,27 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 	}
 
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_TOP_K_OP_%s", operation), "OLLAMA_TOP_K"); err != nil {
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_TOP_K_OP_%s", operation), "OLLAMA_TOP_K"); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
 	}
 
-	if topP, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_TOP_P_OP_%s", operation), "OLLAMA_TOP_P"); err != nil {
+	if topP, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_TOP_P_OP_%s", operation), "OLLAMA_TOP_P"); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_SEED_OP_%s", operation), "OLLAMA_SEED"); err != nil {
+	if seed, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_SEED_OP_%s", operation), "OLLAMA_SEED"); err == nil {
 		extraOptions = append(extraOptions, llms.WithSeed(seed))
 	}
 
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_REPEAT_PENALTY_OP_%s", operation), "OLLAMA_REPEAT_PENALTY"); err != nil {
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_REPEAT_PENALTY_OP_%s", operation), "OLLAMA_REPEAT_PENALTY"); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
 	}
 
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_FREQ_PENALTY_OP_%s", operation), "OLLAMA_FREQ_PENALTY"); err != nil {
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_FREQ_PENALTY_OP_%s", operation), "OLLAMA_FREQ_PENALTY"); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
 	}
 
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_PRESENCE_PENALTY_OP_%s", operation), "OLLAMA_PRESENCE_PENALTY"); err != nil {
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_PRESENCE_PENALTY_OP_%s", operation), "OLLAMA_PRESENCE_PENALTY"); err == nil {
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
