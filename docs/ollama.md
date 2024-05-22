@@ -6,15 +6,9 @@ In this document I collect my subjective tests of local LLMs, your results may v
 
 Tests performed at May 2024 with Ollama `0.1.38`.
 
-It is possible to use this model for generating file annotations (`OLLAMA_MODEL_OP_ANNOTATE` param at `.env` file).
+It is possible to use this model for generating file annotations (`OLLAMA_MODEL_OP_ANNOTATE` param at `.env` file). For other operations it doesn't seem to work very well, it just doesn't follow the instructions well enough. Model can also generate decent code (sometimes) at final stage 3 of implement operation (`OLLAMA_MODEL_OP_IMPLEMENT_STAGE3`). Hovewer, it is not good enough to perform proper review, planning and reasonings at stages 1 and 2 of implement operation.
 
-For other operations it doesn't seem to work very well, it just doesn't follow the instructions well enough.
-
-Model can also generate decent code (sometimes) at final stage 3 of implement operation (`OLLAMA_MODEL_OP_IMPLEMENT_STAGE3`).
-
-Hovewer, it is not good enough to perform proper review, planning and reasonings at stages 1 and 2 of implement operation.
-
-I've tested the model from here: <https://huggingface.co/bartowski/codegemma-1.1-7b-it-GGUF>
+I've used the model from here: <https://huggingface.co/bartowski/codegemma-1.1-7b-it-GGUF>
 
 To run it with Ollama, I used the following example `Modelfile` (I don't guarantee it's correct or optimal, especially the prompt template). Models with less quantization should also work, but are less likely to succeed:
 
@@ -44,4 +38,4 @@ Despite the fact that it generates code quite well, the model is almost complete
 
 Thus, as of May 2024, it cannot be used at all.
 
-I'e tried the model from Ollama repo: `starcoder2:15b-instruct-v0.1-q6_K`
+I've used the model from Ollama repo: `starcoder2:15b-instruct-v0.1-q6_K`
