@@ -21,35 +21,26 @@ type OpenAILLMConnector struct {
 	Token             string
 	Model             string
 	SystemPrompt      string
-	Temperature       float64
-	MaxTokens         int
 	MaxTokensSegments int
 	OnFailRetries     int
 	RawMessageLogger  func(v ...any)
+	Options           []llms.CallOption
 }
 
-func NewOpenAILLMConnector(token string, model string, systemPrompt string, temperature float64, customBaseURL string, maxTokens int, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any)) *OpenAILLMConnector {
+func NewOpenAILLMConnector(token string, model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		BaseURL:           customBaseURL,
 		Token:             token,
 		Model:             model,
-		Temperature:       temperature,
 		SystemPrompt:      systemPrompt,
-		MaxTokens:         maxTokens,
 		MaxTokensSegments: maxTokensSegments,
 		OnFailRetries:     onFailRetries,
-		RawMessageLogger:  llmRawMessageLogger}
+		RawMessageLogger:  llmRawMessageLogger,
+		Options:           options}
 }
 
 func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
-
-	temperature, err := utils.GetEnvFloat(
-		fmt.Sprintf("OPENAI_TEMPERATURE_OP_%s", operation),
-		"OPENAI_TEMPERATURE")
-	if err != nil {
-		return nil, err
-	}
 
 	token, err := utils.GetEnvString("OPENAI_API_KEY")
 	if err != nil {
@@ -57,11 +48,6 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("OPENAI_MODEL_OP_%s", operation), "OPENAI_MODEL")
-	if err != nil {
-		return nil, err
-	}
-
-	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_MAX_TOKENS_OP_%s", operation), "OPENAI_MAX_TOKENS")
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +64,48 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 
 	customBaseURL, _ := utils.GetEnvString("OPENAI_BASE_URL")
 
-	return NewOpenAILLMConnector(token, model, systemPrompt, temperature, customBaseURL, maxTokens, maxTokensSegments, onFailRetries, llmRawMessageLogger), nil
+	// parse extra options. it may be needed to finetune model for the task
+	var extraOptions []llms.CallOption
+
+	temperature, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_TEMPERATURE_OP_%s", operation), "OPENAI_TEMPERATURE")
+	if err != nil {
+		return nil, err
+	} else {
+		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+	}
+
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_MAX_TOKENS_OP_%s", operation), "OPENAI_MAX_TOKENS")
+	if err != nil {
+		return nil, err
+	} else {
+		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+	}
+
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_TOP_K_OP_%s", operation), "OPENAI_TOP_K"); err == nil {
+		extraOptions = append(extraOptions, llms.WithTopK(topK))
+	}
+
+	if topP, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_TOP_P_OP_%s", operation), "OPENAI_TOP_P"); err == nil {
+		extraOptions = append(extraOptions, llms.WithTopP(topP))
+	}
+
+	if seed, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_SEED_OP_%s", operation), "OPENAI_SEED"); err == nil {
+		extraOptions = append(extraOptions, llms.WithSeed(seed))
+	}
+
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_REPEAT_PENALTY_OP_%s", operation), "OPENAI_REPEAT_PENALTY"); err == nil {
+		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
+	}
+
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_FREQ_PENALTY_OP_%s", operation), "OPENAI_FREQ_PENALTY"); err == nil {
+		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+	}
+
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_PRESENCE_PENALTY_OP_%s", operation), "OPENAI_PRESENCE_PENALTY"); err == nil {
+		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+	}
+
+	return NewOpenAILLMConnector(token, model, systemPrompt, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
@@ -119,7 +146,11 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 
 	// Perform LLM query
-	response, err := model.GenerateContent(context.Background(), llmMessages, llms.WithTemperature(p.Temperature), llms.WithMaxTokens(p.MaxTokens))
+	response, err := model.GenerateContent(
+		context.Background(),
+		llmMessages,
+		p.Options...,
+	)
 	if err != nil {
 		return "", QueryFailed, err
 	}
@@ -155,5 +186,9 @@ func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 }
 
 func (p *OpenAILLMConnector) GetOptionsString() string {
-	return fmt.Sprintf("MaxTokens: %d, Temperature: %5.3f", p.MaxTokens, p.Temperature)
+	var callOptions llms.CallOptions
+	for _, option := range p.Options {
+		option(&callOptions)
+	}
+	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
 }
