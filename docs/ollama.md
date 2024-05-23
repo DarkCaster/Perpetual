@@ -72,3 +72,38 @@ PARAMETER stop "<|start_header_id|>"
 PARAMETER stop "<|end_header_id|>"
 PARAMETER stop "<|eot_id|>"
 ```
+
+## DeepDeek-coder-33b-instruct-iMat
+
+Tests performed at May 2024 with Ollama `0.1.38`.
+
+Works better than `Llama-3-11.5B`. It provides acceptable reasoning, planning, and decent coding when using the following parameters:
+
+```sh
+OLLAMA_TEMPERATURE="0.5"
+OLLAMA_TOP_K="20"
+OLLAMA_REPEAT_PENALTY_OP_ANNOTATE="1.2"
+OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
+OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.0"
+OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE3="1.0"
+OLLAMA_REPEAT_PENALTY="1.0"
+```
+
+I've used the model from here: <https://huggingface.co/dranger003/deepseek-coder-33b-instruct-iMat.GGUF>. According to the discussion, it provides better quantization than other deepseek models out there. I used the following example `Modelfile`. I've manually increased context num_ctx, because original value is too small when working with multiple files at once (maybe this change is incorrect).
+
+```sh
+FROM ggml-deepseek-coder-33b-instruct-q4_k_m.gguf
+PARAMETER temperature 0.5
+PARAMETER num_ctx 32768
+PARAMETER num_predict 4096
+PARAMETER repeat_penalty 1.0
+PARAMETER penalize_newline false
+SYSTEM You are a highly skilled software developer. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.
+TEMPLATE """{{ .System }}
+### Instruction:
+{{ .Prompt }}
+### Response:
+"""
+PARAMETER stop """
+### Instruction:"""
+```
