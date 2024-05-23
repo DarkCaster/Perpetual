@@ -43,7 +43,7 @@ func (p *GoPrompts) GetImplementStage2FilesToChangePrompt() string {
 }
 
 func (p *GoPrompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nWrite your reasonings about what needs to be done in these files to implement the task. Don't write actual code in your reasonings yet, that will be done later. Place your reasoning between tags <reasonings></reasonings>"
+	return "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nWrite your reasonings about what needs to be done in these files to implement the task. Don't write actual code in your reasonings yet, that will be done later. Place all reasonings in a single block between tags <reasonings></reasonings>"
 }
 
 func (p *GoPrompts) GetImplementStage2NoPlanningPrompt() string {
