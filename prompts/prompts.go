@@ -25,12 +25,12 @@ const SystemPromptFile = "system_prompt.txt"
 const AnnotatePromptFile = "op_annotate_prompt.txt"
 const AIAnnotateResponseFile = "op_annotate_ai_response.txt"
 
-// Implement-optration stage1 prompt-filenames
+// Implement-operation stage1 prompt-filenames
 const ImplementStage1ProjectIndexPromptFile = "op_implement_stage1_project_index_prompt.txt"
 const AIImplementStage1ProjectIndexResponseFile = "op_implement_stage1_project_index_ai_response.txt"
 const ImplementStage1SourceAnalysisPromptFile = "op_implement_stage1_source_analysis_prompt.txt"
 
-// Implement-optration stage2 prompt-filenames
+// Implement-operation stage2 prompt-filenames
 const ImplementStage2ProjectCodePromptFile = "op_implement_stage2_project_code_prompt.txt"
 const AIImplementStage2ProjectCodeResponseFile = "op_implement_stage2_project_code_ai_response.txt"
 const ImplementStage2FilesToChangePromptFile = "op_implement_stage2_files_to_change_prompt.txt"
@@ -39,7 +39,7 @@ const ImplementStage2FilesToChangeExtendedPromptFile = "op_implement_stage2_file
 const ImplementStage2NoPlanningPromptFile = "op_implement_stage2_no_planning_prompt.txt"
 const AIImplementStage2NoPlanningResponseFile = "op_implement_stage2_no_planning_ai_response.txt"
 
-// Implement-optration stage3 prompt-filenames
+// Implement-operation stage3 prompt-filenames
 const ImplementStage3ChangesDonePromptFile = "op_implement_stage3_changes_done_prompt.txt"
 const AIImplementStage3ChangesDoneResponseFile = "op_implement_stage3_changes_done_ai_response.txt"
 const ImplementStage3ProcessFilePromptFile = "op_implement_stage3_process_file_prompt.txt"
@@ -78,7 +78,7 @@ type Prompts interface {
 	GetImplementStage2FilesToChangePrompt() string
 	GetImplementStage2FilesToChangeExtendedPrompt() string
 
-	// Implamane stage 2 no planning prompts
+	// Implement stage 2 no planning prompts
 	GetImplementStage2NoPlanningPrompt() string
 	GetAIImplementStage2NoPlanningResponse() string
 
@@ -98,6 +98,8 @@ func NewPrompts(targetLang string) (Prompts, error) {
 		return &GoPrompts{}, nil
 	case "DOTNETFW":
 		return &DotNetFWPrompts{}, nil
+	case "BASH":
+		return &BashPrompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
