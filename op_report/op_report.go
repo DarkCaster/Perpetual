@@ -2,11 +2,11 @@ package op_report
 
 import (
 	"flag"
-	"fmt"
-	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -43,43 +43,50 @@ func Run(args []string, logger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	// Get the current working directory
-	cwd, err := os.Getwd()
+	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
-		logger.Errorln(err)
-		return
+		logger.Panicln("Error finding project root directory:", err)
 	}
 
-	// Get the project root directory
-	projectRootDir := filepath.Dir(cwd)
+	logger.Infoln("Project root directory:", projectRootDir)
+	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	// Get the list of project files
-	fileChecksums, projectFiles, allFiles, err := utils.GetProjectFileList(projectRootDir, "", nil, nil)
+	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
+	logger.Debugln("Prompts directory:", promptsDir)
+
+	var projectFilesWhitelist []string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
 	if err != nil {
-		logger.Errorln(err)
-		return
+		logger.Panicln("Error reading project-files whitelist regexps:", err)
 	}
 
-	// Create the report
-	report := createReport(projectRootDir, projectFiles, allFiles, fileChecksums)
+	var projectFilesBlacklist []string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
+	if err != nil {
+		logger.Panicln("Error reading project-files blacklist regexps:", err)
+	}
 
-	// Print the report
-	fmt.Println(report)
-}
+	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
+	_, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
+	if err != nil {
+		logger.Panicln("Error getting project file-list:", err)
+	}
 
-func createReport(projectRootDir string, projectFiles, allFiles []string, fileChecksums map[string]string) string {
-	report := "Project Root Directory: " + projectRootDir + "\n\n"
-	report += "Project Files:\n"
-	for _, file := range projectFiles {
-		report += file + "\n"
+	// Check fileNames array for case collisions
+	if !utils.CheckFilenameCaseCollisions(fileNames) {
+		logger.Panicln("Filename case collisions detected in project files")
 	}
-	report += "\nAll Files:\n"
-	for _, file := range allFiles {
-		report += file + "\n"
+	// File names and dir-names must not contain path separators characters
+	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
+		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
-	report += "\nFile Checksums:\n"
-	for file, checksum := range fileChecksums {
-		report += file + ": " + checksum + "\n"
+
+	if strings.ToUpper(reportType) == "BRIEF" {
+
+	} else if strings.ToUpper(reportType) == "CODE" {
+	} else {
+		logger.Panicln("Invalid report type:", reportType)
 	}
-	return report
+
 }
