@@ -18,11 +18,15 @@ const (
 
 func Run(args []string, logger logging.ILogger) {
 	var help, verbose, trace bool
+	var reportType, outputFile string
 
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
+	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stderr if not provided or empty)")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
+
 	flags.Parse(args)
 
 	if verbose {
