@@ -17,21 +17,26 @@ const (
 )
 
 func Run(args []string, logger logging.ILogger) {
-	//###IMPLEMENT###
-	//add help, verbose, trace flags
-	//you must use op_init/op_init.go as reference of how to organize flag-handling code
+	var help, verbose, trace bool
 
-	// Define and parse command-line flags
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
-	flags.Usage = func() {
-		usage.PrintOperationUsage("", flags)
+	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
+	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
+	flags.Parse(args)
+
+	if verbose {
+		logger.SetLevel(logging.DebugLevel)
+	}
+	if trace {
+		logger.SetLevel(logging.TraceLevel)
 	}
 
-	// Parse flags
-	err := flags.Parse(args)
-	if err != nil {
-		logger.Errorln(err)
-		return
+	logger.Debugln("Starting 'report' operation")
+	logger.Traceln("Args:", args)
+
+	if help {
+		usage.PrintOperationUsage("", flags)
 	}
 
 	// Get the current working directory
