@@ -99,6 +99,7 @@ func Run(args []string, logger logging.ILogger) {
 		return text
 	}
 
+	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, logger)
@@ -109,8 +110,8 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("Error loading annotations:", err)
 		}
 
-		// Generate report messages
-		reportMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
+		// Generate report message
+		reportMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
 		for _, filename := range fileNames {
 			annotation, ok := annotations[filename]
 			if !ok {
@@ -119,24 +120,33 @@ func Run(args []string, logger logging.ILogger) {
 			reportMessage = llm.AddIndexFragment(reportMessage, filename, fileNameTagsStrings)
 			reportMessage = llm.AddPlainTextFragment(reportMessage, annotation)
 		}
-
-		reportStrings, err := llm.RenderMessagesToAIStrings([]llm.Message{reportMessage})
-		if err != nil {
-			logger.Panicln("Error rendering report messages:", err)
-		}
-
-		// Save report string to file or print it to stderr
-		if outputFile != "" {
-			err = utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
-			if err != nil {
-				logger.Panicln("Error writing report to file:", err)
-			}
-		} else {
-			fmt.Fprintln(os.Stderr, strings.Join(reportStrings, "\n"))
-		}
 	} else if strings.ToUpper(reportType) == "CODE" {
+		// Generate report messages
+		reportMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
+		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
+		for _, filename := range fileNames {
+			fileContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
+			if err != nil {
+				logger.Panicln("Error reading file:", filename, err)
+			}
+			reportMessage = llm.AddFileFragment(reportMessage, filename, fileContents, fileNameTagsStrings)
+		}
 	} else {
 		logger.Panicln("Invalid report type:", reportType)
 	}
 
+	reportStrings, err := llm.RenderMessagesToAIStrings([]llm.Message{reportMessage})
+	if err != nil {
+		logger.Panicln("Error rendering report messages:", err)
+	}
+
+	// Save report string to file or print it to stderr
+	if outputFile != "" {
+		err = utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
+		if err != nil {
+			logger.Panicln("Error writing report to file:", err)
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, strings.Join(reportStrings, "\n"))
+	}
 }
