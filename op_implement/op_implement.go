@@ -104,11 +104,11 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading no-upload regexps:", err)
 	}
 
-	fileNameTagsRxStrings := utils.LoadStringPair(prompts.FileNameTagsRXFileName, 2, 2, 2, logger)
-	fileNameTags := utils.LoadStringPair(prompts.FileNameTagsFileName, 2, 2, 2, logger)
-	outputTagsRxStrings := utils.LoadStringPair(prompts.OutputTagsRXFileName, 2, math.MaxInt, 2, logger)
-	reasoningsTagsRxStrings := utils.LoadStringPair(prompts.ReasoningsTagsRXFileName, 2, 2, 2, logger)
-	reasoningsTagsStrings := utils.LoadStringPair(prompts.ReasoningsTagsFileName, 2, 2, 2, logger)
+	fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
+	fileNameTags := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
+	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
+	reasoningsTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.ReasoningsTagsRXFileName), 2, 2, 2, logger)
+	reasoningsTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.ReasoningsTagsFileName), 2, 2, 2, logger)
 
 	var fileNameEmbedRXString string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
