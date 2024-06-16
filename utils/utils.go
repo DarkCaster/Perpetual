@@ -65,3 +65,21 @@ func CalculateSHA256(filePath string) (string, error) {
 	checksum := hash.Sum(nil)
 	return fmt.Sprintf("%x", checksum), nil
 }
+
+func LoadStringPair(file string, minLen int, maxLen int, lenDivideBy int, logger logging.ILogger) []string {
+	var result []string
+	err := LoadJsonFile(file, &result)
+	if err != nil {
+		logger.Panicln("Error loading JSON:", err)
+	}
+	if len(result) < minLen {
+		logger.Panicln("There are fewer tags than needed:", file)
+	}
+	if len(result) > maxLen {
+		logger.Panicln("There are too many tags:", file)
+	}
+	if len(result)%lenDivideBy != 0 {
+		logger.Panicf("Tags count must be divisible by %d: %s", lenDivideBy, file)
+	}
+	return result
+}

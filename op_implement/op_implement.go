@@ -104,29 +104,11 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading no-upload regexps:", err)
 	}
 
-	loadStringPair := func(file string, minLen int, maxLen int, lenDivideBy int) []string {
-		var result []string
-		err = utils.LoadJsonFile(filepath.Join(perpetualDir, file), &result)
-		if err != nil {
-			logger.Panicln("Error loading json:", err)
-		}
-		if len(result) < minLen {
-			logger.Panicln("There are less tags than needed:", file)
-		}
-		if len(result) > maxLen {
-			logger.Panicln("There are too much tags:", file)
-		}
-		if len(result)%lenDivideBy != 0 {
-			logger.Panicf("Tags count must be divisable by %d: %s", lenDivideBy, file)
-		}
-		return result
-	}
-
-	fileNameTagsRxStrings := loadStringPair(prompts.FileNameTagsRXFileName, 2, 2, 2)
-	fileNameTags := loadStringPair(prompts.FileNameTagsFileName, 2, 2, 2)
-	outputTagsRxStrings := loadStringPair(prompts.OutputTagsRXFileName, 2, math.MaxInt, 2)
-	reasoningsTagsRxStrings := loadStringPair(prompts.ReasoningsTagsRXFileName, 2, 2, 2)
-	reasoningsTagsStrings := loadStringPair(prompts.ReasoningsTagsFileName, 2, 2, 2)
+	fileNameTagsRxStrings := utils.LoadStringPair(prompts.FileNameTagsRXFileName, 2, 2, 2, logger)
+	fileNameTags := utils.LoadStringPair(prompts.FileNameTagsFileName, 2, 2, 2, logger)
+	outputTagsRxStrings := utils.LoadStringPair(prompts.OutputTagsRXFileName, 2, math.MaxInt, 2, logger)
+	reasoningsTagsRxStrings := utils.LoadStringPair(prompts.ReasoningsTagsRXFileName, 2, 2, 2, logger)
+	reasoningsTagsStrings := utils.LoadStringPair(prompts.ReasoningsTagsFileName, 2, 2, 2, logger)
 
 	var fileNameEmbedRXString string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
