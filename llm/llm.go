@@ -2,10 +2,13 @@ package llm
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
 )
+
+const LLMRawLogFile = "message_log.txt"
 
 type QueryStatus int
 
@@ -53,4 +56,14 @@ func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger 
 
 func GetDebugString(llm LLMConnector) string {
 	return fmt.Sprintf("Provider: %s, Model: %s, OnFailureRetries: %d, %s", llm.GetProvider(), llm.GetModel(), llm.GetOnFailureRetryLimit(), llm.GetOptionsString())
+}
+
+func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
+	logFunc := func(v ...any) {
+		for _, msg := range v {
+			str := fmt.Sprintf("%s", msg)
+			utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
+		}
+	}
+	return logFunc
 }

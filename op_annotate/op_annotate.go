@@ -150,9 +150,6 @@ func Run(args []string, logger logging.ILogger) {
 	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile)
 	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
-	// Announce start of new LLM session
-	llm.LogStartSession(logger, perpetualDir, "annotate", args...)
-
 	// Create llm connector
 	connector, err := llm.NewLLMConnector(OpName, systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
@@ -176,11 +173,6 @@ func Run(args []string, logger logging.ILogger) {
 		annotateSimulatedResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), annotateResponse)
 		fileContentsRequest := llm.AddFileFragment(llm.NewMessage(llm.UserRequest), filePath, fileContents, fileNameTags)
 
-		// Log messages
-		llm.LogMessage(logger, perpetualDir, connector, &annotateRequest)
-		llm.LogMessage(logger, perpetualDir, connector, &annotateSimulatedResponse)
-		llm.LogMessage(logger, perpetualDir, connector, &fileContentsRequest)
-
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
@@ -201,14 +193,8 @@ func Run(args []string, logger logging.ILogger) {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-				// Log LLM response
-				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), annotation)
-				llm.LogMessage(logger, perpetualDir, connector, &responseMessage)
 			} else {
 				newAnnotations[filePath] = annotation
-				// Log LLM response
-				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), annotation)
-				llm.LogMessage(logger, perpetualDir, connector, &responseMessage)
 				break
 			}
 		}

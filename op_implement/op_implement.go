@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
@@ -231,8 +230,6 @@ func Run(args []string, logger logging.ILogger) {
 			}
 		}
 		if nonTargetFilesAnnotationsCount > 0 {
-			// Announce start of new LLM session
-			llm.LogStartSession(logger, perpetualDir, "implement (stage1)", args...)
 			// Run stage 1
 			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, targetFiles, logger)
 		} else {
@@ -265,9 +262,6 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 	filesToReview = filteredFilesToReview
-
-	// Announce start of new LLM session
-	llm.LogStartSession(logger, perpetualDir, "implement (stage2,stage3)", args...)
 
 	// Run stage 2
 	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTags, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)

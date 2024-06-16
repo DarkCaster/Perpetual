@@ -28,14 +28,13 @@ type Fragment struct {
 }
 
 type Message struct {
-	IsLogged  bool //TODO: make it pointer to bool, so all copies will share the same status ?
 	Type      MessageType
 	Fragments []Fragment
 	RawText   string
 }
 
 func NewMessage(messageType MessageType) Message {
-	return Message{IsLogged: false, Type: messageType, Fragments: []Fragment{}, RawText: ""}
+	return Message{Type: messageType, Fragments: []Fragment{}, RawText: ""}
 }
 
 func addMessageFragment(message Message, fragmentType FragmentType, contents string, filename string, tags string) Message {

@@ -94,10 +94,6 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Files for no planning simulated response added")
 	}
 
-	// Log messages
-	llm.LogMessages(logger, perpetualDir, stage2Connector, messages)
-	logger.Debugln("Messages logged")
-
 	// Resulted filenames
 	var targetFilesToModify []string
 	var otherFilesToModify []string
@@ -128,9 +124,6 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				}
 				continue
 			} else if status == llm.QueryMaxTokens {
-				// Log LLM response
-				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-				llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query reached token limit")
 				} else {
@@ -142,9 +135,6 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				logger.Warnln("Got empty response from AI, retrying")
 				continue
 			}
-			// Log LLM response
-			responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-			llm.LogMessage(logger, perpetualDir, stage2Connector, &responseMessage)
 			// Get reasonings
 			if planningMode == 2 {
 				reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
@@ -255,8 +245,6 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 		}
 
-		// Log message before response, to mark it as logged here, because stage3 actively copying and reusing old messages
-		llm.LogMessage(logger, perpetualDir, stage2Connector, &simplifiedResponseMessage)
 		messages = append(messages, simplifiedResponseMessage)
 		logger.Debugln("Simplified response message created")
 	} else {

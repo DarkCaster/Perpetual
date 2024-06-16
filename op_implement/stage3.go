@@ -84,7 +84,6 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		// Create prompt for to implement one of the files
 		stage3Messages = append(stage3Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ProcessFilePrompt))
-		llm.LogMessages(logger, perpetualDir, stage3Connector, stage3Messages)
 
 		var fileBodies []string
 		onFailRetriesLeft := stage3Connector.GetOnFailureRetryLimit()
@@ -100,8 +99,6 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			generateTry := 1
 			fileRetry := false
 			for continueGeneration && !fileRetry {
-				// Log messages we are going to send
-				llm.LogMessages(logger, perpetualDir, stage3Connector, stage3MessagesTry)
 				// Run query
 				continueGeneration = false
 				logger.Infoln("Running stage3: implementing code for:", pendingFile)
@@ -128,10 +125,6 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
 					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ContinuePromptTemplate))
 				}
-
-				// Log LLM response
-				responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-				llm.LogMessage(logger, perpetualDir, stage3Connector, &responseMessage)
 
 				// Append response fragment
 				responses = append(responses, aiResponse)

@@ -58,11 +58,6 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln("Created target files analysis request message")
 
-	// Log messages
-	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1ProjectIndexRequestMessage)
-	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1ProjectIndexResponseMessage)
-	llm.LogMessage(logger, perpetualDir, stage1Connector, &stage1SourceAnalysisRequestMessage)
-
 	aiResponse := ""
 	onFailRetriesLeft := stage1Connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
@@ -84,9 +79,6 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 			continue
 		} else if status == llm.QueryMaxTokens {
-			// Log LLM response
-			responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-			llm.LogMessage(logger, perpetualDir, stage1Connector, &responseMessage)
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query reached token limit")
 			} else {
@@ -99,9 +91,6 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 			continue
 		}
 		logger.Debugln("LLM query completed")
-		// Log LLM response
-		responseMessage := llm.SetRawResponse(llm.NewMessage(llm.RealAIResponse), aiResponse)
-		llm.LogMessage(logger, perpetualDir, stage1Connector, &responseMessage)
 		break
 	}
 
