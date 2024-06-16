@@ -2,7 +2,6 @@ package op_report
 
 import (
 	"flag"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -104,16 +103,6 @@ func Run(args []string, logger logging.ILogger) {
 			}
 			reportMessage = llm.AddIndexFragment(reportMessage, filename, nil)
 			reportMessage = llm.AddPlainTextFragment(reportMessage, annotation)
-		}
-
-		// Output report
-		if outputFile == "" {
-			fmt.Println(reportMessage.RawText)
-		} else {
-			err = utils.SaveTextFile(outputFile, reportMessage.RawText)
-			if err != nil {
-				logger.Panicln("Error writing report to file:", err)
-			}
 		}
 
 	} else if strings.ToUpper(reportType) == "CODE" {
