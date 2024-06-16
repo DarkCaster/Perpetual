@@ -8,7 +8,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-const LLMRawLogFile = "message_log.txt"
+const LLMRawLogFile = ".message_log.txt"
 
 type QueryStatus int
 
