@@ -91,6 +91,14 @@ func Run(args []string, logger logging.ILogger) {
 	//fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
 	fileNameTagsStrings := []string{"### File: ", ""}
 
+	loadPrompt := func(filePath string) string {
+		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
+		if err != nil {
+			logger.Panicln("Failed to load prompt:", err)
+		}
+		return text
+	}
+
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, logger)
@@ -102,7 +110,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Generate report messages
-		reportMessage := llm.NewMessage(llm.UserRequest)
+		reportMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
 		for _, filename := range fileNames {
 			annotation, ok := annotations[filename]
 			if !ok {
