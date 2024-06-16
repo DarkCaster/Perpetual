@@ -88,7 +88,7 @@ The perpetual init command creates a .perpetual directory in the root of your pr
 - Regular expressions used for parsing responses from the LLM
 - LLM chat logs
 
-Additional files created when executing **Perpetual** operations. **DO NOT ADD THEM TO YOUR VCS** - this is platform dependent files:
+Additional files created when executing **Perpetual** operations. **DO NOT ADD THESE TO YOUR VCS** - these files are platform dependent:
 
 - `.annotations.json` Current annotations generated for your project files.
 - `.message_log.txt` Raw LLM interaction log, see below
