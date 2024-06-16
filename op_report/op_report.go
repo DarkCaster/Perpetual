@@ -2,6 +2,8 @@ package op_report
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -84,6 +86,9 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
+	// Load filename tags from file
+	fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
+
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, logger)
@@ -101,10 +106,24 @@ func Run(args []string, logger logging.ILogger) {
 			if !ok {
 				annotation = "No annotation available"
 			}
-			reportMessage = llm.AddIndexFragment(reportMessage, filename, nil)
+			reportMessage = llm.AddIndexFragment(reportMessage, filename, fileNameTagsStrings)
 			reportMessage = llm.AddPlainTextFragment(reportMessage, annotation)
 		}
 
+		reportStrings, err := llm.RenderMessagesToAIStrings([]llm.Message{reportMessage})
+		if err != nil {
+			logger.Panicln("Error rendering report messages:", err)
+		}
+
+		// Save report string to file or print it to stderr
+		if outputFile != "" {
+			err = utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
+			if err != nil {
+				logger.Panicln("Error writing report to file:", err)
+			}
+		} else {
+			fmt.Fprintln(os.Stderr, strings.Join(reportStrings, "\n"))
+		}
 	} else if strings.ToUpper(reportType) == "CODE" {
 	} else {
 		logger.Panicln("Invalid report type:", reportType)
