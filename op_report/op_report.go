@@ -24,6 +24,7 @@ func Run(args []string, logger logging.ILogger) {
 	var help, verbose, trace bool
 	var reportType, outputFile string
 
+	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
@@ -86,8 +87,9 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	// Load filename tags from file
-	fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
+	//TODO: Load filename tags from file when using llm-agnostic formatting
+	//fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
+	fileNameTagsStrings := []string{"### File: ", ""}
 
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
