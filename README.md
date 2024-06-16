@@ -154,6 +154,17 @@ or
 Perpetual implement -pr
 ```
 
+### Generating project report for manual use with LLM
+
+The `report` operation allows you to generate a report from your project’s source code in Markdown format. You can then upload or copy-paste this file into your LLM chat-interface/knowledge base/Vector DB for manual analysis, bug searching, etc. Currently it only support Markdown formatting for code that seem to be optimal both for popular commercial and opensource LLMs.
+
+Available flags:
+
+- -t `<type>`: Select the report type. Valid values are `code` and `brief`.  
+  `code`: Includes the full source code of your project files.  
+  `brief`: Includes only the file names and their annotations (will run `annotate` first for changed or missing files).
+- -r `<file>`: Specify the file path to write the report to. If not provided or empty, the report will be printed to stderr.
+
 ### Extra features, tips and tricks
 
 #### Tailoring Annotation Generation for Specific Project Files
