@@ -169,3 +169,34 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 	}
 	return result, nil
 }
+
+func RenderMessagesToAIStrings(messages []Message) ([]string, error) {
+	messageContents, err := renderMessagesToGenericAILangChainFormat(messages)
+	if err != nil {
+		return nil, err
+	}
+	var result []string
+	for _, messageContent := range messageContents {
+		var sb strings.Builder
+		for _, part := range messageContent.Parts {
+			text := ""
+			switch pp := part.(type) {
+			case llms.TextContent:
+				text = pp.Text
+			case llms.ImageURLContent:
+				text = pp.URL
+			case llms.BinaryContent:
+				text = "<binary data>"
+			case llms.ToolCall:
+				text = "<tool call>"
+			case llms.ToolCallResponse:
+				text = "<tool call response>"
+			default:
+				text = "<unknown>"
+			}
+			sb.WriteString(text)
+		}
+		result = append(result, sb.String())
+	}
+	return result, nil
+}
