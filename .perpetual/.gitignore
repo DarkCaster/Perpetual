@@ -1,5 +1,4 @@
 /.env
 /.annotations.json
-/.chatlog.md
-/.raw_message_log.txt
+/message_log.txt
 /.stash
