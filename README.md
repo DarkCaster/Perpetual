@@ -90,9 +90,8 @@ The perpetual init command creates a .perpetual directory in the root of your pr
 
 Additional files created when executing **Perpetual** operations. **DO NOT ADD THEM TO YOUR VCS** - this is platform dependent files:
 
-- `.annotations.json.` Current annotations generated for your project files.
-- `.chatlog.md.` LLM interaction log, see below
-- `.raw_message_log.txt.` Raw LLM interaction log, see below
+- `.annotations.json` Current annotations generated for your project files.
+- `.message_log.txt` Raw LLM interaction log, see below
 
 You should be cautious when modifying these settings. You can always rewrite them by running the init operation in the project root directory again.
 
@@ -198,10 +197,7 @@ Example for go lang:
 
 #### Examining logs
 
-**Perpetual** provides detailed logging of LLM interaction. The logs are stored in two different files in the .perpetual directory:
-
-- .chatlog.md: This file contains a human-readable log of the interactions between **Perpetual** and the LLM, in a formatted and simplified manner. It does not include the messages that are repeatedly sent to the LLM for each request. This log is similar to what you would get if you manually conversed with the LLM through a chat interface.
-- .raw_message_log.txt: This file contains a raw, unformatted log of the actual messages exchanged between **Perpetual** and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
+**Perpetual** provides detailed logging of LLM interaction at `.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between **Perpetual** and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
 
 ## Example
 
