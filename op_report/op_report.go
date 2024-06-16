@@ -2,10 +2,13 @@ package op_report
 
 import (
 	"flag"
+	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -68,7 +71,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-	_, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
+	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("Error getting project file-list:", err)
 	}
@@ -83,6 +86,35 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	if strings.ToUpper(reportType) == "BRIEF" {
+		logger.Debugln("Running 'annotate' operation to update file annotations")
+		op_annotate.Run(nil, logger)
+
+		// Load annotations
+		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+		if err != nil {
+			logger.Panicln("Error loading annotations:", err)
+		}
+
+		// Generate report messages
+		reportMessage := llm.NewMessage(llm.UserRequest)
+		for _, filename := range fileNames {
+			annotation, ok := annotations[filename]
+			if !ok {
+				annotation = "No annotation available"
+			}
+			reportMessage = llm.AddIndexFragment(reportMessage, filename, nil)
+			reportMessage = llm.AddPlainTextFragment(reportMessage, annotation)
+		}
+
+		// Output report
+		if outputFile == "" {
+			fmt.Println(reportMessage.RawText)
+		} else {
+			err = utils.SaveTextFile(outputFile, reportMessage.RawText)
+			if err != nil {
+				logger.Panicln("Error writing report to file:", err)
+			}
+		}
 
 	} else if strings.ToUpper(reportType) == "CODE" {
 	} else {
