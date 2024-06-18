@@ -6,7 +6,7 @@ toolchain go1.22.3
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/tmc/langchaingo v0.1.10
+	github.com/tmc/langchaingo v0.1.11
 )
 
 require (
