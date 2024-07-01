@@ -163,9 +163,18 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 			if len(fileBodies) > 1 {
 				if onFailRetriesLeft < 1 {
-					logger.Errorln("Multiple file bodies detected in LLM response:", len(fileBodies))
+					logger.Errorln("Multiple file bodies detected in LLM response")
 				} else {
-					logger.Warnln("Multiple file bodies detected in LLM response, retrying:", len(fileBodies))
+					logger.Warnln("Multiple file bodies detected in LLM response")
+					continue
+				}
+			}
+
+			if len(fileBodies) < 1 {
+				if onFailRetriesLeft < 1 {
+					logger.Errorln("No file bodies detected in LLM response")
+				} else {
+					logger.Warnln("No file bodies detected in LLM response")
 					continue
 				}
 			}
@@ -179,8 +188,6 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			logger.Debugln("Found output for:", pendingFile)
 			processedFileContents[pendingFile] = fileBodies[0]
 			processedFiles = append(processedFiles, pendingFile)
-		} else {
-			logger.Errorln("No output found for file:", pendingFile)
 		}
 	}
 
