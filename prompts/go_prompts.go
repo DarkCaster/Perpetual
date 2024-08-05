@@ -47,7 +47,7 @@ func (p *GoPrompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
 }
 
 func (p *GoPrompts) GetImplementStage2NoPlanningPrompt() string {
-	return "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
+	return DefaultImplementStage2NoPlanningPrompt
 }
 
 func (p *GoPrompts) GetAIImplementStage2NoPlanningResponse() string {
