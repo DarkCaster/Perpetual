@@ -63,7 +63,7 @@ func (p *DotNetFWPrompts) GetAIImplementStage3ChangesDoneResponse() string {
 }
 
 func (p *DotNetFWPrompts) GetImplementStage3ProcessFilePrompt() string {
-	return "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
+	return DefaultImplementStage3ProcessFilePrompt
 }
 
 func (p *DotNetFWPrompts) GetImplementStage3ContinuePrompt() string {

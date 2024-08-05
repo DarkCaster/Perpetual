@@ -12,3 +12,4 @@ const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents
 const DefaultImplementStage2NoPlanningPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
 const DefaultAIImplementStage2NoPlanningResponse = "I have carefully studied all the code provided to me, and I am ready to implement the task."
 const DefaultImplementStage3ChangesDonePrompt = "Here are the contents of the files with the changes already implemented."
+const DefaultImplementStage3ProcessFilePrompt = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
