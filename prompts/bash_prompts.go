@@ -101,7 +101,7 @@ func (p *BashPrompts) GetOutputTagsRegexps() []string {
 }
 
 func (p *BashPrompts) GetReasoningsTagsRegexps() []string {
-	return []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+	return DefaultReasoningsTagsRegexps
 }
 
 func (p *BashPrompts) GetReasoningsTags() []string {

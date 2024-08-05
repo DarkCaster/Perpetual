@@ -103,7 +103,7 @@ func (p *Py3Prompts) GetOutputTagsRegexps() []string {
 }
 
 func (p *Py3Prompts) GetReasoningsTagsRegexps() []string {
-	return []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+	return DefaultReasoningsTagsRegexps
 }
 
 func (p *Py3Prompts) GetReasoningsTags() []string {

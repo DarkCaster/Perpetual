@@ -103,7 +103,7 @@ func (p *VB6Prompts) GetOutputTagsRegexps() []string {
 }
 
 func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {
-	return []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+	return DefaultReasoningsTagsRegexps
 }
 
 func (p *VB6Prompts) GetReasoningsTags() []string {

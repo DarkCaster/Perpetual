@@ -103,7 +103,7 @@ func (p *GoPrompts) GetOutputTagsRegexps() []string {
 }
 
 func (p *GoPrompts) GetReasoningsTagsRegexps() []string {
-	return []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+	return DefaultReasoningsTagsRegexps
 }
 
 func (p *GoPrompts) GetReasoningsTags() []string {
