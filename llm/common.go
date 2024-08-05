@@ -5,12 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/tmc/langchaingo/llms"
 )
 
 func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string) string {
+	for _, mapping := range filesToMdLangMappings {
+		matched, err := regexp.MatchString(mapping[0], fileName)
+		if err == nil && matched {
+			return mapping[1]
+		}
+	}
 	ext := filepath.Ext(fileName)
 	switch strings.ToLower(ext) {
 	case ".go":
