@@ -15,7 +15,7 @@ func (p *Py3Prompts) GetAnnotatePrompt() string {
 }
 
 func (p *Py3Prompts) GetAIAnnotateResponse() string {
-	return "Waiting for file contents"
+	return DefaultAIAnnotateResponse
 }
 
 func (p *Py3Prompts) GetImplementStage1ProjectIndexPrompt() string {

@@ -13,7 +13,7 @@ func (p *BashPrompts) GetAnnotatePrompt() string {
 }
 
 func (p *BashPrompts) GetAIAnnotateResponse() string {
-	return "Waiting for file contents"
+	return DefaultAIAnnotateResponse
 }
 
 func (p *BashPrompts) GetImplementStage1ProjectIndexPrompt() string {

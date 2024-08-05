@@ -15,7 +15,7 @@ func (p *DotNetFWPrompts) GetAnnotatePrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAIAnnotateResponse() string {
-	return "Waiting for file contents"
+	return DefaultAIAnnotateResponse
 }
 
 func (p *DotNetFWPrompts) GetImplementStage1ProjectIndexPrompt() string {

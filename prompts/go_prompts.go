@@ -15,7 +15,7 @@ func (p *GoPrompts) GetAnnotatePrompt() string {
 }
 
 func (p *GoPrompts) GetAIAnnotateResponse() string {
-	return "Waiting for file contents"
+	return DefaultAIAnnotateResponse
 }
 
 func (p *GoPrompts) GetImplementStage1ProjectIndexPrompt() string {
