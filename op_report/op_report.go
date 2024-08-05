@@ -66,6 +66,12 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading project-files whitelist regexps:", err)
 	}
 
+	var filesToMdLangMappings [][2]string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
+	if err != nil {
+		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
+	}
+
 	var projectFilesBlacklist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {

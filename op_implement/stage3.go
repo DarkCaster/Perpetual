@@ -11,14 +11,14 @@ import (
 )
 
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
-func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, outputTagsRxStrings []string, fileNameEmbedTag string, fileNameTags []string,
+func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, outputTagsRxStrings []string, fileNameEmbedTag string, fileNameTags []string,
 	stage2Messages []llm.Message, otherFiles []string, targetFiles []string, logger logging.ILogger) map[string]string {
 
 	logger.Traceln("Stage3: Starting")       // Add trace logging
 	defer logger.Traceln("Stage3: Finished") // Add trace logging
 
 	// Create stage3 llm connector
-	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}

@@ -32,7 +32,7 @@ type LLMConnector interface {
 	GetOptionsString() string
 }
 
-func NewLLMConnector(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	provider, err := utils.GetEnvUpperString(

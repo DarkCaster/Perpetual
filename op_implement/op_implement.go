@@ -85,6 +85,12 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading project-files whitelist regexps:", err)
 	}
 
+	var filesToMdLangMappings [][2]string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
+	if err != nil {
+		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
+	}
+
 	var projectFilesBlacklist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
@@ -231,7 +237,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		if nonTargetFilesAnnotationsCount > 0 {
 			// Run stage 1
-			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, targetFiles, logger)
+			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, targetFiles, logger)
 		} else {
 			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
 		}
@@ -264,7 +270,7 @@ func Run(args []string, logger logging.ILogger) {
 	filesToReview = filteredFilesToReview
 
 	// Run stage 2
-	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, planningMode, fileNameTagsRxStrings, fileNameTags, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
+	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, planningMode, fileNameTagsRxStrings, fileNameTags, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
@@ -277,7 +283,7 @@ func Run(args []string, logger logging.ILogger) {
 	otherFilesToModify = filteredOtherFilesToModify
 
 	// Run stage 3
-	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, outputTagsRxStrings, fileNameEmbedRXString, fileNameTags, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
+	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, outputTagsRxStrings, fileNameEmbedRXString, fileNameTags, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
 
 	// Filter results similar to filteredOtherFilesToModify: remove files from map that marked with no-upload comment
 	var filteredResults = make(map[string]string)

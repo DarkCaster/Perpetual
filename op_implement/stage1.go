@@ -9,7 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, fileNameTagsRxStrings []string, fileNameTags []string,
+func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTagsRxStrings []string, fileNameTags []string,
 	fileNames []string, annotations map[string]string, targetFiles []string, logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -17,7 +17,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}

@@ -71,6 +71,12 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("error reading project-files whitelist regexps:", err)
 	}
 
+	var filesToMdLangMappings [][2]string
+	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
+	if err != nil {
+		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
+	}
+
 	var projectFilesBlacklist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
@@ -151,7 +157,7 @@ func Run(args []string, logger logging.ILogger) {
 	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
 	// Create llm connector
-	connector, err := llm.NewLLMConnector(OpName, systemPrompt, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName, systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
