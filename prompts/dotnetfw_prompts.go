@@ -55,7 +55,7 @@ func (p *DotNetFWPrompts) GetAIImplementStage2NoPlanningResponse() string {
 }
 
 func (p *DotNetFWPrompts) GetImplementStage3ChangesDonePrompt() string {
-	return "Here are the contents of the files with the changes already implemented."
+	return DefaultImplementStage3ChangesDonePrompt
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage3ChangesDoneResponse() string {

@@ -53,7 +53,7 @@ func (p *BashPrompts) GetAIImplementStage2NoPlanningResponse() string {
 }
 
 func (p *BashPrompts) GetImplementStage3ChangesDonePrompt() string {
-	return "Here are the contents of the files with the changes already implemented."
+	return DefaultImplementStage3ChangesDonePrompt
 }
 
 func (p *BashPrompts) GetAIImplementStage3ChangesDoneResponse() string {

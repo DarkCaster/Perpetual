@@ -55,7 +55,7 @@ func (p *Py3Prompts) GetAIImplementStage2NoPlanningResponse() string {
 }
 
 func (p *Py3Prompts) GetImplementStage3ChangesDonePrompt() string {
-	return "Here are the contents of the files with the changes already implemented."
+	return DefaultImplementStage3ChangesDonePrompt
 }
 
 func (p *Py3Prompts) GetAIImplementStage3ChangesDoneResponse() string {
