@@ -82,6 +82,10 @@ func (p *GoPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"^.*\\.go$"}
 }
 
+func (p *GoPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
+	return [][2]string{}
+}
+
 func (p *GoPrompts) GetProjectFilesBlacklist() []string {
 	return []string{"^.*_test\\.go$", "^vendor[/\\\\].*"}
 }

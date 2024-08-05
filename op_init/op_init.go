@@ -148,6 +148,10 @@ func Run(args []string, logger logging.ILogger) {
 	if err != nil {
 		logger.Panicln("error writing project files whitelist regexps to JSON file: ", err)
 	}
+	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), promptsObj.GetProjectFilesToMarkdownMappings())
+	if err != nil {
+		logger.Panicln("error writing project-files to markdown-lang mapping regexps to JSON file: ", err)
+	}
 	logger.Traceln("Saving project files blacklist regexps")
 	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), promptsObj.GetProjectFilesBlacklist())
 	if err != nil {

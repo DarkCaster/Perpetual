@@ -82,6 +82,10 @@ func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"^.*\\.(cs|vb|xaml)$"}
 }
 
+func (p *DotNetFWPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
+	return [][2]string{}
+}
+
 func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
 	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)", "(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
 }

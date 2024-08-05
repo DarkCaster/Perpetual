@@ -82,6 +82,10 @@ func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
 	return []string{"^.*\\.py$"}
 }
 
+func (p *Py3Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
+	return [][2]string{}
+}
+
 func (p *Py3Prompts) GetProjectFilesBlacklist() []string {
 	return []string{"^tests[/\\\\].*", "^venv[/\\\\].*"}
 }

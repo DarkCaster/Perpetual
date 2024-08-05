@@ -80,6 +80,10 @@ func (p *BashPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"^.*\\.(sh|bash|in)$"}
 }
 
+func (p *BashPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
+	return [][2]string{}
+}
+
 func (p *BashPrompts) GetProjectFilesBlacklist() []string {
 	return []string{}
 }

@@ -10,6 +10,7 @@ import (
 // - `NewPrompts`: Function for creating a particular Prompts implementation based on the target language
 
 const ProjectFilesWhitelistFileName = "project_files_whitelist.json"
+const ProjectFilesToMarkdownLangMappingFileName = "project_files_to_markdown_lang_mappings.json"
 const ProjectFilesBlacklistFileName = "project_files_blacklist.json"
 const FileNameTagsRXFileName = "filename_tags_regexps.json"
 const FileNameTagsFileName = "filename_tags.json"
@@ -51,6 +52,7 @@ type Prompts interface {
 	// General helpers
 	GetProjectFilesWhitelist() []string
 	GetProjectFilesBlacklist() []string
+	GetProjectFilesToMarkdownMappings() [][2]string
 	GetSystemPrompt() string
 
 	// Annotate-operation prompts
