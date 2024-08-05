@@ -83,7 +83,7 @@ func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
 }
 
 func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
-	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
+	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)", "(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
 }
 
 func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
