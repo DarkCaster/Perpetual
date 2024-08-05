@@ -141,7 +141,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid report type:", reportType)
 	}
 
-	reportStrings, err := llm.RenderMessagesToAIStrings([]llm.Message{reportMessage})
+	reportStrings, err := llm.RenderMessagesToAIStrings(filesToMdLangMappings, []llm.Message{reportMessage})
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)
 	}

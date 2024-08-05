@@ -170,7 +170,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 	return result, nil
 }
 
-func RenderMessagesToAIStrings(messages []Message) ([]string, error) {
+func RenderMessagesToAIStrings(filesToMdLangMappings [][2]string, messages []Message) ([]string, error) {
 	messageContents, err := renderMessagesToGenericAILangChainFormat(messages)
 	if err != nil {
 		return nil, err
