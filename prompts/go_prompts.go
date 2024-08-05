@@ -95,7 +95,7 @@ func (p *GoPrompts) GetFileNameTags() []string {
 }
 
 func (p *GoPrompts) GetFileNameEmbedRegex() string {
-	return "###FILENAME###"
+	return DefaultFileNameEmbedRegex
 }
 
 func (p *GoPrompts) GetOutputTagsRegexps() []string {

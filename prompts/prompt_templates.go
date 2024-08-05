@@ -17,3 +17,4 @@ const DefaultImplementStage3ContinuePrompt = "You previous response hit token li
 
 var DefaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
 var DefaultFileNameTags = []string{"<filename>", "</filename>"}
+var DefaultFileNameEmbedRegex = "###FILENAME###"

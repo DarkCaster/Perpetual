@@ -95,7 +95,7 @@ func (p *VB6Prompts) GetFileNameTags() []string {
 }
 
 func (p *VB6Prompts) GetFileNameEmbedRegex() string {
-	return "###FILENAME###"
+	return DefaultFileNameEmbedRegex
 }
 
 func (p *VB6Prompts) GetOutputTagsRegexps() []string {

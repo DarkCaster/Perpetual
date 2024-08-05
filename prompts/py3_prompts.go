@@ -95,7 +95,7 @@ func (p *Py3Prompts) GetFileNameTags() []string {
 }
 
 func (p *Py3Prompts) GetFileNameEmbedRegex() string {
-	return "###FILENAME###"
+	return DefaultFileNameEmbedRegex
 }
 
 func (p *Py3Prompts) GetOutputTagsRegexps() []string {
