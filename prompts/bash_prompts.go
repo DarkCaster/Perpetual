@@ -89,7 +89,7 @@ func (p *BashPrompts) GetFileNameTagsRegexps() []string {
 }
 
 func (p *BashPrompts) GetFileNameTags() []string {
-	return []string{"<filename>", "</filename>"}
+	return DefaultFileNameTags
 }
 
 func (p *BashPrompts) GetFileNameEmbedRegex() string {

@@ -91,7 +91,7 @@ func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
 }
 
 func (p *DotNetFWPrompts) GetFileNameTags() []string {
-	return []string{"<filename>", "</filename>"}
+	return DefaultFileNameTags
 }
 
 func (p *DotNetFWPrompts) GetFileNameEmbedRegex() string {

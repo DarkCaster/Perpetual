@@ -16,3 +16,4 @@ const DefaultImplementStage3ProcessFilePrompt = "Implement the required code for
 const DefaultImplementStage3ContinuePrompt = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 
 var DefaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+var DefaultFileNameTags = []string{"<filename>", "</filename>"}
