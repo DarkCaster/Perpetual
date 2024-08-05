@@ -102,6 +102,8 @@ func NewPrompts(targetLang string) (Prompts, error) {
 		return &BashPrompts{}, nil
 	case "PYTHON3":
 		return &Py3Prompts{}, nil
+	case "VB6":
+		return &VB6Prompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
