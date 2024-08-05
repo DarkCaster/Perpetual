@@ -107,5 +107,5 @@ func (p *GoPrompts) GetReasoningsTagsRegexps() []string {
 }
 
 func (p *GoPrompts) GetReasoningsTags() []string {
-	return []string{"<reasoning>", "</reasoning>"}
+	return DefaultReasoningsTags
 }

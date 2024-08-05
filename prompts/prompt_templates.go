@@ -21,3 +21,4 @@ var DefaultFileNameEmbedRegex = "###FILENAME###"
 var DefaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var DefaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 var DefaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+var DefaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}

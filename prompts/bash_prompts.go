@@ -105,5 +105,5 @@ func (p *BashPrompts) GetReasoningsTagsRegexps() []string {
 }
 
 func (p *BashPrompts) GetReasoningsTags() []string {
-	return []string{"<reasoning>", "</reasoning>"}
+	return DefaultReasoningsTags
 }

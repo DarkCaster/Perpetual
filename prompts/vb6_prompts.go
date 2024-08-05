@@ -107,5 +107,5 @@ func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {
 }
 
 func (p *VB6Prompts) GetReasoningsTags() []string {
-	return []string{"<reasoning>", "</reasoning>"}
+	return DefaultReasoningsTags
 }

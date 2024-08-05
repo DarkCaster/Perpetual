@@ -107,5 +107,5 @@ func (p *DotNetFWPrompts) GetReasoningsTagsRegexps() []string {
 }
 
 func (p *DotNetFWPrompts) GetReasoningsTags() []string {
-	return []string{"<reasoning>", "</reasoning>"}
+	return DefaultReasoningsTags
 }

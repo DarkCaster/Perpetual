@@ -107,5 +107,5 @@ func (p *Py3Prompts) GetReasoningsTagsRegexps() []string {
 }
 
 func (p *Py3Prompts) GetReasoningsTags() []string {
-	return []string{"<reasoning>", "</reasoning>"}
+	return DefaultReasoningsTags
 }
