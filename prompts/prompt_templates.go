@@ -14,3 +14,5 @@ const DefaultAIImplementStage2NoPlanningResponse = "I have carefully studied all
 const DefaultImplementStage3ChangesDonePrompt = "Here are the contents of the files with the changes already implemented."
 const DefaultImplementStage3ProcessFilePrompt = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
 const DefaultImplementStage3ContinuePrompt = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
+
+var DefaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}

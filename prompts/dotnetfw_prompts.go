@@ -87,7 +87,7 @@ func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
 }
 
 func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
-	return []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+	return DefaultFileNameTagsRegexps
 }
 
 func (p *DotNetFWPrompts) GetFileNameTags() []string {

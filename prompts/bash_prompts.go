@@ -85,7 +85,7 @@ func (p *BashPrompts) GetProjectFilesBlacklist() []string {
 }
 
 func (p *BashPrompts) GetFileNameTagsRegexps() []string {
-	return []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+	return DefaultFileNameTagsRegexps
 }
 
 func (p *BashPrompts) GetFileNameTags() []string {

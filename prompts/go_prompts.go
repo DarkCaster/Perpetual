@@ -87,7 +87,7 @@ func (p *GoPrompts) GetProjectFilesBlacklist() []string {
 }
 
 func (p *GoPrompts) GetFileNameTagsRegexps() []string {
-	return []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+	return DefaultFileNameTagsRegexps
 }
 
 func (p *GoPrompts) GetFileNameTags() []string {

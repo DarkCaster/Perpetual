@@ -87,7 +87,7 @@ func (p *Py3Prompts) GetProjectFilesBlacklist() []string {
 }
 
 func (p *Py3Prompts) GetFileNameTagsRegexps() []string {
-	return []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+	return DefaultFileNameTagsRegexps
 }
 
 func (p *Py3Prompts) GetFileNameTags() []string {

@@ -87,7 +87,7 @@ func (p *VB6Prompts) GetProjectFilesBlacklist() []string {
 }
 
 func (p *VB6Prompts) GetFileNameTagsRegexps() []string {
-	return []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+	return DefaultFileNameTagsRegexps
 }
 
 func (p *VB6Prompts) GetFileNameTags() []string {
