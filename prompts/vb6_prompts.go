@@ -71,11 +71,11 @@ func (p *VB6Prompts) GetImplementStage3ContinuePrompt() string {
 }
 
 func (p *VB6Prompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	return []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
 }
 
 func (p *VB6Prompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	return []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 }
 
 func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
@@ -83,7 +83,7 @@ func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
 }
 
 func (p *VB6Prompts) GetProjectFilesBlacklist() []string {
-	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)", "(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
+	return []string{}
 }
 
 func (p *VB6Prompts) GetFileNameTagsRegexps() []string {
@@ -99,7 +99,7 @@ func (p *VB6Prompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *VB6Prompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
+	return []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 }
 
 func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {
