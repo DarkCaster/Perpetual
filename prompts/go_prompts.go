@@ -99,7 +99,7 @@ func (p *GoPrompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *GoPrompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
+	return DefaultOutputTagsRegexps
 }
 
 func (p *GoPrompts) GetReasoningsTagsRegexps() []string {

@@ -97,7 +97,7 @@ func (p *BashPrompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *BashPrompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
+	return DefaultOutputTagsRegexps
 }
 
 func (p *BashPrompts) GetReasoningsTagsRegexps() []string {

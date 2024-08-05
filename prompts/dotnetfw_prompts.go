@@ -99,7 +99,7 @@ func (p *DotNetFWPrompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *DotNetFWPrompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
+	return DefaultOutputTagsRegexps
 }
 
 func (p *DotNetFWPrompts) GetReasoningsTagsRegexps() []string {
