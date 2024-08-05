@@ -51,7 +51,7 @@ func (p *DotNetFWPrompts) GetImplementStage2NoPlanningPrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage2NoPlanningResponse() string {
-	return "I have carefully studied all the code provided to me, and I am ready to implement the task."
+	return DefaultAIImplementStage2NoPlanningResponse
 }
 
 func (p *DotNetFWPrompts) GetImplementStage3ChangesDonePrompt() string {

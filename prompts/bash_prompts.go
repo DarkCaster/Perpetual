@@ -49,7 +49,7 @@ func (p *BashPrompts) GetImplementStage2NoPlanningPrompt() string {
 }
 
 func (p *BashPrompts) GetAIImplementStage2NoPlanningResponse() string {
-	return "I have carefully studied all the code provided to me, and I am ready to implement the task."
+	return DefaultAIImplementStage2NoPlanningResponse
 }
 
 func (p *BashPrompts) GetImplementStage3ChangesDonePrompt() string {
