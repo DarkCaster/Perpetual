@@ -99,7 +99,7 @@ func (p *Py3Prompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *Py3Prompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
+	return DefaultOutputTagsRegexps_WithNumbers
 }
 
 func (p *Py3Prompts) GetReasoningsTagsRegexps() []string {

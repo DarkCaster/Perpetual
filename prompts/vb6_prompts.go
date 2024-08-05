@@ -99,7 +99,7 @@ func (p *VB6Prompts) GetFileNameEmbedRegex() string {
 }
 
 func (p *VB6Prompts) GetOutputTagsRegexps() []string {
-	return []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
+	return DefaultOutputTagsRegexps_WithNumbers
 }
 
 func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {
