@@ -10,7 +10,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-func getMarkdownCodeBlockType(fileName string) string {
+func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string) string {
 	ext := filepath.Ext(fileName)
 	switch strings.ToLower(ext) {
 	case ".go":
@@ -54,7 +54,7 @@ func getMarkdownCodeBlockType(fileName string) string {
 	}
 }
 
-func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.MessageContent, error) {
+func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][2]string, messages []Message) ([]llms.MessageContent, error) {
 	var result []llms.MessageContent
 	for _, message := range messages {
 		var llmMessage llms.MessageContent
@@ -112,7 +112,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 					// Following formatting will also show LLM how to deal with filenames and file contens in responses
 					builder.WriteString(tags[0] + fragment.FileName + tags[1])
 					builder.WriteString("\n")
-					builder.WriteString("```" + getMarkdownCodeBlockType(fragment.FileName))
+					builder.WriteString("```" + getMarkdownCodeBlockType(filesToMdLangMappings, fragment.FileName))
 					builder.WriteString("\n")
 					builder.WriteString(fragment.Contents)
 					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
@@ -171,7 +171,7 @@ func renderMessagesToGenericAILangChainFormat(messages []Message) ([]llms.Messag
 }
 
 func RenderMessagesToAIStrings(filesToMdLangMappings [][2]string, messages []Message) ([]string, error) {
-	messageContents, err := renderMessagesToGenericAILangChainFormat(messages)
+	messageContents, err := renderMessagesToGenericAILangChainFormat(filesToMdLangMappings, messages)
 	if err != nil {
 		return nil, err
 	}

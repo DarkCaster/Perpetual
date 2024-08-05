@@ -95,7 +95,7 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := renderMessagesToGenericAILangChainFormat(tc.messages)
+			result, err := renderMessagesToGenericAILangChainFormat(nil, tc.messages)
 			if err != nil && tc.err == nil || err == nil && tc.err != nil || (err != nil && tc.err != nil && err.Error() != tc.err.Error()) {
 				t.Errorf("Unexpected error: got %v, want %v", err, tc.err)
 			}

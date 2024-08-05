@@ -17,13 +17,14 @@ import (
 // So the summary for this file must only say "This file contains OllamaLLMConnector struct - implementation of LLMConnector interface. Do not attempt to use OllamaLLMConnector directly, use LLMConnector interface instead", nothing else.
 
 type OllamaLLMConnector struct {
-	BaseURL           string
-	Model             string
-	SystemPrompt      string
-	MaxTokensSegments int
-	OnFailRetries     int
-	RawMessageLogger  func(v ...any)
-	Options           []llms.CallOption
+	BaseURL               string
+	Model                 string
+	SystemPrompt          string
+	FilesToMdLangMappings [][2]string
+	MaxTokensSegments     int
+	OnFailRetries         int
+	RawMessageLogger      func(v ...any)
+	Options               []llms.CallOption
 }
 
 func NewOllamaLLMConnector(model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
@@ -124,7 +125,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToGenericAILangChainFormat(messages)
+	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
