@@ -31,7 +31,7 @@ func (p *DotNetFWPrompts) GetImplementStage1SourceAnalysisPrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetImplementStage2ProjectCodePrompt() string {
-	return "Here are the contents of my project's source code files."
+	return DefaultImplementStage2ProjectCodePrompt
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage2ProjectCodeResponse() string {

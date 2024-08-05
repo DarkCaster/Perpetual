@@ -31,7 +31,7 @@ func (p *Py3Prompts) GetImplementStage1SourceAnalysisPrompt() string {
 }
 
 func (p *Py3Prompts) GetImplementStage2ProjectCodePrompt() string {
-	return "Here are the contents of my project's source code files."
+	return DefaultImplementStage2ProjectCodePrompt
 }
 
 func (p *Py3Prompts) GetAIImplementStage2ProjectCodeResponse() string {

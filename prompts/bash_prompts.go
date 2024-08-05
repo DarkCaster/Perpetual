@@ -29,7 +29,7 @@ func (p *BashPrompts) GetImplementStage1SourceAnalysisPrompt() string {
 }
 
 func (p *BashPrompts) GetImplementStage2ProjectCodePrompt() string {
-	return "Here are the contents of my project's source code files."
+	return DefaultImplementStage2ProjectCodePrompt
 }
 
 func (p *BashPrompts) GetAIImplementStage2ProjectCodeResponse() string {
