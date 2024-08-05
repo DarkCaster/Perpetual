@@ -23,7 +23,7 @@ func (p *GoPrompts) GetImplementStage1ProjectIndexPrompt() string {
 }
 
 func (p *GoPrompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *GoPrompts) GetImplementStage1SourceAnalysisPrompt() string {
@@ -35,7 +35,7 @@ func (p *GoPrompts) GetImplementStage2ProjectCodePrompt() string {
 }
 
 func (p *GoPrompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *GoPrompts) GetImplementStage2FilesToChangePrompt() string {
@@ -59,7 +59,7 @@ func (p *GoPrompts) GetImplementStage3ChangesDonePrompt() string {
 }
 
 func (p *GoPrompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *GoPrompts) GetImplementStage3ProcessFilePrompt() string {

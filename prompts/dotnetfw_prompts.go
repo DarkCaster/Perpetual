@@ -23,7 +23,7 @@ func (p *DotNetFWPrompts) GetImplementStage1ProjectIndexPrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *DotNetFWPrompts) GetImplementStage1SourceAnalysisPrompt() string {
@@ -35,7 +35,7 @@ func (p *DotNetFWPrompts) GetImplementStage2ProjectCodePrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *DotNetFWPrompts) GetImplementStage2FilesToChangePrompt() string {
@@ -59,7 +59,7 @@ func (p *DotNetFWPrompts) GetImplementStage3ChangesDonePrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return "Understood. What's next?"
+	return DefaultAIAcknowledge
 }
 
 func (p *DotNetFWPrompts) GetImplementStage3ProcessFilePrompt() string {

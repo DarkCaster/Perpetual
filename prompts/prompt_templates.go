@@ -4,3 +4,4 @@ package prompts
 // This file contains constants with default prompts that are used for implementations of the Prompts interface.
 
 const DefaultAIAnnotateResponse = "Waiting for file contents"
+const DefaultAIAcknowledge = "Understood. What's next?"
