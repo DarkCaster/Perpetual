@@ -67,7 +67,7 @@ func (p *Py3Prompts) GetImplementStage3ProcessFilePrompt() string {
 }
 
 func (p *Py3Prompts) GetImplementStage3ContinuePrompt() string {
-	return "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
+	return DefaultImplementStage3ContinuePrompt
 }
 
 func (p *Py3Prompts) GetImplementCommentRegexps() []string {
