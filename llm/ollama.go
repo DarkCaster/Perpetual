@@ -27,18 +27,19 @@ type OllamaLLMConnector struct {
 	Options               []llms.CallOption
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
+func NewOllamaLLMConnector(model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
-		BaseURL:           customBaseURL,
-		Model:             model,
-		SystemPrompt:      systemPrompt,
-		MaxTokensSegments: maxTokensSegments,
-		OnFailRetries:     onFailRetries,
-		RawMessageLogger:  llmRawMessageLogger,
-		Options:           options}
+		BaseURL:               customBaseURL,
+		Model:                 model,
+		SystemPrompt:          systemPrompt,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		MaxTokensSegments:     maxTokensSegments,
+		OnFailRetries:         onFailRetries,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               options}
 }
 
-func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	model, err := utils.GetEnvString(fmt.Sprintf("OLLAMA_MODEL_OP_%s", operation), "OLLAMA_MODEL")
@@ -99,7 +100,7 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewOllamaLLMConnector(model, systemPrompt, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	return NewOllamaLLMConnector(model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {

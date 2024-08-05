@@ -28,19 +28,20 @@ type AnthropicLLMConnector struct {
 	Options               []llms.CallOption
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
-		BaseURL:           customBaseURL,
-		Token:             token,
-		Model:             model,
-		SystemPrompt:      systemPrompt,
-		MaxTokensSegments: maxTokensSegments,
-		OnFailRetries:     onFailRetries,
-		RawMessageLogger:  llmRawMessageLogger,
-		Options:           options}
+		BaseURL:               customBaseURL,
+		Token:                 token,
+		Model:                 model,
+		SystemPrompt:          systemPrompt,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		MaxTokensSegments:     maxTokensSegments,
+		OnFailRetries:         onFailRetries,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               options}
 }
 
-func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	token, err := utils.GetEnvString("ANTHROPIC_API_KEY")
@@ -106,7 +107,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, llmR
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewAnthropicLLMConnector(token, model, systemPrompt, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {

@@ -44,11 +44,11 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 
 	switch provider {
 	case "ANTHROPIC":
-		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
+		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
-		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
+		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OLLAMA":
-		return NewOllamaLLMConnectorFromEnv(operation, systemPrompt, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}

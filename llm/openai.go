@@ -28,19 +28,20 @@ type OpenAILLMConnector struct {
 	Options               []llms.CallOption
 }
 
-func NewOpenAILLMConnector(token string, model string, systemPrompt string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OpenAILLMConnector {
+func NewOpenAILLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
-		BaseURL:           customBaseURL,
-		Token:             token,
-		Model:             model,
-		SystemPrompt:      systemPrompt,
-		MaxTokensSegments: maxTokensSegments,
-		OnFailRetries:     onFailRetries,
-		RawMessageLogger:  llmRawMessageLogger,
-		Options:           options}
+		BaseURL:               customBaseURL,
+		Token:                 token,
+		Model:                 model,
+		SystemPrompt:          systemPrompt,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		MaxTokensSegments:     maxTokensSegments,
+		OnFailRetries:         onFailRetries,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               options}
 }
 
-func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	token, err := utils.GetEnvString("OPENAI_API_KEY")
@@ -106,7 +107,7 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, llmRawM
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewOpenAILLMConnector(token, model, systemPrompt, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	return NewOpenAILLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
