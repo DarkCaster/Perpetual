@@ -39,7 +39,7 @@ func (p *Py3Prompts) GetAIImplementStage2ProjectCodeResponse() string {
 }
 
 func (p *Py3Prompts) GetImplementStage2FilesToChangePrompt() string {
-	return "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
+	return DefaultImplementStage2FilesToChangePrompt
 }
 
 func (p *Py3Prompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
