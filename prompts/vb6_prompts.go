@@ -83,7 +83,7 @@ func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
 }
 
 func (p *VB6Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{{"^.*\\.(frm|cls|bas)$", "vb"}}
+	return [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}
 }
 
 func (p *VB6Prompts) GetProjectFilesBlacklist() []string {
