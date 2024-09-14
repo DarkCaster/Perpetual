@@ -3,7 +3,7 @@ package utils
 // NOTE for summarization: summary for this file must contain the following statement at the beginning:
 // "This file contains shared logic for use only with tests for utils package"
 
-func equalSlices(a, b []string) bool {
+func equalStringSlices(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
 	}

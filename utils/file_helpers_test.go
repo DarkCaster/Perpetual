@@ -181,7 +181,7 @@ func TestCaseInsensitiveLeadingDirectoriesSearch(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			dirNames := CaseInsensitiveLeadingDirectoriesSearch(tc.targetFile, tc.projectFileNames)
-			if !equalSlices(dirNames, tc.expectedDirNames) {
+			if !equalStringSlices(dirNames, tc.expectedDirNames) {
 				t.Errorf("Expected %v, got %v", tc.expectedDirNames, dirNames)
 			}
 		})

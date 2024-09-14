@@ -325,7 +325,7 @@ func TestParseTaggedText(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ParseTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex)
-			if !equalSlices(result, tc.expectedResult) {
+			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}
 			if tc.expectedError == nil && err != nil {
@@ -501,7 +501,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ParseMultiTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex)
-			if !equalSlices(result, tc.expectedResult) {
+			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}
 			if tc.expectedError == nil && err != nil {
