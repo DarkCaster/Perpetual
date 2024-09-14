@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -305,6 +306,76 @@ func TestDetectUTFBOM(t *testing.T) {
 			result, length := detectUTFEncoding(tc.input)
 			if result != tc.expectedOutput || length != tc.expectedLength {
 				t.Errorf("Expected (%v, %d), but got (%v, %d)", tc.expectedOutput, tc.expectedLength, result, length)
+			}
+		})
+	}
+}
+
+func TestConvertToBOMLessUTF8(t *testing.T) {
+	testCases := []struct {
+		name           string
+		input          []byte
+		expectedOutput []byte
+		expectError    bool
+	}{
+		{
+			name:           "UTF-8 BOM",
+			input:          []byte{0xEF, 0xBB, 0xBF, 0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "UTF-16LE BOM",
+			input:          []byte{0xFF, 0xFE, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "UTF-16BE BOM",
+			input:          []byte{0xFE, 0xFF, 0x00, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "UTF-32LE BOM",
+			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F, 0x00, 0x00, 0x00},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "UTF-32BE BOM",
+			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "No BOM",
+			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectError:    false,
+		},
+		{
+			name:           "Empty input",
+			input:          []byte{},
+			expectedOutput: []byte{},
+			expectError:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := convertToBOMLessUTF8(tc.input)
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected an error, but got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if !bytes.Equal(output, tc.expectedOutput) {
+					t.Errorf("Expected %v, but got %v", tc.expectedOutput, output)
+				}
 			}
 		})
 	}
