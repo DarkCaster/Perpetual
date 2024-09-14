@@ -386,3 +386,59 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckUTF8(t *testing.T) {
+	testCases := []struct {
+		name        string
+		input       []byte
+		expectError bool
+	}{
+		{
+			name:        "Valid UTF-8",
+			input:       []byte("Hello, 世界"),
+			expectError: false,
+		},
+		{
+			name:        "Empty input",
+			input:       []byte{},
+			expectError: false,
+		},
+		{
+			name:        "Invalid UTF-8",
+			input:       []byte{0xFF, 0xFE, 0x00},
+			expectError: true,
+		},
+		{
+			name:        "Malformed UTF-8 from TestConvertToBOMLessUTF8",
+			input:       []byte{0xEF, 0xBF, 0xBD},
+			expectError: true,
+		},
+		{
+			name:        "Incomplete UTF-8 sequence",
+			input:       []byte{0xE2, 0x82}, // Incomplete Euro sign
+			expectError: true,
+		},
+		{
+			name:        "Valid UTF-8 with multi-byte characters",
+			input:       []byte("こんにちは"), // Japanese "Hello"
+			expectError: false,
+		},
+		{
+			name:        "Mixed valid and invalid UTF-8",
+			input:       []byte("Hello\xFFWorld"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := checkUTF8(tc.input)
+			if tc.expectError && err == nil {
+				t.Errorf("Expected an error, but got nil")
+			}
+			if !tc.expectError && err != nil {
+				t.Errorf("Expected no error, but got: %v", err)
+			}
+		})
+	}
+}
