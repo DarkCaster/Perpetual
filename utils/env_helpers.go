@@ -55,7 +55,7 @@ func LoadEnvFiles(filePaths ...string) (bool, error) {
 		if err != nil {
 			failedCount++
 			if !os.IsNotExist(err) {
-				return false, fmt.Errorf("Error loading env file %s: %s", filePath, err)
+				return false, fmt.Errorf("%s: %s", filePath, err)
 			}
 		}
 	}

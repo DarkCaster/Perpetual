@@ -62,7 +62,7 @@ func Run(args []string, logger logging.ILogger) {
 	ok, err := utils.LoadEnvFiles(filepath.Join(perpetualDir, utils.DotEnvFileName))
 	if !ok {
 		if err != nil {
-			logger.Panicln(err)
+			logger.Panicln("Failed to load env file", err)
 		}
 		logger.Warnln("No env files loaded, paths tried:")
 		logger.Warnln(filepath.Join(perpetualDir, utils.DotEnvFileName))
