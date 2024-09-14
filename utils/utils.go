@@ -45,6 +45,14 @@ func findProjectRoot(startDir string, logger logging.ILogger) (string, string, e
 	return findProjectRoot(parentDir, logger)
 }
 
+func FindConfigDir() (string, error) {
+	basedir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(basedir, "Perpetual"), nil
+}
+
 func CalculateSHA256(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {

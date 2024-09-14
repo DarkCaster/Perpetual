@@ -68,20 +68,18 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error finding project root directory:", err)
 	}
 
+	globalConfigDir, err := utils.FindConfigDir()
+	if err != nil {
+		logger.Panicln("Error finding perpetual config directory:", err)
+	}
+
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
 	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
 	logger.Debugln("Prompts directory:", promptsDir)
 
-	ok, err := utils.LoadEnvFiles(filepath.Join(perpetualDir, utils.DotEnvFileName))
-	if !ok {
-		if err != nil {
-			logger.Panicln("Failed to load env file", err)
-		}
-		logger.Warnln("No env files loaded, paths tried:")
-		logger.Warnln(filepath.Join(perpetualDir, utils.DotEnvFileName))
-	}
+	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)

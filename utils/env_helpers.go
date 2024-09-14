@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/joho/godotenv"
 )
 
@@ -48,16 +49,15 @@ func GetEnvFloat(vars ...string) (float64, error) {
 	return 0, fmt.Errorf("none of the environment variables were found or could be converted to float: %v", vars)
 }
 
-func LoadEnvFiles(filePaths ...string) (bool, error) {
-	failedCount := 0
+func LoadEnvFiles(logger logging.ILogger, filePaths ...string) {
 	for _, filePath := range filePaths {
 		err := godotenv.Load(filePath)
 		if err != nil {
-			failedCount++
-			if !os.IsNotExist(err) {
-				return false, fmt.Errorf("%s: %s", filePath, err)
+			if os.IsNotExist(err) {
+				logger.Warnln("Not loading missing env file:", filePath)
+			} else {
+				logger.Panicf("Failed to load env-file %s: %s", filePath, err)
 			}
 		}
 	}
-	return failedCount < len(filePaths), nil
 }
