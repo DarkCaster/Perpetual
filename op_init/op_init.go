@@ -70,6 +70,28 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
+	// Create config directory at globalConfigDir with all leading directories with default permissions
+	globalConfigDir, err := utils.FindConfigDir()
+	if err != nil {
+		logger.Panicln("Error finding perpetual config directory:", err)
+	}
+	logger.Traceln("Creating global config directory")
+	err = os.MkdirAll(globalConfigDir, 0755)
+	if err != nil {
+		logger.Panicln("Error creating global config directory:", err)
+	}
+
+	// Save default global config file if missing
+	globalConfigText := "# This is global .env file for Perpetual, values declared here have the lowest priority and will be used last"
+	globalConfigFile := filepath.Join(globalConfigDir, utils.DotEnvFileName)
+	if _, err := os.Stat(globalConfigFile); os.IsNotExist(err) {
+		logger.Traceln("Creating default global config file")
+		err = utils.SaveTextFile(globalConfigFile, globalConfigText)
+		if err != nil {
+			logger.Panicln("Error creating default global config file:", err)
+		}
+	}
+
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
 
