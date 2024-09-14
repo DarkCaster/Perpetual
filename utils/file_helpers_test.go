@@ -248,3 +248,64 @@ func TestConvertFilePathToOSFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestDetectUTFBOM(t *testing.T) {
+	testCases := []struct {
+		name           string
+		input          []byte
+		expectedOutput textEncoding
+		expectedLength int
+	}{
+		{
+			name:           "UTF-8 BOM",
+			input:          []byte{0xEF, 0xBB, 0xBF, 0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: UTF8,
+			expectedLength: 3,
+		},
+		{
+			name:           "UTF-16LE BOM",
+			input:          []byte{0xFF, 0xFE, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00},
+			expectedOutput: UTF16LE,
+			expectedLength: 2,
+		},
+		{
+			name:           "UTF-16BE BOM",
+			input:          []byte{0xFE, 0xFF, 0x00, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F},
+			expectedOutput: UTF16BE,
+			expectedLength: 2,
+		},
+		{
+			name:           "UTF-32LE BOM",
+			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00},
+			expectedOutput: UTF32LE,
+			expectedLength: 4,
+		},
+		{
+			name:           "UTF-32BE BOM",
+			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65},
+			expectedOutput: UTF32BE,
+			expectedLength: 4,
+		},
+		{
+			name:           "No BOM",
+			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: Other,
+			expectedLength: 0,
+		},
+		{
+			name:           "Empty input",
+			input:          []byte{},
+			expectedOutput: Other,
+			expectedLength: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, length := detectUTFEncoding(tc.input)
+			if result != tc.expectedOutput || length != tc.expectedLength {
+				t.Errorf("Expected (%v, %d), but got (%v, %d)", tc.expectedOutput, tc.expectedLength, result, length)
+			}
+		})
+	}
+}

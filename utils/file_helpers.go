@@ -12,7 +12,68 @@ import (
 	"runtime"
 	"strings"
 	"unicode/utf8"
+
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/encoding/unicode/utf32"
 )
+
+type textEncoding int
+
+const (
+	Other textEncoding = iota
+	UTF8
+	UTF16LE
+	UTF16BE
+	UTF32LE
+	UTF32BE
+)
+
+func detectUTFEncoding(data []byte) (textEncoding, int) {
+	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
+		return UTF8, 3
+	}
+	if len(data) >= 2 {
+		if data[0] == 0xFF && data[1] == 0xFE {
+			if len(data) >= 4 && data[2] == 0x00 && data[3] == 0x00 {
+				return UTF32LE, 4
+			}
+			return UTF16LE, 2
+		}
+		if data[0] == 0xFE && data[1] == 0xFF {
+			return UTF16BE, 2
+		}
+	}
+	if len(data) >= 4 {
+		if data[0] == 0x00 && data[1] == 0x00 && data[2] == 0xFE && data[3] == 0xFF {
+			return UTF32BE, 4
+		}
+	}
+	return Other, 0
+}
+
+func convertToBOMLessUTF8(data []byte) ([]byte, error) {
+	encoding, bomLen := detectUTFEncoding(data)
+	switch encoding {
+	case Other:
+		return data, nil
+	case UTF8:
+		return data[bomLen:], nil
+	case UTF16LE:
+		decoder := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder()
+		return decoder.Bytes(data[bomLen:])
+	case UTF16BE:
+		decoder := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder()
+		return decoder.Bytes(data[bomLen:])
+	case UTF32LE:
+		decoder := utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewDecoder()
+		return decoder.Bytes(data[bomLen:])
+	case UTF32BE:
+		decoder := utf32.UTF32(utf32.BigEndian, utf32.IgnoreBOM).NewDecoder()
+		return decoder.Bytes(data[bomLen:])
+	default:
+		return nil, fmt.Errorf("unsupported encoding")
+	}
+}
 
 func checkUTF8(data []byte) error {
 	for len(data) > 0 {
@@ -27,6 +88,10 @@ func checkUTF8(data []byte) error {
 
 func LoadTextFile(filePath string) (string, error) {
 	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	bytes, err = convertToBOMLessUTF8(bytes)
 	if err != nil {
 		return "", err
 	}
