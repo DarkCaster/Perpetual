@@ -58,6 +58,8 @@ func LoadEnvFiles(logger logging.ILogger, filePaths ...string) {
 			} else {
 				logger.Panicf("Failed to load env-file %s: %s", filePath, err)
 			}
+		} else {
+			logger.Infoln("Loaded env file:", filePath)
 		}
 	}
 }
