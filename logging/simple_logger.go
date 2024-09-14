@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -59,7 +60,12 @@ func (l *SimpleLogger) Errorf(format string, args ...any) {
 
 func (l *SimpleLogger) Panicf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
-	l.ErrorLogger.Print(l.timer(), "[PNC] ", msg)
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		l.ErrorLogger.Print(l.timer(), "[PNC] ", fmt.Sprintf("Fatal error, source: %s, line %d\n", file, line))
+	} else {
+		l.ErrorLogger.Print(l.timer(), "[PNC] ", "Fatal error")
+	}
 	panic(msg)
 }
 
@@ -95,7 +101,12 @@ func (l *SimpleLogger) Errorln(args ...any) {
 
 func (l *SimpleLogger) Panicln(args ...any) {
 	msg := fmt.Sprintln(args...)
-	l.ErrorLogger.Print(l.timer(), "[PNC] ", msg)
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		l.ErrorLogger.Print(l.timer(), "[PNC] ", fmt.Sprintf("Fatal error, source: %s, line %d\n", file, line))
+	} else {
+		l.ErrorLogger.Print(l.timer(), "[PNC] ", "Fatal error")
+	}
 	panic(msg)
 }
 
