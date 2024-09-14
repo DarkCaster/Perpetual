@@ -59,7 +59,11 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	if !utils.LoadEnvFiles(filepath.Join(perpetualDir, utils.DotEnvFileName)) {
+	ok, err := utils.LoadEnvFiles(filepath.Join(perpetualDir, utils.DotEnvFileName))
+	if !ok {
+		if err != nil {
+			logger.Panicln(err)
+		}
 		logger.Warnln("No env files loaded, paths tried:")
 		logger.Warnln(filepath.Join(perpetualDir, utils.DotEnvFileName))
 	}

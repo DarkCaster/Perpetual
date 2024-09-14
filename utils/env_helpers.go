@@ -48,13 +48,16 @@ func GetEnvFloat(vars ...string) (float64, error) {
 	return 0, fmt.Errorf("none of the environment variables were found or could be converted to float: %v", vars)
 }
 
-func LoadEnvFiles(filePaths ...string) bool {
+func LoadEnvFiles(filePaths ...string) (bool, error) {
 	failedCount := 0
 	for _, filePath := range filePaths {
 		err := godotenv.Load(filePath)
 		if err != nil {
 			failedCount++
+			if !os.IsNotExist(err) {
+				return false, fmt.Errorf("Error loading env file %s: %s", filePath, err)
+			}
 		}
 	}
-	return failedCount < len(filePaths)
+	return failedCount < len(filePaths), nil
 }
