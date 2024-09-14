@@ -353,22 +353,22 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 			expectedOutput: []byte{},
 		},
 		{
-			name:           "Invalid UTF-16LE",
+			name:           "Malformed UTF-16LE",
 			input:          []byte{0xFF, 0xFE, 0x00},
 			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
 		},
 		{
-			name:           "Invalid UTF-16BE",
+			name:           "Malformed UTF-16BE",
 			input:          []byte{0xFE, 0xFF, 0x00},
 			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
 		},
 		{
-			name:           "Invalid UTF-32LE",
+			name:           "Malformed UTF-32LE",
 			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00},
 			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
 		},
 		{
-			name:           "Invalid UTF-32BE",
+			name:           "Malformed UTF-32BE",
 			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00},
 			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
 		},
