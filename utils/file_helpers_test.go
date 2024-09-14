@@ -316,66 +316,72 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 		name           string
 		input          []byte
 		expectedOutput []byte
-		expectError    bool
 	}{
 		{
 			name:           "UTF-8 BOM",
 			input:          []byte{0xEF, 0xBB, 0xBF, 0x68, 0x65, 0x6C, 0x6C, 0x6F},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "UTF-16LE BOM",
 			input:          []byte{0xFF, 0xFE, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "UTF-16BE BOM",
 			input:          []byte{0xFE, 0xFF, 0x00, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "UTF-32LE BOM",
 			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F, 0x00, 0x00, 0x00},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "UTF-32BE BOM",
 			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "No BOM",
 			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
 			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectError:    false,
 		},
 		{
 			name:           "Empty input",
 			input:          []byte{},
 			expectedOutput: []byte{},
-			expectError:    false,
+		},
+		{
+			name:           "Invalid UTF-16LE",
+			input:          []byte{0xFF, 0xFE, 0x00},
+			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+		},
+		{
+			name:           "Invalid UTF-16BE",
+			input:          []byte{0xFE, 0xFF, 0x00},
+			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+		},
+		{
+			name:           "Invalid UTF-32LE",
+			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00},
+			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+		},
+		{
+			name:           "Invalid UTF-32BE",
+			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00},
+			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			output, err := convertToBOMLessUTF8(tc.input)
-			if tc.expectError {
-				if err == nil {
-					t.Errorf("Expected an error, but got nil")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
-				if !bytes.Equal(output, tc.expectedOutput) {
-					t.Errorf("Expected %v, but got %v", tc.expectedOutput, output)
-				}
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if !bytes.Equal(output, tc.expectedOutput) {
+				t.Errorf("Expected %v, but got %v", tc.expectedOutput, output)
 			}
 		})
 	}
