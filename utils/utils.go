@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/logging"
-	"github.com/joho/godotenv"
 )
 
 const DotEnvFileName = ".env"
@@ -44,10 +43,6 @@ func findProjectRoot(startDir string, logger logging.ILogger) (string, string, e
 
 	logger.Warnln("Directory .perpetual not found in", startDir)
 	return findProjectRoot(parentDir, logger)
-}
-
-func LoadEnvFile(filePath string) error {
-	return godotenv.Load(filePath)
 }
 
 func CalculateSHA256(filePath string) (string, error) {

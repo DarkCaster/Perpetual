@@ -59,10 +59,9 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	err = utils.LoadEnvFile(filepath.Join(perpetualDir, utils.DotEnvFileName))
-
-	if err != nil {
-		logger.Panicln("error loading environment variables:", err)
+	if !utils.LoadEnvFiles(filepath.Join(perpetualDir, utils.DotEnvFileName)) {
+		logger.Warnln("No env files loaded, paths tried:")
+		logger.Warnln(filepath.Join(perpetualDir, utils.DotEnvFileName))
 	}
 
 	var projectFilesWhitelist []string

@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 func GetEnvString(vars ...string) (string, error) {
@@ -44,4 +46,15 @@ func GetEnvFloat(vars ...string) (float64, error) {
 		}
 	}
 	return 0, fmt.Errorf("none of the environment variables were found or could be converted to float: %v", vars)
+}
+
+func LoadEnvFiles(filePaths ...string) bool {
+	failedCount := 0
+	for _, filePath := range filePaths {
+		err := godotenv.Load(filePath)
+		if err != nil {
+			failedCount++
+		}
+	}
+	return failedCount < len(filePaths)
 }
