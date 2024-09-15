@@ -86,9 +86,11 @@ func Run(args []string, logger logging.ILogger) {
 	fullPath := filepath.Join(projectRootDir, docFile)
 	if docContent, err = utils.LoadTextFile(fullPath); err == nil {
 		docFiles = append(docFiles, docFile)
+	} else if action != "DRAFT" {
+		logger.Panicln("Failed to load document:", err)
 	}
 
-	if strings.ToUpper(action) == "DRAFT" {
+	if action == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
 		if !noAnnotate {
