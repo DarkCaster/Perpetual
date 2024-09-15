@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -88,6 +89,10 @@ func Run(args []string, logger logging.ILogger) {
 
 	if strings.ToUpper(action) == "DRAFT" {
 		docContent = MDDocDraft
+	} else {
+		logger.Debugln("Running 'annotate' operation to update file annotations")
+		op_annotate.Run(nil, logger)
+
 	}
 
 	docResults[docFile] = docContent
