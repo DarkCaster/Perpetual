@@ -104,46 +104,6 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln("Parsed list of files for review from LLM response")
 
-	// Check all requested files are among initial project file-list
-	var filesForReview []string
-	logger.Debugln("Raw file-list requested by LLM:", filesForReviewRaw)
-	logger.Infoln("Files requested by LLM:")
-	for _, check := range filesForReviewRaw {
-		//remove new line from the end of filename, if present
-		if check != "" && check[len(check)-1] == '\n' {
-			check = check[:len(check)-1]
-		}
-		//remove \r from the end of filename, if present
-		if check != "" && check[len(check)-1] == '\r' {
-			check = check[:len(check)-1]
-		}
-		//replace possibly-invalid path separators
-		check = utils.ConvertFilePathToOSFormat(check)
-		//make file path relative to project root
-		file, err := utils.MakePathRelative(projectRootDir, check, true)
-		if err != nil {
-			logger.Errorln("Failed to validate filename requested by LLM for review:", check)
-			continue
-		}
-		// Do not add file for review if it among files for implement, also fix case if so
-		file, found := utils.CaseInsensitiveFileSearch(file, targetFiles)
-		if found {
-			logger.Warnln("Not adding file for review, this file already marked for implementation:", file)
-		} else {
-			file, found := utils.CaseInsensitiveFileSearch(file, filesForReview)
-			if found {
-				logger.Warnln("Not adding file for review, it is already added or having filename case conflict:", file)
-			} else {
-				file, found := utils.CaseInsensitiveFileSearch(file, fileNames)
-				if found {
-					filesForReview = append(filesForReview, file)
-					logger.Infoln(file)
-				} else {
-					logger.Warnln("Not adding file for review, it is not found in filtered project file-list:", file)
-				}
-			}
-		}
-	}
-
-	return filesForReview
+	// Filter all requested files through project file-list, return only files found in project file-list
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, fileNames, logger)
 }

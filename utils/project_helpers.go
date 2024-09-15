@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/DarkCaster/Perpetual/logging"
 )
 
 type AnnotationEntry struct {
@@ -179,4 +181,48 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	}
 
 	return fileChecksums, files, allFiles, nil
+}
+
+func FilterRequestedProjectFiles(projectRootDir string, filesForReviewRaw []string, targetFiles []string, fileNames []string, logger logging.ILogger) []string {
+	var filteredResult []string
+	logger.Debugln("Unfiltered file-list requested by LLM:", filesForReviewRaw)
+	logger.Infoln("Files requested by LLM:")
+	for _, check := range filesForReviewRaw {
+		//remove new line from the end of filename, if present
+		if check != "" && check[len(check)-1] == '\n' {
+			check = check[:len(check)-1]
+		}
+		//remove \r from the end of filename, if present
+		if check != "" && check[len(check)-1] == '\r' {
+			check = check[:len(check)-1]
+		}
+		//replace possibly-invalid path separators
+		check = ConvertFilePathToOSFormat(check)
+		//make file path relative to project root
+		file, err := MakePathRelative(projectRootDir, check, true)
+		if err != nil {
+			logger.Errorln("Failed to validate filename requested by LLM for review:", check)
+			continue
+		}
+		// Do not add file for review if it among files for implement, also fix case if so
+		file, found := CaseInsensitiveFileSearch(file, targetFiles)
+		if found {
+			logger.Warnln("Not adding file for review, this file already marked for implementation:", file)
+		} else {
+			file, found := CaseInsensitiveFileSearch(file, filteredResult)
+			if found {
+				logger.Warnln("Not adding file for review, it is already added or having filename case conflict:", file)
+			} else {
+				file, found := CaseInsensitiveFileSearch(file, fileNames)
+				if found {
+					filteredResult = append(filteredResult, file)
+					logger.Infoln(file)
+				} else {
+					logger.Warnln("Not adding file for review, it is not found in filtered project file-list:", file)
+				}
+			}
+		}
+	}
+
+	return filteredResult
 }
