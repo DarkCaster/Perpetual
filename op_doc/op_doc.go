@@ -8,6 +8,7 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
+	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -70,6 +71,9 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
+	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
+	logger.Debugln("Prompts directory:", promptsDir)
+
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	// Make markdownFile relative to project root
@@ -78,13 +82,10 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Requested file is not inside project root", docFile)
 	}
 
-	docResults := make(map[string]string)
-	var docFiles []string
-
 	// Check if docFile exists, try to read its initial content
+	var docFiles []string
 	var docContent string
-	fullPath := filepath.Join(projectRootDir, docFile)
-	if docContent, err = utils.LoadTextFile(fullPath); err == nil {
+	if docContent, err = utils.LoadTextFile(filepath.Join(projectRootDir, docFile)); err == nil {
 		docFiles = append(docFiles, docFile)
 	} else if action != "DRAFT" {
 		logger.Panicln("Failed to load document:", err)
@@ -97,8 +98,49 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
 			op_annotate.Run(nil, logger)
 		}
+
+		systemPrompt, err := utils.LoadTextFile(filepath.Join(promptsDir, prompts.SystemPromptFile))
+		if err != nil {
+			logger.Warnln("Failed to read system prompt:", err)
+		}
+
+		var filesToMdLangMappings [][2]string
+		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
+		if err != nil {
+			logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
+		}
+
+		var projectFilesWhitelist []string
+		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
+		if err != nil {
+			logger.Panicln("Error reading project-files whitelist regexps:", err)
+		}
+
+		var projectFilesBlacklist []string
+		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error reading project-files blacklist regexps:", err)
+		}
+
+		fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
+		fileNameTags := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
+
+		// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
+		fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error getting project file-list:", err)
+		}
+
+		// Load annotations needed for stage1
+		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+		if err != nil {
+			logger.Panicln("Error reading annotations:", err)
+		}
+
+		Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, action, logger)
 	}
 
+	docResults := make(map[string]string)
 	docResults[docFile] = docContent
 
 	// Create and apply stash from generated results
