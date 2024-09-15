@@ -46,6 +46,20 @@ const AIImplementStage3ChangesDoneResponseFile = "op_implement_stage3_changes_do
 const ImplementStage3ProcessFilePromptFile = "op_implement_stage3_process_file_prompt.txt"
 const ImplementStage3ContinuePromptFile = "op_implement_stage3_continue_prompt.txt"
 
+// Doc-operation prompt-filenames
+const DocProjectIndexPromptFile = "op_doc_project_index_prompt.txt"
+const AIDocProjectIndexResponseFile = "op_doc_project_index_ai_response.txt"
+const DocProjectCodePromptFile = "op_doc_project_code_prompt.txt"
+const AIDocProjectCodeResponseFile = "op_doc_project_code_ai_response.txt"
+
+// Doc-operation write-action prompt-filenames
+const DocStage1WritePromptFile = "op_doc_stage1_write_prompt.txt"
+const DocStage2WritePromptFile = "op_doc_stage2_write_prompt.txt"
+
+// Doc-operation refine-action prompt-filenames
+const DocStage1RefinePromptFile = "op_doc_stage1_refine_prompt.txt"
+const DocStage2RefinePromptFile = "op_doc_stage2_refine_prompt.txt"
+
 const PromptsDir = "prompts"
 
 type Prompts interface {
@@ -89,6 +103,20 @@ type Prompts interface {
 	GetAIImplementStage3ChangesDoneResponse() string
 	GetImplementStage3ProcessFilePrompt() string
 	GetImplementStage3ContinuePrompt() string
+
+	// Doc project index and code prompts
+	GetDocProjectIndexPrompt() string
+	GetAIDocProjectIndexResponse() string
+	GetDocProjectCodePrompt() string
+	GetAIDocProjectCodeResponse() string
+
+	// Doc stage1 prompts
+	GetDocStage1WritePrompt() string
+	GetDocStage1RefinePrompt() string
+
+	// Doc stage2 prompts
+	GetDocStage2WritePrompt() string
+	GetDocStage2RefinePrompt() string
 }
 
 // Create particular Prompts implementation depending on requested language
