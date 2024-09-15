@@ -21,11 +21,12 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace bool
+	var help, verbose, trace, noAnnotate bool
 	var docFile, action string
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&docFile, "r", "", "Markdown file for processing")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -90,9 +91,10 @@ func Run(args []string, logger logging.ILogger) {
 	if strings.ToUpper(action) == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
-		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, logger)
-
+		if !noAnnotate {
+			logger.Debugln("Running 'annotate' operation to update file annotations")
+			op_annotate.Run(nil, logger)
+		}
 	}
 
 	docResults[docFile] = docContent
