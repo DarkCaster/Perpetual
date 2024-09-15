@@ -35,7 +35,14 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}",
 			"args": ["stash"],
+		},
+		{
+			"name": "Launch Package: doc draft",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["doc","-a","draft","-r","test.md"],
 		}
-
 	]
 }
