@@ -183,11 +183,11 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	return fileChecksums, files, allFiles, nil
 }
 
-func FilterRequestedProjectFiles(projectRootDir string, filesForReviewRaw []string, targetFiles []string, fileNames []string, logger logging.ILogger) []string {
+func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {
 	var filteredResult []string
-	logger.Debugln("Unfiltered file-list requested by LLM:", filesForReviewRaw)
+	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
 	logger.Infoln("Files requested by LLM:")
-	for _, check := range filesForReviewRaw {
+	for _, check := range llmRequestedFiles {
 		//remove new line from the end of filename, if present
 		if check != "" && check[len(check)-1] == '\n' {
 			check = check[:len(check)-1]
@@ -204,8 +204,8 @@ func FilterRequestedProjectFiles(projectRootDir string, filesForReviewRaw []stri
 			logger.Errorln("Failed to validate filename requested by LLM for review:", check)
 			continue
 		}
-		// Do not add file for review if it among files for implement, also fix case if so
-		file, found := CaseInsensitiveFileSearch(file, targetFiles)
+		// Do not add file for review if it among files reqested for implementing by user, also fix case if so
+		file, found := CaseInsensitiveFileSearch(file, userRequestedFiles)
 		if found {
 			logger.Warnln("Not adding file for review, this file already marked for implementation:", file)
 		} else {
@@ -213,7 +213,7 @@ func FilterRequestedProjectFiles(projectRootDir string, filesForReviewRaw []stri
 			if found {
 				logger.Warnln("Not adding file for review, it is already added or having filename case conflict:", file)
 			} else {
-				file, found := CaseInsensitiveFileSearch(file, fileNames)
+				file, found := CaseInsensitiveFileSearch(file, projectFiles)
 				if found {
 					filteredResult = append(filteredResult, file)
 					logger.Infoln(file)
