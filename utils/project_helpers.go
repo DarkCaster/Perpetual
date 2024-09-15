@@ -188,37 +188,37 @@ func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []stri
 	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
 	logger.Infoln("Files requested by LLM:")
 	for _, check := range llmRequestedFiles {
-		//remove new line from the end of filename, if present
+		//Remove new line from the end of filename, if present
 		if check != "" && check[len(check)-1] == '\n' {
 			check = check[:len(check)-1]
 		}
-		//remove \r from the end of filename, if present
+		//Remove \r from the end of filename, if present
 		if check != "" && check[len(check)-1] == '\r' {
 			check = check[:len(check)-1]
 		}
-		//replace possibly-invalid path separators
+		//Replace possibly-invalid path separators
 		check = ConvertFilePathToOSFormat(check)
-		//make file path relative to project root
+		//Make file path relative to project root
 		file, err := MakePathRelative(projectRootDir, check, true)
 		if err != nil {
-			logger.Errorln("Failed to validate filename requested by LLM for review:", check)
+			logger.Errorln("Failed to validate filename requested by LLM:", check)
 			continue
 		}
-		// Do not add file for review if it among files reqested for implementing by user, also fix case if so
+		//Filter-out file if it is among files reqested by user, also fix case if so
 		file, found := CaseInsensitiveFileSearch(file, userRequestedFiles)
 		if found {
-			logger.Warnln("Not adding file for review, this file already marked for implementation:", file)
+			logger.Warnln("Filtering-out file, it is already requested by user:", file)
 		} else {
 			file, found := CaseInsensitiveFileSearch(file, filteredResult)
 			if found {
-				logger.Warnln("Not adding file for review, it is already added or having filename case conflict:", file)
+				logger.Warnln("Filtering-out file, it is already processed or having name-case conflict:", file)
 			} else {
 				file, found := CaseInsensitiveFileSearch(file, projectFiles)
 				if found {
 					filteredResult = append(filteredResult, file)
 					logger.Infoln(file)
 				} else {
-					logger.Warnln("Not adding file for review, it is not found in filtered project file-list:", file)
+					logger.Warnln("Filtering-out file, it is not found among project file-list:", file)
 				}
 			}
 		}
