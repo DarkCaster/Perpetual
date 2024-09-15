@@ -70,6 +70,38 @@ func (p *DotNetFWPrompts) GetImplementStage3ContinuePrompt() string {
 	return DefaultImplementStage3ContinuePrompt
 }
 
+func (p *DotNetFWPrompts) GetDocProjectIndexPrompt() string {
+	return p.GetImplementStage1ProjectIndexPrompt()
+}
+
+func (p *DotNetFWPrompts) GetAIDocProjectIndexResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *DotNetFWPrompts) GetDocProjectCodePrompt() string {
+	return DefaultDocProjectCodePrompt
+}
+
+func (p *DotNetFWPrompts) GetAIDocProjectCodeResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *DotNetFWPrompts) GetDocStage1WritePrompt() string {
+	return DefaultDocStage1WritePrompt
+}
+
+func (p *DotNetFWPrompts) GetDocStage1RefinePrompt() string {
+	return DefaultDocStage1RefinePrompt
+}
+
+func (p *DotNetFWPrompts) GetDocStage2WritePrompt() string {
+	return DefaultDocStage2WritePrompt
+}
+
+func (p *DotNetFWPrompts) GetDocStage2RefinePrompt() string {
+	return DefaultDocStage2RefinePrompt
+}
+
 func (p *DotNetFWPrompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 }

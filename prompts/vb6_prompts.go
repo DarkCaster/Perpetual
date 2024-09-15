@@ -70,6 +70,38 @@ func (p *VB6Prompts) GetImplementStage3ContinuePrompt() string {
 	return DefaultImplementStage3ContinuePrompt
 }
 
+func (p *VB6Prompts) GetDocProjectIndexPrompt() string {
+	return p.GetImplementStage1ProjectIndexPrompt()
+}
+
+func (p *VB6Prompts) GetAIDocProjectIndexResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *VB6Prompts) GetDocProjectCodePrompt() string {
+	return DefaultDocProjectCodePrompt
+}
+
+func (p *VB6Prompts) GetAIDocProjectCodeResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *VB6Prompts) GetDocStage1WritePrompt() string {
+	return DefaultDocStage1WritePrompt
+}
+
+func (p *VB6Prompts) GetDocStage1RefinePrompt() string {
+	return DefaultDocStage1RefinePrompt
+}
+
+func (p *VB6Prompts) GetDocStage2WritePrompt() string {
+	return DefaultDocStage2WritePrompt
+}
+
+func (p *VB6Prompts) GetDocStage2RefinePrompt() string {
+	return DefaultDocStage2RefinePrompt
+}
+
 func (p *VB6Prompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
 }

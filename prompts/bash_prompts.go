@@ -68,6 +68,38 @@ func (p *BashPrompts) GetImplementStage3ContinuePrompt() string {
 	return DefaultImplementStage3ContinuePrompt
 }
 
+func (p *BashPrompts) GetDocProjectIndexPrompt() string {
+	return p.GetImplementStage1ProjectIndexPrompt()
+}
+
+func (p *BashPrompts) GetAIDocProjectIndexResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *BashPrompts) GetDocProjectCodePrompt() string {
+	return DefaultDocProjectCodePrompt
+}
+
+func (p *BashPrompts) GetAIDocProjectCodeResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *BashPrompts) GetDocStage1WritePrompt() string {
+	return DefaultDocStage1WritePrompt
+}
+
+func (p *BashPrompts) GetDocStage1RefinePrompt() string {
+	return DefaultDocStage1RefinePrompt
+}
+
+func (p *BashPrompts) GetDocStage2WritePrompt() string {
+	return DefaultDocStage2WritePrompt
+}
+
+func (p *BashPrompts) GetDocStage2RefinePrompt() string {
+	return DefaultDocStage2RefinePrompt
+}
+
 func (p *BashPrompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*###IMPLEMENT###.*$"}
 }

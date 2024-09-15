@@ -70,6 +70,38 @@ func (p *Py3Prompts) GetImplementStage3ContinuePrompt() string {
 	return DefaultImplementStage3ContinuePrompt
 }
 
+func (p *Py3Prompts) GetDocProjectIndexPrompt() string {
+	return p.GetImplementStage1ProjectIndexPrompt()
+}
+
+func (p *Py3Prompts) GetAIDocProjectIndexResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *Py3Prompts) GetDocProjectCodePrompt() string {
+	return DefaultDocProjectCodePrompt
+}
+
+func (p *Py3Prompts) GetAIDocProjectCodeResponse() string {
+	return DefaultAIAcknowledge
+}
+
+func (p *Py3Prompts) GetDocStage1WritePrompt() string {
+	return DefaultDocStage1WritePrompt
+}
+
+func (p *Py3Prompts) GetDocStage1RefinePrompt() string {
+	return DefaultDocStage1RefinePrompt
+}
+
+func (p *Py3Prompts) GetDocStage2WritePrompt() string {
+	return DefaultDocStage2WritePrompt
+}
+
+func (p *Py3Prompts) GetDocStage2RefinePrompt() string {
+	return DefaultDocStage2RefinePrompt
+}
+
 func (p *Py3Prompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*###IMPLEMENT###.*$"}
 }
