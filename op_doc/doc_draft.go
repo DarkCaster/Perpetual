@@ -11,7 +11,7 @@ This is a draft of the project document.
 
 This section should contain a short document overview or TOC. Put the document title in the top-level header.
 
-Notes for generation: Generate program overview - several short sections should be created: about the purpose of the program, about command line flags, a disclaimer and warnings section
+Notes on implementation: Generate program overview - several short sections should be created: about the purpose of the program, about command line flags, a disclaimer and warnings section
 
 ## Section 1
 
