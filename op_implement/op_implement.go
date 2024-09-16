@@ -3,7 +3,6 @@ package op_implement
 import (
 	"flag"
 	"math"
-	"os"
 	"path/filepath"
 	"regexp"
 
@@ -245,28 +244,15 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	checkNoUpload := func(filePath string) bool {
-		targetFile, err := utils.MakePathRelative(projectRootDir, filePath, true)
-		if err != nil {
-			logger.Panicln("Failed to process file path: ", err)
-		}
-		found, err := utils.FindInFile(filepath.Join(projectRootDir, targetFile), noUploadRegexps)
-		if os.IsNotExist(err) {
-			return true
-		}
-		if err != nil {
-			logger.Panicln("Failed to search 'no-upload' comment in file: ", err)
-		}
-		return !found
-	}
-
-	// Check filesToReview with checkNoUpload function and remove files from the list for which checkNoUpload returns false
+	// Check filesToReview files for presence of "no-upload" mark
 	var filteredFilesToReview []string
 	for _, file := range filesToReview {
-		if checkNoUpload(file) {
+		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
 			filteredFilesToReview = append(filteredFilesToReview, file)
-		} else {
+		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
+		} else {
+			logger.Panicln("Error searching for 'no-upload' comment in file:", file, err)
 		}
 	}
 	filesToReview = filteredFilesToReview
@@ -276,10 +262,12 @@ func Run(args []string, logger logging.ILogger) {
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
-		if checkNoUpload(file) {
+		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
 			filteredOtherFilesToModify = append(filteredOtherFilesToModify, file)
-		} else {
+		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
+		} else {
+			logger.Panicln("Error searching for 'no-upload' comment in file:", file, err)
 		}
 	}
 	otherFilesToModify = filteredOtherFilesToModify
@@ -290,18 +278,23 @@ func Run(args []string, logger logging.ILogger) {
 	// Filter results similar to filteredOtherFilesToModify: remove files from map that marked with no-upload comment
 	var filteredResults = make(map[string]string)
 	for file, content := range results {
-		shouldSkip := false
+		skip := false
 		for _, targetFile := range targetFilesToModify {
 			if file == targetFile {
-				shouldSkip = false
 				break
 			}
-			shouldSkip = true
+			skip = true
 		}
-		if shouldSkip && !checkNoUpload(file) {
+		if skip {
+			logger.Warnln("Skipping file from results that not among files to modify:", file)
+			continue
+		}
+		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+			filteredResults[file] = content
+		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
 		} else {
-			filteredResults[file] = content
+			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
 		}
 	}
 
