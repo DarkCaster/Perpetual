@@ -77,13 +77,13 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		stage2PromptFile = prompts.DocStage2RefinePromptFile
 	}
 
-	stage2SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(stage2PromptFile))
+	stage2DocProcessRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(stage2PromptFile))
 	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
 	if err != nil {
-		logger.Panicln("failed to add file contents to stage1 prompt", err)
+		logger.Panicln("failed to add document contents to stage1 prompt", err)
 	}
-	stage2SourceAnalysisRequestMessage = llm.AddPlainTextFragment(stage2SourceAnalysisRequestMessage, contents)
-	messages = append(messages, stage2SourceAnalysisRequestMessage)
+	stage2DocProcessRequestMessage = llm.AddPlainTextFragment(stage2DocProcessRequestMessage, contents)
+	messages = append(messages, stage2DocProcessRequestMessage)
 	logger.Debugln("Created target files analysis request message")
 
 	//TODO: make LLM request with retries and response merging
