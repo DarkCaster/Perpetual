@@ -3,6 +3,7 @@ package op_doc
 import (
 	"flag"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/logging"
@@ -120,6 +121,21 @@ func Run(args []string, logger logging.ILogger) {
 		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 		if err != nil {
 			logger.Panicln("Error reading project-files blacklist regexps:", err)
+		}
+
+		var noUploadRxStrings []string
+		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.NoUploadCommentRXFileName), &noUploadRxStrings)
+		if err != nil {
+			logger.Panicln("Error reading no-upload regexps:", err)
+		}
+
+		var noUploadRegexps []*regexp.Regexp
+		for _, rx := range noUploadRxStrings {
+			crx, err := regexp.Compile(rx)
+			if err != nil {
+				logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
+			}
+			noUploadRegexps = append(noUploadRegexps, crx)
 		}
 
 		fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
