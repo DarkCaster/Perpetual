@@ -156,10 +156,20 @@ func Run(args []string, logger logging.ILogger) {
 		// Run stage1 to find out what project-files contents we need to work on document
 		requestedFiles := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, action, logger)
 
-		// TODO: check requested files for no-upload mark and filter it out
+		// Check requested files for no-upload mark and filter it out
+		var filteredRequestedFiles []string
+		for _, file := range requestedFiles {
+			if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+				filteredRequestedFiles = append(filteredRequestedFiles, file)
+			} else if found {
+				logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
+			} else {
+				logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
+			}
+		}
 
 		// Run stage2 to make changes to the document and save it to docContent
-		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, requestedFiles, annotations, docFile, action, logger)
+		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, filteredRequestedFiles, annotations, docFile, action, logger)
 	}
 
 	docResults := make(map[string]string)
