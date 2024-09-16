@@ -81,7 +81,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	docRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(docPromptFile))
 	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
 	if err != nil {
-		logger.Panicln("failed to add document contents to stage1 prompt", err)
+		logger.Panicln("Failed to add document contents to stage2 prompt", err)
 	}
 	docRequestMessage = llm.AddPlainTextFragment(docRequestMessage, contents)
 	messages = append(messages, docRequestMessage)
@@ -106,7 +106,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		for continueGeneration && !fileRetry {
 			// Run query
 			continueGeneration = false
-			logger.Infoln("Running stage2: processing document:", targetDocument)
+			logger.Infoln("Running stage2: processing document")
 			aiResponse, status, err := connector.Query(messagesTry...)
 			if err != nil {
 				// Retry file on LLM error
