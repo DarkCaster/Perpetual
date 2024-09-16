@@ -82,15 +82,15 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Requested file is not inside project root", docFile)
 	}
 
-	// Check if docFile exists, try to read its initial content
+	// Try reading document to ensure it presence and it is a correct text file with valid encoding
 	var docFiles []string
-	var docContent string
-	if docContent, err = utils.LoadTextFile(filepath.Join(projectRootDir, docFile)); err == nil {
+	if _, err = utils.LoadTextFile(filepath.Join(projectRootDir, docFile)); err == nil {
 		docFiles = append(docFiles, docFile)
 	} else if action != "DRAFT" {
 		logger.Panicln("Failed to load document:", err)
 	}
 
+	var docContent string
 	if action == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
@@ -143,7 +143,7 @@ func Run(args []string, logger logging.ILogger) {
 		// TODO: check requested files for no-upload mark and filter it out
 
 		// Run stage2 to make changes to the document and save it to docContent
-		Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, requestedFiles, annotations, docFile, action, logger)
+		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, requestedFiles, annotations, docFile, action, logger)
 	}
 
 	docResults := make(map[string]string)
