@@ -10,7 +10,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTagsRxStrings []string, fileNameTags []string, projectFiles []string, filesForReview []string, annotations map[string]string, targetDocument string, action string, logger logging.ILogger) string {
+func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTags []string, projectFiles []string, filesForReview []string, annotations map[string]string, targetDocument string, action string, logger logging.ILogger) string {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -33,16 +33,16 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	var messages []llm.Message
 
 	// Create project-index request message
-	stage2ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
+	projectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
 	for _, item := range projectFiles {
-		stage2ProjectIndexRequestMessage = llm.AddIndexFragment(stage2ProjectIndexRequestMessage, item, fileNameTags)
+		projectIndexRequestMessage = llm.AddIndexFragment(projectIndexRequestMessage, item, fileNameTags)
 		annotation := annotations[item]
 		if annotation == "" {
 			annotation = "No annotation available"
 		}
-		stage2ProjectIndexRequestMessage = llm.AddPlainTextFragment(stage2ProjectIndexRequestMessage, annotation)
+		projectIndexRequestMessage = llm.AddPlainTextFragment(projectIndexRequestMessage, annotation)
 	}
-	messages = append(messages, stage2ProjectIndexRequestMessage)
+	messages = append(messages, projectIndexRequestMessage)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
