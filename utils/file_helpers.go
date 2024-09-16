@@ -172,6 +172,14 @@ func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, error) {
 	return false, nil
 }
 
+func FindInRelativeFile(projectRootDir string, relativeFilePath string, regexps []*regexp.Regexp) (bool, error) {
+	filePath, err := MakePathRelative(projectRootDir, relativeFilePath, true)
+	if err != nil {
+		return false, err
+	}
+	return FindInFile(filepath.Join(projectRootDir, filePath), regexps)
+}
+
 func MakePathRelative(basePath string, filePath string, cdIntoBasePath bool) (string, error) {
 	// Change workdir if requested
 	if cdIntoBasePath {
