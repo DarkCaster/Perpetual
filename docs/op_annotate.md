@@ -1,6 +1,6 @@
 # Annotate operation
 
-The `annotate` operation is a crucial part of the `Perpetual`. It generates annotations for project source-code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within the `Perpetual`. Project index is stored inside `.perpetual` directory and it only updated when neccecary saving your costs and time on LLM API access.
+The `annotate` operation is a crucial part of the `Perpetual`. It generates annotations for project source-code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within the `Perpetual`. Project index is stored inside `.perpetual` directory and it only updated when necessary saving your costs and time on LLM API access.
 
 While the `annotate` operation is an essential component of the `Perpetual` workflow, it is not typically necessary to run it manually. Other operations, such as the `implement` operation, automatically trigger the `annotate` operation when needed to ensure that the project's annotations are current before proceeding with their tasks.
 
@@ -70,7 +70,7 @@ The `annotate` operation can be configured using environment variables defined i
    - `ANTHROPIC_TEMPERATURE_OP_ANNOTATE`, `OPENAI_TEMPERATURE_OP_ANNOTATE`, `OLLAMA_TEMPERATURE_OP_ANNOTATE`: Set the temperature for the LLM during annotation. This affects the randomness of the output.
 
 6. Other LLM Parameters:
-   - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for the `annotate` operation by appending `_OP_ANNOTATE` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_ANNOTATE`). Mostly useful for local Ollama provider, not need to set it with OpenAI or Anthropic models.
+   - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for the `annotate` operation by appending `_OP_ANNOTATE` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_ANNOTATE`). Mostly useful for local Ollama provider, not needed to set with OpenAI or Anthropic models.
 
 Example configuration in `.env` file:
 
@@ -86,4 +86,4 @@ This configuration uses the Anthropic provider with the Claude 3 Haiku model, se
 
 Note that if operation-specific variables (with `_OP_ANNOTATE` suffix) are not set, the `annotate` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for the `annotate` operation if needed.
 
-Warning: `annotate` will process all files, even source-code files marked with ###NOUPLOAD### comments. You may setup `Perpetual` to use local LLM with Ollama for `annotate` operation only in order to improve you privacy (use decent LLM such as deepseek-coder-33b-instruct or better).
+Warning: `annotate` will process all files, even source-code files marked with ###NOUPLOAD### comments. You may setup `Perpetual` to use local LLM with Ollama for `annotate` operation only in order to improve your privacy (use decent LLM such as deepseek-coder-33b-instruct or better).
