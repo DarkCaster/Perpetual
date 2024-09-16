@@ -52,13 +52,13 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		promptFile = prompts.DocStage1RefinePromptFile
 	}
 
-	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(promptFile))
+	codeAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(promptFile))
 	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
 	if err != nil {
 		logger.Panicln("failed to add file contents to stage1 prompt", err)
 	}
-	stage1SourceAnalysisRequestMessage = llm.AddPlainTextFragment(stage1SourceAnalysisRequestMessage, contents)
-	logger.Debugln("Created target files analysis request message")
+	codeAnalysisRequestMessage = llm.AddPlainTextFragment(codeAnalysisRequestMessage, contents)
+	logger.Debugln("Created code-analysis request message")
 
 	// Perform LLM query
 	aiResponse := ""
@@ -70,10 +70,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
 		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponse, status, err = connector.Query(
-			projectIndexRequestMessage,
-			projectIndexResponseMessage,
-			stage1SourceAnalysisRequestMessage)
+		aiResponse, status, err = connector.Query(projectIndexRequestMessage, projectIndexResponseMessage, codeAnalysisRequestMessage)
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed: ", err)
