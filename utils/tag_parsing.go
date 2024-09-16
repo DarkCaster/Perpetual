@@ -7,7 +7,7 @@ import (
 )
 
 // Parse text enclosed with multiple start and end tags provided as regexps.
-func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagRegexps []string) ([]string, error) {
+func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagRegexps []string, ignoreUnclosedTagErrors bool) ([]string, error) {
 	var startTags []*regexp.Regexp
 	for _, startTagRegexp := range startTagRegexps {
 		startTag, err := regexp.Compile(startTagRegexp)
@@ -62,7 +62,11 @@ func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagReg
 		}
 		// If only the start tag is found, it's an error
 		if endIndex == nil {
-			return result, errors.New("unclosed tag")
+			if !ignoreUnclosedTagErrors {
+				return result, errors.New("unclosed tag")
+			}
+			rightMostPos = len(sourceText)
+			endIndex = []int{rightMostPos, rightMostPos}
 		}
 		// Save the text between the tags
 		taggedText := sourceText[startIndex[1]:endIndex[0]]
@@ -74,8 +78,8 @@ func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagReg
 }
 
 // Parse text enclosed with start and end tags provided as regexps.
-func ParseTaggedText(sourceText string, startTagRegexp string, endTagRegexp string) ([]string, error) {
-	return ParseMultiTaggedText(sourceText, []string{startTagRegexp}, []string{endTagRegexp})
+func ParseTaggedText(sourceText string, startTagRegexp string, endTagRegexp string, ignoreUnclosedTagErrors bool) ([]string, error) {
+	return ParseMultiTaggedText(sourceText, []string{startTagRegexp}, []string{endTagRegexp}, ignoreUnclosedTagErrors)
 }
 
 // Search and replace all matches of searchRegex in the text

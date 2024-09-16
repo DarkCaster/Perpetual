@@ -137,7 +137,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 			// Get reasonings
 			if planningMode == 2 {
-				reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1])
+				reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1], false)
 				if err != nil {
 					logger.Warnln("Cannot extract reasonings text-block from LLM response")
 				} else if len(reasoningsArr) < 1 {
@@ -150,7 +150,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				}
 			}
 			// Process response, parse files that will be created
-			filesToProcessRaw, err = utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
+			filesToProcessRaw, err = utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Failed to parse list of files for review", err)

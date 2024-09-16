@@ -96,6 +96,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			// Initialize temporary variables for handling partial answers
 			var responses []string
 			continueGeneration := true
+			ignoreUnclosedTagErrors := false
 			generateTry := 1
 			fileRetry := false
 			for continueGeneration && !fileRetry {
@@ -120,6 +121,8 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 						logger.Warnln("LLM query reached token limit, attempting to continue and file recover")
 						continueGeneration = true
 						generateTry++
+						// Disable some possible parsing errors in future
+						ignoreUnclosedTagErrors = true
 					}
 					// Add partial response to stage3 messages, with request to continue
 					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
@@ -145,7 +148,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 			// Parse LLM output, detect file body in response
 			combinedResponse := strings.Join(responses, "")
-			fileBodies, err = utils.ParseMultiTaggedText(combinedResponse, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings))
+			fileBodies, err = utils.ParseMultiTaggedText(combinedResponse, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Errorln("Error while parsing LLM response with output file:", err)

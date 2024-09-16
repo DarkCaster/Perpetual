@@ -102,6 +102,7 @@ func TestParseTaggedText(t *testing.T) {
 		startTagRegex  string
 		endTagRegex    string
 		expectedResult []string
+		ignUncTagErr   bool
 		expectedError  error
 	}{
 		{
@@ -110,6 +111,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -118,6 +120,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -126,6 +129,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: []string{},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -134,7 +138,17 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("unclosed tag"),
+		},
+		{
+			name:           "Unclosed tag ignored",
+			sourceText:     "Line with <tag>unclosed",
+			startTagRegex:  "<tag>",
+			endTagRegex:    "</tag>",
+			expectedResult: []string{"unclosed"},
+			ignUncTagErr:   true,
+			expectedError:  nil,
 		},
 		{
 			name:           "Invalid tag order",
@@ -142,6 +156,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("invalid tag order"),
 		},
 		{
@@ -150,6 +165,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -158,6 +174,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "[",
 			endTagRegex:    "</tag>",
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
 		},
 		{
@@ -166,6 +183,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "]",
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("unclosed tag"),
 		},
 		{
@@ -174,7 +192,17 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "<tag>",
 			endTagRegex:    "</tag>",
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  errors.New("unclosed tag"),
+		},
+		{
+			name:           "Second match tag missing ignored",
+			sourceText:     "Line 1 <tag>text</tag><tag>more text",
+			startTagRegex:  "<tag>",
+			endTagRegex:    "</tag>",
+			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   true,
+			expectedError:  nil,
 		},
 		{
 			name:           "LLM single output with header and footer",
@@ -182,6 +210,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -190,6 +219,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -198,6 +228,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -206,6 +237,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -214,6 +246,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -222,6 +255,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -230,6 +264,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -238,6 +273,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -246,6 +282,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -254,6 +291,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\nthis </output> - is not a real close tag"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -262,6 +300,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\nthis <output> - is not a real open tag"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -270,6 +309,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\nthis <output></output> - are not a real tags"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -278,6 +318,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"<output></output>"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -286,6 +327,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n", "blah\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -294,6 +336,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data", "extra"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -302,6 +345,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data", "extra"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -310,6 +354,7 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data", "extra"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -318,13 +363,14 @@ func TestParseTaggedText(t *testing.T) {
 			startTagRegex:  "(?m)\\s*<output>\\n?",
 			endTagRegex:    "(?m)<\\/output>\\s*($|\\n)",
 			expectedResult: []string{"data\n", "extra\n\n"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := ParseTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex)
+			result, err := ParseTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex, tc.ignUncTagErr)
 			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}
@@ -345,6 +391,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 		startTagRegex  []string
 		endTagRegex    []string
 		expectedResult []string
+		ignUncTagErr   bool
 		expectedError  error
 	}{
 		{
@@ -353,6 +400,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -361,6 +409,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -369,6 +418,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -377,6 +427,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 
@@ -386,6 +437,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -394,6 +446,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 
@@ -403,6 +456,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>"},
 			endTagRegex:    []string{"</tag>"},
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -411,6 +465,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 
@@ -420,6 +475,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 
@@ -429,6 +485,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 
@@ -438,6 +495,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{},
+			ignUncTagErr:   false,
 			expectedError:  nil,
 		},
 		{
@@ -446,7 +504,17 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("unclosed tag"),
+		},
+		{
+			name:           "Unclosed tag ignored",
+			sourceText:     "Line with <tag><x>unclosed",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"unclosed"},
+			ignUncTagErr:   true,
+			expectedError:  nil,
 		},
 		{
 			name:           "Invalid tag order",
@@ -454,6 +522,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("invalid tag order"),
 		},
 		{
@@ -462,6 +531,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"[", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
 		},
 		{
@@ -470,6 +540,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "["},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
 		},
 		{
@@ -478,6 +549,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"[", "</x>"},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
 		},
 		{
@@ -486,6 +558,7 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "["},
 			expectedResult: nil,
+			ignUncTagErr:   false,
 			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
 		},
 		{
@@ -494,13 +567,23 @@ func TestParseMultiTaggedText(t *testing.T) {
 			startTagRegex:  []string{"<tag>", "<x>"},
 			endTagRegex:    []string{"</tag>", "</x>"},
 			expectedResult: []string{"text"},
+			ignUncTagErr:   false,
 			expectedError:  errors.New("unclosed tag"),
+		},
+		{
+			name:           "Second match tag missing ignore",
+			sourceText:     "Line 1 <tag><x>text</tag><tag>more text",
+			startTagRegex:  []string{"<tag>", "<x>"},
+			endTagRegex:    []string{"</tag>", "</x>"},
+			expectedResult: []string{"text", "more text"},
+			ignUncTagErr:   true,
+			expectedError:  nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := ParseMultiTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex)
+			result, err := ParseMultiTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex, tc.ignUncTagErr)
 			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}

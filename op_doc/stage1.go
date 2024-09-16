@@ -101,7 +101,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if aiResponse == "" {
 		logger.Errorln("Got empty response from AI")
 	}
-	llmRequestedFiles, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1])
+	llmRequestedFiles, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
 	if err != nil {
 		logger.Panicln("Failed to parse list of files for review", err)
 	}
