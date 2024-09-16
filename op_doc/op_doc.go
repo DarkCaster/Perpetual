@@ -137,7 +137,13 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("Error reading annotations:", err)
 		}
 
-		Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, action, logger)
+		// Run stage1 to find out what project-files contents we need to work on document
+		requestedFiles := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, action, logger)
+
+		// TODO: check requested files for no-upload mark and filter it out
+
+		// Run stage2 to make changes to the document and save it to docContent
+		Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, requestedFiles, annotations, docFile, action, logger)
 	}
 
 	docResults := make(map[string]string)
