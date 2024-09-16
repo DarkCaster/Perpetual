@@ -23,7 +23,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace, noAnnotate bool
+	var help, verbose, trace, noAnnotate, forceUpload bool
 	var docFile, action string
 
 	flags := docFlags()
@@ -31,6 +31,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&docFile, "r", "", "Markdown file for processing")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
+	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -158,13 +159,17 @@ func Run(args []string, logger logging.ILogger) {
 
 		// Check requested files for no-upload mark and filter it out
 		var filteredRequestedFiles []string
-		for _, file := range requestedFiles {
-			if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
-				filteredRequestedFiles = append(filteredRequestedFiles, file)
-			} else if found {
-				logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
-			} else {
-				logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
+		if forceUpload {
+			filteredRequestedFiles = requestedFiles
+		} else {
+			for _, file := range requestedFiles {
+				if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+					filteredRequestedFiles = append(filteredRequestedFiles, file)
+				} else if found {
+					logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
+				} else {
+					logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
+				}
 			}
 		}
 
