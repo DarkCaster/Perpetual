@@ -102,6 +102,10 @@ func (p *DotNetFWPrompts) GetDocStage2RefinePrompt() string {
 	return DefaultDocStage2RefinePrompt
 }
 
+func (p *DotNetFWPrompts) GetDocStage2ContinuePrompt() string {
+	return DefaultDocStage2ContinuePrompt
+}
+
 func (p *DotNetFWPrompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 }

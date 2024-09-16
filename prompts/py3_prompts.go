@@ -102,6 +102,10 @@ func (p *Py3Prompts) GetDocStage2RefinePrompt() string {
 	return DefaultDocStage2RefinePrompt
 }
 
+func (p *Py3Prompts) GetDocStage2ContinuePrompt() string {
+	return DefaultDocStage2ContinuePrompt
+}
+
 func (p *Py3Prompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*###IMPLEMENT###.*$"}
 }

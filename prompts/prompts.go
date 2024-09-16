@@ -59,6 +59,7 @@ const DocStage2WritePromptFile = "op_doc_stage2_write_prompt.txt"
 // Doc-operation refine-action prompt-filenames
 const DocStage1RefinePromptFile = "op_doc_stage1_refine_prompt.txt"
 const DocStage2RefinePromptFile = "op_doc_stage2_refine_prompt.txt"
+const DocStage2ContinuePromptFile = "op_doc_stage2_continue_prompt.txt"
 
 const PromptsDir = "prompts"
 
@@ -117,6 +118,7 @@ type Prompts interface {
 	// Doc stage2 prompts
 	GetDocStage2WritePrompt() string
 	GetDocStage2RefinePrompt() string
+	GetDocStage2ContinuePrompt() string
 }
 
 // Create particular Prompts implementation depending on requested language

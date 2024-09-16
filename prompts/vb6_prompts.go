@@ -102,6 +102,10 @@ func (p *VB6Prompts) GetDocStage2RefinePrompt() string {
 	return DefaultDocStage2RefinePrompt
 }
 
+func (p *VB6Prompts) GetDocStage2ContinuePrompt() string {
+	return DefaultDocStage2ContinuePrompt
+}
+
 func (p *VB6Prompts) GetImplementCommentRegexps() []string {
 	return []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
 }
