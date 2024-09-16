@@ -21,12 +21,20 @@
 			"args": ["report","-t","brief"],
 		},
 		{
-			"name": "Launch Package: implement",
+			"name": "Launch Package: implement -pr",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
 			"args": ["implement","-pr"],
+		},
+		{
+			"name": "Launch Package: implement",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["implement"],
 		},
 		{
 			"name": "Launch Package: stash",
