@@ -252,7 +252,7 @@ func Run(args []string, logger logging.ILogger) {
 		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
 		} else {
-			logger.Panicln("Error searching for 'no-upload' comment in file:", file, err)
+			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
 		}
 	}
 	filesToReview = filteredFilesToReview
@@ -267,7 +267,7 @@ func Run(args []string, logger logging.ILogger) {
 		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
 		} else {
-			logger.Panicln("Error searching for 'no-upload' comment in file:", file, err)
+			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
 		}
 	}
 	otherFilesToModify = filteredOtherFilesToModify
