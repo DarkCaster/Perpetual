@@ -15,7 +15,7 @@ import (
 )
 
 const OpName = "doc"
-const OpDesc = "Create or rework markdown docs"
+const OpDesc = "Create or rework documentation files (in markdown or plain-text format)"
 
 func docFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -24,12 +24,13 @@ func docFlags() *flag.FlagSet {
 
 func Run(args []string, logger logging.ILogger) {
 	var help, verbose, trace, noAnnotate, forceUpload bool
-	var docFile, action string
+	var docFile, docExample, action string
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
-	flags.StringVar(&docFile, "r", "", "Markdown file for processing")
+	flags.StringVar(&docFile, "r", "", "Target documentation file for processing")
+	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -78,10 +79,22 @@ func Run(args []string, logger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
-	// Make markdownFile relative to project root
+	// Make main documentation file relative to the project root
 	docFile, err = utils.MakePathRelative(projectRootDir, docFile, false)
 	if err != nil {
 		logger.Panicln("Requested file is not inside project root", docFile)
+	}
+
+	if docExample != "" {
+		// Make example relative to the project root
+		docExample, err = utils.MakePathRelative(projectRootDir, docExample, false)
+		if err != nil {
+			logger.Panicln("Example file is not inside project root", docExample)
+		}
+		// Try reading example to ensure it presence and it is a correct text file with valid encoding
+		if _, err = utils.LoadTextFile(filepath.Join(projectRootDir, docExample)); err != nil {
+			logger.Panicln("Failed to load example document:", err)
+		}
 	}
 
 	// Try reading document to ensure it presence and it is a correct text file with valid encoding
@@ -89,7 +102,7 @@ func Run(args []string, logger logging.ILogger) {
 	if _, err = utils.LoadTextFile(filepath.Join(projectRootDir, docFile)); err == nil {
 		docFiles = append(docFiles, docFile)
 	} else if action != "DRAFT" {
-		logger.Panicln("Failed to load document:", err)
+		logger.Panicln("Failed to load target document:", err)
 	}
 
 	var docContent string
