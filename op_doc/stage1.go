@@ -16,11 +16,11 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
-	logger.Debugln(llm.GetDebugString(stage1Connector))
+	logger.Debugln(llm.GetDebugString(connector))
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
@@ -31,28 +31,28 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 
 	// Create project-index request message
-	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
+	projectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
 	for _, item := range projectFiles {
-		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(stage1ProjectIndexRequestMessage, item, fileNameTags)
+		projectIndexRequestMessage = llm.AddIndexFragment(projectIndexRequestMessage, item, fileNameTags)
 		annotation := annotations[item]
 		if annotation == "" {
 			annotation = "No annotation available"
 		}
-		stage1ProjectIndexRequestMessage = llm.AddPlainTextFragment(stage1ProjectIndexRequestMessage, annotation)
+		projectIndexRequestMessage = llm.AddPlainTextFragment(projectIndexRequestMessage, annotation)
 	}
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocProjectIndexResponseFile))
+	projectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocProjectIndexResponseFile))
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create project-files analisys request message
-	stage1PromptFile := prompts.DocStage1WritePromptFile
+	promptFile := prompts.DocStage1WritePromptFile
 	if action == "REFINE" {
-		stage1PromptFile = prompts.DocStage1RefinePromptFile
+		promptFile = prompts.DocStage1RefinePromptFile
 	}
 
-	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(stage1PromptFile))
+	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(promptFile))
 	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
 	if err != nil {
 		logger.Panicln("failed to add file contents to stage1 prompt", err)
@@ -62,7 +62,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	// Perform LLM query
 	aiResponse := ""
-	onFailRetriesLeft := stage1Connector.GetOnFailureRetryLimit()
+	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
 	}
@@ -70,9 +70,9 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
 		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponse, status, err = stage1Connector.Query(
-			stage1ProjectIndexRequestMessage,
-			stage1ProjectIndexResponseMessage,
+		aiResponse, status, err = connector.Query(
+			projectIndexRequestMessage,
+			projectIndexResponseMessage,
 			stage1SourceAnalysisRequestMessage)
 		if err != nil {
 			if onFailRetriesLeft < 1 {
