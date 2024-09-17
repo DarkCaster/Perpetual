@@ -168,7 +168,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Run stage1 to find out what project-files contents we need to work on document
-		requestedFiles := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, action, logger)
+		requestedFiles := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, docExample, action, logger)
 
 		// Check requested files for no-upload mark and filter it out
 		var filteredRequestedFiles []string

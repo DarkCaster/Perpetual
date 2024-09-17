@@ -9,7 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTagsRxStrings []string, fileNameTags []string, projectFiles []string, annotations map[string]string, targetDocument string, action string, logger logging.ILogger) []string {
+func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTagsRxStrings []string, fileNameTags []string, projectFiles []string, annotations map[string]string, targetDocument string, exampleDocuemnt string, action string, logger logging.ILogger) []string {
 
 	// Add trace and debug logging
 	logger.Traceln("Stage1: Starting")
@@ -30,6 +30,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		return text
 	}
 
+	var messages []llm.Message
 	// Create project-index request message
 	projectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
 	for _, item := range projectFiles {
@@ -40,10 +41,12 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		}
 		projectIndexRequestMessage = llm.AddPlainTextFragment(projectIndexRequestMessage, annotation)
 	}
+	messages = append(messages, projectIndexRequestMessage)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
 	projectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocProjectIndexResponseFile))
+	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create project-files analisys request message
@@ -58,6 +61,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Panicln("failed to add file contents to stage1 prompt", err)
 	}
 	codeAnalysisRequestMessage = llm.AddPlainTextFragment(codeAnalysisRequestMessage, contents)
+	messages = append(messages, codeAnalysisRequestMessage)
 	logger.Debugln("Created code-analysis request message")
 
 	// Perform LLM query
@@ -70,7 +74,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
 		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponse, status, err = connector.Query(projectIndexRequestMessage, projectIndexResponseMessage, codeAnalysisRequestMessage)
+		aiResponse, status, err = connector.Query(messages...)
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed: ", err)
