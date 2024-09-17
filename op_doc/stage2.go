@@ -10,7 +10,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTags []string, projectFiles []string, filesForReview []string, annotations map[string]string, targetDocument string, action string, logger logging.ILogger) string {
+func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTags []string, projectFiles []string, filesForReview []string, annotations map[string]string, targetDocument string, exampleDocuemnt string, action string, logger logging.ILogger) string {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -70,6 +70,23 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
+	}
+
+	if exampleDocuemnt != "" {
+		// Create document-example request message
+		docExampleRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocExamplePromptFile))
+		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
+		if err != nil {
+			logger.Panicln("Failed to load example document:", err)
+		}
+		docExampleRequestMessage = llm.AddPlainTextFragment(docExampleRequestMessage, exampleContents)
+		messages = append(messages, docExampleRequestMessage)
+		logger.Debugln("Created document-example request message")
+
+		// Create document-example simulated response
+		docExampleResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocExampleResponseFile))
+		messages = append(messages, docExampleResponseMessage)
+		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create document-processing request message

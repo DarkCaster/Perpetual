@@ -187,7 +187,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Run stage2 to make changes to the document and save it to docContent
-		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, filteredRequestedFiles, annotations, docFile, action, logger)
+		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, filteredRequestedFiles, annotations, docFile, docExample, action, logger)
 	}
 
 	docResults := make(map[string]string)
