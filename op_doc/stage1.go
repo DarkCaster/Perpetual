@@ -49,6 +49,23 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
 
+	if exampleDocuemnt != "" {
+		// Create document-example request message
+		docExampleRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocExamplePromptFile))
+		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
+		if err != nil {
+			logger.Panicln("Failed to load example document:", err)
+		}
+		docExampleRequestMessage = llm.AddPlainTextFragment(docExampleRequestMessage, exampleContents)
+		messages = append(messages, docExampleRequestMessage)
+		logger.Debugln("Created document-example request message")
+
+		// Create document-example simulated response
+		docExampleResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocExampleResponseFile))
+		messages = append(messages, docExampleResponseMessage)
+		logger.Debugln("Created document-example simulated response message")
+	}
+
 	// Create project-files analisys request message
 	promptFile := prompts.DocStage1WritePromptFile
 	if action == "REFINE" {
