@@ -99,6 +99,7 @@ The `doc` operation can be configured using environment variables defined in the
    - `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for the LLM during each stage of documentation generation when using Anthropic.
    - `OPENAI_TEMPERATURE_OP_DOC_STAGE1`, `OPENAI_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using OpenAI.
    - `OLLAMA_TEMPERATURE_OP_DOC_STAGE1`, `OLLAMA_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using Ollama.
+
    Lower values (e.g., 0.3-0.5) are recommended for more focused and consistent output, higher values (0.5-0.9) for producing more creative documentation.
 
 6. Other LLM Parameters:
