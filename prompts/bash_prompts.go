@@ -84,6 +84,14 @@ func (p *BashPrompts) GetAIDocProjectCodeResponse() string {
 	return DefaultAIAcknowledge
 }
 
+func (p *BashPrompts) GetDocExamplePrompt() string {
+	return DefaultDocExamplePrompt
+}
+
+func (p *BashPrompts) GetAIDocExampleResponse() string {
+	return DefaultAIDocExampleResponse
+}
+
 func (p *BashPrompts) GetDocStage1WritePrompt() string {
 	return DefaultDocStage1WritePrompt
 }

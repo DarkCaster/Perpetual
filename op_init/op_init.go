@@ -168,6 +168,8 @@ func Run(args []string, logger logging.ILogger) {
 	savePrompt(prompts.AIDocProjectIndexResponseFile, promptsObj.GetAIDocProjectIndexResponse())
 	savePrompt(prompts.DocProjectCodePromptFile, promptsObj.GetDocProjectCodePrompt())
 	savePrompt(prompts.AIDocProjectCodeResponseFile, promptsObj.GetAIDocProjectCodeResponse())
+	savePrompt(prompts.DocExamplePromptFile, promptsObj.GetDocExamplePrompt())
+	savePrompt(prompts.AIDocExampleResponseFile, promptsObj.GetAIDocExampleResponse())
 	savePrompt(prompts.DocStage1WritePromptFile, promptsObj.GetDocStage1WritePrompt())
 	savePrompt(prompts.DocStage1RefinePromptFile, promptsObj.GetDocStage1RefinePrompt())
 	savePrompt(prompts.DocStage2WritePromptFile, promptsObj.GetDocStage2WritePrompt())

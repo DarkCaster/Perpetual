@@ -86,6 +86,14 @@ func (p *Py3Prompts) GetAIDocProjectCodeResponse() string {
 	return DefaultAIAcknowledge
 }
 
+func (p *Py3Prompts) GetDocExamplePrompt() string {
+	return DefaultDocExamplePrompt
+}
+
+func (p *Py3Prompts) GetAIDocExampleResponse() string {
+	return DefaultAIDocExampleResponse
+}
+
 func (p *Py3Prompts) GetDocStage1WritePrompt() string {
 	return DefaultDocStage1WritePrompt
 }

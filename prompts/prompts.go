@@ -51,6 +51,8 @@ const DocProjectIndexPromptFile = "op_doc_project_index_prompt.txt"
 const AIDocProjectIndexResponseFile = "op_doc_project_index_ai_response.txt"
 const DocProjectCodePromptFile = "op_doc_project_code_prompt.txt"
 const AIDocProjectCodeResponseFile = "op_doc_project_code_ai_response.txt"
+const DocExamplePromptFile = "op_doc_example_prompt.txt"
+const AIDocExampleResponseFile = "op_doc_example_ai_response.txt"
 
 // Doc-operation write-action prompt-filenames
 const DocStage1WritePromptFile = "op_doc_stage1_write_prompt.txt"
@@ -110,6 +112,8 @@ type Prompts interface {
 	GetAIDocProjectIndexResponse() string
 	GetDocProjectCodePrompt() string
 	GetAIDocProjectCodeResponse() string
+	GetDocExamplePrompt() string
+	GetAIDocExampleResponse() string
 
 	// Doc stage1 prompts
 	GetDocStage1WritePrompt() string

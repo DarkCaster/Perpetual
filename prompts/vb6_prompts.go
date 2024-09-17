@@ -86,6 +86,14 @@ func (p *VB6Prompts) GetAIDocProjectCodeResponse() string {
 	return DefaultAIAcknowledge
 }
 
+func (p *VB6Prompts) GetDocExamplePrompt() string {
+	return DefaultDocExamplePrompt
+}
+
+func (p *VB6Prompts) GetAIDocExampleResponse() string {
+	return DefaultAIDocExampleResponse
+}
+
 func (p *VB6Prompts) GetDocStage1WritePrompt() string {
 	return DefaultDocStage1WritePrompt
 }

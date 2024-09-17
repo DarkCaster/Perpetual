@@ -86,6 +86,14 @@ func (p *DotNetFWPrompts) GetAIDocProjectCodeResponse() string {
 	return DefaultAIAcknowledge
 }
 
+func (p *DotNetFWPrompts) GetDocExamplePrompt() string {
+	return DefaultDocExamplePrompt
+}
+
+func (p *DotNetFWPrompts) GetAIDocExampleResponse() string {
+	return DefaultAIDocExampleResponse
+}
+
 func (p *DotNetFWPrompts) GetDocStage1WritePrompt() string {
 	return DefaultDocStage1WritePrompt
 }
