@@ -124,12 +124,12 @@ Note that if stage-specific variables are not set, the `doc` operation will fall
 
 1. **Use Example Documents**: Whenever possible, use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation.
 
-2. **Iterative Refinement**: Start with a `draft`, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about document topic, format, structure and style inside the document draft (or document you about to rewrite or refine) in free form starting from words `Notes on implementation:`. LLM will follow these instructions when it working on document.
+2. **Iterative Refinement**: Start with a `draft`, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about document topic, format, structure and style inside the document draft (or document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
 
 3. **Regular Updates**: As your project evolves, regularly use the `refine` action to keep your documentation up-to-date with the latest changes in your codebase.
 
 4. **Review and Edit**: Always review and edit the generated documentation to ensure accuracy and add any project-specific nuances that the LLM might have missed.
 
-5. **Version Control**: Keep your documentation files under version control along with your source code to precisely track changes made by LLM.
+5. **Version Control**: Keep your documentation files under version control along with your source code to precisely track changes made by the LLM.
 
 By leveraging the `doc` operation effectively, you can significantly streamline your documentation process, ensuring that your project's documentation remains comprehensive, up-to-date, and aligned with your codebase.
