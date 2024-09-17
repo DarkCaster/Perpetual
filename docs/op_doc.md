@@ -86,6 +86,7 @@ The `doc` operation can be configured using environment variables defined in the
    - `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response.
    - `OPENAI_MAX_TOKENS_OP_DOC_STAGE1`, `OPENAI_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using OpenAI.
    - `OLLAMA_MAX_TOKENS_OP_DOC_STAGE1`, `OLLAMA_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using Ollama.
+   - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached. This parameter limits how many times the LLM will attempt to continue generating content when it reaches the token limit. It helps prevent excessive API calls and ensures the document generation process doesn't run indefinitely.
 
    For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if hit token limits, but results may be suboptimal. If needed to generate small document it is better in general to set bigger token limit, and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
 
@@ -111,13 +112,14 @@ ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-3-sonnet-20240229"
 ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-opus-20240229"
 ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1="1024"
 ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="4096"
+ANTHROPIC_MAX_TOKENS_SEGMENTS="3"
 ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.5"
 ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="0.7"
 ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
 ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="2"
 ```
 
-This configuration uses the Anthropic provider with different models for each stage, sets appropriate token limits, uses slightly different temperatures, and allows for retries on failure.
+This configuration uses the Anthropic provider with different models for each stage, sets appropriate token limits and continuation segments, uses slightly different temperatures, and allows for retries on failure.
 
 Note that if stage-specific variables are not set, the `doc` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for each stage of the `doc` operation if needed.
 
