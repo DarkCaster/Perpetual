@@ -126,9 +126,9 @@ Note that if stage-specific variables are not set, the `doc` operation will fall
 
 ## Best Practices
 
-1. **Use Example Documents**: Whenever possible, use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation.
+1. **Use Example Documents**: Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. Mostly useful on `write` actions to copy writing style and structure from the reference document.
 
-2. **Iterative Refinement**: Start with a `draft`, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about document topic, format, structure and style inside the document draft (or document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
+2. **Iterative Refinement**: Start with a `draft` action, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about document topic, format, structure and style inside the document draft (or document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
 
 3. **Regular Updates**: As your project evolves, regularly use the `refine` action to keep your documentation up-to-date with the latest changes in your codebase.
 
