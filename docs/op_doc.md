@@ -86,6 +86,7 @@ The `doc` operation can be configured using environment variables defined in the
    - `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response.
    - `OPENAI_MAX_TOKENS_OP_DOC_STAGE1`, `OPENAI_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using OpenAI.
    - `OLLAMA_MAX_TOKENS_OP_DOC_STAGE1`, `OLLAMA_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using Ollama.
+
    For comprehensive documentation, consider using higher values (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if hit token limits, but results may be suboptimal. If needed to generate small document it is better in general to set bigger token limit, and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
 
 4. Retry Settings:
