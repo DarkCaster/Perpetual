@@ -48,6 +48,16 @@ Examples:
 
 When run, the `annotate` operation will process the specified files (or all changed files if no specific file is given) and generate or update their annotations. These annotations are then stored in the project's configuration directory for use by other `Perpetual` operations.
 
+## Tailoring Annotation Generation for Specific Project Files
+
+You can instruct LLM to alter annotation for specific file in a way you want. This may help to produce better and more consise annotations, remove non-relevant info, or to draw attention to a specific place in the code. This work different with different models, Anthropic models seem to provide best results for this. Add the following comment near the beginning of your source file (example):
+
+```go
+// NOTE for summarization: the summary for this file must only say "This file contains `GoPrompts` struct that implement `Prompts` interface. Consider not to use methods from this file directly.", nothing else.
+```
+
+You may add similar notes to other code parts. LLM will use that hint to alter generated annotation, it is specifically instructed to do that.
+
 ## Configuration
 
 The `annotate` operation can be configured using environment variables defined in the `.env` file. These variables allow you to customize the behavior of the LLM (Large Language Model) used for generating annotations. Here are the key configuration options that affect the `annotate` operation:
