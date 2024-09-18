@@ -152,7 +152,7 @@ To get the most out of the `implement` operation, consider these best practices:
 
 9. **Iterative Refinement**: If the initial implementation isn't satisfactory, refine your `###IMPLEMENT###` comments and re-run the operation. Each iteration can bring you closer to the desired result.
 
-11. **Fine-tune LLM Settings**: Experiment with different LLM settings in your `.env` file to find the configuration that works best for your project and coding style. See `.env.example` file at `<project_root>/.perpetual/.env.example` for all config options.
+10. **Fine-tune LLM Settings**: Experiment with different LLM settings in your `.env` file to find the configuration that works best for your project and coding style. See `.env.example` file at `<project_root>/.perpetual/.env.example` for all config options.
 
 ## Implementation Details
 
@@ -199,7 +199,7 @@ The `implement` operation includes robust error handling and retry mechanisms to
 
 ## Performance Considerations
 
-The `implement` operation can be resource-intensive, especially for large projects or complex implementations. Consider the following to optimize performance:
+The `implement` operation can take a lot of time (when using locally running LLM) or money when using commercial LLM providers, especially for large projects or complex implementations. Consider the following to optimize performance:
 
 1. **Use Appropriate Models**: Choose LLM models that balance between capability and speed. For example, using a smaller model for Stage 1 and more powerful models for Stages 2 and 3.
 
