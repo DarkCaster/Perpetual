@@ -6,7 +6,7 @@ The `doc` operation is an essential component of the `Perpetual` tool, designed 
 
 To use the `doc` operation, run the following command:
 
-```shell
+```sh
 ./Perpetual doc [flags]
 ```
 
@@ -35,31 +35,31 @@ Examples:
 
 1. Create a new document:
 
-   ```shell
+   ```sh
    ./Perpetual doc -r docs/new_feature.md -a draft
    ```
 
    Edit `docs/new_feature.md` draft, add the most basic structure of future document, your instructions and notes about any aspect of the document starting with words `Notes on implementation:`. After editing `docs/new_feature.md` document draft and adding basic notes, section-drafts, basic document structure, run
 
-   ```shell
+   ```sh
    ./Perpetual doc -r docs/new_feature.md -a write
    ```
 
    Also you can use another document as style and structure reference when writing current document:
 
-   ```shell
+   ```sh
    ./Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
    ```
 
 2. Refine an existing document using an example for style:
 
-   ```shell
+   ```sh
    ./Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
    ```
 
 3. Write a document with debug logging enabled:
 
-   ```shell
+   ```sh
    ./Perpetual doc -r docs/troubleshooting.md -v
    ```
 
@@ -107,7 +107,7 @@ The `doc` operation can be configured using environment variables defined in the
 
 Example configuration in `.env` file:
 
-```shell
+```sh
 LLM_PROVIDER="anthropic"
 ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-3-sonnet-20240229"
 ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-opus-20240229"

@@ -6,7 +6,7 @@ The `init` operation is a starting point for using Perpetual with your project. 
 
 To initialize a new Perpetual configuration for your project, run the following command **from the root directory of your project**:
 
-```shell
+```sh
 ./Perpetual init [flags]
 ```
 
@@ -22,7 +22,7 @@ The `init` operation supports several command-line flags to customize its behavi
 
 Example usage:
 
-```shell
+```sh
 ./Perpetual init -l go
 ```
 

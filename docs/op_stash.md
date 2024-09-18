@@ -8,7 +8,7 @@ The `stash` operation is primarily used internally with operations that modify f
 
 To use the `stash` operation, use the following command:
 
-```shell
+```sh
 ./Perpetual stash [flags]
 ```
 
@@ -38,37 +38,37 @@ Examples:
 
 1. List all current stashes:
 
-   ```shell
+   ```sh
    ./Perpetual stash -l
    ```
 
 2. Apply changes from the latest stash:
 
-   ```shell
+   ```sh
    ./Perpetual stash -a
    ```
 
 3. Rollback changes from a specific stash:
 
-   ```shell
+   ```sh
    ./Perpetual stash -r -n 2023-05-15_14-30-00
    ```
 
 4. List files in a specific stash:
 
-   ```shell
+   ```sh
    ./Perpetual stash -lf -n 2023-05-15_14-30-00
    ```
 
 5. Apply changes for a single file from a stash:
 
-   ```shell
+   ```sh
    ./Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/file.go
    ```
 
 6. Apply changes for a single file from a stash to a different target file:
 
-   ```shell
+   ```sh
    ./Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/source_file.go -t path/to/target_file.go
    ```
 

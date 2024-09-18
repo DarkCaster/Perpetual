@@ -39,7 +39,7 @@ To effectively use the `implement` operation, follow this typical workflow:
 3. **Running the Implement Operation**:
    - Execute the implement operation using the command:
 
-     ```shell
+     ```sh
      ./Perpetual implement [flags]
      ```
 
@@ -49,7 +49,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - Review the generated code for accuracy and consistency.
    - If necessary, use the `stash` operation to revert changes:
 
-     ```shell
+     ```sh
      ./Perpetual stash -r
      ```
 
@@ -71,7 +71,7 @@ It's important to note that while the `###NOUPLOAD###` comment prevents the full
 
 To run the `implement` operation, use the following command:
 
-```shell
+```sh
 ./Perpetual implement [flags]
 ```
 
@@ -110,7 +110,7 @@ The `implement` operation can be fine-tuned using environment variables in the `
 
 Example configuration in `.env` file:
 
-```shell
+```sh
 LLM_PROVIDER="anthropic"
 ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-haiku-20240307"
 ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-20240620"

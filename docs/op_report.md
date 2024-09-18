@@ -8,7 +8,7 @@ While the `report` operation doesn't have its own configuration, it heavily reli
 
 To run the `report` operation, use the following command:
 
-```shell
+```sh
 ./Perpetual report [flags]
 ```
 
@@ -30,19 +30,19 @@ Examples:
 
 1. Generate a detailed code report and display it in the console:
 
-   ```shell
+   ```sh
    ./Perpetual report
    ```
 
 2. Generate a brief report and save it to a file:
 
-   ```shell
+   ```sh
    ./Perpetual report -t brief -r project_summary.txt
    ```
 
 3. Generate a detailed code report with debug logging:
 
-   ```shell
+   ```sh
    ./Perpetual report -v
    ```
 

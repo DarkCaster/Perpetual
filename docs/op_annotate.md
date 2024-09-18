@@ -8,7 +8,7 @@ While the `annotate` operation is an essential component of the `Perpetual` work
 
 To manually run the `annotate` operation, use the following command:
 
-```shell
+```sh
 ./Perpetual annotate [flags]
 ```
 
@@ -30,19 +30,19 @@ Examples:
 
 1. Annotate only new or changed files:
 
-   ```shell
+   ```sh
    ./Perpetual annotate
    ```
 
 2. Force (re)annotation of all files:
 
-   ```shell
+   ```sh
    ./Perpetual annotate -f
    ```
 
 3. Annotate a specific file:
 
-   ```shell
+   ```sh
    ./Perpetual annotate -r path/to/file.go
    ```
 
@@ -74,7 +74,7 @@ The `annotate` operation can be configured using environment variables defined i
 
 Example configuration in `.env` file:
 
-```shell
+```sh
 LLM_PROVIDER="anthropic"
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="512"
