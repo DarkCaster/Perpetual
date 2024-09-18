@@ -25,12 +25,6 @@ Given `Perpetual`'s focus on direct codebase interaction and maintaining simplic
 - It provides only a command-line interface, which was chosen to preserve simplicity and enable integration
 - Other user interface options are not currently planned
 
-Implementing of such functionality is not currently planned
-
-### Current gen LLM Code Writing Limitations
-
-While context window of current gen LLMs may be quite big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now `Perpetual` can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen `Anthropic Claude 3` and `OpenAI GPT-4o` models are good at this task. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
-
 ### Warning
 
 While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it tries to change and creates a `stash` that can be (re)applied or reverted on command.
@@ -39,19 +33,17 @@ Since the LLM never provides a completely deterministic result, and the quality 
 
 It's important to remain vigilant and carefully review the changes made by `Perpetual` before integrating them into your codebase.
 
-Note that `Perpetual` is a tool designed mainly to assist programmers, with the primary goal of writing routine code. `Perpetual` is not yet capable of designing the overall project architecture for you, unlike some other similar tools. Instead, `Perpetual` is focused on generating code based on YOUR architectural vision. If you have created a poor architecture in which it is very difficult to create new code, `Perpetual` will likely produce a suboptimal result.
+Note that `Perpetual` is a tool designed mainly to assist programmers, with the primary goal of writing routine code. `Perpetual` is not yet capable of designing the overall project architecture for you, unlike some other similar tools. Instead, `Perpetual` is focused on generating code based on your architectural vision. If you have created a poor architecture in which it is very difficult to create new code, `Perpetual` will likely produce a suboptimal result.
 
 ## Requirements
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). It was originally developed for the Anthropic models, because of consistent XML tag formatting for responses. So, if using OpenAI - choose the latest GPT-4o model, it formats responses about as well as models from Anthropic. Avoid using GPT-3.5-Turbo and other legacy models - they simply don't work well enough to automate the process of code extraction from LLM responses.
+Currently `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). If using OpenAI - avoid using GPT-3.5-Turbo and other legacy models with small context windows, they simply cannot fit content of the request inside. For Anthropic - Claude 3 Haiku is the minimum suitable model. For Ollama - DeepSeek Coder (v1) 34b model can be used to offload some tasks locally.
 
 `Perpetual` utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
 <https://github.com/tmc/langchaingo>
-
-This library provides the necessary integration with the LLM, allowing `Perpetual` to leverage the model's capabilities for its core functionality. Thanks to the LangChain library, it is possible to add other popular LLM providers in future, including models running locally.
 
 The quality of `Perpetual` results directly depends on the LLM used. `Perpetual` allows you to offload different tasks to different models and providers to save on your costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku and Claude 3 Sonnet, while the actual code writing can be handled by a more advanced model like Claude 3 Opus or GPT-4o.
 
@@ -89,7 +81,7 @@ Perpetual init -l <language>
 The perpetual init command creates a .perpetual directory in the root of your project, which contains various system settings that you can customize as needed:
 
 - Prompts for different operations and stages
-- `.env.example` file with example settings
+- [`.env.example` file with example settings](.perpetual/.env.example)
 - Regular expressions used for parsing responses from the LLM
 - LLM chat logs
 
@@ -99,8 +91,6 @@ Additional files created when executing `Perpetual` operations. **DO NOT ADD THE
 - `.message_log.txt` Raw LLM interaction log, see below
 
 You should be cautious when modifying these settings. You can always rewrite them by running the init operation in the project root directory again.
-
-At the moment, `Perpetual` only supports the Go programming language. Other languages will be added in the future, but you can manually edit the prompt templates to the LLM after initialization to work with projects in other languages.
 
 Next, you need to manually create a `.env` file by copying the `.env.example` file. The `.env` file should be self-explanatory.
 
