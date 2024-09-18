@@ -12,7 +12,7 @@ The `implement` operation works by identifying and processing sections of your c
 
 3. **Context Gathering**: The operation collects relevant information from the target files and related project files to provide comprehensive context to the LLM.
 
-4. **Code Generation**: Using the gathered context and the instructions provided in the `###IMPLEMENT###` comments, the LLM generates or modifies code for each target file.
+4. **Code Generation**: Using the gathered context and the instructions provided in the `###IMPLEMENT###` comments, the LLM generates or modifies code for each target file. It also modifies related files if needed or can even create new files.
 
 5. **Integration**: The generated code is seamlessly integrated into your project, replacing the `###IMPLEMENT###` comments and/or modifying other existing code as specified.
 
