@@ -67,6 +67,10 @@ To effectively use the `implement` operation, follow this typical workflow:
 
 It's important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information.
 
+### Examining logs
+
+`Perpetual` provides detailed logging of LLM interaction at `.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
+
 ## Command-Line Usage
 
 To run the `implement` operation, use the following command:
@@ -163,7 +167,7 @@ The `implement` operation is divided into three main stages.
 This stage is responsible for analyzing the project and gathering context for the implementation. It performs the following tasks:
 
 1. Run `annotate` to update project source-code files annotations.
-2. Generates a project-index containing file names and its annotations.
+2. Generates a project-index containing file names and their annotations.
 3. Creates a request for files with `###IMPLEMENT###` comments. It queries the LLM to identify what project source-code files are relevant for the implementation according to the project index.
 4. Returns the list of files to review.
 
@@ -171,7 +175,7 @@ This stage is responsible for analyzing the project and gathering context for th
 
 This stage plans the implementation based on the context gathered in Stage 1. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code.
+1. Gather source code from relevant project files requested by LLM at stage 1, that are needed to implement requested code.
 2. Querying the LLM to determine which files will be modified or created as a result of implementing code.
 3. Processing the LLM's response to extract file-list and reasoning (if enabled with `-pr` flag).
 
@@ -179,7 +183,7 @@ This stage plans the implementation based on the context gathered in Stage 1. It
 
 This final stage generates the actual code based on the planning from Stage 2. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code. Also, if available, use reasonings extracted from stage 2 as further instructions.
+1. Gather source code from relevant project files requested by LLM at stage 1, that are needed to implement requested code. Also, if available, use reasonings extracted from stage 2 as further instructions.
 2. Iteratively processing each file that needs modification or creation.
 3. Querying the LLM to produce the implemented code.
 4. Handling partial responses and continuing generation if token limits are reached.
@@ -191,7 +195,7 @@ The `implement` operation includes robust error handling and retry mechanisms to
 
 1. **LLM Query Failures**: If an LLM query fails, the operation will retry up to the number of times specified in the `<PROVIDER>_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE<NUMBER>` environment variables.
 
-2. **Token Limit Handling**: If the LLM response reaches the token limit, the operation attempts to continue generating code from where it left off. This is particularly useful for large files or complex implementations, but the result heavily depends on the LLM's ability to follow the instruction. Currently (as of September 2024) works best with Anthropic Claude 3.5 Sonnet model, and may also work good with GPT-4 or GPT-4o model.
+2. **Token Limit Handling**: If the LLM response reaches the token limit, the operation attempts to continue generating code from where it left off. This is particularly useful for large files or complex implementations, but the result heavily depends on the LLM's ability to follow the instruction. Currently (as of September 2024) works best with Anthropic Claude 3.5 Sonnet model, and may also work well with GPT-4 or GPT-4o model.
 
 3. **Invalid Responses**: The operation checks for properly formatted code-blocks in the LLM responses (by default it tries to detect MD formatted code-blocks, but you may customize it for any other format). If no valid code is found, it will retry the query. Currently, there are no plans for using so-called `JSON-mode`, or other similar fancy features of leading LLM providers and models - because it's not so universal and even provides worse results, at least for now. This may change in the future.
 
