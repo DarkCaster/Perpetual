@@ -96,7 +96,7 @@ Next, you need to manually create a `.env` file by copying the [`.env.example`](
 
 ### Creating Project Annotations
 
-After initializing a new `Perpetual` project and setting up `.env` file, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code, while not overloading LLM context window with unrelevant code. **NOTE**: it is not required now to run this command, it will be triggered automatically when needed. Hovewer you still can do it. This operation may take pretty long time when run for the first time with a local LLM (so it may be convenient to start it manually and go for a nap)
+After initializing a new `Perpetual` project and setting up `.env` file, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code, while not overloading LLM context window with unrelevant code. **NOTE**: it is not required now to run this command, it will be triggered automatically when needed. However, you still can do it. This operation may take pretty long time when run for the first time with a local LLM (so it may be convenient to start it manually and go for a nap)
 
 To create source code annotations, you need to use perpetual annotate command:
 
@@ -104,7 +104,7 @@ To create source code annotations, you need to use perpetual annotate command:
 Perpetual annotate
 ```
 
-**Tip**: Use cheaper models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster, because it needed to upload EVERY sutable source code file from your project to LLM in order to generate its summary. Next time, annotation will be run automatically before other operations, and **it will only re-annotate changed files** in order to minimize costs.
+**Tip**: Use cheaper models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster, because it needed to upload EVERY suitable source code file from your project to LLM in order to generate its summary. Next time, annotation will be run automatically before other operations, and **it will only re-annotate changed files** in order to minimize costs.
 
 ### Writing Code with Perpetual
 
@@ -130,13 +130,25 @@ The `report` operation allows you to generate a report from your project's sourc
 
 [See this doc for more info](docs/op_report.md)
 
+### Creating project documentation
+
+The `doc` operation in `Perpetual` is designed to assist in creating and refining project documentation. For now it can only work with plain-text or markdown formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is highly experimental feature, and it will provide good results only with big and smart enough models. It will also take much more tokens to generate or refine a document than writing code with `implement` operation.
+
+[See this doc for more info](docs/op_doc.md)
+
 ## Conclusion
 
-This project was an experiment. A significant portion of the project's code was written using an LLM (Claude 3), which is where the name `Perpetual` came from. Despite my many years of programming experience, Go was a new language for me, and this was my first program written in it. As a result, the quality of the project's code is, as expected, quite poor.
+This project was an experimental endeavor, with a significant portion of the code written using an LLM (Claude 3), which inspired the name `Perpetual`. Despite many years of programming experience, Go was a new language for me, and this was my first program written in it. As a result, the quality of the project's code is, as expected, quite poor.
 
-This was a learning experience for me, as I explored the capabilities and limitations of using an LLM to assist with code generation. While the LLM was able to help me write the code, the overall quality and architecture of the project suffered due to my own lack of familiarity with the language and best practices
+This project served as a valuable learning experience, allowing me to explore the capabilities and limitations of using an LLM to assist with code generation. While the LLM was able to help me write the code, the overall quality and architecture of the project suffered due to my own lack of familiarity with the language and best practices.
 
-This README is also written by using LLM.
+The process of developing `Perpetual` has provided insights into both the potential and the challenges of LLM-assisted programming. It highlighted the importance of human expertise in guiding the overall structure and design of a project, while demonstrating the power of AI in handling routine coding tasks and generating boilerplate code.
+
+This README, like much of the project, was also written with the assistance of an LLM, showcasing the tool's potential for documentation as well as code generation.
+
+Moving forward, `Perpetual` serves as a starting point for further exploration into AI-assisted software development. While it may not be production-ready in its current state, it provides a foundation for understanding how LLMs can be integrated into the software development process and what challenges need to be addressed for more robust AI-assisted coding tools in the future.
+
+PS: I also noticed how LLM likes to praise himself. I deliberately did not delete several paragraphs above that he added completely without my request. As they say: "if you don't praise yourself, no one else will"
 
 ## Disclaimer
 
