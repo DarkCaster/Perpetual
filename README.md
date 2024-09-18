@@ -71,12 +71,12 @@ Next, you need to download or compile the **Perpetual** executable file (you can
 
 Supported operations:
 
-- `init`: Initialize new .perpetual directory, will store project configuration
-- `annotate`: Generate annotations for project files
-- `implement`: Implement code according to instructions marked with ###IMPLEMENT### comments
-- `stash`: Rollback or re-apply generated code
-- `report`: Create report from project source code, that can be manually uploaded into the LLM for use as knowledge base or for manual analysys.
-- `doc`: Create or rework documentation files (in markdown or plain-text format)
+- [`init`: Initialize new .perpetual directory, will store project configuration](docs/op_init.md)
+- [`annotate`: Generate annotations for project files](docs/op_annotate.md)
+- [`implement`: Implement code according to instructions marked with ###IMPLEMENT### comments](docs/op_implement.md)
+- [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
+- [`report`: Create report from project source code, that can be manually uploaded into the LLM for use as knowledge base or for manual analysys.](docs/op_report.md)
+- [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
 
 ### Initialize a New Project
 
