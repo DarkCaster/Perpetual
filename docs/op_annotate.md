@@ -9,7 +9,7 @@ While the `annotate` operation is an essential component of the `Perpetual` work
 To manually run the `annotate` operation, use the following command:
 
 ```sh
-./Perpetual annotate [flags]
+Perpetual annotate [flags]
 ```
 
 The `annotate` operation supports several command-line flags to customize its behavior:
@@ -31,19 +31,19 @@ Examples:
 1. Annotate only new or changed files:
 
    ```sh
-   ./Perpetual annotate
+   Perpetual annotate
    ```
 
 2. Force (re)annotation of all files:
 
    ```sh
-   ./Perpetual annotate -f
+   Perpetual annotate -f
    ```
 
 3. Annotate a specific file:
 
    ```sh
-   ./Perpetual annotate -r path/to/file.go
+   Perpetual annotate -r path/to/file.go
    ```
 
 When run, the `annotate` operation will process the specified files (or all changed files if no specific file is given) and generate or update their annotations. These annotations are then stored in the project's configuration directory for use by other `Perpetual` operations.

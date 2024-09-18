@@ -7,7 +7,7 @@ The `init` operation is a starting point for using Perpetual with your project. 
 To initialize a new Perpetual configuration for your project, run the following command **from the root directory of your project**:
 
 ```sh
-./Perpetual init [flags]
+Perpetual init [flags]
 ```
 
 The `init` operation supports several command-line flags to customize its behavior:
@@ -23,7 +23,7 @@ The `init` operation supports several command-line flags to customize its behavi
 Example usage:
 
 ```sh
-./Perpetual init -l go
+Perpetual init -l go
 ```
 
 This command initializes Perpetual for a Go project, setting up the appropriate configuration and prompt files.

@@ -9,7 +9,7 @@ The `stash` operation is primarily used internally with operations that modify f
 To use the `stash` operation, use the following command:
 
 ```sh
-./Perpetual stash [flags]
+Perpetual stash [flags]
 ```
 
 The `stash` operation supports several command-line flags to customize its behavior:
@@ -39,37 +39,37 @@ Examples:
 1. List all current stashes:
 
    ```sh
-   ./Perpetual stash -l
+   Perpetual stash -l
    ```
 
 2. Apply changes from the latest stash:
 
    ```sh
-   ./Perpetual stash -a
+   Perpetual stash -a
    ```
 
 3. Rollback changes from a specific stash:
 
    ```sh
-   ./Perpetual stash -r -n 2023-05-15_14-30-00
+   Perpetual stash -r -n 2023-05-15_14-30-00
    ```
 
 4. List files in a specific stash:
 
    ```sh
-   ./Perpetual stash -lf -n 2023-05-15_14-30-00
+   Perpetual stash -lf -n 2023-05-15_14-30-00
    ```
 
 5. Apply changes for a single file from a stash:
 
    ```sh
-   ./Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/file.go
+   Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/file.go
    ```
 
 6. Apply changes for a single file from a stash to a different target file:
 
    ```sh
-   ./Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/source_file.go -t path/to/target_file.go
+   Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/source_file.go -t path/to/target_file.go
    ```
 
 When executed, the `stash` operation will perform the specified action (list, apply, or rollback) on the stashes stored in the project's `.perpetual/.stash` directory. Each stash is a JSON file containing the original and modified versions of the affected files.

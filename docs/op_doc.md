@@ -7,7 +7,7 @@ The `doc` operation is an essential component of the `Perpetual` tool, designed 
 To use the `doc` operation, run the following command:
 
 ```sh
-./Perpetual doc [flags]
+Perpetual doc [flags]
 ```
 
 The `doc` operation supports several command-line flags to customize its behavior:
@@ -36,31 +36,31 @@ Examples:
 1. Create a new document:
 
    ```sh
-   ./Perpetual doc -r docs/new_feature.md -a draft
+   Perpetual doc -r docs/new_feature.md -a draft
    ```
 
    Edit `docs/new_feature.md` draft, add the most basic structure of future document, your instructions and notes about any aspect of the document starting with words `Notes on implementation:`. After editing `docs/new_feature.md` document draft and adding basic notes, section-drafts, basic document structure, run
 
    ```sh
-   ./Perpetual doc -r docs/new_feature.md -a write
+   Perpetual doc -r docs/new_feature.md -a write
    ```
 
    Also you can use another document as style and structure reference when writing current document:
 
    ```sh
-   ./Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
+   Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
    ```
 
 2. Refine an existing document using an example for style:
 
    ```sh
-   ./Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
+   Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
    ```
 
 3. Write a document with debug logging enabled:
 
    ```sh
-   ./Perpetual doc -r docs/troubleshooting.md -v
+   Perpetual doc -r docs/troubleshooting.md -v
    ```
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:

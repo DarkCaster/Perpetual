@@ -9,7 +9,7 @@ While the `report` operation doesn't have its own configuration, it heavily reli
 To run the `report` operation, use the following command:
 
 ```sh
-./Perpetual report [flags]
+Perpetual report [flags]
 ```
 
 The `report` operation supports several command-line flags to customize its behavior:
@@ -31,19 +31,19 @@ Examples:
 1. Generate a detailed code report and display it in the console:
 
    ```sh
-   ./Perpetual report
+   Perpetual report
    ```
 
 2. Generate a brief report and save it to a file:
 
    ```sh
-   ./Perpetual report -t brief -r project_summary.txt
+   Perpetual report -t brief -r project_summary.txt
    ```
 
 3. Generate a detailed code report with debug logging:
 
    ```sh
-   ./Perpetual report -v
+   Perpetual report -v
    ```
 
 When executed, the `report` operation will process the project files and generate the requested report type. The report will include all files that match the project's whitelist and are not excluded by the blacklist, as defined in the project's configuration.

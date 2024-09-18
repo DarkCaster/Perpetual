@@ -40,7 +40,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - Execute the implement operation using the command:
 
      ```sh
-     ./Perpetual implement [flags]
+     Perpetual implement [flags]
      ```
 
    - The operation will process all files with `###IMPLEMENT###` comments.
@@ -50,7 +50,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - If necessary, use the `stash` operation to revert changes:
 
      ```sh
-     ./Perpetual stash -r
+     Perpetual stash -r
      ```
 
    - Modify your `###IMPLEMENT###` comments to provide more specific instructions if needed.
@@ -72,7 +72,7 @@ It's important to note that while the `###NOUPLOAD###` comment prevents the full
 To run the `implement` operation, use the following command:
 
 ```sh
-./Perpetual implement [flags]
+Perpetual implement [flags]
 ```
 
 Supported flags:
