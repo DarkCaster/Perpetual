@@ -50,13 +50,13 @@ When run, the `annotate` operation will process the specified files (or all chan
 
 ## Tailoring Annotation Generation for Specific Project Files
 
-You can instruct LLM to alter annotation for specific file in a way you want. This may help to produce better and more consise annotations, remove non-relevant info, or to draw attention to a specific place in the code. This work different with different models, Anthropic models seem to provide best results for this. Add the following comment near the beginning of your source file (example):
+You can instruct LLM to alter annotation for specific file in a way you want. This may help to produce better and more concise annotations, remove non-relevant info, or to draw attention to a specific place in the code. This works differently with different models, Anthropic models seem to provide best results for this. Add the following comment near the beginning of your source file (example):
 
 ```go
 // NOTE for summarization: the summary for this file must only say "This file contains `GoPrompts` struct that implement `Prompts` interface. Consider not to use methods from this file directly.", nothing else.
 ```
 
-You may add similar notes to other code parts. LLM will use that hint to alter generated annotation, it is specifically instructed to do that.
+You may add similar notes to other code parts. LLM will use that hint to alter generated annotation, as it is specifically instructed to do so.
 
 ## Configuration
 
