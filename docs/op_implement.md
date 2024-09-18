@@ -62,7 +62,7 @@ To effectively use the `implement` operation, follow this typical workflow:
 ### Special Comments
 
 - `###IMPLEMENT###`: Marks sections for code implementation. You can provide detailed instructions after this comment.
-- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive information. Files with this comment will not be sent to the LLM for processing on `implement` operation, ensuring data privacy.
+- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive or unneeded information. Files with this comment will not be sent to the LLM for processing on `implement` operation. **This is not meant for privacy**, but to reduce LLM context clogging with unrelated code. To ensure the file will never be processed by LLM, use `project_files_blacklist.json` (see the `init` operation).
 
 It's important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information.
 
@@ -79,7 +79,7 @@ Supported flags:
 - `-h`: Display help information about the `implement` operation.
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.
 - `-p`: Enable extended planning stage. Useful for larger modifications that may create new files. Disabled by default to save tokens.
-- `-pr`: Enables planning with additional reasoning. The most powerful mode, may produce improved results for complex tasks but can also lead to flawed reasoning.
+- `-pr`: Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
@@ -172,7 +172,7 @@ This stage is responsible for analyzing the project and gathering context for th
 
 This stage plans the implementation based on the context gathered in Stage 1. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code. Also, if available, use reasonings extracted from stage 2 as further instructions.
+1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code.
 2. Querying the LLM to determine which files will be modified or created as a result of implementing code.
 3. Processing the LLM's response to extract file-list and reasoning (if enabled with `-pr` flag).
 
@@ -180,7 +180,7 @@ This stage plans the implementation based on the context gathered in Stage 1. It
 
 This final stage generates the actual code based on the planning from Stage 2. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code.
+1. Gather source code from relevant project files requested by LLM at stage 1, that needed to implement requested code. Also, if available, use reasonings extracted from stage 2 as further instructions.
 2. Iteratively processing each file that needs modification or creation.
 3. Querying the LLM to produce the implemented code.
 4. Handling partial responses and continuing generation if token limits are reached.
