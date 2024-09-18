@@ -25,6 +25,7 @@ To effectively use the `implement` operation, follow this typical workflow:
 1. **Project Setup**:
    - Create the basic structure of your project, including main files and directories.
    - Initialize your project for use with Perpetual tool by using `init` operation.
+   - Create local `.env` configuration file at `<project_root>/.perpetual/.env` and/or global configuration file at `~/.config/Perpetual/.env` on Linux, `<User profile dir>\AppData\Roaming\Perpetual\.env` on Windows. Settings from the local project configuration file will take precedence over global configuration settings.
 
 2. **Marking Implementation Points**:
    - In your source files, use `###IMPLEMENT###` comments to indicate where you want code to be generated or modified.
@@ -151,9 +152,7 @@ To get the most out of the `implement` operation, consider these best practices:
 
 9. **Iterative Refinement**: If the initial implementation isn't satisfactory, refine your `###IMPLEMENT###` comments and re-run the operation. Each iteration can bring you closer to the desired result.
 
-10. **Combine with Other Operations**: Use the `implement` operation in conjunction with other Perpetual operations like `annotate` and `doc` for a comprehensive development workflow.
-
-11. **Fine-tune LLM Settings**: Experiment with different LLM settings in your `.env` file to find the configuration that works best for your project and coding style.
+11. **Fine-tune LLM Settings**: Experiment with different LLM settings in your `.env` file to find the configuration that works best for your project and coding style. See `.env.example` file at `<project_root>/.perpetual/.env.example` for all config options.
 
 ## Implementation Details
 
