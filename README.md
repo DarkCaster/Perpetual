@@ -6,17 +6,17 @@ This project is currently in an early stage of development, and users should exp
 
 ## Description
 
-**Perpetual** is an LLM assistant created to boost the productivity and efficiency of software developers. Its key feature is the ability to write and modify code based on textual descriptions provided by the programmer. **Perpetual** can automatically generate new code, make changes to existing code, and even create new files - all by analyzing the project's codebase and the programmer's instructions embedded as special comments. With **Perpetual**, developers can focus on high-level problem-solving while the AI assistant handles the tedious task of implementing the required functionality.
+`Perpetual` is an LLM assistant created to boost the productivity and efficiency of software developers. Its key feature is the ability to write and modify code based on textual descriptions provided by the programmer. `Perpetual` can automatically generate new code, make changes to existing code, and even create new files - all by analyzing the project's codebase and the programmer's instructions embedded as special comments. With `Perpetual`, developers can focus on high-level problem-solving while the AI assistant handles the tedious task of implementing the required functionality.
 
-**Perpetual** is primarily focused on direct interaction with the project's codebase, without requiring any additional tools or server infrastructure (except the LLM access). This design allows **Perpetual** to remain simple and easily integrate into larger systems.
+`Perpetual` is primarily focused on direct interaction with the project's codebase, without requiring any additional tools or server infrastructure (except the LLM access). This design allows `Perpetual` to remain simple and easily integrate into larger systems.
 
-All of **Perpetual's** operations are limited to the user's project directory, and it is not permitted to delete any files (at least for now).
+All of `Perpetual`'s operations are limited to the user's project directory, and it is not permitted to delete any files (at least for now).
 
 **[TL;DR, go straight to Example](docs/example.md)**
 
 ## Limitations
 
-Given **Perpetual's** focus on direct codebase interaction and maintaining simplicity, the following limitations apply:
+Given `Perpetual`'s focus on direct codebase interaction and maintaining simplicity, the following limitations apply:
 
 - It cannot install packages (npm, NuGet, etc.)
 - It cannot set up the necessary development environment
@@ -29,49 +29,49 @@ Implementing of such functionality is not currently planned
 
 ### Current gen LLM Code Writing Limitations
 
-While context window of current gen LLMs may be quite big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now **Perpetual** can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen `Anthropic Claude 3` and `OpenAI GPT-4o` models are good at this task. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
+While context window of current gen LLMs may be quite big even to fit all your project at once, response size is still quite limited (usually to 4096 tokens). For now `Perpetual` can only generate code modifications to files as a whole. It expects that LLM will output a whole source code file with modifications. Current gen `Anthropic Claude 3` and `OpenAI GPT-4o` models are good at this task. Next-gen models probably will be even better and will have bigger response size limits, so it is not in priority to implement applying partial generation results to the source files. For now just keep your project source code files well organized and small. Better to have more smaller files than one big. It will also cost you less tokens (and money) to work on smaller files.
 
 ### Warning
 
-While **Perpetual** tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it tries to change and creates a `stash` that can be (re)applied or reverted on command.
+While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it tries to change and creates a `stash` that can be (re)applied or reverted on command.
 
-Since the LLM never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run the **Perpetual's** `implement` operation multiple times to achieve a satisfactory result (see below how to use it).
+Since the LLM never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run the `Perpetual`'s `implement` operation multiple times to achieve a satisfactory result (see below how to use it).
 
-It's important to remain vigilant and carefully review the changes made by **Perpetual** before integrating them into your codebase.
+It's important to remain vigilant and carefully review the changes made by `Perpetual` before integrating them into your codebase.
 
-Note that **Perpetual** is a tool designed mainly to assist programmers, with the primary goal of writing routine code. **Perpetual** is not yet capable of designing the overall project architecture for you, unlike some other similar tools. Instead, **Perpetual** is focused on generating code based on YOUR architectural vision. If you have created a poor architecture in which it is very difficult to create new code, **Perpetual** will likely produce a suboptimal result.
+Note that `Perpetual` is a tool designed mainly to assist programmers, with the primary goal of writing routine code. `Perpetual` is not yet capable of designing the overall project architecture for you, unlike some other similar tools. Instead, `Perpetual` is focused on generating code based on YOUR architectural vision. If you have created a poor architecture in which it is very difficult to create new code, `Perpetual` will likely produce a suboptimal result.
 
 ## Requirements
 
-The key requirement for **Perpetual** is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
+The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently **Perpetual** supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). It was originally developed for the Anthropic models, because of consistent XML tag formatting for responses. So, if using OpenAI - choose the latest GPT-4o model, it formats responses about as well as models from Anthropic. Avoid using GPT-3.5-Turbo and other legacy models - they simply don't work well enough to automate the process of code extraction from LLM responses.
+Currently `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). It was originally developed for the Anthropic models, because of consistent XML tag formatting for responses. So, if using OpenAI - choose the latest GPT-4o model, it formats responses about as well as models from Anthropic. Avoid using GPT-3.5-Turbo and other legacy models - they simply don't work well enough to automate the process of code extraction from LLM responses.
 
-**Perpetual** utilizes the LangChain library for Go, which can be found at the following GitHub project:
+`Perpetual` utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
 <https://github.com/tmc/langchaingo>
 
-This library provides the necessary integration with the LLM, allowing **Perpetual** to leverage the model's capabilities for its core functionality. Thanks to the LangChain library, it is possible to add other popular LLM providers in future, including models running locally.
+This library provides the necessary integration with the LLM, allowing `Perpetual` to leverage the model's capabilities for its core functionality. Thanks to the LangChain library, it is possible to add other popular LLM providers in future, including models running locally.
 
-The quality of **Perpetual** results directly depends on the LLM used. **Perpetual** allows you to offload different tasks to different models and providers to save on your costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku and Claude 3 Sonnet, while the actual code writing can be handled by a more advanced model like Claude 3 Opus or GPT-4o.
+The quality of `Perpetual` results directly depends on the LLM used. `Perpetual` allows you to offload different tasks to different models and providers to save on your costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku and Claude 3 Sonnet, while the actual code writing can be handled by a more advanced model like Claude 3 Opus or GPT-4o.
 
 ## Getting Started
 
 ### Obtain API Keys
 
-To get started with **Perpetual**, you need to obtain the necessary API keys to access the LLM models that power the core functionality.
+To get started with `Perpetual`, you need to obtain the necessary API keys to access the LLM models that power the core functionality.
 
 ### Download or Compile Perpetual
 
-Next, you need to download or compile the **Perpetual** executable file (you can download binaries from GitHub releases, or latest build from Actions)
+Next, you need to download or compile the `Perpetual` executable file (you can download binaries from GitHub releases, or latest build from Actions)
 
 ### Command Line Usage
 
-**Perpetual** is designed to be used from the command line. To see the available operations, you can simply run the **Perpetual** command without any parameters:
+`Perpetual` is designed to be used from the command line. To see the available operations, you can simply run the `Perpetual` command without any parameters:
 
 Supported operations:
 
-- [`init`: Initialize new .perpetual directory, will store project configuration](docs/op_init.md)
+- [`init`: Initialize new .perpetual directory to store the configuration](docs/op_init.md)
 - [`annotate`: Generate annotations for project files](docs/op_annotate.md)
 - [`implement`: Implement code according to instructions marked with ###IMPLEMENT### comments](docs/op_implement.md)
 - [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
@@ -80,7 +80,7 @@ Supported operations:
 
 ### Initialize a New Project
 
-To initialize a new **Perpetual** project, navigate to the root directory of your project in the console, and run the following command:
+To initialize a new `Perpetual` project, navigate to the root directory of your project in the console, and run the following command:
 
 ```sh
 Perpetual init -l <language>
@@ -93,20 +93,20 @@ The perpetual init command creates a .perpetual directory in the root of your pr
 - Regular expressions used for parsing responses from the LLM
 - LLM chat logs
 
-Additional files created when executing **Perpetual** operations. **DO NOT ADD THESE TO YOUR VCS** - these files are platform dependent:
+Additional files created when executing `Perpetual` operations. **DO NOT ADD THESE TO YOUR VCS** - these files are platform dependent:
 
 - `.annotations.json` Current annotations generated for your project files.
 - `.message_log.txt` Raw LLM interaction log, see below
 
 You should be cautious when modifying these settings. You can always rewrite them by running the init operation in the project root directory again.
 
-At the moment, **Perpetual** only supports the Go programming language. Other languages will be added in the future, but you can manually edit the prompt templates to the LLM after initialization to work with projects in other languages.
+At the moment, `Perpetual` only supports the Go programming language. Other languages will be added in the future, but you can manually edit the prompt templates to the LLM after initialization to work with projects in other languages.
 
 Next, you need to manually create a `.env` file by copying the `.env.example` file. The `.env` file should be self-explanatory.
 
 ### Creating Project Annotations
 
-After initializing a new **Perpetual** project and setting up `.env` file, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code, while not overloading LLM context window with unrelevant code.
+After initializing a new `Perpetual` project and setting up `.env` file, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code, while not overloading LLM context window with unrelevant code.
 
 To create source code annotations, you need to use perpetual annotate command:
 
@@ -120,7 +120,7 @@ Next time, annotation will be run automatically before other operations, and **i
 
 ### Writing Code with Perpetual
 
-Key function of **Perpetual** is to assist you in writing code for your project. **Perpetual** can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command line flags it may implement code for all files where `###IMPLEMENT###` comment found, or only for one specific file. It can also create new files to place the code it generate
+Key function of `Perpetual` is to assist you in writing code for your project. `Perpetual` can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command line flags it may implement code for all files where `###IMPLEMENT###` comment found, or only for one specific file. It can also create new files to place the code it generate
 
 Example:
 
@@ -136,10 +136,10 @@ func ParseCustomer(jsonMessage string) (Customer,error) {
 
 #### Running Perpetual to Implement the Code
 
-To have **Perpetual** generate code for these marked tasks, you need to use `implement` operation. This operation is divided into several stages:
+To have `Perpetual` generate code for these marked tasks, you need to use `implement` operation. This operation is divided into several stages:
 
-- File Selection: **Perpetual** will use regular expressions from the .perpetual directory to select the project files suitable for processing.
-- Annotation Generation: **Perpetual** will generate annotations for the modified files.
+- File Selection: `Perpetual` will use regular expressions from the .perpetual directory to select the project files suitable for processing.
+- Annotation Generation: `Perpetual` will generate annotations for the modified files.
 - Stage 1: File Analysis: Based on the project-wide description compiled from all annotations and files marked with the `###IMPLEMENT###` comment, the LLM will decide which source code files it needs to study.
 - Stage 2: Planning (optional, disabled by default): The requested source code files and files with the `###IMPLEMENT###` comments will be submitted, and an assessment will be made of which files will be created and modified during the implementation process. This stage is needed when you making bigger chganges on multiple files. It is disabled by default to save your money on LLM requests on small tasks. However it also effectively disable LLM to decompose the task and create new files.
 - Stage 3: Implementation: All the files requested at Stage 1 + files with `###IMPLEMENT###` comments will be submitted to the LLM, and it will implement the changes one file at a time. The results will be extracted from the response. This process will be repeated iteratively until all the files from stage 2 have been processed.
@@ -198,15 +198,15 @@ Example for go lang:
 - when generating annotations. it will be also listed to LLM at Stage 1 in generated project summary (only its annotation)
 - when manually selected for implementation using `-r` flag for the `implement` command. This allows you to write code with LLM for such files
 
-**For files you want to completely prevent from being uploaded to the LLM**, you can add a regular expression to the `.perpetual/project_files_blacklist.json` file. This will exclude those files from the list of project files available to **Perpetual**, effectively preventing them from being processed at all. You can verify the exclusion by running the perpetual `annotate` operation with the `-d` flag.
+**For files you want to completely prevent from being uploaded to the LLM**, you can add a regular expression to the `.perpetual/project_files_blacklist.json` file. This will exclude those files from the list of project files available to `Perpetual`, effectively preventing them from being processed at all. You can verify the exclusion by running the perpetual `annotate` operation with the `-d` flag.
 
 #### Examining logs
 
-**Perpetual** provides detailed logging of LLM interaction at `.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between **Perpetual** and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
+`Perpetual` provides detailed logging of LLM interaction at `.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
 
 ## Conclusion
 
-This project was an experiment. A significant portion of the project's code was written using an LLM (Claude 3), which is where the name **Perpetual** came from. Despite my many years of programming experience, Go was a new language for me, and this was my first program written in it. As a result, the quality of the project's code is, as expected, quite poor.
+This project was an experiment. A significant portion of the project's code was written using an LLM (Claude 3), which is where the name `Perpetual` came from. Despite my many years of programming experience, Go was a new language for me, and this was my first program written in it. As a result, the quality of the project's code is, as expected, quite poor.
 
 This was a learning experience for me, as I explored the capabilities and limitations of using an LLM to assist with code generation. While the LLM was able to help me write the code, the overall quality and architecture of the project suffered due to my own lack of familiarity with the language and best practices
 
