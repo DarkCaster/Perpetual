@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6 -> 1.7
+## v1.7
 
 ### New Features
 
@@ -25,6 +25,6 @@
 - Updated GitHub workflow to use Go v1.23.1
 - Added logic for creating an empty global .env config file if missing
 
-## Older versions
+## v1.6 and older versions
 
 There was no changelog until this point.
