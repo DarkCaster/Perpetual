@@ -1,10 +1,14 @@
 # Changelog
 
+## v1.7.1
+
+- Fixed a typo in the draft document content for the `doc` operation.
+
 ## v1.7
 
 ### New Features
 
-- Added new operation `op_doc` for creating, writing, and refining documentation based on project source code analysis
+- Added `doc` operation for creating, writing and refining documentation based on analysis of the project's source code.
 
 ### Improvements
 
@@ -15,7 +19,7 @@
 
 ### Bug Fixes
 
-- Fixed minor issues with tag parsing logic in `op_implement` when parsing responses that hit token limit and LLM was asked to continue generation
+- Fixed minor issues with tag parsing logic in `implement` operation when parsing responses that hit token limit and LLM was asked to continue generation
 - Addressed other minor bugs and made various code refinements across multiple files
 
 ### Other Changes
