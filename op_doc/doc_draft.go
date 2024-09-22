@@ -15,5 +15,5 @@ Notes on implementation: Generate program overview - several short sections shou
 
 ## Section 1
 
-Main secion content should be here. You can add more sections and subsections or place all document content here for the smaller documents.
+Main section content should be here. You can add more sections and subsections or place all document content here for the smaller documents.
 `
