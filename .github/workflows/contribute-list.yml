@@ -1,7 +1,6 @@
 name: Update CONTRIBUTORS.md
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch: null
 jobs:
   contrib-readme-job:
     runs-on: ubuntu-latest
