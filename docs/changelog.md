@@ -3,6 +3,7 @@
 ## v1.7.1
 
 - Fixed a typo in the draft document content for the `doc` operation.
+- Added CONTRIBUTORS.md
 
 ## v1.7
 
