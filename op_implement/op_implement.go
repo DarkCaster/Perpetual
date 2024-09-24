@@ -275,27 +275,21 @@ func Run(args []string, logger logging.ILogger) {
 	// Run stage 3
 	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, outputTagsRxStrings, fileNameEmbedRXString, fileNameTags, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
 
-	// Filter results similar to filteredOtherFilesToModify: remove files from map that marked with no-upload comment
+	// Extra failsafe: filter-out files from results that not among initial files to modify
 	var filteredResults = make(map[string]string)
 	for file, content := range results {
-		skip := false
+		skip := true
 		for _, targetFile := range targetFilesToModify {
 			if file == targetFile {
+				skip = false
 				break
 			}
-			skip = true
 		}
 		if skip {
 			logger.Warnln("Skipping file from results that not among files to modify:", file)
 			continue
 		}
-		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
-			filteredResults[file] = content
-		} else if found {
-			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
-		} else {
-			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
-		}
+		filteredResults[file] = content
 	}
 
 	// Create and apply stash from generated results
