@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.7.2
+
+### Bug Fixes
+
+- Fixed `implement` operation bug introduced with 1.7: changes from some or all files can be skipped and not applied at the end when there are multiple files to modify
+- Do not filter-out files marked as no-upload from the final results
+
 ## v1.7.1
 
 - Fixed a typo in the draft document content for the `doc` operation.
