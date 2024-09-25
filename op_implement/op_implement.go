@@ -3,6 +3,7 @@ package op_implement
 import (
 	"flag"
 	"math"
+	"os"
 	"path/filepath"
 	"regexp"
 
@@ -262,7 +263,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
-		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); (err == nil || os.IsNotExist(err)) && !found {
 			filteredOtherFilesToModify = append(filteredOtherFilesToModify, file)
 		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
