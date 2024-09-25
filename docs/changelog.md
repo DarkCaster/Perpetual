@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.7.3
+
+### Bug Fixes
+
+- Fixed `implement` operation bug introduced with 1.7: when using the `-p` or `-pr` modes, new files are filtered-out from processing
+
 ## v1.7.2
 
 ### Bug Fixes
