@@ -52,7 +52,7 @@ To get started with `Perpetual`, you need to obtain the necessary API keys to ac
 
 ### Download or Compile Perpetual
 
-Download latest `Perpetual` executable from Github Releases or Github Actions, or compile it by yourself. You can extract executable anywhere you like, but it is required to run the executable from you project root directory for which you want to use it.
+Download the latest `Perpetual` executable from Github Releases or Github Actions, or compile it yourself. You can extract the executable anywhere you like, but it is required to run the executable from your project root directory for which you want to use it.
 
 ### Command Line Usage
 
