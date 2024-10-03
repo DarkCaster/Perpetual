@@ -1,16 +1,14 @@
 # The Perpetual Project
 
-LLM-driven software development helper.
-
-This project is currently in an early stage of development, and users should expect to encounter various bugs and issues. The author(s) make no guarantees about the reliability, security, or suitability of this project for any particular use case.
+LLM-driven software development assistant.
 
 ## Description
 
-`Perpetual` is an LLM assistant created to boost the productivity and efficiency of software developers. Its key feature is the ability to write and modify code based on textual descriptions provided by the programmer. `Perpetual` can automatically generate new code, make changes to existing code, and even create new files - all by analyzing the project's codebase and the programmer's instructions embedded as special comments. With `Perpetual`, developers can focus on high-level problem-solving while the AI assistant handles the tedious task of implementing the required functionality.
+`Perpetual` is a LLM-driven software development assistant designed to enhance the productivity and efficiency of software developers. Its primary function is to streamline the coding process by automating the generation and modification of code based on textual descriptions provided by programmers. It achieves this by analyzing the project's codebase and interpreting programmer instructions embedded as special comments. `Perpetual` can generate new code or entities in existing or new files, make changes to existing code, and write or refine documentation.
 
-`Perpetual` is primarily focused on direct interaction with the project's codebase, without requiring any additional tools or server infrastructure (except the LLM access). This design allows `Perpetual` to remain simple and easily integrate into larger systems.
+It focused on direct interaction with the project's codebase, eliminating the need for additional tools, deployment, or server infrastructure (apart from LLM API access keys). This approach results in a simple and easily deployable tool that can be used directly by developers or integrated into larger AI software development ecosystems.
 
-All of `Perpetual`'s operations are limited to the user's project directory, and it is not permitted to delete any files (at least for now).
+`Perpetual` operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on user's system, further safeguarding the project's integrity.
 
 **[TL;DR, go straight to Example](docs/example.md)**
 
@@ -23,7 +21,6 @@ Given `Perpetual`'s focus on direct codebase interaction and maintaining simplic
 - It cannot interact with version control systems (Git, SVN, etc.)
 - It cannot execute arbitrary commands on the user's machine
 - It provides only a command-line interface, which was chosen to preserve simplicity and enable integration
-- Other user interface options are not currently planned
 
 ### Warning
 
@@ -135,20 +132,6 @@ The `report` operation allows you to generate a report from your project's sourc
 The `doc` operation in `Perpetual` is designed to assist in creating and refining project documentation. For now it can only work with plain-text or markdown formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is highly experimental feature, and it will provide good results only with big and smart enough models. It will also take much more tokens to generate or refine a document than writing code with `implement` operation.
 
 [See this doc for more info](docs/op_doc.md)
-
-## Conclusion
-
-This project was an experimental endeavor, with a significant portion of the code written using an LLM (Claude 3), which inspired the name `Perpetual`. Despite many years of programming experience, Go was a new language for me, and this was my first program written in it. As a result, the quality of the project's code is, as expected, quite poor.
-
-This project served as a valuable learning experience, allowing me to explore the capabilities and limitations of using an LLM to assist with code generation. While the LLM was able to help me write the code, the overall quality and architecture of the project suffered due to my own lack of familiarity with the language and best practices.
-
-The process of developing `Perpetual` has provided insights into both the potential and the challenges of LLM-assisted programming. It highlighted the importance of human expertise in guiding the overall structure and design of a project, while demonstrating the power of AI in handling routine coding tasks and generating boilerplate code.
-
-This README, like much of the project, was also written with the assistance of an LLM, showcasing the tool's potential for documentation as well as code generation.
-
-Moving forward, `Perpetual` serves as a starting point for further exploration into AI-assisted software development. While it may not be production-ready in its current state, it provides a foundation for understanding how LLMs can be integrated into the software development process and what challenges need to be addressed for more robust AI-assisted coding tools in the future.
-
-PS: I also noticed how LLM likes to praise himself. I deliberately did not delete several paragraphs above that he added completely without my request. As they say: "if you don't praise yourself, no one else will"
 
 ## Disclaimer
 
