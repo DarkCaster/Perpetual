@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.7.4
+
+### Bug Fixes
+
+- Check project root dir is not a symbolic link, as this behavior is not supported and will lead to no files to process
+
 ## v1.7.3
 
 ### Bug Fixes
