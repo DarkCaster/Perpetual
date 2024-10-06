@@ -14,13 +14,7 @@ It focuses on direct interaction with the project's codebase, eliminating the ne
 
 ## Limitations
 
-Given `Perpetual`'s focus on direct codebase interaction and maintaining simplicity, the following limitations apply:
-
-- It cannot install packages (npm, NuGet, etc.)
-- It cannot set up the necessary development environment
-- It cannot interact with version control systems (Git, SVN, etc.)
-- It cannot execute arbitrary commands on the user's machine
-- It provides only a command-line interface, which was chosen to preserve simplicity and enable integration
+[See current technical limitations](docs/limitations.md)
 
 ### Warning
 
