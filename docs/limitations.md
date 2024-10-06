@@ -15,7 +15,7 @@ These limitations are in place to ensure a controlled and safe environment for c
 
 ## Supported Source File Encoding
 
-`Perpetual` only supports following text encodings for source files:
+`Perpetual` only supports the following text encodings for source files:
 
 - UTF-8 (with or without BOM)
 - UTF-16 (LE and BE, with BOM)
@@ -24,11 +24,11 @@ These limitations are in place to ensure a controlled and safe environment for c
 When reading files, `Perpetual` performs the following operations:
 
 1. Detects the file encoding
-2. Converts the content to UTF-8
+2. Converts the content to UTF-8 without BOM
 3. Validates the UTF-8 encoding
-4. Unsupported encoding will be treated as UTF-8 without BOM
+4. Unsupported encodings will be treated as UTF-8 without BOM
 
-Currently **all files are written back as UTF-8 without BOM** (Byte Order Mark) to ensure consistency across the project. This may be improved in future to write files back in original encoding.
+Currently, **all files are written back as UTF-8 without BOM** (Byte Order Mark) to ensure consistency across the project. This may be improved in the future to write files back in their original encoding.
 
 ## Line Endings (CR LF)
 
