@@ -4,7 +4,7 @@ This document outlines the current technical limitations. These limitations may 
 
 ## File Operations
 
-`Perpetual` has some limitations on file operations to maintain project integrity:
+Given `Perpetual`'s focus on direct codebase interaction and to maintain its simplicity it has some limitations on file operations:
 
 - Cannot delete files
 - Cannot run external tools or commands on the user's system
