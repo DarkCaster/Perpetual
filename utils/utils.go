@@ -19,8 +19,18 @@ func FindProjectRoot(logger logging.ILogger) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-
-	return findProjectRoot(cwd, logger)
+	projectRootDir, perpetualDir, err := findProjectRoot(cwd, logger)
+	// Check if projectRootDir is a symbolic link
+	if err == nil {
+		fileInfo, err := os.Lstat(projectRootDir)
+		if err != nil {
+			return projectRootDir, perpetualDir, err
+		}
+		if fileInfo.Mode()&os.ModeSymlink != 0 {
+			return projectRootDir, perpetualDir, fmt.Errorf("dir is a symlink or reparse point: %s", projectRootDir)
+		}
+	}
+	return projectRootDir, perpetualDir, err
 }
 
 func findProjectRoot(startDir string, logger logging.ILogger) (string, string, error) {
