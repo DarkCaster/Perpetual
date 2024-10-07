@@ -115,11 +115,11 @@ func (p *Py3Prompts) GetDocStage2ContinuePrompt() string {
 }
 
 func (p *Py3Prompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*###IMPLEMENT###.*$"}
+	return []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
 }
 
 func (p *Py3Prompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*###NOUPLOAD###.*$"}
+	return []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 }
 
 func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
