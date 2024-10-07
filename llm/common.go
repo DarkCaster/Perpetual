@@ -28,12 +28,16 @@ func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string
 		return "javascript"
 	case ".java":
 		return "java"
+	case ".bat", ".cmd":
+		return "bat"
 	case ".c", ".cpp", ".h", ".hpp":
 		return "c"
 	case ".rb":
 		return "ruby"
 	case ".php":
 		return "php"
+	case ".pl":
+		return "perl"
 	case ".swift":
 		return "swift"
 	case ".rs":
@@ -52,7 +56,7 @@ func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string
 		return "yaml"
 	case ".xml":
 		return "xml"
-	case ".sh", ".bash":
+	case ".sh", ".bash", ".sh.in", ".bash.in":
 		return "bash"
 	case ".sql":
 		return "sql"
