@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.7.5
+
+### Improvements
+
+- Added more file type mappings for Markdown code block markup: bat/cmd, perl
+- Improve python projects support: include shell scripts and bat files into the file-list by default, LLM prompts updated
+
 ## v1.7.4
 
 ### Bug Fixes
