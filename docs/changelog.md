@@ -4,7 +4,8 @@
 
 ### Breaking changes
 
-- Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable with the smallest OSS models like `Yi-Coder 9B` and similar.
+- Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable even with the small OSS models like `Yi-Coder` (9B) or `DeepSeek Coder V2 Lite` (16B) and similar.
+  - For using local models with ollama [see comments, tips and tricks here](ollama.md)
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>`
 
