@@ -4,7 +4,9 @@
 
 ### Breaking changes
 
-- Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable with the smallest OSS models like `Yi-Coder 9B` and such.
+- Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable with the smallest OSS models like `Yi-Coder 9B` and similar.
+
+**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>`
 
 ### Improvements
 
