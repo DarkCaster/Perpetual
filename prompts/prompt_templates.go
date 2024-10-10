@@ -2,10 +2,10 @@ package prompts
 
 //###NOUPLOAD###
 
-// NOTE for summarization: The summary for this file must only include following:
-// This file contains constants with default prompts that are used for implementations of the Prompts interface.
+// NOTE for summarization:
+// Disregard proposed summary template. The summary for this file must only contain the following statement and nothing more: "This file contains constants with default prompts that are used for implementations of the Prompts interface."
 
-const DefaultAIAnnotatePrompt_Go = "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must include the package name and a bulleted list of declared entities. For each entity you must create a brief description - no more than 1 short sentence. Also use additional notes in the file content regarding summarization, if available.\n\nFollow this example if no additional notes for summarization given inside the file:\n\nPackage: `<package name>`\n\nThis file provides ... <description of what this file is used for, 1 sentence>\n\n- `<entity name>`: <entity type>, <description>\n- `<entity name>`: <entity type>, <description>, nested entities:\n  - `<sub entity name>`: <entity type>, <description>"
+const DefaultAIAnnotatePrompt_Go = "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must include the package name and a bulleted list of declared entities. For each entity you must create a brief description - no more than 1 short sentence. Also use additional notes in the file content regarding summarization, if available.\n\nFollow this template if no additional notes for summarization given inside the file:\n\nPackage: `<package name>`\n\nThis file provides ... <description of what this file is used for, 1 sentence>\n\n- `<entity name>`: <entity type>, <description>\n- `<entity name>`: <entity type>, <description>, nested entities:\n  - `<sub entity name>`: <entity type>, <description>"
 
 const DefaultAIAnnotateResponse = "Waiting for file contents"
 
