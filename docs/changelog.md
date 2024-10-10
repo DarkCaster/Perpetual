@@ -1,6 +1,10 @@
 # Changelog
 
-## v1.7.5
+## v1.8.0
+
+### Breaking changes
+
+- Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable with the smallest OSS models like `Yi-Coder 9B` and such.
 
 ### Improvements
 
