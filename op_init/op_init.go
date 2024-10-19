@@ -139,7 +139,11 @@ func Run(args []string, logger logging.ILogger) {
 	savePrompt(prompts.SystemPromptFile, promptsObj.GetSystemPrompt())
 
 	// Save annotate-operation prompts
-	savePrompt(prompts.AnnotatePromptFile, promptsObj.GetAnnotatePrompt())
+	logger.Traceln("Saving prompt:", prompts.AnnotatePromptFile)
+	err = utils.SaveJsonFile(filepath.Join(promptsDir, prompts.AnnotatePromptFile), promptsObj.GetAnnotatePrompt())
+	if err != nil {
+		logger.Panicln("error writing prompt-JSON file: ", err)
+	}
 	savePrompt(prompts.AIAnnotateResponseFile, promptsObj.GetAIAnnotateResponse())
 
 	// Save implement-operation stage1 prompts
@@ -178,66 +182,42 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")
+	saveJson := func(filePath string, v any) {
+		logger.Traceln("Saving json:", filePath)
+		err = utils.SaveJsonFile(filepath.Join(perpetualDir, filePath), v)
+		if err != nil {
+			logger.Panicln(err)
+		}
+	}
+
 	logger.Traceln("Saving project files whitelist regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), promptsObj.GetProjectFilesWhitelist())
-	if err != nil {
-		logger.Panicln("error writing project files whitelist regexps to JSON file: ", err)
-	}
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), promptsObj.GetProjectFilesToMarkdownMappings())
-	if err != nil {
-		logger.Panicln("error writing project-files to markdown-lang mapping regexps to JSON file: ", err)
-	}
+	saveJson(prompts.ProjectFilesWhitelistFileName, promptsObj.GetProjectFilesWhitelist())
+	saveJson(prompts.ProjectFilesToMarkdownLangMappingFileName, promptsObj.GetProjectFilesToMarkdownMappings())
+
 	logger.Traceln("Saving project files blacklist regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), promptsObj.GetProjectFilesBlacklist())
-	if err != nil {
-		logger.Panicln("error writing project files blacklist regexps to JSON file: ", err)
-	}
-	// Save implement-operation comment search regexps to a json
+	saveJson(prompts.ProjectFilesBlacklistFileName, promptsObj.GetProjectFilesBlacklist())
+
 	logger.Traceln("Saving implement-operation comment regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.OpImplementCommentRXFileName), promptsObj.GetImplementCommentRegexps())
-	if err != nil {
-		logger.Panicln("error writing implement-operation comment regexps to JSON file: ", err)
-	}
-	// Save no-upload comment regexps to a json
+	saveJson(prompts.OpImplementCommentRXFileName, promptsObj.GetImplementCommentRegexps())
+
 	logger.Traceln("Saving no-upload comment regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.NoUploadCommentRXFileName), promptsObj.GetNoUploadCommentRegexps())
-	if err != nil {
-		logger.Panicln("error writing noupload comment regexps to JSON file: ", err)
-	}
-	// Save file-name tags regexps to a json
+	saveJson(prompts.NoUploadCommentRXFileName, promptsObj.GetNoUploadCommentRegexps())
+
 	logger.Traceln("Saving file-name tags regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), promptsObj.GetFileNameTagsRegexps())
-	if err != nil {
-		logger.Panicln("error writing file-name tags regexps to JSON file: ", err)
-	}
-	// Save file-name tags to a json
+	saveJson(prompts.FileNameTagsRXFileName, promptsObj.GetFileNameTagsRegexps())
+
 	logger.Traceln("Saving file-name tags")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), promptsObj.GetFileNameTags())
-	if err != nil {
-		logger.Panicln("error writing file-name tags to JSON file: ", err)
-	}
-	// Save file-name embed regexp
+	saveJson(prompts.FileNameTagsFileName, promptsObj.GetFileNameTags())
+
 	logger.Traceln("Saving file-name embed regexp")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), promptsObj.GetFileNameEmbedRegex())
-	if err != nil {
-		logger.Panicln("error writing file-name embed regexp JSON file: ", err)
-	}
-	// Save output tags to a json
+	saveJson(prompts.FileNameEmbedRXFileName, promptsObj.GetFileNameEmbedRegex())
+
 	logger.Traceln("Saving output-tags regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), promptsObj.GetOutputTagsRegexps())
-	if err != nil {
-		logger.Panicln("error writing output tags to JSON file: ", err)
-	}
-	// Save reasonings tags regexps to a json
+	saveJson(prompts.OutputTagsRXFileName, promptsObj.GetOutputTagsRegexps())
+
 	logger.Traceln("Saving reasonings-tags regexps")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ReasoningsTagsRXFileName), promptsObj.GetReasoningsTagsRegexps())
-	if err != nil {
-		logger.Panicln("error writing reasonings tags regexps to JSON file: ", err)
-	}
-	// Save reasonings tags to a json
+	saveJson(prompts.ReasoningsTagsRXFileName, promptsObj.GetReasoningsTagsRegexps())
+
 	logger.Traceln("Saving reasonings-tags")
-	err = utils.SaveJsonFile(filepath.Join(perpetualDir, prompts.ReasoningsTagsFileName), promptsObj.GetReasoningsTags())
-	if err != nil {
-		logger.Panicln("error writing reasonings tags to JSON file: ", err)
-	}
+	saveJson(prompts.ReasoningsTagsFileName, promptsObj.GetReasoningsTags())
 }

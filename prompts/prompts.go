@@ -23,7 +23,7 @@ const ReasoningsTagsFileName = "reasonings_tags.json"
 const SystemPromptFile = "system_prompt.txt"
 
 // Annotate-operation prompt-filenames
-const AnnotatePromptFile = "op_annotate_prompt.txt"
+const AnnotatePromptFile = "op_annotate_prompt.json"
 const AIAnnotateResponseFile = "op_annotate_ai_response.txt"
 
 // Implement-operation stage1 prompt-filenames
@@ -73,7 +73,7 @@ type Prompts interface {
 	GetSystemPrompt() string
 
 	// Annotate-operation prompts
-	GetAnnotatePrompt() string
+	GetAnnotatePrompt() [][2]string
 	GetAIAnnotateResponse() string
 
 	// Implement-operation helpers

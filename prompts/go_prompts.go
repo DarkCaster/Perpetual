@@ -10,8 +10,8 @@ func (p *GoPrompts) GetSystemPrompt() string {
 	return "You are a highly skilled Go programming language software developer. You never procrastinate, and you are always ready to help the user implement his task. You always do what user ask. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 }
 
-func (p *GoPrompts) GetAnnotatePrompt() string {
-	return "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must not include the name or path of the source file.\n\nFor GO source code files, the summary must include the package name and a bulleted list of declared entities. For each entity you must create a brief description - no more than 1 short sentence. Avoid using unnecessary phrases such as \"This is a Go source code file\" or \"Here is a list of entities declared in the source file\". Also use additional notes in the file content regarding summarization, if available.\n\nFor other file types, create a summary in free form, but as short as possible - no more than 1 sentence."
+func (p *GoPrompts) GetAnnotatePrompt() [][2]string {
+	return [][2]string{{"^.*\\.go$", DefaultAIAnnotatePrompt_Go}, {"^.*$", DefaultAIAnnotatePrompt_Generic}}
 }
 
 func (p *GoPrompts) GetAIAnnotateResponse() string {
