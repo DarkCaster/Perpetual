@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 
 	"github.com/DarkCaster/Perpetual/llm"
@@ -145,6 +146,12 @@ func Run(args []string, logger logging.ILogger) {
 
 	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
 
+	var annotatePromptMappings [][2]string
+	err = utils.LoadJsonFile(filepath.Join(promptsDir, prompts.AnnotatePromptFile), &annotatePromptMappings)
+	if err != nil {
+		logger.Panicln("error getting annotate-prompts json file:", err)
+	}
+
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
@@ -153,7 +160,6 @@ func Run(args []string, logger logging.ILogger) {
 		return text
 	}
 
-	annotatePrompt := loadPrompt(prompts.AnnotatePromptFile)
 	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile)
 	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
@@ -169,6 +175,20 @@ func Run(args []string, logger logging.ILogger) {
 	errorFlag := false
 	newAnnotations := make(map[string]string)
 	for _, filePath := range filesToAnnotate {
+		annotatePrompt := ""
+		//detect actual prompt for annotating this particular file
+		for _, mapping := range annotatePromptMappings {
+			matched, err := regexp.MatchString(mapping[0], filePath)
+			if err == nil && matched {
+				annotatePrompt = mapping[1]
+				break
+			}
+		}
+		if annotatePrompt == "" {
+			logger.Errorln("Failed to detect annotation prompt for file:", filePath)
+			continue
+		}
+
 		// Read file contents and generate annotation
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
