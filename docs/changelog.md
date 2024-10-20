@@ -14,6 +14,10 @@
 - Added more file type mappings for Markdown code block markup: bat/cmd, perl
 - Improve python projects support: include shell scripts and bat files into the file-list by default, LLM prompts updated
 
+### Bug Fixes
+
+- Fixed checking for reaching the maximum number of tokens for Ollama
+
 ## v1.7.4
 
 ### Bug Fixes
@@ -35,7 +39,7 @@
 
 ## v1.7.1
 
-- Fixed a typo in the draft document content for the `doc` operation.
+- Fixed a typo in the draft document content for the `doc` operation
 - Added CONTRIBUTORS.md
 
 ## v1.7
