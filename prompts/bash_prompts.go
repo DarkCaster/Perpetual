@@ -11,7 +11,7 @@ func (p *BashPrompts) GetSystemPrompt() string {
 }
 
 func (p *BashPrompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*$", "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must not include the name or path of the source file.\n\nFor Bash script files, the summary must include general description of what the script does and a bulleted list of declared functions, if any. For each function you must create a brief description - no more than 1 short sentence. Avoid using unnecessary phrases such as \"This is a Bash script file\" or \"Here is a list of functions declared in the script\". Also use additional notes in the file content regarding summarization, if available.\n\nFor other file types, create a summary in free form, but as short as possible - no more than 1 sentence."}}
+	return [][2]string{{"^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash}, {"^.*$", DefaultAIAnnotatePrompt_Generic}}
 }
 
 func (p *BashPrompts) GetAIAnnotateResponse() string {
