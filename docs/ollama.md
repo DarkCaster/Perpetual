@@ -2,6 +2,48 @@
 
 In this document I collect my subjective tests of local LLMs with `Perpetual`, your results may vary.
 
+## Yi-Coder-9B-Chat-i1
+
+Tests performed at Oct 2024 with Ollama `0.3.12`.
+
+It is possible to use this model for generating decent file annotations (`OLLAMA_MODEL_OP_ANNOTATE` param at `.env` file). Tested for GoLang only. It was not tested for other operations and languages.
+
+I've used the model from here: <https://huggingface.co/mradermacher/Yi-Coder-9B-Chat-i1-GGUF>, Q4_K_M variant.
+
+I used the following example `Modelfile`:
+
+```sh
+FROM Yi-Coder-9B-Chat.i1-Q4_K_M.gguf
+PARAMETER temperature 0.5
+PARAMETER num_ctx 8192
+PARAMETER num_predict 4096
+PARAMETER repeat_penalty 1.0
+PARAMETER penalize_newline false
+SYSTEM You are a highly skilled software developer. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.
+TEMPLATE """{{- if .Messages }}
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+<|im_start|>{{ .Role }}
+{{ .Content }}{{ if (or (ne .Role "assistant") (not $last)) }}<|im_end|>
+{{ end }}
+{{- if (and $last (ne .Role "assistant")) }}<|im_start|>assistant
+{{ end }}
+{{- end }}
+{{- else }}
+{{- if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ end }}{{ .Response }}{{ if .Response }}<|im_end|>{{ end }}
+"""
+PARAMETER stop "<|endoftext|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<fim_prefix>"
+PARAMETER stop "<fim_suffix>"
+PARAMETER stop "<fim_middle>"
+```
+
 ## CodeGemma-1.1-7B-it
 
 Tests performed at May 2024 with Ollama `0.1.38`.
