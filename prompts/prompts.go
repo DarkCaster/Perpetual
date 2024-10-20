@@ -8,6 +8,7 @@ import (
 // NOTE for summarization: The summary for this file must only include following entities:
 // - `Prompts`: Interface defining the methods for handling prompts
 // - `NewPrompts`: Function for creating a particular Prompts implementation based on the target language
+// Do not include constants in the summary.
 
 const ProjectFilesWhitelistFileName = "project_files_whitelist.json"
 const ProjectFilesToMarkdownLangMappingFileName = "project_files_to_markdown_lang_mappings.json"
