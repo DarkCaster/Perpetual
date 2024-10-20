@@ -12,6 +12,7 @@
 ### Improvements
 
 - Added more file type mappings for Markdown code block markup: bat/cmd, perl
+- Added an additional safety check when generating a source file annotation: it must not contain any code blocks.
 - Improve python projects support: include shell scripts and bat files into the file-list by default, LLM prompts updated
 
 ### Bug Fixes
