@@ -164,7 +164,19 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		p.RawMessageLogger("\n\n\n")
 	}
 
+	//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
 	if response.Choices[0].StopReason == "max_tokens" {
+		return response.Choices[0].Content, QueryMaxTokens, nil
+	}
+
+	//process options array manually to get actual CallOptions struct that was used with llm query
+	callOpts := llms.CallOptions{}
+	for _, opt := range finalOptions {
+		opt(&callOpts)
+	}
+
+	//check if the response has reached the max tokens by comparing it to the value inside the CallOptions struct
+	if responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int); ok && callOpts.MaxTokens > 0 && responseTokens >= callOpts.MaxTokens {
 		return response.Choices[0].Content, QueryMaxTokens, nil
 	}
 
