@@ -2,6 +2,7 @@ package op_annotate
 
 import (
 	"flag"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -170,6 +171,9 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	logger.Debugln(llm.GetDebugString(connector))
 
+	// Load output tags regexps
+	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
+
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
 	errorFlag := false
@@ -220,6 +224,12 @@ func Run(args []string, logger logging.ILogger) {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
+			} else if _, err := utils.GetTextAfterFirstMatches(annotation, getEvenIndexElements(outputTagsRxStrings)); err == nil {
+				logger.Errorf("LLM response contains code blocks, which is not allowed", filePath)
+				if onFailRetriesLeft < 1 {
+					fileChecksums[filePath] = "error"
+					errorFlag = true
+				}
 			} else {
 				newAnnotations[filePath] = annotation
 				break
@@ -247,4 +257,12 @@ func Run(args []string, logger logging.ILogger) {
 	if errorFlag {
 		logger.Panicln("Not all files were successfully annotated. Run annotate again to try to index the failed files.")
 	}
+}
+
+func getEvenIndexElements(arr []string) []string {
+	var evenIndexElements []string
+	for i := 0; i < len(arr); i += 2 {
+		evenIndexElements = append(evenIndexElements, arr[i])
+	}
+	return evenIndexElements
 }
