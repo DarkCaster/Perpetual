@@ -44,6 +44,39 @@ PARAMETER stop "<fim_suffix>"
 PARAMETER stop "<fim_middle>"
 ```
 
+## DeepSeek-Coder-V2-Lite-Instruct-i1
+
+Tests performed at Oct 2024 with Ollama `0.3.12`.
+
+It is possible to use this model for generating decent file annotations (`OLLAMA_MODEL_OP_ANNOTATE` param at `.env` file). Tested for GoLang only. It was not tested for other operations and languages. Sometimes tends to answer in Chinese, often writes more verbosely than necessary. Sometimes partially ignores additional summarize instructions embedded in the source file.
+
+I've used the model from here: <https://huggingface.co/mradermacher/DeepSeek-Coder-V2-Lite-Instruct-i1-GGUF>, IQ4_XS variant.
+
+I used the following example `Modelfile`:
+
+```sh
+FROM DeepSeek-Coder-V2-Lite-Instruct.i1-IQ4_XS.gguf
+PARAMETER temperature 0.5
+PARAMETER num_ctx 8192
+PARAMETER num_predict 4096
+PARAMETER repeat_penalty 1.0
+PARAMETER penalize_newline false
+SYSTEM You are a highly skilled software developer. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.
+TEMPLATE """{{ if .System }}Answer in English. {{ .System }}
+
+{{ end }}{{ if .Prompt }}User: Answer in English.
+
+{{ .Prompt }}
+
+{{ end }}Assistant: {{ .Response }}
+
+"""
+PARAMETER stop """
+User:"""
+PARAMETER stop """
+Assistant:"""
+```
+
 ## CodeGemma-1.1-7B-it
 
 Tests performed at May 2024 with Ollama `0.1.38`.
