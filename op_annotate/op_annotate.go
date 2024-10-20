@@ -219,13 +219,13 @@ func Run(args []string, logger logging.ILogger) {
 					errorFlag = true
 				}
 			} else if status == llm.QueryMaxTokens {
-				logger.Errorf("LLM response reached max tokens, consider increasing the limit")
+				logger.Errorln("LLM response reached max tokens, consider increasing the limit")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-			} else if _, err := utils.GetTextAfterFirstMatches(annotation, getEvenIndexElements(outputTagsRxStrings)); err == nil {
-				logger.Errorf("LLM response contains code blocks, which is not allowed", filePath)
+			} else if blocks, err := utils.ParseMultiTaggedText(annotation, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+				logger.Errorln("LLM response contains code blocks, which is not allowed")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
@@ -262,6 +262,14 @@ func Run(args []string, logger logging.ILogger) {
 func getEvenIndexElements(arr []string) []string {
 	var evenIndexElements []string
 	for i := 0; i < len(arr); i += 2 {
+		evenIndexElements = append(evenIndexElements, arr[i])
+	}
+	return evenIndexElements
+}
+
+func getOddIndexElements(arr []string) []string {
+	var evenIndexElements []string
+	for i := 1; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}
 	return evenIndexElements
