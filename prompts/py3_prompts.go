@@ -13,7 +13,13 @@ func (p *Py3Prompts) GetSystemPrompt() string {
 }
 
 func (p *Py3Prompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*$", "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must not include the name or path of the source file.\n\nFor Python source code files, the summary must include a bulleted list of declared entities (classes, functions, variables, etc.). For each entity, you must create a brief description - no more than 1 short sentence. For shell scripts, perl scripts, bat files, the summary should include the functional purpose and also try to keep the summary short. Avoid using unnecessary phrases such as \"This is a Python source code file\" or \"Here is a list of entities declared in the source file\". Also, use additional notes in the file content regarding summarization, if available.\n\nFor other file types, create a summary in free form, but as short as possible - no more than 1 sentence."}}
+	return [][2]string{
+		{"^.*\\.py$", DefaultAIAnnotatePrompt_Py3},
+		{"^.*\\.pl$", DefaultAIAnnotatePrompt_Perl},
+		{"^.*\\.(bat|cmd)$", DefaultAIAnnotatePrompt_Bat},
+		{"^.*\\.(sh|bash)(\\.in)?$", DefaultAIAnnotatePrompt_Bash},
+		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+	}
 }
 
 func (p *Py3Prompts) GetAIAnnotateResponse() string {
