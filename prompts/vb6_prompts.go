@@ -13,7 +13,12 @@ func (p *VB6Prompts) GetSystemPrompt() string {
 }
 
 func (p *VB6Prompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*$", "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must not include the name or path of the source file.\n\nFor source code files, the summary must include class name or form name or module name (whichever is applicable), and a bulleted list of declared entities. For each entity you must create a brief description - no more than 1 short sentence. File extensions of various VB6 source-code files: *.cls - classes, *.bas - modules, *.frm - forms. Avoid using unnecessary phrases such as \"This is a VB source code file\" or \"Here is a list of entities declared in the source file\". Also use additional notes in the file content regarding summarization, if available.\n\nFor other file types, create a summary in free form, but as short as possible - no more than 1 sentence."}}
+	return [][2]string{
+		{"(?i)^.*\\.frm$", DefaultAIAnnotatePrompt_VB6_Form},
+		{"(?i)^.*\\.cls$", DefaultAIAnnotatePrompt_VB6_Class},
+		{"(?i)^.*\\.bas$", DefaultAIAnnotatePrompt_VB6_Module},
+		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+	}
 }
 
 func (p *VB6Prompts) GetAIAnnotateResponse() string {
@@ -125,7 +130,7 @@ func (p *VB6Prompts) GetNoUploadCommentRegexps() []string {
 }
 
 func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
-	return []string{"^.*\\.(frm|cls|bas)$"}
+	return []string{"(?i)^.*\\.(frm|cls|bas)$"}
 }
 
 func (p *VB6Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
