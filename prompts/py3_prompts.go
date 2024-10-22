@@ -140,6 +140,17 @@ func (p *Py3Prompts) GetProjectFilesBlacklist() []string {
 	return []string{"^tests[/\\\\].*", "^venv[/\\\\].*"}
 }
 
+func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
+	return []string{
+		"(?i)^test_.*\\.py$",
+		"(?i)^.*(\\\\|\\/)test_.*\\.py$",
+		"(?i)^.*_test\\.py$",
+		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.py$",
+		"(?i)^.*(\\\\|\\/)unittest(\\\\|\\/).*\\.py$",
+		"(?i)^.*(\\\\|\\/)pytest(\\\\|\\/).*\\.py$",
+	}
+}
+
 func (p *Py3Prompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
 }

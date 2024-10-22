@@ -9,6 +9,7 @@ type Prompts interface {
 	// General helpers
 	GetProjectFilesWhitelist() []string
 	GetProjectFilesBlacklist() []string
+	GetProjectTestFilesBlacklist() []string
 	GetProjectFilesToMarkdownMappings() [][2]string
 	GetSystemPrompt() string
 

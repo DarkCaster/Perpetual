@@ -134,6 +134,13 @@ func (p *BashPrompts) GetProjectFilesBlacklist() []string {
 	return []string{}
 }
 
+func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
+	return []string{
+		"(?i)^.*tests?\\.(sh|bash|in)$",
+		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
+	}
+}
+
 func (p *BashPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
 }

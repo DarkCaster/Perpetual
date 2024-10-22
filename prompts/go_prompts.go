@@ -134,6 +134,13 @@ func (p *GoPrompts) GetProjectFilesBlacklist() []string {
 	return []string{"^vendor[/\\\\].*"}
 }
 
+func (p *GoPrompts) GetProjectTestFilesBlacklist() []string {
+	return []string{
+		"(?i)^.*_test\\.go$",
+		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
+	}
+}
+
 func (p *GoPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
 }

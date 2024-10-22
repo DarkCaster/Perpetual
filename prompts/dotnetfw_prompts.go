@@ -134,6 +134,13 @@ func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
 	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)", "(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
 }
 
+func (p *DotNetFWPrompts) GetProjectTestFilesBlacklist() []string {
+	return []string{
+		"(?i)^.*tests?\\.(cs|vb)$",
+		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
+	}
+}
+
 func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
 }

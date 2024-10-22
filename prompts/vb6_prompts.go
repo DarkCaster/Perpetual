@@ -139,6 +139,14 @@ func (p *VB6Prompts) GetProjectFilesBlacklist() []string {
 	return []string{}
 }
 
+// Implement the new method for blacklisting test files
+func (p *VB6Prompts) GetProjectTestFilesBlacklist() []string {
+	return []string{
+		"(?i)^.*tests?\\.(cls|bas|frm)$",
+		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
+	}
+}
+
 func (p *VB6Prompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
 }
