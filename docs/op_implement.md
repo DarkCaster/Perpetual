@@ -88,6 +88,8 @@ Supported flags:
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
+- `-t`: Exclude unit-tests source files from being processed.
+- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing.
 
 ## Configuration
 
@@ -205,8 +207,12 @@ The `implement` operation includes robust error handling and retry mechanisms to
 
 The `implement` operation can take a lot of time (when using locally running LLM) or money when using commercial LLM providers, especially for large projects or complex implementations. Consider the following to optimize performance:
 
-1. **Use Appropriate Models**: Choose LLM models that balance between capability and speed. For example, using a smaller model for Stage 1 and more powerful models for Stages 2 and 3.
+1. **Use Appropriate Models**: Choose LLM models/providers that balance between capability and speed. For example, using a smaller model for Stage 1 and more powerful models for Stages 2 and 3. You may also try using small local models with Ollama for `annotate` operation, this will save you some money on auto re-annotating of changed files.
 
 2. **Do not use `-p` or `-pr` flags unless needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags, if you know that changes won't produce any new files, or not trigger rewrites in other files not marked with `###IMPLEMENT###` comments.
 
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.
+
+4. **Use the `-t` flag**: If your project contains unit tests that are not relevant to the implementation task, use the `-t` flag to exclude them from processing. This can significantly reduce the amount of code the LLM needs to analyze, improving quality of generated code and reducing costs at the same time.
+
+5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.
