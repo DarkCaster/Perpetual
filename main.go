@@ -27,11 +27,13 @@ func getOperations() map[string]string {
 	}
 }
 
+var Version = "development"
+
 func main() {
 	operations := getOperations()
 
 	if len(os.Args) < 2 {
-		usage.PrintMainUsage("Operation is required", operations)
+		usage.PrintMainUsage(fmt.Sprintf("Operation is required\nVersion: %s", Version), operations)
 		return
 	}
 
