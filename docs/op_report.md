@@ -22,6 +22,10 @@ The `report` operation supports several command-line flags to customize its beha
 
 - `-r <file>`: Specify the file path to write the report to. If not provided or empty, the report will be written to stderr.
 
+- `-u`: Include unit test source files in the report. By default, unit test sources are excluded.
+
+- `-x <file>`: Specify a path to a user-supplied regex filter file for excluding certain files from the report.
+
 - `-v`: Enable debug logging. This flag increases the verbosity of the operation's output, providing more detailed information about the report generation process.
 
 - `-vv`: Enable both debug and trace logging. This flag provides the highest level of verbosity, useful for troubleshooting or understanding the internal workings of the report generation process.
@@ -46,6 +50,18 @@ Examples:
    Perpetual report -v
    ```
 
+4. Generate a report including unit test files:
+
+   ```sh
+   Perpetual report -u
+   ```
+
+5. Generate a report using a custom filter file:
+
+   ```sh
+   Perpetual report -x custom_filter.json
+   ```
+
 When executed, the `report` operation will process the project files and generate the requested report type. The report will include all files that match the project's whitelist and are not excluded by the blacklist, as defined in the project's configuration.
 
 It's important to note that the `code` report type will include the contents of all project files, including those that might contain sensitive information. This is something to keep in mind before uploading the report to an external LLM provider.
@@ -56,5 +72,5 @@ The generated report can be used for various purposes, such as:
 
 1. Providing a comprehensive overview of the project structure and contents.
 2. Facilitating code reviews by presenting the entire codebase in a single document.
-3. Enabling easy analysis of the project using an LLM by uploading the report into the 3rd-party LLM interface/provider.
+3. Enabling easy analysis of the project using an LLM by uploading the report into the 3rd-party LLM user interface for further manual analysis.
 4. Creating documentation or summaries of the project's current state.
