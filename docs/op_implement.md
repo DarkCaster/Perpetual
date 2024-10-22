@@ -88,7 +88,7 @@ Supported flags:
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
-- `-t`: Include unit-tests source files in processing.
+- `-t`: Do not exclude unit-tests source files from processing.
 - `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (use `project_test_files_blacklist.json` or `project_files_blacklist.json` inside `<project_root>/.perpetual` directory as reference)
 
 ## Configuration
