@@ -25,7 +25,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, reasonings, verbose, trace, excludeTests bool
+	var help, noAnnotate, planning, reasonings, verbose, trace, includeTests bool
 	var manualFilePath, userFilterFile string
 
 	// Parse flags for the "implement" operation
@@ -37,7 +37,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
-	flags.BoolVar(&excludeTests, "t", false, "Exclude unit-tests source files from being processed")
+	flags.BoolVar(&includeTests, "t", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.Parse(args)
 
@@ -110,11 +110,11 @@ func Run(args []string, logger logging.ILogger) {
 		projectFilesBlacklist = append(projectFilesBlacklist, userFilesBlacklist...)
 	}
 
-	if excludeTests {
+	if !includeTests {
 		var testFilesBlacklist []string
 		err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
 		if err != nil {
-			logger.Panicln("Error reading project-files blacklist regexps, you may have to rerun init:", err)
+			logger.Panicln("Error reading project-files blacklist regexps for unit-tests, you may have to rerun init:", err)
 		}
 		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 	}
@@ -186,7 +186,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		targetFile, found := utils.CaseInsensitiveFileSearch(targetFile, fileNames)
 		if !found {
-			logger.Panicln("Requested file not found in project:", targetFile)
+			logger.Panicln("Requested file not found in project (make sure it is not excluded from processing by filters):", targetFile)
 		}
 		found, err = utils.FindInFile(filepath.Join(projectRootDir, targetFile), implementRegexps)
 		if err != nil {
