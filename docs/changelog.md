@@ -9,6 +9,10 @@
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>`
 
+### New Features
+
+- Added support to the `implement` operation to provide additional custom filters to exclude certain files from processing, added support for excluding unit test files from the process for supported languages.
+
 ### Improvements
 
 - Added more file type mappings for Markdown code block markup: bat/cmd, perl
