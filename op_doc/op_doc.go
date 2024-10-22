@@ -23,7 +23,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace, noAnnotate, forceUpload bool
+	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var docFile, docExample, action string
 
 	flags := docFlags()
@@ -33,6 +33,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
+	flags.BoolVar(&includeTests, "t", false, "Do not exclude unit-tests source files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -135,6 +136,15 @@ func Run(args []string, logger logging.ILogger) {
 		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 		if err != nil {
 			logger.Panicln("Error reading project-files blacklist regexps:", err)
+		}
+
+		if !includeTests {
+			var testFilesBlacklist []string
+			err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
+			if err != nil {
+				logger.Panicln("Error reading project-files blacklist regexps for unit-tests, you may have to rerun init:", err)
+			}
+			projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 		}
 
 		var noUploadRxStrings []string
