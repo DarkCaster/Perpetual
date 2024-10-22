@@ -144,6 +144,7 @@ func (p *VB6Prompts) GetProjectTestFilesBlacklist() []string {
 	return []string{
 		"(?i)^.*tests?\\.(cls|bas|frm)$",
 		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
+		"(?i)^tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 	}
 }
 

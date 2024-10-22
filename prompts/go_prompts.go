@@ -11,7 +11,10 @@ func (p *GoPrompts) GetSystemPrompt() string {
 }
 
 func (p *GoPrompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*\\.go$", DefaultAIAnnotatePrompt_Go}, {"^.*$", DefaultAIAnnotatePrompt_Generic}}
+	return [][2]string{
+		{"(?i)^.*\\.go$", DefaultAIAnnotatePrompt_Go},
+		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+	}
 }
 
 func (p *GoPrompts) GetAIAnnotateResponse() string {
@@ -123,7 +126,7 @@ func (p *GoPrompts) GetNoUploadCommentRegexps() []string {
 }
 
 func (p *GoPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"^.*\\.go$"}
+	return []string{"(?i)^.*\\.go$"}
 }
 
 func (p *GoPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
@@ -131,13 +134,14 @@ func (p *GoPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
 }
 
 func (p *GoPrompts) GetProjectFilesBlacklist() []string {
-	return []string{"^vendor[/\\\\].*"}
+	return []string{"(?i)^vendor(\\\\|\\/).*"}
 }
 
 func (p *GoPrompts) GetProjectTestFilesBlacklist() []string {
 	return []string{
 		"(?i)^.*_test\\.go$",
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
+		"(?i)^test(\\\\|\\/).*\\.go$",
 	}
 }
 

@@ -11,7 +11,12 @@ func (p *DotNetFWPrompts) GetSystemPrompt() string {
 }
 
 func (p *DotNetFWPrompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*\\.cs$", DefaultAIAnnotatePrompt_CS}, {"^.*\\.vb$", DefaultAIAnnotatePrompt_VBNet}, {"^.*\\.xaml$", DefaultAIAnnotatePrompt_Xaml}, {"^.*$", DefaultAIAnnotatePrompt_Generic}}
+	return [][2]string{
+		{"(?i)^.*\\.cs$", DefaultAIAnnotatePrompt_CS},
+		{"(?i)^.*\\.vb$", DefaultAIAnnotatePrompt_VBNet},
+		{"(?i)^.*\\.xaml$", DefaultAIAnnotatePrompt_Xaml},
+		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+	}
 }
 
 func (p *DotNetFWPrompts) GetAIAnnotateResponse() string {
@@ -123,7 +128,7 @@ func (p *DotNetFWPrompts) GetNoUploadCommentRegexps() []string {
 }
 
 func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"^.*\\.(cs|vb|xaml)$"}
+	return []string{"(?i)^.*\\.(cs|vb|xaml)$"}
 }
 
 func (p *DotNetFWPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
@@ -131,13 +136,18 @@ func (p *DotNetFWPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
 }
 
 func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
-	return []string{"(?i)^.*AssemblyInfo\\.cs$", "(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)", "(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)"}
+	return []string{
+		"(?i)^.*AssemblyInfo\\.cs$",
+		"(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)",
+		"(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)",
+	}
 }
 
 func (p *DotNetFWPrompts) GetProjectTestFilesBlacklist() []string {
 	return []string{
 		"(?i)^.*tests?\\.(cs|vb)$",
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
+		"(?i)^_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 	}
 }
 

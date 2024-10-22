@@ -12,10 +12,10 @@ func (p *Py3Prompts) GetSystemPrompt() string {
 
 func (p *Py3Prompts) GetAnnotatePrompt() [][2]string {
 	return [][2]string{
-		{"^.*\\.py$", DefaultAIAnnotatePrompt_Py3},
-		{"^.*\\.pl$", DefaultAIAnnotatePrompt_Perl},
-		{"^.*\\.(bat|cmd)$", DefaultAIAnnotatePrompt_Bat},
-		{"^.*\\.(sh|bash)(\\.in)?$", DefaultAIAnnotatePrompt_Bash},
+		{"(?i)^.*\\.py$", DefaultAIAnnotatePrompt_Py3},
+		{"(?i)^.*\\.pl$", DefaultAIAnnotatePrompt_Perl},
+		{"(?i)^.*\\.(bat|cmd)$", DefaultAIAnnotatePrompt_Bat},
+		{"(?i)^.*\\.(sh|bash)(\\.in)?$", DefaultAIAnnotatePrompt_Bash},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
 }
@@ -129,7 +129,14 @@ func (p *Py3Prompts) GetNoUploadCommentRegexps() []string {
 }
 
 func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
-	return []string{"^.*\\.py$", "^.*\\.pl$", "^.*\\.(bat|cmd)$", "^.*\\.(sh|bash)$", "^.*\\.sh\\.in$", "^.*\\.bash\\.in$"}
+	return []string{
+		"(?i)^.*\\.py$",
+		"(?i)^.*\\.pl$",
+		"(?i)^.*\\.(bat|cmd)$",
+		"(?i)^.*\\.(sh|bash)$",
+		"(?i)^.*\\.sh\\.in$",
+		"(?i)^.*\\.bash\\.in$",
+	}
 }
 
 func (p *Py3Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
@@ -137,7 +144,7 @@ func (p *Py3Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
 }
 
 func (p *Py3Prompts) GetProjectFilesBlacklist() []string {
-	return []string{"^tests[/\\\\].*", "^venv[/\\\\].*"}
+	return []string{"(?i)^venv(\\\\|\\/).*"}
 }
 
 func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
@@ -148,6 +155,9 @@ func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.py$",
 		"(?i)^.*(\\\\|\\/)unittest(\\\\|\\/).*\\.py$",
 		"(?i)^.*(\\\\|\\/)pytest(\\\\|\\/).*\\.py$",
+		"(?i)^tests?(\\\\|\\/).*\\.py$",
+		"(?i)^unittest(\\\\|\\/).*\\.py$",
+		"(?i)^pytest(\\\\|\\/).*\\.py$",
 	}
 }
 

@@ -11,7 +11,10 @@ func (p *BashPrompts) GetSystemPrompt() string {
 }
 
 func (p *BashPrompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{{"^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash}, {"^.*$", DefaultAIAnnotatePrompt_Generic}}
+	return [][2]string{
+		{"(?i)^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash},
+		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+	}
 }
 
 func (p *BashPrompts) GetAIAnnotateResponse() string {
@@ -123,7 +126,7 @@ func (p *BashPrompts) GetNoUploadCommentRegexps() []string {
 }
 
 func (p *BashPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"^.*\\.(sh|bash|in)$"}
+	return []string{"(?i)^.*\\.(sh|bash|in)$"}
 }
 
 func (p *BashPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
@@ -138,6 +141,7 @@ func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
 	return []string{
 		"(?i)^.*tests?\\.(sh|bash|in)$",
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
+		"(?i)^_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 	}
 }
 
