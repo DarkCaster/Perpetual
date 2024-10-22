@@ -21,14 +21,16 @@ const (
 )
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace bool
-	var reportType, outputFile string
+	var help, verbose, trace, includeTests bool
+	var reportType, outputFile, userFilterFile string
 
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
 	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stderr if not provided or empty)")
+	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from report")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 
@@ -76,6 +78,24 @@ func Run(args []string, logger logging.ILogger) {
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("Error reading project-files blacklist regexps:", err)
+	}
+
+	if userFilterFile != "" {
+		var userFilesBlacklist []string
+		err := utils.LoadJsonFile(userFilterFile, &userFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error reading user-supplied blacklist regexps:", err)
+		}
+		projectFilesBlacklist = append(projectFilesBlacklist, userFilesBlacklist...)
+	}
+
+	if !includeTests {
+		var testFilesBlacklist []string
+		err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error reading project-files blacklist regexps for unit-tests, you may have to rerun init:", err)
+		}
+		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps

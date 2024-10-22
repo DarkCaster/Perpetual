@@ -35,10 +35,10 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
+	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
-	flags.BoolVar(&includeTests, "t", false, "Do not exclude unit-tests source files from processing")
-	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.Parse(args)
 
 	if verbose {
