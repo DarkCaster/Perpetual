@@ -197,6 +197,9 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Traceln("Saving project files blacklist regexps")
 	saveJson(prompts.ProjectFilesBlacklistFileName, promptsObj.GetProjectFilesBlacklist())
 
+	logger.Traceln("Saving project test files blacklist regexps")
+	saveJson(prompts.ProjectTestFilesBlacklistFileName, promptsObj.GetProjectTestFilesBlacklist())
+
 	logger.Traceln("Saving implement-operation comment regexps")
 	saveJson(prompts.OpImplementCommentRXFileName, promptsObj.GetImplementCommentRegexps())
 
