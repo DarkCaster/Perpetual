@@ -25,8 +25,8 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, reasonings, verbose, trace bool
-	var manualFilePath string
+	var help, noAnnotate, planning, reasonings, verbose, trace, excludeTests bool
+	var manualFilePath, userFilterFile string
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
@@ -37,6 +37,8 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
+	flags.BoolVar(&excludeTests, "t", false, "Exclude unit-tests source files from being processed")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.Parse(args)
 
 	if verbose {
@@ -97,6 +99,24 @@ func Run(args []string, logger logging.ILogger) {
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("Error reading project-files blacklist regexps:", err)
+	}
+
+	if userFilterFile != "" {
+		var userFilesBlacklist []string
+		err := utils.LoadJsonFile(userFilterFile, &userFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error reading user-supplied blacklist regexps:", err)
+		}
+		projectFilesBlacklist = append(projectFilesBlacklist, userFilesBlacklist...)
+	}
+
+	if excludeTests {
+		var testFilesBlacklist []string
+		err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error reading project-files blacklist regexps, you may have to rerun init:", err)
+		}
+		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 	}
 
 	var implementRxStrings []string
