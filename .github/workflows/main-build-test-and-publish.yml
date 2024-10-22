@@ -75,6 +75,7 @@ jobs:
       if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
       with:
+        prerelease: true
         allowUpdates: true
         omitBodyDuringUpdate: true
         omitNameDuringUpdate: true
@@ -84,6 +85,7 @@ jobs:
       if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
       with:
+        prerelease: true
         allowUpdates: true
         omitBodyDuringUpdate: true
         omitNameDuringUpdate: true
