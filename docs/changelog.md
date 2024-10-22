@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.1
+
+### Bug Fixes
+
+- Various fixes to default regular expressions for selecting and filtering project files.
+
 ## v1.8.0
 
 ### Breaking changes
