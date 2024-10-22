@@ -8,13 +8,13 @@
   - For using local models with ollama [see comments, tips and tricks here](ollama.md)
   - The file annotations provided by LLM are now more specific and consistent, potentially improving overall results. The annotations are now larger, but because they are more specific, this can reduce the amount of data LLM will request in the final stages of code implementation.
 
-- The `implement` operation now excludes unit test source files from processing by default, reducing LLM context pressure and your costs. If you need to work with unit tests, use the new `-t` flag to disable the unit test source file filter and include them in processing.
+- The `implement` operation now excludes unit test source files from processing by default, reducing LLM context pressure and your costs. If you need to work with unit tests, use the new `-u` flag to disable the unit test source file filter and include them in processing.
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>`
 
 ### New Features
 
-- Added support to the `implement` operation to provide additional custom filters to exclude certain files from processing.
+- Added support to the `implement`, `doc`, `report` operations to provide additional custom filters to exclude certain files from processing, exclude unit test source files from processing by default.
 
 ### Improvements
 
