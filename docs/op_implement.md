@@ -69,7 +69,7 @@ It's important to note that while the `###NOUPLOAD###` comment prevents the full
 
 ### Examining logs
 
-`Perpetual` provides detailed logging of LLM interaction at `.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
+`Perpetual` provides detailed logging of LLM interaction at `<project_root>/.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
 
 ## Command-Line Usage
 
@@ -89,7 +89,7 @@ Supported flags:
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
 - `-t`: Exclude unit-tests source files from being processed.
-- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing.
+- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (use `project_test_files_blacklist.json` or `project_files_blacklist.json` inside `<project_root>/.perpetual` directory as reference)
 
 ## Configuration
 
