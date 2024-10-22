@@ -25,6 +25,10 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-n`: Enable "No annotate" mode, which skips re-annotating changed files and uses current annotations if available. This can save time and API calls if you're confident your annotations are up-to-date.
 
+- `-u`: Do not exclude unit-test source files from processing. By default, unit-test sources are excluded.
+
+- `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing.
+
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
 - `-v`: Enable debug logging for more detailed output during the operation.
@@ -135,5 +139,7 @@ Note that if stage-specific variables are not set, the `doc` operation will fall
 4. **Review and Edit**: Always review and edit the generated documentation to ensure accuracy and add any project-specific nuances that the LLM might have missed.
 
 5. **Version Control**: Keep your documentation files under version control along with your source code to precisely track changes made by the LLM.
+
+6. **Use Filtering Options**: Utilize the `-u` flag to include unit test files in the documentation process when necessary. For more granular control, create a custom regex filter file and use it with the `-x` flag to exclude specific files or patterns from processing.
 
 By leveraging the `doc` operation effectively, you can significantly streamline your documentation process, ensuring that your project's documentation remains comprehensive, up-to-date, and aligned with your codebase.
