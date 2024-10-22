@@ -86,6 +86,8 @@ Supported flags:
 - `-p`: Enable extended planning stage. Useful for larger modifications that may create new files. Disabled by default to save tokens.
 - `-pr`: Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
+- `-u`: Do not exclude unit-tests source files from processing.
+- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (use `project_test_files_blacklist.json` or `project_files_blacklist.json` inside `<project_root>/.perpetual` directory as reference)
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
 - `-t`: Do not exclude unit-tests source files from processing.
@@ -213,6 +215,6 @@ The `implement` operation can take a lot of time (when using locally running LLM
 
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.
 
-4. **Use the `-t` flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-t` flag to include them in processing (this will disable filter for such files). This will provide additional context for the LLM and allow it to see and modify unit-tests.However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.
+4. **Use the `-u` flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-u` flag to include them in processing (this will disable filter for such files). This will provide additional context for the LLM and allow it to see and modify unit-tests. However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.
 
 5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.
