@@ -12,6 +12,7 @@ func (p *GoPrompts) GetSystemPrompt() string {
 
 func (p *GoPrompts) GetAnnotatePrompt() [][2]string {
 	return [][2]string{
+		{"(?i)^.*_test\\.go$", DefaultAIAnnotatePrompt_Go_Tests},
 		{"(?i)^.*\\.go$", DefaultAIAnnotatePrompt_Go},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
