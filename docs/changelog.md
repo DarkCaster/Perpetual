@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.8.2
+
+### Improvements
+
+- Improve `annotate` operation prompts. Add separate prompts for golang unit-tests source files.
+
+- Update example `.env` file, set more optimal default settings to the current time.
+
 ## v1.8.1
 
 ### Bug Fixes
@@ -26,7 +34,7 @@
 
 - Added more file type mappings for Markdown code block markup: bat/cmd, perl
 - Added an additional safety check when generating a source file annotation: it must not contain any code blocks.
-- Improve python projects support: include shell scripts and bat files into the file-list by default, LLM prompts updated
+- Improve Python projects support: include shell scripts and bat files into the file-list by default, LLM prompts updated
 
 ### Bug Fixes
 
