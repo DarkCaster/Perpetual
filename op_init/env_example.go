@@ -24,7 +24,7 @@ LLM_PROVIDER="anthropic"
 # LLM_PROVIDER="openai"
 # LLM_PROVIDER="ollama"
 
-# Options for anthropic provider. Below are sane defaults for anthropic provider (as of Oct 2024)
+# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Oct 2024)
 
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
@@ -100,7 +100,7 @@ ANTHROPIC_TEMPERATURE="0.5"
 # ANTHROPIC_PRESENCE_PENALTY_OP_DOC_STAGE2="1.0"
 # ANTHROPIC_PRESENCE_PENALTY="1.0"
 
-# Options for openai provider. Below are sane defaults for OpenAI provider (as of Oct 2024)
+# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Oct 2024)
 
 OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
@@ -176,9 +176,9 @@ OPENAI_TEMPERATURE="0.5"
 # OPENAI_PRESENCE_PENALTY_OP_DOC_STAGE2="1.0"
 # OPENAI_PRESENCE_PENALTY="1.0"
 
-# Options for ollama, running locally. Ollama integration is highly experimental. Below are current sane defaults (as of Oct 2024)
+# Options for Ollama, running locally. Ollama integration is highly experimental. Below are current sane defaults (as of Oct 2024)
 # For now only annotate operation can be used reliably enough, see docs/ollama.md for more info
-# In general, small local models are mostly unsuitable for real world tasks with Perpetual.
+# In general, small local models are mostly unsuitable for real-world tasks with Perpetual.
 
 OLLAMA_BASE_URL="http://127.0.0.1:11434"
 OLLAMA_MODEL_OP_ANNOTATE="yi-coder:9b-chat-q5_K_S"
@@ -203,7 +203,7 @@ OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="1"
 # OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
 OLLAMA_ON_FAIL_RETRIES="3"
-# note: temperature highly depends on model, 0 produces mostly determenistic result
+# note: temperature highly depends on model, 0 produces mostly deterministic results
 OLLAMA_TEMPERATURE_OP_ANNOTATE="0"
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.5"
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
@@ -232,6 +232,7 @@ OLLAMA_TEMPERATURE="0.5"
 # OLLAMA_SEED_OP_DOC_STAGE1="42"
 # OLLAMA_SEED_OP_DOC_STAGE2="42"
 # OLLAMA_SEED="42"
+# note: values slightly more than 1.0 seem to help against problems when LLM starts to generate repeated content indefinitely, without making report to omit important items
 OLLAMA_REPEAT_PENALTY_OP_ANNOTATE="1.1"
 # OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE1="1.2"
 # OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.5"
