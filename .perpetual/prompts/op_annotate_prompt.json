@@ -5,10 +5,10 @@
   ],
   [
     "(?i)^.*\\.go$",
-    "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must include the package name and a list of top-level entities. Omit declarations and entities called inside functions.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
+    "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the package name and a list of top-level entities. Skip entities declared inside functions from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
   ],
   [
     "^.*$",
-    "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary must not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
+    "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
   ]
 ]
