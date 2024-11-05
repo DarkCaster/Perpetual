@@ -211,7 +211,7 @@ func Run(args []string, logger logging.ILogger) {
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infoln(filePath)
 			// Perform actual query
-			annotation, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotations, status, err := connector.Query(1, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 				if onFailRetriesLeft < 1 {
@@ -224,14 +224,14 @@ func Run(args []string, logger logging.ILogger) {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-			} else if blocks, err := utils.ParseMultiTaggedText(annotation, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+			} else if blocks, err := utils.ParseMultiTaggedText(annotations[0], getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
 				logger.Errorln("LLM response contains code blocks, which is not allowed")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
 			} else {
-				newAnnotations[filePath] = annotation
+				newAnnotations[filePath] = annotations[0]
 				break
 			}
 		}

@@ -103,7 +103,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 				// Run query
 				continueGeneration = false
 				logger.Infoln("Running stage3: implementing code for:", pendingFile)
-				aiResponse, status, err := stage3Connector.Query(stage3MessagesTry...)
+				aiResponses, status, err := stage3Connector.Query(1, stage3MessagesTry...)
 				if err != nil {
 					// Retry file on LLM error
 					if onFailRetriesLeft < 1 {
@@ -125,12 +125,12 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 						ignoreUnclosedTagErrors = true
 					}
 					// Add partial response to stage3 messages, with request to continue
-					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
+					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
 					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ContinuePromptTemplate))
 				}
 
 				// Append response fragment
-				responses = append(responses, aiResponse)
+				responses = append(responses, aiResponses[0])
 			}
 			if fileRetry {
 				continue

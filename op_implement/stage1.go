@@ -58,7 +58,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln("Created target files analysis request message")
 
-	aiResponse := ""
+	var aiResponses []string
 	onFailRetriesLeft := stage1Connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
@@ -67,7 +67,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
 		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponse, status, err = stage1Connector.Query(
+		aiResponses, status, err = stage1Connector.Query(1,
 			stage1ProjectIndexRequestMessage,
 			stage1ProjectIndexResponseMessage,
 			stage1SourceAnalysisRequestMessage)
@@ -86,7 +86,7 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 			}
 			continue
 		}
-		if aiResponse == "" {
+		if len(aiResponses) < 1 || aiResponses[0] == "" {
 			logger.Warnln("Got empty response from AI, retrying")
 			continue
 		}
@@ -95,10 +95,10 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 
 	// Process response, parse files of interest from ai response
-	if aiResponse == "" {
+	if len(aiResponses) < 1 || aiResponses[0] == "" {
 		logger.Errorln("Got empty response from AI")
 	}
-	filesForReviewRaw, err := utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
+	filesForReviewRaw, err := utils.ParseTaggedText(aiResponses[0], fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
 	if err != nil {
 		logger.Panicln("Failed to parse list of files for review", err)
 	}

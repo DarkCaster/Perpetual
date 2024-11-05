@@ -21,7 +21,7 @@ const (
 
 type LLMConnector interface {
 	// Main interaction point with LLM
-	Query(messages ...Message) (string, QueryStatus, error)
+	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
 	GetMaxTokensSegments() int
 	// Get retry limit on general query fail

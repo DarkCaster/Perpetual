@@ -101,7 +101,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	// Only perform real planning step if enabled
 	if planningMode > 0 {
 		var filesToProcessRaw []string
-		aiResponse := ""
+		var aiResponses []string
 		reasonings := ""
 		ambiguousReasonings := false
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
@@ -115,7 +115,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			logger.Infoln("Running stage2: planning changes")
 			var status llm.QueryStatus
 			//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-			aiResponse, status, err = stage2Connector.Query(messages...)
+			aiResponses, status, err = stage2Connector.Query(1, messages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -131,13 +131,13 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				}
 				continue
 			}
-			if aiResponse == "" {
+			if len(aiResponses) < 1 || aiResponses[0] == "" {
 				logger.Warnln("Got empty response from AI, retrying")
 				continue
 			}
 			// Get reasonings
 			if planningMode == 2 {
-				reasoningsArr, err := utils.ParseTaggedText(aiResponse, reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1], false)
+				reasoningsArr, err := utils.ParseTaggedText(aiResponses[0], reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1], false)
 				if err != nil {
 					logger.Warnln("Cannot extract reasonings text-block from LLM response")
 				} else if len(reasoningsArr) < 1 {
@@ -150,7 +150,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				}
 			}
 			// Process response, parse files that will be created
-			filesToProcessRaw, err = utils.ParseTaggedText(aiResponse, fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
+			filesToProcessRaw, err = utils.ParseTaggedText(aiResponses[0], fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Failed to parse list of files for review", err)
@@ -166,7 +166,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
 		logger.Debugln("Reasonings length:", len(reasonings))
 		logger.Debugln("AmbiguousReasonings:", ambiguousReasonings)
-		if aiResponse == "" {
+		if len(aiResponses) < 1 || aiResponses[0] == "" {
 			logger.Errorln("Got empty response from AI")
 		}
 
@@ -230,7 +230,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		simplifiedResponseMessage := llm.NewMessage(llm.SimulatedAIResponse)
 		if ambiguousReasonings {
 			logger.Warnln("Not attempting to reformat response because of ambiguous reasonings")
-			simplifiedResponseMessage = llm.SetRawResponse(simplifiedResponseMessage, aiResponse)
+			simplifiedResponseMessage = llm.SetRawResponse(simplifiedResponseMessage, aiResponses[0])
 		} else {
 			// Append files
 			for _, item := range otherFilesToModify {

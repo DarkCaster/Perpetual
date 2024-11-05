@@ -124,7 +124,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			// Run query
 			continueGeneration = false
 			logger.Infoln("Running stage2: processing document")
-			aiResponse, status, err := connector.Query(messagesTry...)
+			aiResponses, status, err := connector.Query(1, messagesTry...)
 			if err != nil {
 				// Retry file on LLM error
 				if onFailRetriesLeft < 1 {
@@ -144,11 +144,11 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 					generateTry++
 				}
 				// Add partial response to stage2 messages, with request to continue
-				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
+				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
 				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), continuePrompt))
 			}
 			// Append response fragment
-			responses = append(responses, aiResponse)
+			responses = append(responses, aiResponses[0])
 		}
 		if fileRetry {
 			continue
