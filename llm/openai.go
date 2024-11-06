@@ -119,18 +119,12 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
-	model, err := func() (*openai.LLM, error) {
-		if p.BaseURL != "" {
-			return openai.New(
-				openai.WithToken(p.Token),
-				openai.WithModel(p.Model),
-				openai.WithBaseURL(p.BaseURL))
-		} else {
-			return openai.New(
-				openai.WithToken(p.Token),
-				openai.WithModel(p.Model))
-		}
-	}()
+	openAiOptions := append([]openai.Option{}, openai.WithToken(p.Token), openai.WithModel(p.Model))
+	if p.BaseURL != "" {
+		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
+	}
+
+	model, err := openai.New(openAiOptions...)
 	if err != nil {
 		return []string{}, QueryInitFailed, err
 	}
@@ -152,7 +146,10 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	// Perform LLM query
-	finalOptions := append(p.Options, llms.WithN(maxCandidates))
+	finalOptions := append([]llms.CallOption{}, p.Options...)
+	if maxCandidates > 1 {
+		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
+	}
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
