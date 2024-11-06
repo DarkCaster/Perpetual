@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -166,7 +167,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	for i, choice := range response.Choices {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI Response candidate #", i, "\n\n\n")
+			p.RawMessageLogger("AI Response candidate #", strconv.Itoa(i+1), ":\n\n\n")
 			p.RawMessageLogger(choice.Content, "\n\n\n")
 		}
 		if choice.StopReason == "length" {
