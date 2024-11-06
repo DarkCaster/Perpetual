@@ -104,9 +104,12 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, filesTo
 	return NewOllamaLLMConnector(model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
-func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return "", QueryInitFailed, errors.New("no prompts to query")
+		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+	}
+	if maxCandidates < 1 {
+		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	model, err := func() (*ollama.LLM, error) {
@@ -120,7 +123,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		}
 	}()
 	if err != nil {
-		return "", QueryInitFailed, err
+		return []string{}, QueryInitFailed, err
 	}
 
 	var llmMessages []llms.MessageContent
@@ -129,7 +132,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
 	if err != nil {
-		return "", QueryInitFailed, err
+		return []string{}, QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -146,7 +149,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		return nil
 	}
 
-	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc))
+	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc), llms.WithCandidateCount(maxCandidates))
 
 	// Perform LLM query
 	response, err := model.GenerateContent(
@@ -155,19 +158,14 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		finalOptions...,
 	)
 	if err != nil {
-		return "", QueryFailed, err
+		return []string{}, QueryFailed, err
 	}
 	if len(response.Choices) < 1 {
-		return "", QueryFailed, errors.New("received empty response from model")
+		return []string{}, QueryFailed, errors.New("received empty response from model")
 	}
 
 	if p.RawMessageLogger != nil {
 		p.RawMessageLogger("\n\n\n")
-	}
-
-	//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
-	if response.Choices[0].StopReason == "max_tokens" {
-		return response.Choices[0].Content, QueryMaxTokens, nil
 	}
 
 	//process options array manually to get actual CallOptions struct that was used with llm query
@@ -176,12 +174,23 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		opt(&callOpts)
 	}
 
-	//check if the response has reached the max tokens by comparing it to the value inside the CallOptions struct
-	if responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int); ok && callOpts.MaxTokens > 0 && responseTokens >= callOpts.MaxTokens {
-		return response.Choices[0].Content, QueryMaxTokens, nil
+	var finalContent []string
+
+	for i, choice := range response.Choices {
+		//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
+		responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
+		maxTokensReached := ok && callOpts.MaxTokens > 0 && responseTokens >= callOpts.MaxTokens
+		if maxTokensReached {
+			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
+				return []string{choice.Content}, QueryMaxTokens, nil
+			}
+		} else {
+			finalContent = append(finalContent, choice.Content)
+		}
 	}
 
-	return response.Choices[0].Content, QueryOk, nil
+	//return finalContent
+	return finalContent, QueryOk, nil
 }
 
 func (p *OllamaLLMConnector) GetProvider() string {

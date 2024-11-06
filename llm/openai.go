@@ -111,9 +111,12 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, filesTo
 	return NewOpenAILLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
 }
 
-func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return "", QueryInitFailed, errors.New("no prompts to query")
+		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+	}
+	if maxCandidates < 1 {
+		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	model, err := func() (*openai.LLM, error) {
@@ -129,7 +132,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		}
 	}()
 	if err != nil {
-		return "", QueryInitFailed, err
+		return []string{}, QueryInitFailed, err
 	}
 
 	var llmMessages []llms.MessageContent
@@ -138,7 +141,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
 	if err != nil {
-		return "", QueryInitFailed, err
+		return []string{}, QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -149,27 +152,37 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 
 	// Perform LLM query
+	finalOptions := append(p.Options, llms.WithCandidateCount(maxCandidates))
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
-		p.Options...,
+		finalOptions...,
 	)
 	if err != nil {
-		return "", QueryFailed, err
+		return []string{}, QueryFailed, err
 	}
 	if len(response.Choices) < 1 {
-		return "", QueryFailed, errors.New("received empty response from model")
+		return []string{}, QueryFailed, errors.New("received empty response from model")
 	}
 
-	if p.RawMessageLogger != nil {
-		p.RawMessageLogger(response.Choices[0].Content, "\n\n\n")
+	var finalContent []string
+
+	for i, choice := range response.Choices {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("AI Response candidate #", i, "\n\n\n")
+			p.RawMessageLogger(choice.Content, "\n\n\n")
+		}
+		if choice.StopReason == "length" {
+			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
+				return []string{choice.Content}, QueryMaxTokens, nil
+			}
+		} else {
+			finalContent = append(finalContent, choice.Content)
+		}
 	}
 
-	if response.Choices[0].StopReason == "length" {
-		return response.Choices[0].Content, QueryMaxTokens, nil
-	}
-
-	return response.Choices[0].Content, QueryOk, nil
+	//return finalContent
+	return finalContent, QueryOk, nil
 }
 
 func (p *OpenAILLMConnector) GetProvider() string {
