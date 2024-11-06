@@ -152,7 +152,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	// Perform LLM query
-	finalOptions := append(p.Options, llms.WithCandidateCount(maxCandidates))
+	finalOptions := append(p.Options, llms.WithN(maxCandidates))
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
