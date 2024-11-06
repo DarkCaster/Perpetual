@@ -112,16 +112,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
-	model, err := func() (*ollama.LLM, error) {
-		if p.BaseURL != "" {
-			return ollama.New(
-				ollama.WithModel(p.Model),
-				ollama.WithServerURL(p.BaseURL))
-		} else {
-			return ollama.New(
-				ollama.WithModel(p.Model))
-		}
-	}()
+	ollamaOptions := append([]ollama.Option{}, ollama.WithModel(p.Model))
+	if p.BaseURL != "" {
+		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
+	}
+
+	model, err := ollama.New(ollamaOptions...)
 	if err != nil {
 		return []string{}, QueryInitFailed, err
 	}
@@ -149,7 +145,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return nil
 	}
 
-	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc), llms.WithCandidateCount(maxCandidates))
+	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc))
 
 	// Perform LLM query
 	response, err := model.GenerateContent(

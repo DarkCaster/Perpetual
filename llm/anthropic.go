@@ -120,18 +120,12 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	// Create anthropic model
-	model, err := func() (*anthropic.LLM, error) {
-		if p.BaseURL != "" {
-			return anthropic.New(
-				anthropic.WithToken(p.Token),
-				anthropic.WithModel(p.Model),
-				anthropic.WithBaseURL(p.BaseURL))
-		} else {
-			return anthropic.New(
-				anthropic.WithToken(p.Token),
-				anthropic.WithModel(p.Model))
-		}
-	}()
+	anthropicOptions := append([]anthropic.Option{}, anthropic.WithToken(p.Token), anthropic.WithModel(p.Model))
+	if p.BaseURL != "" {
+		anthropicOptions = append(anthropicOptions, anthropic.WithBaseURL(p.BaseURL))
+	}
+
+	model, err := anthropic.New(anthropicOptions...)
 	if err != nil {
 		return []string{}, QueryInitFailed, err
 	}
@@ -153,11 +147,10 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	// Perform LLM query
-	finalOptions := append(p.Options, llms.WithCandidateCount(maxCandidates))
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
-		finalOptions...,
+		p.Options...,
 	)
 	if err != nil {
 		return []string{}, QueryFailed, err
