@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -134,7 +135,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {
-			p.RawMessageLogger(m, "\n\n\n")
+			p.RawMessageLogger(fmt.Sprint(m))
+			p.RawMessageLogger("\n\n\n")
 		}
 	}
 
@@ -147,42 +149,64 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc))
 
-	// Perform LLM query
-	response, err := model.GenerateContent(
-		context.Background(),
-		llmMessages,
-		finalOptions...,
-	)
-	if err != nil {
-		return []string{}, QueryFailed, err
-	}
-	if len(response.Choices) < 1 {
-		return []string{}, QueryFailed, errors.New("received empty response from model")
-	}
+	finalContent := []string{}
 
-	if p.RawMessageLogger != nil {
-		p.RawMessageLogger("\n\n\n")
-	}
-
-	//process options array manually to get actual CallOptions struct that was used with llm query
-	callOpts := llms.CallOptions{}
-	for _, opt := range finalOptions {
-		opt(&callOpts)
-	}
-
-	var finalContent []string
-
-	for i, choice := range response.Choices {
-		//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
-		responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
-		maxTokensReached := ok && callOpts.MaxTokens > 0 && responseTokens >= callOpts.MaxTokens
-		if maxTokensReached {
-			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
-				return []string{choice.Content}, QueryMaxTokens, nil
-			}
-		} else {
-			finalContent = append(finalContent, choice.Content)
+	for i := 0; i < maxCandidates; i++ {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
+
+		// TODO: Generate new seed for this response if it is set
+		// Perform LLM query
+		response, err := model.GenerateContent(
+			context.Background(),
+			llmMessages,
+			finalOptions...,
+		)
+
+		lastResort := len(finalContent) < 1 && i == maxCandidates-1
+		if err != nil {
+			if lastResort {
+				return []string{}, QueryFailed, err
+			}
+			continue
+		}
+
+		if len(response.Choices) < 1 {
+			if lastResort {
+				return []string{}, QueryFailed, errors.New("received empty response from model")
+			}
+			continue
+		}
+
+		// There was a message written into the log, so add separator
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("\n\n\n")
+		}
+
+		//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
+		//process options array manually to get actual CallOptions struct that was used with llm query
+		callOpts := llms.CallOptions{}
+		for _, opt := range finalOptions {
+			opt(&callOpts)
+		}
+		maxTokens := callOpts.MaxTokens
+		if maxTokens < 1 {
+			maxTokens = math.MaxInt
+		}
+		//get generates message size in tokens
+		responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int)
+		if !ok {
+			responseTokens = maxTokens
+		}
+		//and compare
+		if responseTokens >= maxTokens {
+			if lastResort {
+				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
+			}
+			continue
+		}
+		finalContent = append(finalContent, response.Choices[0].Content)
 	}
 
 	//return finalContent
