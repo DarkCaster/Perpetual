@@ -19,6 +19,15 @@ const (
 	QueryFailed
 )
 
+type VariantSelectionStrategy int
+
+const (
+	Short VariantSelectionStrategy = iota
+	Long
+	Best
+	Combine
+)
+
 type LLMConnector interface {
 	// Main interaction point with LLM
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
@@ -30,6 +39,9 @@ type LLMConnector interface {
 	GetProvider() string
 	GetModel() string
 	GetOptionsString() string
+	// Results variant-count management.
+	GetVariantCount() string
+	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
 func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {

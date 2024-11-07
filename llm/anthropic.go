@@ -29,9 +29,11 @@ type AnthropicLLMConnector struct {
 	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
+	Variants              int
+	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		BaseURL:               customBaseURL,
 		Token:                 token,
@@ -42,7 +44,9 @@ func NewAnthropicLLMConnector(token string, model string, systemPrompt string, f
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
-		Options:               options}
+		Options:               options,
+		Variants:              variants,
+		VariantStrategy:       variantStrategy}
 }
 
 func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
@@ -112,7 +116,27 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, file
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions), nil
+	variants := 1
+	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_VARIANT_COUNT_OP_%s", operation), "ANTHROPIC_VARIANT_COUNT"); err == nil {
+		variants = curVariants
+	}
+
+	variantStrategy := Short
+	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("ANTHROPIC_VARIANT_SELECTION_OP_%s", operation), "ANTHROPIC_VARIANT_SELECTION"); err == nil {
+		if curStrategy == "SHORT" {
+			variantStrategy = Short
+		} else if curStrategy == "LONG" {
+			variantStrategy = Long
+		} else if curStrategy == "BEST" {
+			variantStrategy = Best
+		} else if curStrategy == "COMBINE" {
+			variantStrategy = Combine
+		} else {
+			fmt.Errorf("Invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
+		}
+	}
+
+	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -232,4 +256,12 @@ func (p *AnthropicLLMConnector) GetOptionsString() string {
 		option(&callOptions)
 	}
 	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+}
+
+func (p *AnthropicLLMConnector) GetVariantCount() int {
+	return p.Variants
+}
+
+func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
+	return p.VariantStrategy
 }
