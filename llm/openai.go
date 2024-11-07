@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -142,7 +141,8 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {
-			p.RawMessageLogger(m, "\n\n\n")
+			p.RawMessageLogger(fmt.Sprint(m))
+			p.RawMessageLogger("\n\n\n")
 		}
 	}
 
@@ -167,16 +167,22 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	for i, choice := range response.Choices {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI Response candidate #", strconv.Itoa(i+1), ":\n\n\n")
-			p.RawMessageLogger(choice.Content, "\n\n\n")
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
+			if len(choice.Content) > 0 {
+				p.RawMessageLogger(choice.Content)
+			} else {
+				p.RawMessageLogger("<empty response>")
+			}
+			p.RawMessageLogger("\n\n\n")
 		}
+
 		if choice.StopReason == "length" {
 			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
 				return []string{choice.Content}, QueryMaxTokens, nil
 			}
-		} else {
-			finalContent = append(finalContent, choice.Content)
+			continue
 		}
+		finalContent = append(finalContent, choice.Content)
 	}
 
 	//return finalContent
