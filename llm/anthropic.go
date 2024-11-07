@@ -132,7 +132,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, file
 		} else if curStrategy == "COMBINE" {
 			variantStrategy = Combine
 		} else {
-			fmt.Errorf("Invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
+			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
 		}
 	}
 

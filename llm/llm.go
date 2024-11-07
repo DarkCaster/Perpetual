@@ -40,7 +40,7 @@ type LLMConnector interface {
 	GetModel() string
 	GetOptionsString() string
 	// Results variant-count management.
-	GetVariantCount() string
+	GetVariantCount() int
 	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 

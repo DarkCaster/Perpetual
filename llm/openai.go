@@ -27,9 +27,11 @@ type OpenAILLMConnector struct {
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
+	Variants              int
+	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOpenAILLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OpenAILLMConnector {
+func NewOpenAILLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		BaseURL:               customBaseURL,
 		Token:                 token,
@@ -39,7 +41,9 @@ func NewOpenAILLMConnector(token string, model string, systemPrompt string, file
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
-		Options:               options}
+		Options:               options,
+		Variants:              variants,
+		VariantStrategy:       variantStrategy}
 }
 
 func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
@@ -108,7 +112,27 @@ func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, filesTo
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewOpenAILLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	variants := 1
+	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_VARIANT_COUNT_OP_%s", operation), "OPENAI_VARIANT_COUNT"); err == nil {
+		variants = curVariants
+	}
+
+	variantStrategy := Short
+	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("OPENAI_VARIANT_SELECTION_OP_%s", operation), "OPENAI_VARIANT_SELECTION"); err == nil {
+		if curStrategy == "SHORT" {
+			variantStrategy = Short
+		} else if curStrategy == "LONG" {
+			variantStrategy = Long
+		} else if curStrategy == "BEST" {
+			variantStrategy = Best
+		} else if curStrategy == "COMBINE" {
+			variantStrategy = Combine
+		} else {
+			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
+		}
+	}
+
+	return NewOpenAILLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -211,4 +235,12 @@ func (p *OpenAILLMConnector) GetOptionsString() string {
 		option(&callOptions)
 	}
 	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+}
+
+func (p *OpenAILLMConnector) GetVariantCount() int {
+	return p.Variants
+}
+
+func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
+	return p.VariantStrategy
 }
