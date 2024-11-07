@@ -60,10 +60,11 @@ func GetDebugString(llm LLMConnector) string {
 
 func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
 	logFunc := func(v ...any) {
-		for _, msg := range v {
-			str := fmt.Sprintf("%s", msg)
-			utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
+		if len(v) < 1 {
+			return
 		}
+		str := fmt.Sprintf(v[0].(string), v[1:]...)
+		utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
 	}
 	return logFunc
 }
