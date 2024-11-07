@@ -25,11 +25,12 @@ type OllamaLLMConnector struct {
 	FilesToMdLangMappings [][2]string
 	MaxTokensSegments     int
 	OnFailRetries         int
+	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
+func NewOllamaLLMConnector(model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		BaseURL:               customBaseURL,
 		Model:                 model,
@@ -37,6 +38,7 @@ func NewOllamaLLMConnector(model string, systemPrompt string, filesToMdLangMappi
 		FilesToMdLangMappings: filesToMdLangMappings,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
+		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options}
 }
@@ -86,8 +88,9 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, filesTo
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_SEED_OP_%s", operation), "OLLAMA_SEED"); err == nil {
-		extraOptions = append(extraOptions, llms.WithSeed(seed))
+	seed := math.MaxInt
+	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("OLLAMA_SEED_OP_%s", operation), "OLLAMA_SEED"); err == nil {
+		seed = customSeed
 	}
 
 	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OLLAMA_REPEAT_PENALTY_OP_%s", operation), "OLLAMA_REPEAT_PENALTY"); err == nil {
@@ -102,7 +105,7 @@ func NewOllamaLLMConnectorFromEnv(operation string, systemPrompt string, filesTo
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewOllamaLLMConnector(model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	return NewOllamaLLMConnector(model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -147,8 +150,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return nil
 	}
 
-	finalOptions := append(p.Options, llms.WithStreamingFunc(streamFunc))
-
+	options := append(p.Options, llms.WithStreamingFunc(streamFunc))
 	finalContent := []string{}
 
 	for i := 0; i < maxCandidates; i++ {
@@ -156,7 +158,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
-		// TODO: Generate new seed for this response if it is set
+		// Generate new seed for each response if seed is set
+		finalOptions := append([]llms.CallOption{}, options...)
+		if p.Seed != math.MaxInt {
+			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
+		}
+
 		// Perform LLM query
 		response, err := model.GenerateContent(
 			context.Background(),

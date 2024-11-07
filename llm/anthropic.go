@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -25,11 +26,12 @@ type AnthropicLLMConnector struct {
 	FilesToMdLangMappings [][2]string
 	MaxTokensSegments     int
 	OnFailRetries         int
+	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		BaseURL:               customBaseURL,
 		Token:                 token,
@@ -38,6 +40,7 @@ func NewAnthropicLLMConnector(token string, model string, systemPrompt string, f
 		FilesToMdLangMappings: filesToMdLangMappings,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
+		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options}
 }
@@ -92,8 +95,9 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, file
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_SEED_OP_%s", operation), "ANTHROPIC_SEED"); err == nil {
-		extraOptions = append(extraOptions, llms.WithSeed(seed))
+	seed := math.MaxInt
+	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_SEED_OP_%s", operation), "ANTHROPIC_SEED"); err == nil {
+		seed = customSeed
 	}
 
 	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_REPEAT_PENALTY_OP_%s", operation), "ANTHROPIC_REPEAT_PENALTY"); err == nil {
@@ -108,7 +112,7 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, file
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
-	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions), nil
+	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -154,12 +158,17 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
-		// TODO: Generate new seed for this response if it is set
+		// Generate new seed for this response if it is set
+		finalOptions := append([]llms.CallOption{}, p.Options...)
+		if p.Seed != math.MaxInt {
+			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
+		}
+
 		// Perform LLM query
 		response, err := model.GenerateContent(
 			context.Background(),
 			llmMessages,
-			p.Options...,
+			finalOptions...,
 		)
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
