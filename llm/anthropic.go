@@ -142,37 +142,59 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {
-			p.RawMessageLogger(m, "\n\n\n")
+			p.RawMessageLogger(fmt.Sprint(m))
+			p.RawMessageLogger("\n\n\n")
 		}
 	}
 
-	// Perform LLM query
-	response, err := model.GenerateContent(
-		context.Background(),
-		llmMessages,
-		p.Options...,
-	)
-	if err != nil {
-		return []string{}, QueryFailed, err
-	}
-	if len(response.Choices) < 1 {
-		return []string{}, QueryFailed, errors.New("received empty response from model")
-	}
+	finalContent := []string{}
 
-	var finalContent []string
-
-	for i, choice := range response.Choices {
+	for i := 0; i < maxCandidates; i++ {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI Response candidate #", i, "\n\n\n")
-			p.RawMessageLogger(choice.Content, "\n\n\n")
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
-		if choice.StopReason == "max_tokens" {
-			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
-				return []string{choice.Content}, QueryMaxTokens, nil
+
+		// TODO: Generate new seed for this response if it is set
+		// Perform LLM query
+		response, err := model.GenerateContent(
+			context.Background(),
+			llmMessages,
+			p.Options...,
+		)
+
+		lastResort := len(finalContent) < 1 && i == maxCandidates-1
+		if err != nil {
+			if lastResort {
+				return []string{}, QueryFailed, err
 			}
-		} else {
-			finalContent = append(finalContent, choice.Content)
+			continue
 		}
+
+		if len(response.Choices) < 1 {
+			if lastResort {
+				return []string{}, QueryFailed, errors.New("received empty response from model")
+			}
+			continue
+		}
+
+		// There was a message received, log it
+		if p.RawMessageLogger != nil {
+			if len(response.Choices[0].Content) > 0 {
+				p.RawMessageLogger(response.Choices[0].Content)
+			} else {
+				p.RawMessageLogger("<empty response>")
+			}
+			p.RawMessageLogger("\n\n\n")
+		}
+
+		// Check for max tokens
+		if response.Choices[0].StopReason == "max_tokens" {
+			if lastResort {
+				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
+			}
+			continue
+		}
+		finalContent = append(finalContent, response.Choices[0].Content)
 	}
 
 	//return finalContent
