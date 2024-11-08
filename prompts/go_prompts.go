@@ -22,6 +22,14 @@ func (p *GoPrompts) GetAIAnnotateResponse() string {
 	return DefaultAIAnnotateResponse
 }
 
+func (p *GoPrompts) GetAnnotateVariantPrompt() string {
+	return DefaultAIAnnotateVariantPrompt
+}
+
+func (p *GoPrompts) GetAnnotateCombinePrompt() string {
+	return DefaultAIAnnotateCombinePrompt
+}
+
 func (p *GoPrompts) GetImplementStage1ProjectIndexPrompt() string {
 	return "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }

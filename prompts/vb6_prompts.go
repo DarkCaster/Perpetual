@@ -23,6 +23,14 @@ func (p *VB6Prompts) GetAIAnnotateResponse() string {
 	return DefaultAIAnnotateResponse
 }
 
+func (p *VB6Prompts) GetAnnotateVariantPrompt() string {
+	return DefaultAIAnnotateVariantPrompt
+}
+
+func (p *VB6Prompts) GetAnnotateCombinePrompt() string {
+	return DefaultAIAnnotateCombinePrompt
+}
+
 func (p *VB6Prompts) GetImplementStage1ProjectIndexPrompt() string {
 	return "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }

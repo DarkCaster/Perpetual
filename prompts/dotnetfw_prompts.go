@@ -23,6 +23,14 @@ func (p *DotNetFWPrompts) GetAIAnnotateResponse() string {
 	return DefaultAIAnnotateResponse
 }
 
+func (p *DotNetFWPrompts) GetAnnotateVariantPrompt() string {
+	return DefaultAIAnnotateVariantPrompt
+}
+
+func (p *DotNetFWPrompts) GetAnnotateCombinePrompt() string {
+	return DefaultAIAnnotateCombinePrompt
+}
+
 func (p *DotNetFWPrompts) GetImplementStage1ProjectIndexPrompt() string {
 	return "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }

@@ -21,6 +21,14 @@ func (p *BashPrompts) GetAIAnnotateResponse() string {
 	return DefaultAIAnnotateResponse
 }
 
+func (p *BashPrompts) GetAnnotateVariantPrompt() string {
+	return DefaultAIAnnotateVariantPrompt
+}
+
+func (p *BashPrompts) GetAnnotateCombinePrompt() string {
+	return DefaultAIAnnotateCombinePrompt
+}
+
 func (p *BashPrompts) GetImplementStage1ProjectIndexPrompt() string {
 	return "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 }

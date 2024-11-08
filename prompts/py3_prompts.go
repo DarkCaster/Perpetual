@@ -24,6 +24,14 @@ func (p *Py3Prompts) GetAIAnnotateResponse() string {
 	return DefaultAIAnnotateResponse
 }
 
+func (p *Py3Prompts) GetAnnotateVariantPrompt() string {
+	return DefaultAIAnnotateVariantPrompt
+}
+
+func (p *Py3Prompts) GetAnnotateCombinePrompt() string {
+	return DefaultAIAnnotateCombinePrompt
+}
+
 func (p *Py3Prompts) GetImplementStage1ProjectIndexPrompt() string {
 	return "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }

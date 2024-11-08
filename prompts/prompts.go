@@ -16,6 +16,8 @@ type Prompts interface {
 	// Annotate-operation prompts
 	GetAnnotatePrompt() [][2]string
 	GetAIAnnotateResponse() string
+	GetAnnotateVariantPrompt() string
+	GetAnnotateCombinePrompt() string
 
 	// Implement-operation helpers
 	GetFileNameTags() []string

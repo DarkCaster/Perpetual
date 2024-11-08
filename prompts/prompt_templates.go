@@ -35,6 +35,10 @@ const DefaultAIAnnotatePrompt_Generic = "Create a summary for the file in my nex
 
 const DefaultAIAnnotateResponse = "Waiting for file contents"
 
+const DefaultAIAnnotateVariantPrompt = "Create another summary variant"
+
+const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and combine them into a final summary that best matches the original instructions. Include only the text of the final summary in your response, nothing more."
+
 const DefaultAIAcknowledge = "Understood. What's next?"
 
 const DefaultImplementStage1SourceAnalysisPrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
