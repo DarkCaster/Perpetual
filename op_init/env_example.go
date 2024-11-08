@@ -12,10 +12,15 @@ const DotEnvExample = `# This is an example .env file used to configure perpetua
 # It contains ALL currently supported options, your actual configuration may be significantly smaller.
 # Some options are commented out, you can uncomment them to customize the behavior in special cases - it will take priority only for those specific cases.
 
-# Provider selection for particular operations and stages.
+# Configuration file should be named ".env" and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/.env
+# Global config. On Linux: ~/.config/Perpetual/.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\.env
+
+# Provider selection for particular operations and stages
 # You can offload tasks to different providers to balance between generation quality and costs.
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
+# LLM_PROVIDER_OP_ANNOTATE_POST="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE1="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE2="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE3="anthropic"
@@ -33,6 +38,7 @@ LLM_PROVIDER="anthropic"
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
+ANTHROPIC_MODEL_OP_ANNOTATE_POST="claude-3-haiku-20240307" # used to process multiple response-variants if any
 ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-5-haiku-latest"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-latest"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-3-5-sonnet-latest"
@@ -113,6 +119,7 @@ ANTHROPIC_TEMPERATURE="0.5"
 OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
 OPENAI_MODEL_OP_ANNOTATE="gpt-4o-mini"
+OPENAI_MODEL_OP_ANNOTATE_POST="gpt-4o-mini" # used to process multiple response-variants if any
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-4o"
@@ -193,14 +200,15 @@ OPENAI_TEMPERATURE="0.5"
 # In general, small local models are mostly unsuitable for real-world tasks with Perpetual.
 
 OLLAMA_BASE_URL="http://127.0.0.1:11434"
-OLLAMA_MODEL_OP_ANNOTATE="yi-coder:9b-chat-q5_K_S"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="yi-coder:9b-chat-q5_K_S"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="yi-coder:9b-chat-q5_K_S"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="yi-coder:9b-chat-q5_K_S"
+OLLAMA_MODEL_OP_ANNOTATE="qwen2.5-coder:7b-instruct-q5_K_M"
+OLLAMA_MODEL_OP_ANNOTATE_POST="qwen2.5-coder:7b-instruct-q5_K_M" # used to process multiple response-variants if any
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:7b-instruct-q5_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="qwen2.5-coder:7b-instruct-q5_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="qwen2.5-coder:7b-instruct-q5_K_M"
 # OLLAMA_MODEL_OP_DOC_STAGE1="llama3.1:70b-instruct-q4_K_S"
 # OLLAMA_MODEL_OP_DOC_STAGE2="llama3.1:70b-instruct-q4_K_S"
-OLLAMA_MODEL="yi-coder:9b-chat-q5_K_S"
-OLLAMA_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
+OLLAMA_MODEL="qwen2.5-coder:7b-instruct-q5_K_M"
+OLLAMA_VARIANT_COUNT_OP_ANNOTATE="3" # how much annotate-response variants to generate
 OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, best, combine
 OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
