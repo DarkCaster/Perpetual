@@ -8,7 +8,11 @@ package op_init
 
 const DotEnvExampleFileName = ".env.example"
 
-const DotEnvExample = `# Provider selection for specific operations and/or stages.
+const DotEnvExample = `# This is an example .env file used to configure perpetual.
+# It contains ALL currently supported options, your actual configuration may be significantly smaller.
+# Some options are commented out, you can uncomment them to customize the behavior in special cases - it will take priority only for those specific cases.
+
+# Provider selection for particular operations and stages.
 # You can offload tasks to different providers to balance between generation quality and costs.
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
@@ -18,7 +22,7 @@ const DotEnvExample = `# Provider selection for specific operations and/or stage
 # LLM_PROVIDER_OP_DOC_STAGE1="anthropic"
 # LLM_PROVIDER_OP_DOC_STAGE2="anthropic"
 
-# Default provider selection, will be used if options above are not used
+# Default, fallback provider selection, will be used if options above are not used
 
 LLM_PROVIDER="anthropic"
 # LLM_PROVIDER="openai"
@@ -29,22 +33,22 @@ LLM_PROVIDER="anthropic"
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-5-haiku-20241022"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-20241022"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-3-5-sonnet-20241022"
-# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-3-5-sonnet-20241022"
-# ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-5-sonnet-20241022"
-ANTHROPIC_MODEL="claude-3-5-sonnet-20241022"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-5-haiku-latest"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-latest"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-3-5-sonnet-latest"
+# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-3-5-sonnet-latest"
+# ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-5-sonnet-latest"
+ANTHROPIC_MODEL="claude-3-5-sonnet-latest"
 ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, best, combine
-ANTHROPIC_VARIANT_COUNT="1" # how much response variants to generate for other operations
-ANTHROPIC_VARIANT_SELECTION="short" # how to select final variant: short, long, best, combine
+ANTHROPIC_VARIANT_COUNT="1" # will be used as fallback
+ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="768"
 # ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096"
 # ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096"
-# ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="4096"
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="8192"
 ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1="1024"
-ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="4096"
+ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="8192"
 ANTHROPIC_MAX_TOKENS="4096"
 ANTHROPIC_MAX_TOKENS_SEGMENTS="3"
 ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
@@ -117,8 +121,8 @@ OPENAI_MODEL_OP_ANNOTATE="gpt-4o-mini"
 OPENAI_MODEL="gpt-4o"
 OPENAI_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, best, combine
-OPENAI_VARIANT_COUNT="1" # how much response variants to generate for other operations
-OPENAI_VARIANT_SELECTION="short" # how to select final variant: short, long, best, combine
+OPENAI_VARIANT_COUNT="1" # will be used as fallback
+OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 OPENAI_MAX_TOKENS_OP_ANNOTATE="768"
 # OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096"
 # OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096"
@@ -198,8 +202,8 @@ OLLAMA_MODEL_OP_ANNOTATE="yi-coder:9b-chat-q5_K_S"
 OLLAMA_MODEL="yi-coder:9b-chat-q5_K_S"
 OLLAMA_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, best, combine
-OLLAMA_VARIANT_COUNT="1" # how much response variants to generate for other operations
-OLLAMA_VARIANT_SELECTION="short" # how to select final variant: short, long, best, combine
+OLLAMA_VARIANT_COUNT="1" # will be used as fallback
+OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 OLLAMA_MAX_TOKENS_OP_ANNOTATE="768"
 # OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096"
 # OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096"
