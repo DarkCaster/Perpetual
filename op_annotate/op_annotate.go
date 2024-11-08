@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -210,29 +211,89 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infoln(filePath)
+			// Get max number of variants to generate on query
+			variantCount := connector.GetVariantCount()
 			// Perform actual query
-			annotations, status, err := connector.Query(1, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotationVariants, status, err := connector.Query(variantCount, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			// Check for general error on query
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-			} else if status == llm.QueryMaxTokens {
-				logger.Errorln("LLM response reached max tokens, consider increasing the limit")
+				continue
+			}
+			// Check for hitting token limit - there are no response variants below token limit, we will try to regenerate from scratch if possible
+			if status == llm.QueryMaxTokens {
+				logger.Errorln("LLM response(s) reached max tokens, consider increasing the limit")
+				//TODO: find out do we have seed parameter set, because regenerating with same seed will fail again, so if true -> make onFailRetriesLeft = 0
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-			} else if blocks, err := utils.ParseMultiTaggedText(annotations[0], getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
-				logger.Errorln("LLM response contains code blocks, which is not allowed")
+				continue
+			}
+			// Some final filtering and preparations of produced annotation variants
+			finalVariants := []string{}
+			for i, variant := range annotationVariants {
+				// Filter-out variants that contain code-blocks - this is not allowed
+				if blocks, err := utils.ParseMultiTaggedText(variant, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+					logger.Warnf("LLM response #%d contains code blocks, which is not allowed", i)
+					continue
+				}
+				// Trim unneded symbols from both ends of annotation
+				variant = strings.Trim(variant, " \t\n") //note: there is a space character first, do not remove it
+				if len(variant) < 1 {
+					logger.Warnf("LLM response #%d is empty", i)
+					continue
+				}
+				finalVariants = append(finalVariants, variant)
+			}
+			// Stop there if no responses available for further processing
+			if len(finalVariants) < 1 {
+				logger.Errorln("No LLM responses available")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = "error"
 					errorFlag = true
 				}
-			} else {
-				newAnnotations[filePath] = annotations[0]
+				continue
+			}
+			// Exit here if only one variant is available after filtering
+			if len(finalVariants) == 1 {
+				newAnnotations[filePath] = finalVariants[0]
 				break
+			}
+			// Process the final response-variants
+			variantSelectionStrategy := connector.GetVariantSelectionStrategy()
+			// Shortest variant
+			if variantSelectionStrategy == llm.Short {
+				shortestVariant := finalVariants[0]
+				for _, variant := range finalVariants[1:] {
+					if len(variant) < len(shortestVariant) {
+						shortestVariant = variant
+					}
+				}
+				newAnnotations[filePath] = shortestVariant
+				break
+			}
+			// Longest variant
+			if variantSelectionStrategy == llm.Long {
+				longestVariant := finalVariants[0]
+				for _, variant := range finalVariants[1:] {
+					if len(variant) > len(longestVariant) {
+						longestVariant = variant
+					}
+				}
+				newAnnotations[filePath] = longestVariant
+				break
+			}
+			// Variant selection strategies that involves another LLM call is not implemented yet
+			if variantSelectionStrategy == llm.Best {
+				logger.Panicln("Best annotation-variant selection strategy is not implemented yet!")
+			}
+			if variantSelectionStrategy == llm.Combine {
+				logger.Panicln("Combined annotation-variant selection strategy is not implemented yet!")
 			}
 		}
 	}
