@@ -174,6 +174,13 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	logger.Debugln(llm.GetDebugString(connector))
 
+	// Create new connector for "annotate_post" operation
+	connectorPost, err := llm.NewLLMConnector(OpName+"_post", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
+	if err != nil {
+		logger.Panicln("Failed to create LLM connector:", err)
+	}
+	logger.Debugln(llm.GetDebugString(connector))
+
 	// Load output tags regexps
 	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
 
@@ -281,8 +288,8 @@ func Run(args []string, logger logging.ILogger) {
 						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotateCombinePrompt))
 					}
 				}
-				//TODO: get new connector for "annotate_post" operation
-				combinedAnnotation, status, err := connector.Query(1, combinedMessages...)
+				// Perform the query
+				combinedAnnotation, status, err := connectorPost.Query(1, combinedMessages...)
 				// Check for general error on query, switch for using "short" variant selection strategy on error
 				if err != nil {
 					logger.Warnf("LLM query failed with status %d, error: %s", status, err)
