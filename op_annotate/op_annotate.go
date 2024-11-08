@@ -179,7 +179,7 @@ func Run(args []string, logger logging.ILogger) {
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
-	logger.Debugln(llm.GetDebugString(connector))
+	logger.Debugln(llm.GetDebugString(connectorPost))
 
 	// Load output tags regexps
 	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
