@@ -146,6 +146,10 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	savePrompt(prompts.AIAnnotateResponseFile, promptsObj.GetAIAnnotateResponse())
 
+	// Save annotate-operation-post prompts
+	savePrompt(prompts.AnnotateVariantPromptFile, promptsObj.GetAnnotateVariantPrompt())
+	savePrompt(prompts.AnnotateCombinePromptFile, promptsObj.GetAnnotateCombinePrompt())
+
 	// Save implement-operation stage1 prompts
 	savePrompt(prompts.ImplementStage1ProjectIndexPromptFile, promptsObj.GetImplementStage1ProjectIndexPrompt())
 	savePrompt(prompts.AIImplementStage1ProjectIndexResponseFile, promptsObj.GetAIImplementStage1ProjectIndexResponse())
