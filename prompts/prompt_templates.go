@@ -37,7 +37,7 @@ const DefaultAIAnnotateResponse = "Waiting for file contents"
 
 const DefaultAIAnnotateVariantPrompt = "Create another summary variant"
 
-const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and combine them into a final summary that best matches the original instructions. Include only the text of the final summary in your response, nothing more."
+const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 
 const DefaultAIAcknowledge = "Understood. What's next?"
 

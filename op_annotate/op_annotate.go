@@ -163,6 +163,8 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile)
+	annotateVariantPrompt := loadPrompt(prompts.AnnotateVariantPromptFile)
+	annotateCombinePrompt := loadPrompt(prompts.AnnotateCombinePromptFile)
 	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
 	// Create llm connector
@@ -264,9 +266,48 @@ func Run(args []string, logger logging.ILogger) {
 				newAnnotations[filePath] = finalVariants[0]
 				break
 			}
-			// Process the final response-variants
+
 			variantSelectionStrategy := connector.GetVariantSelectionStrategy()
-			// Shortest variant
+
+			// Combine the annotation using LLM
+			if variantSelectionStrategy == llm.Combine {
+				// Create message-chain for request
+				combinedMessages := []llm.Message{annotateRequest, annotateSimulatedResponse, fileContentsRequest}
+				for i, variant := range finalVariants {
+					combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), variant))
+					if i < len(finalVariants)-1 {
+						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotateVariantPrompt))
+					} else {
+						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotateCombinePrompt))
+					}
+				}
+				//TODO: get new connector for "annotate_post" operation
+				combinedAnnotation, status, err := connector.Query(1, combinedMessages...)
+				// Check for general error on query, switch for using "short" variant selection strategy on error
+				if err != nil {
+					logger.Warnf("LLM query failed with status %d, error: %s", status, err)
+					variantSelectionStrategy = llm.Short
+				} else if status == llm.QueryMaxTokens {
+					logger.Warnf("LLM combined annotation reached max tokens")
+					variantSelectionStrategy = llm.Short
+				} else if blocks, err := utils.ParseMultiTaggedText(combinedAnnotation[0], getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
+					variantSelectionStrategy = llm.Short
+				} else {
+					// Trim unneded symbols from both ends of annotation
+					trimmedAnnotation := strings.Trim(combinedAnnotation[0], " \t\n") //note: there is a space character first, do not remove it
+					if len(trimmedAnnotation) < 1 {
+						logger.Warnln("LLM combined annotation is empty")
+						variantSelectionStrategy = llm.Short
+					} else {
+						// Finally save our post-processed annotation
+						newAnnotations[filePath] = combinedAnnotation[0]
+						break
+					}
+				}
+			}
+
+			// Select shortest variant
 			if variantSelectionStrategy == llm.Short {
 				shortestVariant := finalVariants[0]
 				for _, variant := range finalVariants[1:] {
@@ -277,6 +318,7 @@ func Run(args []string, logger logging.ILogger) {
 				newAnnotations[filePath] = shortestVariant
 				break
 			}
+
 			// Longest variant
 			if variantSelectionStrategy == llm.Long {
 				longestVariant := finalVariants[0]
@@ -292,9 +334,7 @@ func Run(args []string, logger logging.ILogger) {
 			if variantSelectionStrategy == llm.Best {
 				logger.Panicln("Best annotation-variant selection strategy is not implemented yet!")
 			}
-			if variantSelectionStrategy == llm.Combine {
-				logger.Panicln("Combined annotation-variant selection strategy is not implemented yet!")
-			}
+
 		}
 	}
 
