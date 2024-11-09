@@ -314,18 +314,6 @@ func Run(args []string, logger logging.ILogger) {
 				}
 			}
 
-			// Select shortest variant
-			if variantSelectionStrategy == llm.Short {
-				shortestVariant := finalVariants[0]
-				for _, variant := range finalVariants[1:] {
-					if len(variant) < len(shortestVariant) {
-						shortestVariant = variant
-					}
-				}
-				newAnnotations[filePath] = shortestVariant
-				break
-			}
-
 			// Longest variant
 			if variantSelectionStrategy == llm.Long {
 				longestVariant := finalVariants[0]
@@ -337,11 +325,16 @@ func Run(args []string, logger logging.ILogger) {
 				newAnnotations[filePath] = longestVariant
 				break
 			}
-			// Variant selection strategies that involves another LLM call is not implemented yet
-			if variantSelectionStrategy == llm.Best {
-				logger.Panicln("Best annotation-variant selection strategy is not implemented yet!")
-			}
 
+			// Select shortest variant
+			shortestVariant := finalVariants[0]
+			for _, variant := range finalVariants[1:] {
+				if len(variant) < len(shortestVariant) {
+					shortestVariant = variant
+				}
+			}
+			newAnnotations[filePath] = shortestVariant
+			break
 		}
 	}
 
