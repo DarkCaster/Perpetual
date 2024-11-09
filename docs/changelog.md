@@ -9,10 +9,10 @@
   - `long`: Selects the longest variant
   - `combine`: Creates an optimal annotation by combining multiple variants through an additional LLM pass
   - Configuration is done via environment variables (see `.env.example`):
-    - `*_VARIANT_COUNT`: Number of variants to generate (default 1 - use old behavior)
-    - `*_VARIANT_SELECTION`: Selection strategy to use
+    - `*_VARIANT_COUNT_OP_ANNOTATE`: Number of variants to generate (default 1 - use old behavior)
+    - `*_VARIANT_SELECTION_OP_ANNOTATE`: Selection strategy to use
     - Separate settings for different LLM providers (ANTHROPIC/OPENAI/OLLAMA)
-    - Can be customized per operation using `*_OP_ANNOTATE` suffix
+    - Can be customized per operation using `*_OP_ANNOTATE` and `*_OP_ANNOTATE_POST` suffix (for post-processing stage)
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to save new annotate-operation prompt-templates
 
