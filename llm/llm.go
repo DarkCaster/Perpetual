@@ -24,7 +24,6 @@ type VariantSelectionStrategy int
 const (
 	Short VariantSelectionStrategy = iota
 	Long
-	Best
 	Combine
 )
 

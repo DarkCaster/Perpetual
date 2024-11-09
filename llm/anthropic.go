@@ -127,8 +127,6 @@ func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, file
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {
 			variantStrategy = Long
-		} else if curStrategy == "BEST" {
-			variantStrategy = Best
 		} else if curStrategy == "COMBINE" {
 			variantStrategy = Combine
 		} else {
