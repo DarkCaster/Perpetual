@@ -3,6 +3,7 @@ package llm
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -53,13 +54,26 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 		return nil, err
 	}
 
+	// Split provider name and profile number using regex
+	matches := regexp.MustCompile(`^([A-Z]+)(\d*)$`).FindStringSubmatch(provider)
+	if len(matches) > 1 {
+		provider = matches[1]
+	} else {
+		return nil, fmt.Errorf("provider name is invalid: %s", provider)
+	}
+
+	subProfile := ""
+	if len(matches) > 2 {
+		subProfile = matches[2]
+	}
+
 	switch provider {
 	case "ANTHROPIC":
-		return NewAnthropicLLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
-		return NewOpenAILLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OLLAMA":
-		return NewOllamaLLMConnectorFromEnv(operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}

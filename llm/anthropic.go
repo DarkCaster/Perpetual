@@ -49,80 +49,84 @@ func NewAnthropicLLMConnector(token string, model string, systemPrompt string, f
 		VariantStrategy:       variantStrategy}
 }
 
-func NewAnthropicLLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	token, err := utils.GetEnvString("ANTHROPIC_API_KEY")
+	prefix := "ANTHROPIC"
+	if subprofile != "" {
+		prefix = fmt.Sprintf("ANTHROPIC%s", strings.ToUpper(subprofile))
+	}
+
+	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	model, err := utils.GetEnvString(fmt.Sprintf("ANTHROPIC_MODEL_OP_%s", operation), "ANTHROPIC_MODEL")
+	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	maxTokensSegments, err := utils.GetEnvInt("ANTHROPIC_MAX_TOKENS_SEGMENTS")
+	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
 
-	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_ON_FAIL_RETRIES_OP_%s", operation), "ANTHROPIC_ON_FAIL_RETRIES")
+	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
 
-	customBaseURL, _ := utils.GetEnvString("ANTHROPIC_BASE_URL")
+	customBaseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
 
-	// parse extra options. it may be needed to finetune model for the task
 	var extraOptions []llms.CallOption
 
-	temperature, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_TEMPERATURE_OP_%s", operation), "ANTHROPIC_TEMPERATURE")
+	temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix))
 	if err != nil {
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 	}
 
-	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_MAX_TOKENS_OP_%s", operation), "ANTHROPIC_MAX_TOKENS")
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
 	if err != nil {
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 	}
 
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_TOP_K_OP_%s", operation), "ANTHROPIC_TOP_K"); err == nil {
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
 	}
 
-	if topP, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_TOP_P_OP_%s", operation), "ANTHROPIC_TOP_P"); err == nil {
+	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
 	seed := math.MaxInt
-	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_SEED_OP_%s", operation), "ANTHROPIC_SEED"); err == nil {
+	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		seed = customSeed
 	}
 
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_REPEAT_PENALTY_OP_%s", operation), "ANTHROPIC_REPEAT_PENALTY"); err == nil {
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
 	}
 
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_FREQ_PENALTY_OP_%s", operation), "ANTHROPIC_FREQ_PENALTY"); err == nil {
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
 	}
 
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("ANTHROPIC_PRESENCE_PENALTY_OP_%s", operation), "ANTHROPIC_PRESENCE_PENALTY"); err == nil {
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
 	variants := 1
-	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("ANTHROPIC_VARIANT_COUNT_OP_%s", operation), "ANTHROPIC_VARIANT_COUNT"); err == nil {
+	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
 	}
 
 	variantStrategy := Short
-	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("ANTHROPIC_VARIANT_SELECTION_OP_%s", operation), "ANTHROPIC_VARIANT_SELECTION"); err == nil {
+	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
 		if curStrategy == "SHORT" {
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {

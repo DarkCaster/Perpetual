@@ -46,79 +46,83 @@ func NewOpenAILLMConnector(token string, model string, systemPrompt string, file
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOpenAILLMConnectorFromEnv(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
-	token, err := utils.GetEnvString("OPENAI_API_KEY")
+	prefix := "OPENAI"
+	if subprofile != "" {
+		prefix = fmt.Sprintf("OPENAI%s", strings.ToUpper(subprofile))
+	}
+
+	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	model, err := utils.GetEnvString(fmt.Sprintf("OPENAI_MODEL_OP_%s", operation), "OPENAI_MODEL")
+	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	maxTokensSegments, err := utils.GetEnvInt("OPENAI_MAX_TOKENS_SEGMENTS")
+	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
 
-	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_ON_FAIL_RETRIES_OP_%s", operation), "OPENAI_ON_FAIL_RETRIES")
+	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
 
-	customBaseURL, _ := utils.GetEnvString("OPENAI_BASE_URL")
+	customBaseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
 
-	// parse extra options. it may be needed to finetune model for the task
 	var extraOptions []llms.CallOption
 
-	temperature, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_TEMPERATURE_OP_%s", operation), "OPENAI_TEMPERATURE")
+	temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix))
 	if err != nil {
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 	}
 
-	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_MAX_TOKENS_OP_%s", operation), "OPENAI_MAX_TOKENS")
+	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
 	if err != nil {
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 	}
 
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_TOP_K_OP_%s", operation), "OPENAI_TOP_K"); err == nil {
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
 	}
 
-	if topP, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_TOP_P_OP_%s", operation), "OPENAI_TOP_P"); err == nil {
+	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_SEED_OP_%s", operation), "OPENAI_SEED"); err == nil {
+	if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithSeed(seed))
 	}
 
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_REPEAT_PENALTY_OP_%s", operation), "OPENAI_REPEAT_PENALTY"); err == nil {
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
 	}
 
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_FREQ_PENALTY_OP_%s", operation), "OPENAI_FREQ_PENALTY"); err == nil {
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
 	}
 
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("OPENAI_PRESENCE_PENALTY_OP_%s", operation), "OPENAI_PRESENCE_PENALTY"); err == nil {
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
 	variants := 1
-	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("OPENAI_VARIANT_COUNT_OP_%s", operation), "OPENAI_VARIANT_COUNT"); err == nil {
+	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
 	}
 
 	variantStrategy := Short
-	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("OPENAI_VARIANT_SELECTION_OP_%s", operation), "OPENAI_VARIANT_SELECTION"); err == nil {
+	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
 		if curStrategy == "SHORT" {
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {
