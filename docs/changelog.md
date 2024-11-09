@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.9.0
+
+### Breaking changes
+
+- Improve `annotate` operation: Added multi-stage annotation generation with support for multiple annotation variants and different selection strategies. The operation now generates multiple variants of source file annotations and selects the optimal one using configurable strategies:
+  - `short`: Selects the shortest variant (default)
+  - `long`: Selects the longest variant
+  - `combine`: Creates an optimal annotation by combining multiple variants through an additional LLM pass
+  - Configuration is done via environment variables (see `.env.example`):
+    - `*_VARIANT_COUNT`: Number of variants to generate (default 1 - use old behavior)
+    - `*_VARIANT_SELECTION`: Selection strategy to use
+    - Separate settings for different LLM providers (ANTHROPIC/OPENAI/OLLAMA)
+    - Can be customized per operation using `*_OP_ANNOTATE` suffix
+
+**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to save new annotate-operation prompt-templates
+
 ## v1.8.2
 
 ### Improvements
