@@ -210,6 +210,11 @@ func Run(args []string, logger logging.ILogger) {
 		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, filteredRequestedFiles, annotations, docFile, docExample, action, logger)
 	}
 
+	// Add extra newline if not present
+	if !strings.HasSuffix(docContent, "\n") {
+		docContent += "\n"
+	}
+
 	docResults := make(map[string]string)
 	docResults[docFile] = docContent
 
