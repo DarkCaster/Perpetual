@@ -265,7 +265,11 @@ func (p *OllamaLLMConnector) GetOptionsString() string {
 }
 
 func (p *OllamaLLMConnector) GetDebugString() string {
-	return fmt.Sprintf("Provider: Ollama, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	if p.Subprofile != "" {
+		return fmt.Sprintf("Provider: Ollama, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
+	} else {
+		return fmt.Sprintf("Provider: Ollama, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	}
 }
 
 func (p *OllamaLLMConnector) GetVariantCount() int {

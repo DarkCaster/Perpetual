@@ -255,7 +255,11 @@ func (p *AnthropicLLMConnector) GetOptionsString() string {
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
-	return fmt.Sprintf("Provider: Anthropic, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	if p.Subprofile != "" {
+		return fmt.Sprintf("Provider: Anthropic, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
+	} else {
+		return fmt.Sprintf("Provider: Anthropic, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	}
 }
 
 func (p *AnthropicLLMConnector) GetVariantCount() int {

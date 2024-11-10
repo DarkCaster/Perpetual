@@ -234,7 +234,11 @@ func (p *OpenAILLMConnector) GetOptionsString() string {
 }
 
 func (p *OpenAILLMConnector) GetDebugString() string {
-	return fmt.Sprintf("Provider: OpenAI, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	if p.Subprofile != "" {
+		return fmt.Sprintf("Provider: OpenAI, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
+	} else {
+		return fmt.Sprintf("Provider: OpenAI, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
+	}
 }
 
 func (p *OpenAILLMConnector) GetVariantCount() int {
