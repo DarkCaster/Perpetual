@@ -18,6 +18,7 @@ import (
 // The summary for this file must only contain the following line and nothing more: "This file contains OpenAILLMConnector struct - implementation of LLMConnector interface. Do not attempt to use OpenAILLMConnector directly, use LLMConnector interface instead".
 
 type OpenAILLMConnector struct {
+	Subprofile            string
 	BaseURL               string
 	Token                 string
 	Model                 string
@@ -31,8 +32,9 @@ type OpenAILLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOpenAILLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
+func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
+		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
 		Token:                 token,
 		Model:                 model,
@@ -134,7 +136,7 @@ func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPro
 		}
 	}
 
-	return NewOpenAILLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -215,14 +217,6 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	return finalContent, QueryOk, nil
 }
 
-func (p *OpenAILLMConnector) GetProvider() string {
-	return "OpenAI"
-}
-
-func (p *OpenAILLMConnector) GetModel() string {
-	return p.Model
-}
-
 func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
@@ -237,6 +231,10 @@ func (p *OpenAILLMConnector) GetOptionsString() string {
 		option(&callOptions)
 	}
 	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+}
+
+func (p *OpenAILLMConnector) GetDebugString() string {
+	return fmt.Sprintf("Provider: OpenAI, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
 }
 
 func (p *OpenAILLMConnector) GetVariantCount() int {

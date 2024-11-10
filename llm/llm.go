@@ -33,12 +33,8 @@ type LLMConnector interface {
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
 	GetMaxTokensSegments() int
-	// Get retry limit on general query fail
 	GetOnFailureRetryLimit() int
-	// Following functions needed for LLM messages logging, consider not to use it anywhere else
-	GetProvider() string
-	GetModel() string
-	GetOptionsString() string
+	GetDebugString() string
 	// Results variant-count management.
 	GetVariantCount() int
 	GetVariantSelectionStrategy() VariantSelectionStrategy
@@ -77,10 +73,6 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
-}
-
-func GetDebugString(llm LLMConnector) string {
-	return fmt.Sprintf("Provider: %s, Model: %s, OnFailureRetries: %d, %s", llm.GetProvider(), llm.GetModel(), llm.GetOnFailureRetryLimit(), llm.GetOptionsString())
 }
 
 func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {

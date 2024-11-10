@@ -22,7 +22,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
-	logger.Debugln(llm.GetDebugString(stage3Connector))
+	logger.Debugln(stage3Connector.GetDebugString())
 
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))

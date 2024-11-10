@@ -172,14 +172,14 @@ func Run(args []string, logger logging.ILogger) {
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
-	logger.Debugln(llm.GetDebugString(connector))
+	logger.Debugln(connector.GetDebugString())
 
 	// Create new connector for "annotate_post" operation
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
-	logger.Debugln(llm.GetDebugString(connectorPost))
+	logger.Debugln(connectorPost.GetDebugString())
 
 	// Load output tags regexps
 	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)

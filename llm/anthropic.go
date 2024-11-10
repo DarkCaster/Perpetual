@@ -19,6 +19,7 @@ import (
 // The summary for this file must only contain the following line and nothing more: "This file contains AnthropicLLMConnector struct - implementation of LLMConnector interface. Do not attempt to use AnthropicLLMConnector directly, use LLMConnector interface instead".
 
 type AnthropicLLMConnector struct {
+	Subprofile            string
 	BaseURL               string
 	Token                 string
 	Model                 string
@@ -33,8 +34,9 @@ type AnthropicLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewAnthropicLLMConnector(token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
+		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
 		Token:                 token,
 		Model:                 model,
@@ -138,7 +140,7 @@ func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, system
 		}
 	}
 
-	return NewAnthropicLLMConnector(token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -236,14 +238,6 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	return finalContent, QueryOk, nil
 }
 
-func (p *AnthropicLLMConnector) GetProvider() string {
-	return "Anthropic"
-}
-
-func (p *AnthropicLLMConnector) GetModel() string {
-	return p.Model
-}
-
 func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
@@ -258,6 +252,10 @@ func (p *AnthropicLLMConnector) GetOptionsString() string {
 		option(&callOptions)
 	}
 	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+}
+
+func (p *AnthropicLLMConnector) GetDebugString() string {
+	return fmt.Sprintf("Provider: Anthropic, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
 }
 
 func (p *AnthropicLLMConnector) GetVariantCount() int {

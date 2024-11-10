@@ -19,6 +19,7 @@ import (
 // The summary for this file must only contain the following line and nothing more: "This file contains OllamaLLMConnector struct - implementation of LLMConnector interface. Do not attempt to use OllamaLLMConnector directly, use LLMConnector interface instead".
 
 type OllamaLLMConnector struct {
+	Subprofile            string
 	BaseURL               string
 	Model                 string
 	SystemPrompt          string
@@ -32,8 +33,9 @@ type OllamaLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOllamaLLMConnector(model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
+		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
@@ -131,7 +133,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		}
 	}
 
-	return NewOllamaLLMConnector(model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -246,14 +248,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	return finalContent, QueryOk, nil
 }
 
-func (p *OllamaLLMConnector) GetProvider() string {
-	return "Ollama"
-}
-
-func (p *OllamaLLMConnector) GetModel() string {
-	return p.Model
-}
-
 func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
@@ -268,6 +262,10 @@ func (p *OllamaLLMConnector) GetOptionsString() string {
 		option(&callOptions)
 	}
 	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+}
+
+func (p *OllamaLLMConnector) GetDebugString() string {
+	return fmt.Sprintf("Provider: Ollama, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
 }
 
 func (p *OllamaLLMConnector) GetVariantCount() int {
