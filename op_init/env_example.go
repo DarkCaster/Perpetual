@@ -33,6 +33,12 @@ LLM_PROVIDER="anthropic"
 # LLM_PROVIDER="openai"
 # LLM_PROVIDER="ollama"
 
+# NOTE: you can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
+# example:
+# LLM_PROVIDER="ollama1"
+# OLLAMA1_BASE_URL=...
+# OLLAMA1_MODEL=...
+
 # Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Oct 2024)
 
 ANTHROPIC_API_KEY="<your api key goes here>"
