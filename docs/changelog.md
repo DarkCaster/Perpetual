@@ -16,6 +16,10 @@
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to save new annotate-operation prompt-templates
 
+### Improvements
+
+- Added multiple profiles support (see `.env.example` for more info). You can now configure multiple profiles for each LLM provider using a numeric suffix in the provider name (e.g., `ANTHROPIC1_`, `OPENAI2_`, `OLLAMA3_`).
+
 ## v1.8.2
 
 ### Improvements
