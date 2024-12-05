@@ -7,7 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/tmc/langchaingo v0.1.12
-	golang.org/x/text v0.20.0
+	golang.org/x/text v0.21.0
 )
 
 require (
