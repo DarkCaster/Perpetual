@@ -432,7 +432,7 @@ func TestCheckUTF8(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := checkUTF8(tc.input)
+			err := CheckUTF8(tc.input)
 			if tc.expectError && err == nil {
 				t.Errorf("Expected an error, but got nil")
 			}
