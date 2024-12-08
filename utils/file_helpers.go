@@ -75,7 +75,7 @@ func convertToBOMLessUTF8(data []byte) ([]byte, error) {
 	}
 }
 
-func checkUTF8(data []byte) error {
+func CheckUTF8(data []byte) error {
 	for len(data) > 0 {
 		r, size := utf8.DecodeRune(data)
 		if r == utf8.RuneError {
@@ -95,7 +95,7 @@ func LoadTextFile(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = checkUTF8(bytes)
+	err = CheckUTF8(bytes)
 	if err != nil {
 		return "", err
 	}
