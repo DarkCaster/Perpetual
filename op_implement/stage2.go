@@ -17,7 +17,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	defer logger.Traceln("Stage2: Finished")
 
 	// Create stage2 llm connector
-	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}

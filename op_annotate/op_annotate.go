@@ -168,14 +168,14 @@ func Run(args []string, logger logging.ILogger) {
 	systemPrompt := loadPrompt(prompts.SystemPromptFile)
 
 	// Create llm connector
-	connector, err := llm.NewLLMConnector(OpName, systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName, systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
 	logger.Debugln(connector.GetDebugString())
 
 	// Create new connector for "annotate_post" operation
-	connectorPost, err := llm.NewLLMConnector(OpName+"_post", systemPrompt, filesToMdLangMappings, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connectorPost, err := llm.NewLLMConnector(OpName+"_post", systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}

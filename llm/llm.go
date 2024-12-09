@@ -40,7 +40,7 @@ type LLMConnector interface {
 	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
-func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	provider, err := utils.GetEnvUpperString(
@@ -65,10 +65,19 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 
 	switch provider {
 	case "ANTHROPIC":
+		if len(outputFormat) > 0 {
+			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for Anthropic is not implemented yet")
+		}
 		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
+		if len(outputFormat) > 0 {
+			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for OpenAI is not implemented yet")
+		}
 		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OLLAMA":
+		if len(outputFormat) > 0 {
+			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for Ollama is not implemented yet")
+		}
 		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
