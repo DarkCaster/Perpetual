@@ -24,6 +24,7 @@ type OllamaLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings [][2]string
+	OutputFormat          map[string]interface{}
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -33,13 +34,14 @@ type OllamaLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
+		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -49,7 +51,7 @@ func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string,
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OLLAMA"
@@ -133,7 +135,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		}
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -147,6 +149,14 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	ollamaOptions := append([]ollama.Option{}, ollama.WithModel(p.Model))
 	if p.BaseURL != "" {
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
+	}
+
+	useFormat := len(p.OutputFormat) > 0
+	if useFormat {
+		valuesToInject := map[string]interface{}{}
+		valuesToInject["format"] = p.OutputFormat
+		mitmClient := NewMitmHTTPClient(valuesToInject)
+		ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 	}
 
 	model, err := ollama.New(ollamaOptions...)
@@ -219,8 +229,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.RawMessageLogger("\n\n\n")
 		}
 
-		//NOTE: ollama doesn't seem to return a stop reason of "max_tokens"
-		//process options array manually to get actual CallOptions struct that was used with llm query
+		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
+		//so, instead we compare actual returned message length in tokens with limit defined in options
 		callOpts := llms.CallOptions{}
 		for _, opt := range finalOptions {
 			opt(&callOpts)
@@ -237,6 +247,10 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//and compare
 		if responseTokens >= maxTokens {
 			if lastResort {
+				if useFormat {
+					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
+					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+				}
 				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
 			}
 			continue

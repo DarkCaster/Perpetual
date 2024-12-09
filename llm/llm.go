@@ -75,10 +75,7 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 		}
 		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OLLAMA":
-		if len(outputFormat) > 0 {
-			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for Ollama is not implemented yet")
-		}
-		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputFormat, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
