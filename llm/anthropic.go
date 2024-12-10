@@ -246,6 +246,10 @@ func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }
 
+func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
+	return OutputPlain
+}
+
 func (p *AnthropicLLMConnector) GetOptionsString() string {
 	var callOptions llms.CallOptions
 	for _, option := range p.Options {

@@ -24,7 +24,8 @@ type OllamaLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings [][2]string
-	OutputFormat          map[string]interface{}
+	FieldsToInject        map[string]interface{}
+	OutputFormat          OutputFormat
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -34,13 +35,14 @@ type OllamaLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
@@ -51,7 +53,7 @@ func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string,
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OLLAMA"
@@ -135,7 +137,14 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		}
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	fieldsToInject := map[string]interface{}{}
+	if outputFormat == OutputJson {
+		fieldsToInject["format"] = outputSchema
+	} else {
+		outputFormat = OutputPlain
+	}
+
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -151,11 +160,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
 
-	useFormat := len(p.OutputFormat) > 0
-	if useFormat {
-		valuesToInject := map[string]interface{}{}
-		valuesToInject["format"] = p.OutputFormat
-		mitmClient := NewMitmHTTPClient(valuesToInject)
+	if p.OutputFormat == OutputJson {
+		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
 		ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 	}
 
@@ -247,7 +253,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//and compare
 		if responseTokens >= maxTokens {
 			if lastResort {
-				if useFormat {
+				if p.OutputFormat == OutputJson {
 					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
 					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
 				}
@@ -268,6 +274,10 @@ func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
+}
+
+func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
+	return p.OutputFormat
 }
 
 func (p *OllamaLLMConnector) GetOptionsString() string {

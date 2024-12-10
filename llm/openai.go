@@ -225,6 +225,10 @@ func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }
 
+func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
+	return OutputPlain
+}
+
 func (p *OpenAILLMConnector) GetOptionsString() string {
 	var callOptions llms.CallOptions
 	for _, option := range p.Options {

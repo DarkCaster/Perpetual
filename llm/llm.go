@@ -20,6 +20,13 @@ const (
 	QueryFailed
 )
 
+type OutputFormat int
+
+const (
+	OutputPlain OutputFormat = iota
+	OutputJson
+)
+
 type VariantSelectionStrategy int
 
 const (
@@ -35,12 +42,13 @@ type LLMConnector interface {
 	GetMaxTokensSegments() int
 	GetOnFailureRetryLimit() int
 	GetDebugString() string
+	GetOutputFormat() OutputFormat
 	// Results variant-count management.
 	GetVariantCount() int
 	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
-func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputFormat map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputSchema map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	provider, err := utils.GetEnvUpperString(
@@ -63,19 +71,33 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 		subProfile = matches[2]
 	}
 
+	prefix := fmt.Sprintf("%s%s", strings.ToUpper(provider), strings.ToUpper(subProfile))
+	outputFormat := OutputPlain
+
+	// try to setup output format from config and outputschema if applicable
+	// particular llm provider can still switch to plain format if schema is invalid or structured JSON output format is not supported
+	if format, err := utils.GetEnvString(fmt.Sprintf("%s_FORMAT_OP_%s", prefix, operation)); err == nil {
+		if strings.ToUpper(format) == "PLAIN" {
+			outputFormat = OutputPlain
+			outputSchema = map[string]interface{}{}
+		} else if strings.ToUpper(format) == "JSON" && len(outputSchema) > 0 {
+			outputFormat = OutputJson
+		} else {
+			outputFormat = OutputPlain
+			outputSchema = map[string]interface{}{}
+		}
+	} else {
+		outputFormat = OutputPlain
+		outputSchema = map[string]interface{}{}
+	}
+
 	switch provider {
 	case "ANTHROPIC":
-		if len(outputFormat) > 0 {
-			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for Anthropic is not implemented yet")
-		}
 		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
-		if len(outputFormat) > 0 {
-			return nil, fmt.Errorf("NOT IMPLEMENTED: structured output for OpenAI is not implemented yet")
-		}
 		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OLLAMA":
-		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputFormat, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputSchema, outputFormat, llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
