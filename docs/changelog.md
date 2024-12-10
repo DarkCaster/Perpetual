@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.0.0
+
+### Breaking changes
+
+- Added initial support for json structured output mode. Disabled by default, may be incompatible with all providers or LLM models. May improve results with Ollama and small LLM models in future.
+
+- User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion-type and stored inside json config-files. Configs also include all needed text-tags and regexp definitions within corresponding json file.
+
+**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts
+
 ## v1.9.0
 
 ### Breaking changes
