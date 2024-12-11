@@ -53,7 +53,7 @@ var GetDefaultAnnotateOutputScheme = func() map[string]interface{} {
 	}
 }
 
-var DefaultAnnotateOutputKey = "generated_summary"
+const DefaultAnnotateOutputKey = "generated_summary"
 
 const DefaultAIAcknowledge = "Understood. What's next?"
 
