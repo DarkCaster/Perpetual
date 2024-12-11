@@ -16,7 +16,9 @@ const FileNameEmbedRXFileName = "filename_embed_regexp.json"
 const OutputTagsRXFileName = "output_tags_regexps.json"
 const ReasoningsTagsRXFileName = "reasonings_tags_regexps.json"
 const ReasoningsTagsFileName = "reasonings_tags.json"
-const SystemPromptFile = "system_prompt.txt"
+
+// System prompts
+const SystemPromptsConfigFile = "system_prompts.json"
 
 // Annotate-operation config
 const OpAnnotateConfigFile = "op_annotate.json"

@@ -11,7 +11,7 @@ type Prompts interface {
 	GetProjectFilesBlacklist() []string
 	GetProjectTestFilesBlacklist() []string
 	GetProjectFilesToMarkdownMappings() [][2]string
-	GetSystemPrompt() string
+	GetSystemPrompts() map[string]string
 
 	// Annotate-operation prompts
 	GetAnnotateConfig() map[string]interface{}
