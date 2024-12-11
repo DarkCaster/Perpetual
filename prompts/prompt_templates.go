@@ -74,6 +74,24 @@ func GetDefaultImplementStage1OutputScheme() map[string]interface{} {
 
 const DefaultImplementStage1OutputKey = "list_of_files"
 
+func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
+	result := map[string]interface{}{}
+	// ack from AI
+	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
+	// prompt to generate another annotation variant
+	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
+	// prompt to generate combined annotation
+	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
+	// structured output scheme and lookup key
+	result[Stage1OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[Stage1OutputKey] = DefaultAnnotateOutputKey
+	result[Stage2OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[Stage2OutputKey] = DefaultAnnotateOutputKey
+	// tags for providing filename to LLM
+	result[FilenameTagsName] = DefaultFileNameTags
+	return result
+}
+
 func GetDefaultImplementStage2OutputScheme(includeReasonings bool) map[string]interface{} {
 	result := map[string]interface{}{
 		"type": "object",

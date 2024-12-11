@@ -11,25 +11,12 @@ func (p *BashPrompts) GetSystemPrompts() map[string]string {
 }
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := map[string]interface{}{}
+	result := GetDefaultAnnotateConfigTemplate()
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
-	// ack from AI
-	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
-	// prompt to generate another annotation variant
-	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
-	// prompt to generate combined annotation
-	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
-	// structured output scheme and lookup key
-	result[Stage1OutputSchemeName] = GetDefaultAnnotateOutputScheme()
-	result[Stage1OutputKey] = DefaultAnnotateOutputKey
-	result[Stage2OutputSchemeName] = GetDefaultAnnotateOutputScheme()
-	result[Stage2OutputKey] = DefaultAnnotateOutputKey
-	// tags for providing filename to LLM
-	result[FilenameTagsName] = DefaultFileNameTags
 	return result
 }
 
