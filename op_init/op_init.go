@@ -123,7 +123,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Save the system prompt to a file
-	savePrompt(prompts.SystemPromptFile, promptsObj.GetSystemPrompt())
+	saveConfig(prompts.SystemPromptsConfigFile, promptsObj.GetSystemPrompts())
 
 	// Save annotate-operation config
 	saveConfig(prompts.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
