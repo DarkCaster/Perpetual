@@ -70,20 +70,17 @@ func Run(args []string, logger logging.ILogger) {
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	var projectFilesWhitelist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
-	if err != nil {
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist); err != nil {
 		logger.Panicln("error reading project-files whitelist regexps:", err)
 	}
 
 	var filesToMdLangMappings [][2]string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
-	if err != nil {
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings); err != nil {
 		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
 	}
 
 	var projectFilesBlacklist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
-	if err != nil {
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist); err != nil {
 		logger.Panicln("error reading project-files blacklist regexps:", err)
 	}
 
@@ -147,7 +144,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
 	}
 
-	// Create llm connector
+	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
 		systemPrompts[prompts.DefaultSystemPromptName],
 		filesToMdLangMappings,
@@ -158,7 +155,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	logger.Debugln(connector.GetDebugString())
 
-	// Create new connector for "annotate_post" operation
+	// Create new connector for "annotate_post" operation (stage2)
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
 		systemPrompts[prompts.DefaultSystemPromptName],
 		filesToMdLangMappings,
