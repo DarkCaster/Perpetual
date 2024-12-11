@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -49,6 +50,14 @@ type LLMConnector interface {
 }
 
 func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputSchema map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+	// Input parameters check
+	if operation == "" {
+		return nil, errors.New("operation name is empty")
+	}
+	if systemPrompt == "" {
+		return nil, errors.New("system prompt name is empty")
+	}
+
 	operation = strings.ToUpper(operation)
 
 	provider, err := utils.GetEnvUpperString(
