@@ -10,25 +10,25 @@ func (p *VB6Prompts) GetSystemPrompt() string {
 	return "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You never procrastinate, and you are always ready to help the user implement his task. You always do what user ask. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 }
 
-func (p *VB6Prompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{
+func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
+	result := map[string]interface{}{}
+	// file-dependent annotate prompts
+	result[AnnotateStage1PromptName] = [][2]string{
 		{"(?i)^.*\\.frm$", DefaultAIAnnotatePrompt_VB6_Form},
 		{"(?i)^.*\\.cls$", DefaultAIAnnotatePrompt_VB6_Class},
 		{"(?i)^.*\\.bas$", DefaultAIAnnotatePrompt_VB6_Module},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
-}
-
-func (p *VB6Prompts) GetAIAnnotateResponse() string {
-	return DefaultAIAnnotateResponse
-}
-
-func (p *VB6Prompts) GetAnnotateVariantPrompt() string {
-	return DefaultAIAnnotateVariantPrompt
-}
-
-func (p *VB6Prompts) GetAnnotateCombinePrompt() string {
-	return DefaultAIAnnotateCombinePrompt
+	// ack from AI
+	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
+	// prompt to generate another annotation variant
+	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
+	// prompt to generate combined annotation
+	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
+	// structured output scheme and lookup key
+	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[OutputKey] = DefaultAnnotateOutputKey
+	return result
 }
 
 func (p *VB6Prompts) GetImplementStage1ProjectIndexPrompt() string {

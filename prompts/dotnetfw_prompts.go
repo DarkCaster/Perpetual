@@ -10,25 +10,25 @@ func (p *DotNetFWPrompts) GetSystemPrompt() string {
 	return "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You never procrastinate, and you are always ready to help the user implement his task. You always do what user ask. You always write concise and readable code. You do not overload the user with unnecessary details in your answers and answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 }
 
-func (p *DotNetFWPrompts) GetAnnotatePrompt() [][2]string {
-	return [][2]string{
+func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
+	result := map[string]interface{}{}
+	// file-dependent annotate prompts
+	result[AnnotateStage1PromptName] = [][2]string{
 		{"(?i)^.*\\.cs$", DefaultAIAnnotatePrompt_CS},
 		{"(?i)^.*\\.vb$", DefaultAIAnnotatePrompt_VBNet},
 		{"(?i)^.*\\.xaml$", DefaultAIAnnotatePrompt_Xaml},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
-}
-
-func (p *DotNetFWPrompts) GetAIAnnotateResponse() string {
-	return DefaultAIAnnotateResponse
-}
-
-func (p *DotNetFWPrompts) GetAnnotateVariantPrompt() string {
-	return DefaultAIAnnotateVariantPrompt
-}
-
-func (p *DotNetFWPrompts) GetAnnotateCombinePrompt() string {
-	return DefaultAIAnnotateCombinePrompt
+	// ack from AI
+	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
+	// prompt to generate another annotation variant
+	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
+	// prompt to generate combined annotation
+	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
+	// structured output scheme and lookup key
+	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[OutputKey] = DefaultAnnotateOutputKey
+	return result
 }
 
 func (p *DotNetFWPrompts) GetImplementStage1ProjectIndexPrompt() string {

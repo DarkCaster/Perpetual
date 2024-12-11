@@ -14,10 +14,7 @@ type Prompts interface {
 	GetSystemPrompt() string
 
 	// Annotate-operation prompts
-	GetAnnotatePrompt() [][2]string
-	GetAIAnnotateResponse() string
-	GetAnnotateVariantPrompt() string
-	GetAnnotateCombinePrompt() string
+	GetAnnotateConfig() map[string]interface{}
 
 	// Implement-operation helpers
 	GetFileNameTags() []string

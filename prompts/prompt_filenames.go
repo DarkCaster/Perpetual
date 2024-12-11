@@ -19,11 +19,8 @@ const ReasoningsTagsRXFileName = "reasonings_tags_regexps.json"
 const ReasoningsTagsFileName = "reasonings_tags.json"
 const SystemPromptFile = "system_prompt.txt"
 
-// Annotate-operation prompt-filenames
-const AnnotatePromptFile = "op_annotate_prompt.json"
-const AIAnnotateResponseFile = "op_annotate_ai_response.txt"
-const AnnotateVariantPromptFile = "op_annotate_variant_prompt.txt"
-const AnnotateCombinePromptFile = "op_annotate_combine_prompt.txt"
+// Annotate-operation config
+const OpAnnotateConfigFile = "op_annotate.json"
 
 // Implement-operation stage1 prompt-filenames
 const ImplementStage1ProjectIndexPromptFile = "op_implement_stage1_project_index_prompt.txt"
