@@ -39,7 +39,7 @@ const DefaultAIAnnotateVariantPrompt = "Create another summary variant"
 
 const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 
-var GetDefaultAnnotateOutputScheme = func() map[string]interface{} {
+func GetDefaultAnnotateOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
@@ -54,6 +54,54 @@ var GetDefaultAnnotateOutputScheme = func() map[string]interface{} {
 }
 
 const DefaultAnnotateOutputKey = "generated_summary"
+
+func GetDefaultImplementStage1OutputScheme() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"list_of_files": map[string]interface{}{
+				"type": "array",
+				"items": map[string]string{
+					"type": "string",
+				},
+			},
+		},
+		"required": []string{
+			"list_of_files",
+		},
+	}
+}
+
+const DefaultImplementStage1OutputKey = "list_of_files"
+
+func GetDefaultImplementStage2OutputScheme(includeReasonings bool) map[string]interface{} {
+	result := map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"list_of_files": map[string]interface{}{
+				"type": "array",
+				"items": map[string]string{
+					"type": "string",
+				},
+			},
+		},
+		"required": []string{
+			"list_of_files",
+		},
+	}
+
+	if includeReasonings {
+		result["properties"].(map[string]interface{})["reasonings"] = map[string]interface{}{
+			"type": "string",
+		}
+		result["properties"] = append(result["properties"].([]string), "reasonings")
+	}
+
+	return result
+}
+
+const DefaultImplementStage2OutputKey = "list_of_files"
+const DefaultImplementStage2ReasoningsOutputKey = "reasonings"
 
 const DefaultAIAcknowledge = "Understood. What's next?"
 
