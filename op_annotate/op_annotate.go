@@ -87,15 +87,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("error reading project-files blacklist regexps:", err)
 	}
 
-	var fileNameTags []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), &fileNameTags)
-	if err != nil {
-		logger.Panicln("Error loading filename-tags json:", err)
-	}
-	if len(fileNameTags) != 2 {
-		logger.Panicln("filename-tags json must contain exact 2 tags:", err)
-	}
-
 	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("error getting project file-list:", err)
@@ -146,14 +137,8 @@ func Run(args []string, logger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-
-	var annotatePromptMappings [][2]string
-	err = utils.LoadJsonFile(filepath.Join(promptsDir, prompts.AnnotatePromptFile), &annotatePromptMappings)
-	if err != nil {
-		logger.Panicln("error getting annotate-prompts json file:", err)
-	}
-
+	//TODO: remove
+	/*promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
 	loadPrompt := func(filePath string) string {
 		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
 		if err != nil {
@@ -161,21 +146,30 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		return text
 	}
+	systemPrompt := loadPrompt(prompts.SystemPromptFile)*/
 
-	annotateResponse := loadPrompt(prompts.AIAnnotateResponseFile)
-	annotateVariantPrompt := loadPrompt(prompts.AnnotateVariantPromptFile)
-	annotateCombinePrompt := loadPrompt(prompts.AnnotateCombinePromptFile)
-	systemPrompt := loadPrompt(prompts.SystemPromptFile)
+	annotateConfig := map[string]interface{}{}
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpAnnotateConfigFile), &annotateConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
+	}
 
 	// Create llm connector
-	connector, err := llm.NewLLMConnector(OpName, systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName,
+		systemPrompt,
+		filesToMdLangMappings,
+		map[string]interface{}{},
+		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
 	logger.Debugln(connector.GetDebugString())
 
 	// Create new connector for "annotate_post" operation
-	connectorPost, err := llm.NewLLMConnector(OpName+"_post", systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
+		systemPrompt,
+		filesToMdLangMappings,
+		map[string]interface{}{},
+		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
@@ -191,7 +185,7 @@ func Run(args []string, logger logging.ILogger) {
 	for _, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
-		for _, mapping := range annotatePromptMappings {
+		for _, mapping := range annotateConfig[prompts.AnnotateStage1PromptNames].([][]string) {
 			matched, err := regexp.MatchString(mapping[0], filePath)
 			if err == nil && matched {
 				annotatePrompt = mapping[1]
@@ -210,9 +204,19 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		fileContents := string(fileBytes)
 
-		annotateRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotatePrompt)
-		annotateSimulatedResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), annotateResponse)
-		fileContentsRequest := llm.AddFileFragment(llm.NewMessage(llm.UserRequest), filePath, fileContents, fileNameTags)
+		annotateRequest := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			annotatePrompt)
+
+		annotateSimulatedResponse := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			annotateConfig[prompts.AnnotateStage1ResponseName].(string))
+
+		fileContentsRequest := llm.AddFileFragment(
+			llm.NewMessage(llm.UserRequest),
+			filePath,
+			fileContents,
+			annotateConfig[prompts.FilenameTagsName].([]string))
 
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
@@ -283,9 +287,13 @@ func Run(args []string, logger logging.ILogger) {
 				for i, variant := range finalVariants {
 					combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), variant))
 					if i < len(finalVariants)-1 {
-						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotateVariantPrompt))
+						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
+							llm.NewMessage(llm.UserRequest),
+							annotateConfig[prompts.AnnotateStage2PromptVariantName].(string)))
 					} else {
-						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), annotateCombinePrompt))
+						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
+							llm.NewMessage(llm.UserRequest),
+							annotateConfig[prompts.AnnotateStage2PromptCombineName].(string)))
 					}
 				}
 				// Perform the query

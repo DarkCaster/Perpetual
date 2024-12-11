@@ -10,7 +10,9 @@ package prompts
 const OutputSchemeName = "output_scheme"
 const OutputKey = "output_key"
 
-const AnnotateStage1PromptName = "stage1_prompt"
+const AnnotateStage1PromptNames = "stage1_prompts"
 const AnnotateStage1ResponseName = "stage1_response"
 const AnnotateStage2PromptVariantName = "stage2_prompt_variant"
 const AnnotateStage2PromptCombineName = "stage2_prompt_combine"
+
+const FilenameTagsName = "filename_tags"

@@ -13,7 +13,7 @@ func (p *DotNetFWPrompts) GetSystemPrompt() string {
 func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := map[string]interface{}{}
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptName] = [][2]string{
+	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*\\.cs$", DefaultAIAnnotatePrompt_CS},
 		{"(?i)^.*\\.vb$", DefaultAIAnnotatePrompt_VBNet},
 		{"(?i)^.*\\.xaml$", DefaultAIAnnotatePrompt_Xaml},
@@ -28,6 +28,8 @@ func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	// structured output scheme and lookup key
 	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
 	result[OutputKey] = DefaultAnnotateOutputKey
+	// tags for providing filename to LLM
+	result[FilenameTagsName] = DefaultFileNameTags
 	return result
 }
 
@@ -161,10 +163,6 @@ func (p *DotNetFWPrompts) GetProjectTestFilesBlacklist() []string {
 
 func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
-}
-
-func (p *DotNetFWPrompts) GetFileNameTags() []string {
-	return DefaultFileNameTags
 }
 
 func (p *DotNetFWPrompts) GetFileNameEmbedRegex() string {

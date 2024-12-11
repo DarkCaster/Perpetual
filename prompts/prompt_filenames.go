@@ -10,7 +10,6 @@ const ProjectFilesToMarkdownLangMappingFileName = "project_files_to_markdown_lan
 const ProjectFilesBlacklistFileName = "project_files_blacklist.json"
 const ProjectTestFilesBlacklistFileName = "project_test_files_blacklist.json"
 const FileNameTagsRXFileName = "filename_tags_regexps.json"
-const FileNameTagsFileName = "filename_tags.json"
 const NoUploadCommentRXFileName = "no_upload_comment_regexps.json"
 const OpImplementCommentRXFileName = "op_implement_comment_regexps.json"
 const FileNameEmbedRXFileName = "filename_embed_regexp.json"

@@ -17,7 +17,6 @@ type Prompts interface {
 	GetAnnotateConfig() map[string]interface{}
 
 	// Implement-operation helpers
-	GetFileNameTags() []string
 	GetFileNameTagsRegexps() []string
 	GetImplementCommentRegexps() []string
 	GetNoUploadCommentRegexps() []string

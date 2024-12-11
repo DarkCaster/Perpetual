@@ -191,9 +191,6 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Traceln("Saving file-name tags regexps")
 	saveJson(prompts.FileNameTagsRXFileName, promptsObj.GetFileNameTagsRegexps())
 
-	logger.Traceln("Saving file-name tags")
-	saveJson(prompts.FileNameTagsFileName, promptsObj.GetFileNameTags())
-
 	logger.Traceln("Saving file-name embed regexp")
 	saveJson(prompts.FileNameEmbedRXFileName, promptsObj.GetFileNameEmbedRegex())
 

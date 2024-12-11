@@ -13,7 +13,7 @@ func (p *Py3Prompts) GetSystemPrompt() string {
 func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := map[string]interface{}{}
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptName] = [][2]string{
+	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*\\.py$", DefaultAIAnnotatePrompt_Py3},
 		{"(?i)^.*\\.pl$", DefaultAIAnnotatePrompt_Perl},
 		{"(?i)^.*\\.(bat|cmd)$", DefaultAIAnnotatePrompt_Bat},
@@ -29,6 +29,8 @@ func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	// structured output scheme and lookup key
 	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
 	result[OutputKey] = DefaultAnnotateOutputKey
+	// tags for providing filename to LLM
+	result[FilenameTagsName] = DefaultFileNameTags
 	return result
 }
 
@@ -171,10 +173,6 @@ func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
 
 func (p *Py3Prompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
-}
-
-func (p *Py3Prompts) GetFileNameTags() []string {
-	return DefaultFileNameTags
 }
 
 func (p *Py3Prompts) GetFileNameEmbedRegex() string {

@@ -13,7 +13,7 @@ func (p *GoPrompts) GetSystemPrompt() string {
 func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := map[string]interface{}{}
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptName] = [][2]string{
+	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*_test\\.go$", DefaultAIAnnotatePrompt_Go_Tests},
 		{"(?i)^.*\\.go$", DefaultAIAnnotatePrompt_Go},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
@@ -27,6 +27,8 @@ func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 	// structured output scheme and lookup key
 	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
 	result[OutputKey] = DefaultAnnotateOutputKey
+	// tags for providing filename to LLM
+	result[FilenameTagsName] = DefaultFileNameTags
 	return result
 }
 
@@ -156,10 +158,6 @@ func (p *GoPrompts) GetProjectTestFilesBlacklist() []string {
 
 func (p *GoPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
-}
-
-func (p *GoPrompts) GetFileNameTags() []string {
-	return DefaultFileNameTags
 }
 
 func (p *GoPrompts) GetFileNameEmbedRegex() string {

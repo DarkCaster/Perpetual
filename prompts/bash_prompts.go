@@ -13,7 +13,7 @@ func (p *BashPrompts) GetSystemPrompt() string {
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := map[string]interface{}{}
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptName] = [][2]string{
+	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
@@ -26,6 +26,8 @@ func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	// structured output scheme and lookup key
 	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
 	result[OutputKey] = DefaultAnnotateOutputKey
+	// tags for providing filename to LLM
+	result[FilenameTagsName] = DefaultFileNameTags
 	return result
 }
 
@@ -155,10 +157,6 @@ func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
 
 func (p *BashPrompts) GetFileNameTagsRegexps() []string {
 	return DefaultFileNameTagsRegexps
-}
-
-func (p *BashPrompts) GetFileNameTags() []string {
-	return DefaultFileNameTags
 }
 
 func (p *BashPrompts) GetFileNameEmbedRegex() string {
