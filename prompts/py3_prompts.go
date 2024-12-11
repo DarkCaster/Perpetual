@@ -27,8 +27,10 @@ func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	// prompt to generate combined annotation
 	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
 	// structured output scheme and lookup key
-	result[OutputSchemeName] = GetDefaultAnnotateOutputScheme()
-	result[OutputKey] = DefaultAnnotateOutputKey
+	result[Stage1OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[Stage1OutputKey] = DefaultAnnotateOutputKey
+	result[Stage2OutputSchemeName] = GetDefaultAnnotateOutputScheme()
+	result[Stage2OutputKey] = DefaultAnnotateOutputKey
 	// tags for providing filename to LLM
 	result[FilenameTagsName] = DefaultFileNameTags
 	return result

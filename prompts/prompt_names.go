@@ -9,8 +9,14 @@ package prompts
 
 const DefaultSystemPromptName = "default"
 
-const OutputSchemeName = "output_scheme"
-const OutputKey = "output_key"
+const Stage1OutputSchemeName = "stage1_output_scheme"
+const Stage1OutputKey = "stage1_output_key"
+
+const Stage2OutputSchemeName = "stage2_output_scheme"
+const Stage2OutputKey = "stage2_output_key"
+
+const Stage3OutputSchemeName = "stage3_output_scheme"
+const Stage3OutputKey = "stage3_output_key"
 
 const AnnotateStage1PromptNames = "stage1_prompts"
 const AnnotateStage1ResponseName = "stage1_response"
