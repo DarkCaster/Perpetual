@@ -137,16 +137,10 @@ func Run(args []string, logger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	//TODO: remove
-	/*promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
+	systemPrompts := map[string]string{}
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.SystemPromptsConfigFile), &systemPrompts); err != nil {
+		logger.Panicf("Error loading %s config :%s", prompts.SystemPromptsConfigFile, err)
 	}
-	systemPrompt := loadPrompt(prompts.SystemPromptFile)*/
 
 	annotateConfig := map[string]interface{}{}
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpAnnotateConfigFile), &annotateConfig); err != nil {
@@ -155,7 +149,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create llm connector
 	connector, err := llm.NewLLMConnector(OpName,
-		systemPrompt,
+		systemPrompts[prompts.DefaultSystemPromptName],
 		filesToMdLangMappings,
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
@@ -166,7 +160,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create new connector for "annotate_post" operation
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
-		systemPrompt,
+		systemPrompts[prompts.DefaultSystemPromptName],
 		filesToMdLangMappings,
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
