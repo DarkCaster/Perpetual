@@ -39,6 +39,22 @@ const DefaultAIAnnotateVariantPrompt = "Create another summary variant"
 
 const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 
+var GetDefaultAnnotateOutputScheme = func() map[string]interface{} {
+	return map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"generated_summary": map[string]interface{}{
+				"type": "string",
+			},
+		},
+		"required": []string{
+			"generated_summary",
+		},
+	}
+}
+
+var DefaultAnnotateOutputKey = "generated_summary"
+
 const DefaultAIAcknowledge = "Understood. What's next?"
 
 const DefaultImplementStage1SourceAnalysisPrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
