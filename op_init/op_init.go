@@ -107,19 +107,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error creating env example file:", err)
 	}
 
-	// Create a prompts directory (if it doesn't exist)
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	_, err = os.Stat(promptsDir)
-	if os.IsNotExist(err) {
-		logger.Traceln("Creating prompts directory")
-		err = os.Mkdir(promptsDir, 0755)
-		if err != nil {
-			logger.Panicln("Error creating prompts directory:", err)
-		}
-	} else if err != nil {
-		logger.Panicln("Error checking prompts directory:", err)
-	}
-
 	// Create a prompt-files based on the selected language
 	logger.Debugln("Creating prompt-files")
 	promptsObj, err := prompts.NewPrompts(lang)
@@ -127,9 +114,9 @@ func Run(args []string, logger logging.ILogger) {
 		usage.PrintOperationUsage(err.Error(), initFlags)
 	}
 
-	savePrompt := func(filePath string, prompt string) {
-		logger.Traceln("Saving prompt:", filePath)
-		err = utils.SaveTextFile(filepath.Join(promptsDir, filePath), prompt)
+	saveConfig := func(filePath string, v any) {
+		logger.Traceln("Saving config:", filePath)
+		err = utils.SaveJsonFile(filepath.Join(perpetualDir, filePath), v)
 		if err != nil {
 			logger.Panicln(err)
 		}
@@ -138,17 +125,8 @@ func Run(args []string, logger logging.ILogger) {
 	// Save the system prompt to a file
 	savePrompt(prompts.SystemPromptFile, promptsObj.GetSystemPrompt())
 
-	// Save annotate-operation prompts
-	logger.Traceln("Saving prompt:", prompts.AnnotatePromptFile)
-	err = utils.SaveJsonFile(filepath.Join(promptsDir, prompts.AnnotatePromptFile), promptsObj.GetAnnotatePrompt())
-	if err != nil {
-		logger.Panicln("error writing prompt-JSON file: ", err)
-	}
-	savePrompt(prompts.AIAnnotateResponseFile, promptsObj.GetAIAnnotateResponse())
-
-	// Save annotate-operation-post prompts
-	savePrompt(prompts.AnnotateVariantPromptFile, promptsObj.GetAnnotateVariantPrompt())
-	savePrompt(prompts.AnnotateCombinePromptFile, promptsObj.GetAnnotateCombinePrompt())
+	// Save annotate-operation config
+	saveConfig(prompts.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
 
 	// Save implement-operation stage1 prompts
 	savePrompt(prompts.ImplementStage1ProjectIndexPromptFile, promptsObj.GetImplementStage1ProjectIndexPrompt())
