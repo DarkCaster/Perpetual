@@ -132,7 +132,7 @@ func Run(args []string, logger logging.ILogger) {
 	saveConfig(prompts.OpImplementConfigFile, promptsObj.GetImplementConfig())
 
 	// Save doc-operation prompts
-	savePrompt(prompts.DocProjectIndexPromptFile, promptsObj.GetDocProjectIndexPrompt())
+	/*savePrompt(prompts.DocProjectIndexPromptFile, promptsObj.GetDocProjectIndexPrompt())
 	savePrompt(prompts.AIDocProjectIndexResponseFile, promptsObj.GetAIDocProjectIndexResponse())
 	savePrompt(prompts.DocProjectCodePromptFile, promptsObj.GetDocProjectCodePrompt())
 	savePrompt(prompts.AIDocProjectCodeResponseFile, promptsObj.GetAIDocProjectCodeResponse())
@@ -142,7 +142,7 @@ func Run(args []string, logger logging.ILogger) {
 	savePrompt(prompts.DocStage1RefinePromptFile, promptsObj.GetDocStage1RefinePrompt())
 	savePrompt(prompts.DocStage2WritePromptFile, promptsObj.GetDocStage2WritePrompt())
 	savePrompt(prompts.DocStage2RefinePromptFile, promptsObj.GetDocStage2RefinePrompt())
-	savePrompt(prompts.DocStage2ContinuePromptFile, promptsObj.GetDocStage2ContinuePrompt())
+	savePrompt(prompts.DocStage2ContinuePromptFile, promptsObj.GetDocStage2ContinuePrompt())*/
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")
