@@ -4,11 +4,13 @@
 
 ### Breaking changes
 
-- Added initial support for json structured output mode. Disabled by default, may be incompatible with all providers or LLM models. May improve results with Ollama and small LLM models in future.
+- Added initial support for json structured output mode. Disabled by default for now, currently only works with Ollama and OpenaAI. May improve results for supported operations/stages in future.
+
+- Split extra reasoning mode for `op_implement` into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection instructions together within single query producing smaller and simplier instructions, which should provide better results with smaller models.
 
 - User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion-type and stored inside json config-files. Configs also include all needed text-tags and regexp definitions within corresponding json file.
 
-**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts
+**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `op_implement` stages 2,3,4 config, if not using defaults.
 
 ## v1.9.0
 
