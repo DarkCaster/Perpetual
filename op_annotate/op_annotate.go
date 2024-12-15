@@ -2,7 +2,6 @@ package op_annotate
 
 import (
 	"flag"
-	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -167,7 +166,7 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Debugln(connectorPost.GetDebugString())
 
 	// Load output tags regexps
-	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
+	outputTagsRxStrings := annotateConfig[prompts.CodeTagsRxName].([]string)
 
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))

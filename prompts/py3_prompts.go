@@ -20,6 +20,7 @@ func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.(sh|bash)(\\.in)?$", DefaultAIAnnotatePrompt_Bash},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
 	return result
 }
 

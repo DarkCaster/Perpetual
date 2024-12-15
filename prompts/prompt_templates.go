@@ -92,6 +92,7 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[Stage2OutputKey] = DefaultAnnotateOutputKey
 	// tags for providing filename to LLM
 	result[FilenameTagsName] = DefaultFileNameTags
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps
 	return result
 }
 

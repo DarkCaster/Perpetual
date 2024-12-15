@@ -19,6 +19,7 @@ func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.bas$", DefaultAIAnnotatePrompt_VB6_Module},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
 	}
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
