@@ -12,7 +12,7 @@ func (p *BashPrompts) GetSystemPrompts() map[string]string {
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	// file-dependent annotate prompts
+	// file-type-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
 		{"(?i)^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash},
 		{"^.*$", DefaultAIAnnotatePrompt_Generic},
@@ -20,60 +20,17 @@ func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *BashPrompts) GetImplementStage1ProjectIndexPrompt() string {
-	return "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-}
-
-func (p *BashPrompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *BashPrompts) GetImplementStage1SourceAnalysisPrompt() string {
-	return DefaultImplementStage1SourceAnalysisPrompt
-}
-
-func (p *BashPrompts) GetImplementStage2ProjectCodePrompt() string {
-	return DefaultImplementStage2ProjectCodePrompt
-}
-
-func (p *BashPrompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *BashPrompts) GetImplementStage2FilesToChangePrompt() string {
-	return DefaultImplementStage2FilesToChangePrompt
-}
-
-func (p *BashPrompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return DefaultImplementStage2FilesToChangeExtendedPrompt
-}
-
-func (p *BashPrompts) GetImplementStage2NoPlanningPrompt() string {
-	return DefaultImplementStage2NoPlanningPrompt
-}
-
-func (p *BashPrompts) GetAIImplementStage2NoPlanningResponse() string {
-	return DefaultAIImplementStage2NoPlanningResponse
-}
-
-func (p *BashPrompts) GetImplementStage3ChangesDonePrompt() string {
-	return DefaultImplementStage3ChangesDonePrompt
-}
-
-func (p *BashPrompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *BashPrompts) GetImplementStage3ProcessFilePrompt() string {
-	return DefaultImplementStage3ProcessFilePrompt
-}
-
-func (p *BashPrompts) GetImplementStage3ContinuePrompt() string {
-	return DefaultImplementStage3ContinuePrompt
+func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
+	result := GetDefaultImplementConfigTemplate()
+	// redefine language-dependent prompt
+	result[ImplementStage1IndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$"}
+	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$"}
+	return result
 }
 
 func (p *BashPrompts) GetDocProjectIndexPrompt() string {
-	return p.GetImplementStage1ProjectIndexPrompt()
+	return "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 }
 
 func (p *BashPrompts) GetAIDocProjectIndexResponse() string {
@@ -116,14 +73,6 @@ func (p *BashPrompts) GetDocStage2ContinuePrompt() string {
 	return DefaultDocStage2ContinuePrompt
 }
 
-func (p *BashPrompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*###IMPLEMENT###.*$"}
-}
-
-func (p *BashPrompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*###NOUPLOAD###.*$"}
-}
-
 func (p *BashPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"(?i)^.*\\.(sh|bash|in)$"}
 }
@@ -142,18 +91,6 @@ func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 	}
-}
-
-func (p *BashPrompts) GetFileNameTagsRegexps() []string {
-	return DefaultFileNameTagsRegexps
-}
-
-func (p *BashPrompts) GetFileNameEmbedRegex() string {
-	return DefaultFileNameEmbedRegex
-}
-
-func (p *BashPrompts) GetOutputTagsRegexps() []string {
-	return DefaultOutputTagsRegexps
 }
 
 func (p *BashPrompts) GetReasoningsTagsRegexps() []string {

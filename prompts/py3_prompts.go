@@ -23,60 +23,18 @@ func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *Py3Prompts) GetImplementStage1ProjectIndexPrompt() string {
-	return "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *Py3Prompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *Py3Prompts) GetImplementStage1SourceAnalysisPrompt() string {
-	return DefaultImplementStage1SourceAnalysisPrompt
-}
-
-func (p *Py3Prompts) GetImplementStage2ProjectCodePrompt() string {
-	return DefaultImplementStage2ProjectCodePrompt
-}
-
-func (p *Py3Prompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *Py3Prompts) GetImplementStage2FilesToChangePrompt() string {
-	return DefaultImplementStage2FilesToChangePrompt
-}
-
-func (p *Py3Prompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return DefaultImplementStage2FilesToChangeExtendedPrompt
-}
-
-func (p *Py3Prompts) GetImplementStage2NoPlanningPrompt() string {
-	return DefaultImplementStage2NoPlanningPrompt
-}
-
-func (p *Py3Prompts) GetAIImplementStage2NoPlanningResponse() string {
-	return DefaultAIImplementStage2NoPlanningResponse
-}
-
-func (p *Py3Prompts) GetImplementStage3ChangesDonePrompt() string {
-	return DefaultImplementStage3ChangesDonePrompt
-}
-
-func (p *Py3Prompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *Py3Prompts) GetImplementStage3ProcessFilePrompt() string {
-	return DefaultImplementStage3ProcessFilePrompt
-}
-
-func (p *Py3Prompts) GetImplementStage3ContinuePrompt() string {
-	return DefaultImplementStage3ContinuePrompt
+func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
+	result := GetDefaultImplementConfigTemplate()
+	// redefine language-dependent prompt
+	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
+	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
+	return result
 }
 
 func (p *Py3Prompts) GetDocProjectIndexPrompt() string {
-	return p.GetImplementStage1ProjectIndexPrompt()
+	return "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }
 
 func (p *Py3Prompts) GetAIDocProjectIndexResponse() string {
@@ -119,14 +77,6 @@ func (p *Py3Prompts) GetDocStage2ContinuePrompt() string {
 	return DefaultDocStage2ContinuePrompt
 }
 
-func (p *Py3Prompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
-}
-
-func (p *Py3Prompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
-}
-
 func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
 	return []string{
 		"(?i)^.*\\.py$",
@@ -158,18 +108,6 @@ func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^unittest(\\\\|\\/).*\\.py$",
 		"(?i)^pytest(\\\\|\\/).*\\.py$",
 	}
-}
-
-func (p *Py3Prompts) GetFileNameTagsRegexps() []string {
-	return DefaultFileNameTagsRegexps
-}
-
-func (p *Py3Prompts) GetFileNameEmbedRegex() string {
-	return DefaultFileNameEmbedRegex
-}
-
-func (p *Py3Prompts) GetOutputTagsRegexps() []string {
-	return DefaultOutputTagsRegexps_WithNumbers
 }
 
 func (p *Py3Prompts) GetReasoningsTagsRegexps() []string {

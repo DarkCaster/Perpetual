@@ -128,26 +128,8 @@ func Run(args []string, logger logging.ILogger) {
 	// Save annotate-operation config
 	saveConfig(prompts.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
 
-	// Save implement-operation stage1 prompts
-	savePrompt(prompts.ImplementStage1ProjectIndexPromptFile, promptsObj.GetImplementStage1ProjectIndexPrompt())
-	savePrompt(prompts.AIImplementStage1ProjectIndexResponseFile, promptsObj.GetAIImplementStage1ProjectIndexResponse())
-	savePrompt(prompts.ImplementStage1SourceAnalysisPromptFile, promptsObj.GetImplementStage1SourceAnalysisPrompt())
-
-	// Save implement-operation stage2 prompts
-	savePrompt(prompts.ImplementStage2ProjectCodePromptFile, promptsObj.GetImplementStage2ProjectCodePrompt())
-	savePrompt(prompts.AIImplementStage2ProjectCodeResponseFile, promptsObj.GetAIImplementStage2ProjectCodeResponse())
-	savePrompt(prompts.ImplementStage2FilesToChangePromptFile, promptsObj.GetImplementStage2FilesToChangePrompt())
-	savePrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile, promptsObj.GetImplementStage2FilesToChangeExtendedPrompt())
-
-	// Save implement-operation stage2 no-planning prompts
-	savePrompt(prompts.ImplementStage2NoPlanningPromptFile, promptsObj.GetImplementStage2NoPlanningPrompt())
-	savePrompt(prompts.AIImplementStage2NoPlanningResponseFile, promptsObj.GetAIImplementStage2NoPlanningResponse())
-
-	// Save implement-operation stage3 prompts
-	savePrompt(prompts.ImplementStage3ChangesDonePromptFile, promptsObj.GetImplementStage3ChangesDonePrompt())
-	savePrompt(prompts.AIImplementStage3ChangesDoneResponseFile, promptsObj.GetAIImplementStage3ChangesDoneResponse())
-	savePrompt(prompts.ImplementStage3ProcessFilePromptFile, promptsObj.GetImplementStage3ProcessFilePrompt())
-	savePrompt(prompts.ImplementStage3ContinuePromptFile, promptsObj.GetImplementStage3ContinuePrompt())
+	// Save implement-operation config
+	saveConfig(prompts.OpImplementConfigFile, promptsObj.GetImplementConfig())
 
 	// Save doc-operation prompts
 	savePrompt(prompts.DocProjectIndexPromptFile, promptsObj.GetDocProjectIndexPrompt())
@@ -181,25 +163,4 @@ func Run(args []string, logger logging.ILogger) {
 
 	logger.Traceln("Saving project test files blacklist regexps")
 	saveJson(prompts.ProjectTestFilesBlacklistFileName, promptsObj.GetProjectTestFilesBlacklist())
-
-	logger.Traceln("Saving implement-operation comment regexps")
-	saveJson(prompts.OpImplementCommentRXFileName, promptsObj.GetImplementCommentRegexps())
-
-	logger.Traceln("Saving no-upload comment regexps")
-	saveJson(prompts.NoUploadCommentRXFileName, promptsObj.GetNoUploadCommentRegexps())
-
-	logger.Traceln("Saving file-name tags regexps")
-	saveJson(prompts.FileNameTagsRXFileName, promptsObj.GetFileNameTagsRegexps())
-
-	logger.Traceln("Saving file-name embed regexp")
-	saveJson(prompts.FileNameEmbedRXFileName, promptsObj.GetFileNameEmbedRegex())
-
-	logger.Traceln("Saving output-tags regexps")
-	saveJson(prompts.OutputTagsRXFileName, promptsObj.GetOutputTagsRegexps())
-
-	logger.Traceln("Saving reasonings-tags regexps")
-	saveJson(prompts.ReasoningsTagsRXFileName, promptsObj.GetReasoningsTagsRegexps())
-
-	logger.Traceln("Saving reasonings-tags")
-	saveJson(prompts.ReasoningsTagsFileName, promptsObj.GetReasoningsTags())
 }

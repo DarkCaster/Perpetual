@@ -16,35 +16,8 @@ type Prompts interface {
 	// Annotate-operation prompts
 	GetAnnotateConfig() map[string]interface{}
 
-	// Implement-operation helpers
-	GetFileNameTagsRegexps() []string
-	GetImplementCommentRegexps() []string
-	GetNoUploadCommentRegexps() []string
-	GetFileNameEmbedRegex() string
-	GetOutputTagsRegexps() []string
-	GetReasoningsTags() []string
-	GetReasoningsTagsRegexps() []string
-
-	// Implement stage 1 prompts
-	GetImplementStage1ProjectIndexPrompt() string
-	GetAIImplementStage1ProjectIndexResponse() string
-	GetImplementStage1SourceAnalysisPrompt() string
-
-	// Implement stage 2 prompts
-	GetImplementStage2ProjectCodePrompt() string
-	GetAIImplementStage2ProjectCodeResponse() string
-	GetImplementStage2FilesToChangePrompt() string
-	GetImplementStage2FilesToChangeExtendedPrompt() string
-
-	// Implement stage 2 no planning prompts
-	GetImplementStage2NoPlanningPrompt() string
-	GetAIImplementStage2NoPlanningResponse() string
-
-	// Implement stage 3 prompts
-	GetImplementStage3ChangesDonePrompt() string
-	GetAIImplementStage3ChangesDoneResponse() string
-	GetImplementStage3ProcessFilePrompt() string
-	GetImplementStage3ContinuePrompt() string
+	// Annotate-operation prompts
+	GetImplementConfig() map[string]interface{}
 
 	// Doc project index and code prompts
 	GetDocProjectIndexPrompt() string

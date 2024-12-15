@@ -23,6 +23,9 @@ const SystemPromptsConfigFile = "system_prompts.json"
 // Annotate-operation config
 const OpAnnotateConfigFile = "op_annotate.json"
 
+// Annotate-operation config
+const OpImplementConfigFile = "op_implement.json"
+
 // Implement-operation stage1 prompt-filenames
 const ImplementStage1ProjectIndexPromptFile = "op_implement_stage1_project_index_prompt.txt"
 const AIImplementStage1ProjectIndexResponseFile = "op_implement_stage1_project_index_ai_response.txt"

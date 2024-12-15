@@ -22,60 +22,17 @@ func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *DotNetFWPrompts) GetImplementStage1ProjectIndexPrompt() string {
-	return "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *DotNetFWPrompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *DotNetFWPrompts) GetImplementStage1SourceAnalysisPrompt() string {
-	return DefaultImplementStage1SourceAnalysisPrompt
-}
-
-func (p *DotNetFWPrompts) GetImplementStage2ProjectCodePrompt() string {
-	return DefaultImplementStage2ProjectCodePrompt
-}
-
-func (p *DotNetFWPrompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *DotNetFWPrompts) GetImplementStage2FilesToChangePrompt() string {
-	return DefaultImplementStage2FilesToChangePrompt
-}
-
-func (p *DotNetFWPrompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return DefaultImplementStage2FilesToChangeExtendedPrompt
-}
-
-func (p *DotNetFWPrompts) GetImplementStage2NoPlanningPrompt() string {
-	return DefaultImplementStage2NoPlanningPrompt
-}
-
-func (p *DotNetFWPrompts) GetAIImplementStage2NoPlanningResponse() string {
-	return DefaultAIImplementStage2NoPlanningResponse
-}
-
-func (p *DotNetFWPrompts) GetImplementStage3ChangesDonePrompt() string {
-	return DefaultImplementStage3ChangesDonePrompt
-}
-
-func (p *DotNetFWPrompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *DotNetFWPrompts) GetImplementStage3ProcessFilePrompt() string {
-	return DefaultImplementStage3ProcessFilePrompt
-}
-
-func (p *DotNetFWPrompts) GetImplementStage3ContinuePrompt() string {
-	return DefaultImplementStage3ContinuePrompt
+func (p *DotNetFWPrompts) GetImplementConfig() map[string]interface{} {
+	result := GetDefaultImplementConfigTemplate()
+	// redefine language-dependent prompt
+	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[ImplementCommentsRxName] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[NoUploadCommentsRxName] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	return result
 }
 
 func (p *DotNetFWPrompts) GetDocProjectIndexPrompt() string {
-	return p.GetImplementStage1ProjectIndexPrompt()
+	return "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }
 
 func (p *DotNetFWPrompts) GetAIDocProjectIndexResponse() string {
@@ -118,14 +75,6 @@ func (p *DotNetFWPrompts) GetDocStage2ContinuePrompt() string {
 	return DefaultDocStage2ContinuePrompt
 }
 
-func (p *DotNetFWPrompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
-}
-
-func (p *DotNetFWPrompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
-}
-
 func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"(?i)^.*\\.(cs|vb|xaml)$"}
 }
@@ -148,18 +97,6 @@ func (p *DotNetFWPrompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 	}
-}
-
-func (p *DotNetFWPrompts) GetFileNameTagsRegexps() []string {
-	return DefaultFileNameTagsRegexps
-}
-
-func (p *DotNetFWPrompts) GetFileNameEmbedRegex() string {
-	return DefaultFileNameEmbedRegex
-}
-
-func (p *DotNetFWPrompts) GetOutputTagsRegexps() []string {
-	return DefaultOutputTagsRegexps
 }
 
 func (p *DotNetFWPrompts) GetReasoningsTagsRegexps() []string {

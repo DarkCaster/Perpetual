@@ -22,60 +22,18 @@ func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *VB6Prompts) GetImplementStage1ProjectIndexPrompt() string {
-	return "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *VB6Prompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *VB6Prompts) GetImplementStage1SourceAnalysisPrompt() string {
-	return DefaultImplementStage1SourceAnalysisPrompt
-}
-
-func (p *VB6Prompts) GetImplementStage2ProjectCodePrompt() string {
-	return DefaultImplementStage2ProjectCodePrompt
-}
-
-func (p *VB6Prompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *VB6Prompts) GetImplementStage2FilesToChangePrompt() string {
-	return DefaultImplementStage2FilesToChangePrompt
-}
-
-func (p *VB6Prompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return DefaultImplementStage2FilesToChangeExtendedPrompt
-}
-
-func (p *VB6Prompts) GetImplementStage2NoPlanningPrompt() string {
-	return DefaultImplementStage2NoPlanningPrompt
-}
-
-func (p *VB6Prompts) GetAIImplementStage2NoPlanningResponse() string {
-	return DefaultAIImplementStage2NoPlanningResponse
-}
-
-func (p *VB6Prompts) GetImplementStage3ChangesDonePrompt() string {
-	return DefaultImplementStage3ChangesDonePrompt
-}
-
-func (p *VB6Prompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *VB6Prompts) GetImplementStage3ProcessFilePrompt() string {
-	return DefaultImplementStage3ProcessFilePrompt
-}
-
-func (p *VB6Prompts) GetImplementStage3ContinuePrompt() string {
-	return DefaultImplementStage3ContinuePrompt
+func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
+	result := GetDefaultImplementConfigTemplate()
+	// redefine language-dependent prompt
+	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[ImplementCommentsRxName] = []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
+	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
+	return result
 }
 
 func (p *VB6Prompts) GetDocProjectIndexPrompt() string {
-	return p.GetImplementStage1ProjectIndexPrompt()
+	return "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }
 
 func (p *VB6Prompts) GetAIDocProjectIndexResponse() string {
@@ -118,14 +76,6 @@ func (p *VB6Prompts) GetDocStage2ContinuePrompt() string {
 	return DefaultDocStage2ContinuePrompt
 }
 
-func (p *VB6Prompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
-}
-
-func (p *VB6Prompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
-}
-
 func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
 	return []string{"(?i)^.*\\.(frm|cls|bas)$"}
 }
@@ -145,18 +95,6 @@ func (p *VB6Prompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 		"(?i)^tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 	}
-}
-
-func (p *VB6Prompts) GetFileNameTagsRegexps() []string {
-	return DefaultFileNameTagsRegexps
-}
-
-func (p *VB6Prompts) GetFileNameEmbedRegex() string {
-	return DefaultFileNameEmbedRegex
-}
-
-func (p *VB6Prompts) GetOutputTagsRegexps() []string {
-	return DefaultOutputTagsRegexps_WithNumbers
 }
 
 func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {

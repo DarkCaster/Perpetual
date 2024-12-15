@@ -55,7 +55,7 @@ func GetDefaultAnnotateOutputScheme() map[string]interface{} {
 
 const DefaultAnnotateOutputKey = "generated_summary"
 
-func GetDefaultImplementStage1OutputScheme() map[string]interface{} {
+func GetDefaultListOfFilesOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
@@ -72,11 +72,14 @@ func GetDefaultImplementStage1OutputScheme() map[string]interface{} {
 	}
 }
 
-const DefaultImplementStage1OutputKey = "list_of_files"
+const DefaultListOfFilesOutputKey = "list_of_files"
 
 func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	// ack from AI
+	result[AnnotateStage1PromptNames] = [][2]string{
+		{"^.*$", "TEMPLATE VALUE, MUST BE REDEFINED"},
+	}
 	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
 	// prompt to generate another annotation variant
 	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
@@ -92,7 +95,42 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetDefaultImplementStage2OutputScheme(includeReasonings bool) map[string]interface{} {
+func GetDefaultImplementConfigTemplate() map[string]interface{} {
+	result := map[string]interface{}{}
+	// stage 1
+	result[ImplementStage1IndexPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[ImplementStage1IndexResponseName] = DefaultAIAcknowledge
+	result[ImplementStage1AnalisysPromptName] = DefaultImplementStage1SourceAnalysisPrompt
+	result[ImplementStage1AnalisysJsonModePromptName] = DefaultImplementStage1SourceAnalysisJsonModePrompt
+	result[Stage1OutputSchemeName] = GetDefaultListOfFilesOutputScheme()
+	result[Stage1OutputKey] = DefaultListOfFilesOutputKey
+	// stage 2
+	result[ImplementStage2CodePromptName] = DefaultImplementStage2ProjectCodePrompt
+	result[ImplementStage2CodeResponseName] = DefaultAIAcknowledge
+	result[ImplementStage2FilesToChangePromptName] = DefaultImplementStage2FilesToChangePrompt
+	result[ImplementStage2FilesToChangeJsonModePromptName] = DefaultImplementStage2FilesToChangeJsonModePrompt
+	result[ImplementStage2NoPlanningPromptName] = DefaultImplementStage2NoPlanningPrompt
+	result[ImplementStage2NoPlanningResponseName] = DefaultAIImplementStage2NoPlanningResponse
+	result[Stage2OutputSchemeName] = GetDefaultListOfFilesOutputScheme()
+	result[Stage2OutputKey] = DefaultListOfFilesOutputKey
+	//TODO: stage 2 with reasonings (rename it to stage3)
+	// stage 3 (probably it will be stage 4 after adding reasonings)
+	result[ImplementStage3ChangesDonePromptName] = DefaultImplementStage3ChangesDonePrompt
+	result[ImplementStage3ChangesDoneResponseName] = DefaultAIAcknowledge
+	result[ImplementStage3ProcessPromptName] = DefaultImplementStage3ProcessFilePrompt
+	result[ImplementStage3ContinuePromptName] = DefaultImplementStage3ContinuePrompt
+	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
+	result[FilenameTagsName] = DefaultFileNameTags
+	result[FilenameTagsRxName] = DefaultFileNameTagsRegexps
+	result[FilenameEmpedRxName] = DefaultFileNameEmbedRegex
+	result[NoUploadCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[ImplementCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[CodeTagsRxName] = DefaultOutputTagsRegexps
+
+	return result
+}
+
+/*func GetDefaultImplementStage2OutputScheme(includeReasonings bool) map[string]interface{} {
 	result := map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
@@ -119,15 +157,19 @@ func GetDefaultImplementStage2OutputScheme(includeReasonings bool) map[string]in
 }
 
 const DefaultImplementStage2OutputKey = "list_of_files"
-const DefaultImplementStage2ReasoningsOutputKey = "reasonings"
+const DefaultImplementStage2ReasoningsOutputKey = "reasonings"*/
 
 const DefaultAIAcknowledge = "Understood. What's next?"
 
 const DefaultImplementStage1SourceAnalysisPrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
 
+const DefaultImplementStage1SourceAnalysisJsonModePrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
+
 const DefaultImplementStage2ProjectCodePrompt = "Here are the contents of my project's source code files."
 
 const DefaultImplementStage2FilesToChangePrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
+
+const DefaultImplementStage2FilesToChangeJsonModePrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
 
 const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"
 

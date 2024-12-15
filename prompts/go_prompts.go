@@ -21,60 +21,17 @@ func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *GoPrompts) GetImplementStage1ProjectIndexPrompt() string {
-	return "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *GoPrompts) GetAIImplementStage1ProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *GoPrompts) GetImplementStage1SourceAnalysisPrompt() string {
-	return DefaultImplementStage1SourceAnalysisPrompt
-}
-
-func (p *GoPrompts) GetImplementStage2ProjectCodePrompt() string {
-	return DefaultImplementStage2ProjectCodePrompt
-}
-
-func (p *GoPrompts) GetAIImplementStage2ProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *GoPrompts) GetImplementStage2FilesToChangePrompt() string {
-	return DefaultImplementStage2FilesToChangePrompt
-}
-
-func (p *GoPrompts) GetImplementStage2FilesToChangeExtendedPrompt() string {
-	return DefaultImplementStage2FilesToChangeExtendedPrompt
-}
-
-func (p *GoPrompts) GetImplementStage2NoPlanningPrompt() string {
-	return DefaultImplementStage2NoPlanningPrompt
-}
-
-func (p *GoPrompts) GetAIImplementStage2NoPlanningResponse() string {
-	return DefaultAIImplementStage2NoPlanningResponse
-}
-
-func (p *GoPrompts) GetImplementStage3ChangesDonePrompt() string {
-	return DefaultImplementStage3ChangesDonePrompt
-}
-
-func (p *GoPrompts) GetAIImplementStage3ChangesDoneResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *GoPrompts) GetImplementStage3ProcessFilePrompt() string {
-	return DefaultImplementStage3ProcessFilePrompt
-}
-
-func (p *GoPrompts) GetImplementStage3ContinuePrompt() string {
-	return DefaultImplementStage3ContinuePrompt
+func (p *GoPrompts) GetImplementConfig() map[string]interface{} {
+	result := GetDefaultImplementConfigTemplate()
+	// redefine language-dependent prompt
+	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[ImplementCommentsRxName] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[NoUploadCommentsRxName] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	return result
 }
 
 func (p *GoPrompts) GetDocProjectIndexPrompt() string {
-	return p.GetImplementStage1ProjectIndexPrompt()
+	return "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 }
 
 func (p *GoPrompts) GetAIDocProjectIndexResponse() string {
@@ -117,14 +74,6 @@ func (p *GoPrompts) GetDocStage2ContinuePrompt() string {
 	return DefaultDocStage2ContinuePrompt
 }
 
-func (p *GoPrompts) GetImplementCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
-}
-
-func (p *GoPrompts) GetNoUploadCommentRegexps() []string {
-	return []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
-}
-
 func (p *GoPrompts) GetProjectFilesWhitelist() []string {
 	return []string{"(?i)^.*\\.go$"}
 }
@@ -143,18 +92,6 @@ func (p *GoPrompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
 		"(?i)^test(\\\\|\\/).*\\.go$",
 	}
-}
-
-func (p *GoPrompts) GetFileNameTagsRegexps() []string {
-	return DefaultFileNameTagsRegexps
-}
-
-func (p *GoPrompts) GetFileNameEmbedRegex() string {
-	return DefaultFileNameEmbedRegex
-}
-
-func (p *GoPrompts) GetOutputTagsRegexps() []string {
-	return DefaultOutputTagsRegexps
 }
 
 func (p *GoPrompts) GetReasoningsTagsRegexps() []string {
