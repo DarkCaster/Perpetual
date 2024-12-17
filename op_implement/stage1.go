@@ -9,8 +9,15 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage1(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTagsRxStrings []string, fileNameTags []string,
-	fileNames []string, annotations map[string]string, targetFiles []string, logger logging.ILogger) []string {
+func Stage1(projectRootDir string,
+	perpetualDir string,
+	systemPrompt string,
+	config map[string]interface{},
+	filesToMdLangMappings [][2]string,
+	fileNames []string,
+	annotations map[string]string,
+	targetFiles []string,
+	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
 	logger.Traceln("Stage1: Starting")
@@ -23,38 +30,51 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln(stage1Connector.GetDebugString())
 
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
-	}
-
 	// Create project-index request message
-	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
+	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(
+		llm.NewMessage(llm.UserRequest),
+		config[prompts.ImplementStage1IndexPromptName].(string))
+
 	for _, item := range fileNames {
-		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(stage1ProjectIndexRequestMessage, item, fileNameTags)
+		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(
+			stage1ProjectIndexRequestMessage,
+			item,
+			config[prompts.FilenameTagsName].([]string))
+
 		annotation := annotations[item]
 		if annotation == "" {
 			annotation = "No annotation available"
 		}
-		stage1ProjectIndexRequestMessage = llm.AddPlainTextFragment(stage1ProjectIndexRequestMessage, annotation)
+
+		stage1ProjectIndexRequestMessage = llm.AddPlainTextFragment(
+			stage1ProjectIndexRequestMessage,
+			annotation)
 	}
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage1ProjectIndexResponseFile))
+	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(
+		llm.NewMessage(llm.SimulatedAIResponse),
+		config[prompts.ImplementStage1IndexResponseName].(string))
+
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analisys request message
-	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1SourceAnalysisPromptFile))
+	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(
+		llm.NewMessage(llm.UserRequest),
+		config[prompts.ImplementStage1AnalisysPromptName].(string))
+
 	for _, item := range targetFiles {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 		if err != nil {
 			logger.Panicln("failed to add file contents to stage1 prompt", err)
 		}
-		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(stage1SourceAnalysisRequestMessage, item, contents, fileNameTags)
+
+		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(
+			stage1SourceAnalysisRequestMessage,
+			item,
+			contents,
+			config[prompts.FilenameTagsName].([]string))
 	}
 	logger.Debugln("Created target files analysis request message")
 
@@ -98,7 +118,12 @@ func Stage1(projectRootDir string, perpetualDir string, promptsDir string, syste
 	if len(aiResponses) < 1 || aiResponses[0] == "" {
 		logger.Errorln("Got empty response from AI")
 	}
-	filesForReviewRaw, err := utils.ParseTaggedText(aiResponses[0], fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
+
+	filesForReviewRaw, err := utils.ParseTaggedText(aiResponses[0],
+		config[prompts.FilenameTagsRxName].([]string)[0],
+		config[prompts.FilenameTagsRxName].([]string)[1],
+		false)
+
 	if err != nil {
 		logger.Panicln("Failed to parse list of files for review", err)
 	}

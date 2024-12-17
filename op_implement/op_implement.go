@@ -2,7 +2,6 @@ package op_implement
 
 import (
 	"flag"
-	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -83,6 +82,16 @@ func Run(args []string, logger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
+	systemPrompts := map[string]string{}
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.SystemPromptsConfigFile), &systemPrompts); err != nil {
+		logger.Panicf("Error loading %s config :%s", prompts.SystemPromptsConfigFile, err)
+	}
+
+	implementConfig := map[string]interface{}{}
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
+	}
+
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
 	if err != nil {
@@ -119,19 +128,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 	}
 
-	var implementRxStrings []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementCommentRXFileName), &implementRxStrings)
-	if err != nil {
-		logger.Panicln("Error reading implement-operation regexps:", err)
-	}
-
-	var noUploadRxStrings []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.NoUploadCommentRXFileName), &noUploadRxStrings)
-	if err != nil {
-		logger.Panicln("Error reading no-upload regexps:", err)
-	}
-
-	fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
+	/*fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
 	fileNameTags := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
 	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
 	reasoningsTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.ReasoningsTagsRXFileName), 2, 2, 2, logger)
@@ -141,7 +138,7 @@ func Run(args []string, logger logging.ILogger) {
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
 	if err != nil {
 		logger.Panicln("Error loading filename-embed regexp json:", err)
-	}
+	}*/
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
@@ -159,7 +156,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	var implementRegexps []*regexp.Regexp
-	for _, rx := range implementRxStrings {
+	for _, rx := range implementConfig[prompts.ImplementCommentsRxName].([]string) {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
 			logger.Panicln("Failed to compile 'implement' comment search regexp: ", err)
@@ -168,7 +165,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	var noUploadRegexps []*regexp.Regexp
-	for _, rx := range noUploadRxStrings {
+	for _, rx := range implementConfig[prompts.NoUploadCommentsRxName].([]string) {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
 			logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
@@ -231,11 +228,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Warnln("File-annotations update disabled, this may worsen the final result")
 	}
 
-	systemPrompt, err := utils.LoadTextFile(filepath.Join(promptsDir, prompts.SystemPromptFile))
-	if err != nil {
-		logger.Warnln("Failed to read system prompt:", err)
-	}
-
 	var filesToReview []string
 	if !skipStage1 {
 		// Load annotations needed for stage1
@@ -259,7 +251,16 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		if nonTargetFilesAnnotationsCount > 0 {
 			// Run stage 1
-			filesToReview = Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, targetFiles, logger)
+			filesToReview = Stage1(
+				projectRootDir,
+				perpetualDir,
+				systemPrompts[prompts.DefaultSystemPromptName],
+				implementConfig,
+				filesToMdLangMappings,
+				fileNames,
+				annotations,
+				targetFiles,
+				logger)
 		} else {
 			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
 		}
@@ -279,7 +280,21 @@ func Run(args []string, logger logging.ILogger) {
 	filesToReview = filteredFilesToReview
 
 	// Run stage 2
-	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, planningMode, fileNameTagsRxStrings, fileNameTags, reasoningsTagsRxStrings, reasoningsTagsStrings, allFileNames, filesToReview, targetFiles, logger)
+	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(
+		projectRootDir,
+		perpetualDir,
+		promptsDir,
+		systemPrompts[prompts.DefaultSystemPromptName],
+		filesToMdLangMappings,
+		planningMode,
+		fileNameTagsRxStrings,
+		fileNameTags,
+		reasoningsTagsRxStrings,
+		reasoningsTagsStrings,
+		allFileNames,
+		filesToReview,
+		targetFiles,
+		logger)
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
@@ -294,7 +309,19 @@ func Run(args []string, logger logging.ILogger) {
 	otherFilesToModify = filteredOtherFilesToModify
 
 	// Run stage 3
-	results := Stage3(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, outputTagsRxStrings, fileNameEmbedRXString, fileNameTags, stage2Messages, otherFilesToModify, targetFilesToModify, logger)
+	results := Stage3(
+		projectRootDir,
+		perpetualDir,
+		promptsDir,
+		systemPrompts[prompts.DefaultSystemPromptName],
+		filesToMdLangMappings,
+		outputTagsRxStrings,
+		fileNameEmbedRXString,
+		fileNameTags,
+		stage2Messages,
+		otherFilesToModify,
+		targetFilesToModify,
+		logger)
 
 	// Extra failsafe: filter-out files from results that not among initial files to modify
 	var filteredResults = make(map[string]string)
