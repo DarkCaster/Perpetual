@@ -131,18 +131,8 @@ func Run(args []string, logger logging.ILogger) {
 	// Save implement-operation config
 	saveConfig(prompts.OpImplementConfigFile, promptsObj.GetImplementConfig())
 
-	// Save doc-operation prompts
-	/*savePrompt(prompts.DocProjectIndexPromptFile, promptsObj.GetDocProjectIndexPrompt())
-	savePrompt(prompts.AIDocProjectIndexResponseFile, promptsObj.GetAIDocProjectIndexResponse())
-	savePrompt(prompts.DocProjectCodePromptFile, promptsObj.GetDocProjectCodePrompt())
-	savePrompt(prompts.AIDocProjectCodeResponseFile, promptsObj.GetAIDocProjectCodeResponse())
-	savePrompt(prompts.DocExamplePromptFile, promptsObj.GetDocExamplePrompt())
-	savePrompt(prompts.AIDocExampleResponseFile, promptsObj.GetAIDocExampleResponse())
-	savePrompt(prompts.DocStage1WritePromptFile, promptsObj.GetDocStage1WritePrompt())
-	savePrompt(prompts.DocStage1RefinePromptFile, promptsObj.GetDocStage1RefinePrompt())
-	savePrompt(prompts.DocStage2WritePromptFile, promptsObj.GetDocStage2WritePrompt())
-	savePrompt(prompts.DocStage2RefinePromptFile, promptsObj.GetDocStage2RefinePrompt())
-	savePrompt(prompts.DocStage2ContinuePromptFile, promptsObj.GetDocStage2ContinuePrompt())*/
+	// Save doc-operation config
+	saveConfig(prompts.OpDocConfigFile, promptsObj.GetDocConfig())
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")
