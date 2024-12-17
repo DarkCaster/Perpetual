@@ -80,7 +80,7 @@ func Stage3(projectRootDir string,
 		// Create prompt from stage3ProcessFilePromptTemplate
 		stage3ProcessFilePrompt, err := utils.ReplaceTag(
 			config[prompts.ImplementStage3ProcessPromptName].(string),
-			config[prompts.FilenameEmpedRxName].(string),
+			config[prompts.FilenameEmbedRxName].(string),
 			pendingFile)
 
 		if err != nil {

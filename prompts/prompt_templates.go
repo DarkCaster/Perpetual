@@ -123,7 +123,7 @@ func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[FilenameTagsName] = DefaultFileNameTags
 	result[FilenameTagsRxName] = DefaultFileNameTagsRegexps
-	result[FilenameEmpedRxName] = DefaultFileNameEmbedRegex
+	result[FilenameEmbedRxName] = DefaultFileNameEmbedRegex
 	result[NoUploadCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	result[ImplementCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	result[CodeTagsRxName] = DefaultOutputTagsRegexps
