@@ -9,9 +9,16 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, planningMode int,
-	fileNameTagsRxStrings []string, fileNameTags []string, reasoningsTagsRxStrings []string, reasoningsNameTags []string,
-	allFileNames []string, filesForReview []string, targetFiles []string, logger logging.ILogger) ([]llm.Message, []string, []string) {
+func Stage2(projectRootDir string,
+	perpetualDir string,
+	systemPrompt string,
+	config map[string]interface{},
+	filesToMdLangMappings [][2]string,
+	planningMode int,
+	allFileNames []string,
+	filesForReview []string,
+	targetFiles []string,
+	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -23,31 +30,33 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln(stage2Connector.GetDebugString())
 
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
-	}
-
 	var messages []llm.Message
 
 	if len(filesForReview) > 0 {
 		// Create target files analisys request message
-		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
+		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			config[prompts.ImplementStage2CodePromptName].(string))
+
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage2 prompt", err)
 			}
-			stage2ProjectSourceCodeMessage = llm.AddFileFragment(stage2ProjectSourceCodeMessage, item, contents, fileNameTags)
+			stage2ProjectSourceCodeMessage = llm.AddFileFragment(
+				stage2ProjectSourceCodeMessage,
+				item,
+				contents,
+				config[prompts.FilenameTagsName].([]string))
 		}
 		messages = append(messages, stage2ProjectSourceCodeMessage)
 		logger.Debugln("Project source code message created")
 
 		// Create simulated response
-		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2ProjectCodeResponseFile))
+		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			config[prompts.ImplementStage2CodeResponseName].(string))
+
 		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
@@ -58,12 +67,16 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		// Create files to change request message
 		var stage2FilesToChangeMessage llm.Message
 		switch planningMode {
-		case 2:
-			stage2FilesToChangeMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile))
+		/*case 2:
+		stage2FilesToChangeMessage = llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			loadPrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile))*/
 		case 1:
 			fallthrough
 		default:
-			stage2FilesToChangeMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2FilesToChangePromptFile))
+			stage2FilesToChangeMessage = llm.AddPlainTextFragment(
+				llm.NewMessage(llm.UserRequest),
+				config[prompts.ImplementStage2FilesToChangePromptName].(string))
 		}
 		// Attach target files
 		for _, item := range targetFiles {
@@ -71,25 +84,39 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesToChangeMessage = llm.AddFileFragment(stage2FilesToChangeMessage, item, contents, fileNameTags)
+			stage2FilesToChangeMessage = llm.AddFileFragment(
+				stage2FilesToChangeMessage,
+				item,
+				contents,
+				config[prompts.FilenameTagsName].([]string))
 		}
 		messages = append(messages, stage2FilesToChangeMessage)
 		logger.Debugln("Files to change message created")
 	} else {
 		// Create files to request for non-planning mode
-		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2NoPlanningPromptFile))
+		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			config[prompts.ImplementStage2NoPlanningPromptName].(string))
+
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesNoPlanningMessage = llm.AddFileFragment(stage2FilesNoPlanningMessage, item, contents, fileNameTags)
+			stage2FilesNoPlanningMessage = llm.AddFileFragment(
+				stage2FilesNoPlanningMessage,
+				item,
+				contents,
+				config[prompts.FilenameTagsName].([]string))
 		}
 		messages = append(messages, stage2FilesNoPlanningMessage)
 		logger.Debugln("Files for no planning message created")
 
 		// Create simulated response
-		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIImplementStage2NoPlanningResponseFile))
+		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			config[prompts.ImplementStage2NoPlanningResponseName].(string))
+
 		messages = append(messages, stage2FilesNoPlanningResponseMessage)
 		logger.Debugln("Files for no planning simulated response added")
 	}
@@ -136,7 +163,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				continue
 			}
 			// Get reasonings
-			if planningMode == 2 {
+			/*if planningMode == 2 {
 				reasoningsArr, err := utils.ParseTaggedText(aiResponses[0], reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1], false)
 				if err != nil {
 					logger.Warnln("Cannot extract reasonings text-block from LLM response")
@@ -148,9 +175,13 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 				} else {
 					reasonings = reasoningsArr[0]
 				}
-			}
+			}*/
 			// Process response, parse files that will be created
-			filesToProcessRaw, err = utils.ParseTaggedText(aiResponses[0], fileNameTagsRxStrings[0], fileNameTagsRxStrings[1], false)
+			filesToProcessRaw, err = utils.ParseTaggedText(
+				aiResponses[0],
+				config[prompts.FilenameTagsRxName].([]string)[0],
+				config[prompts.FilenameTagsRxName].([]string)[1],
+				false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Failed to parse list of files for review", err)
@@ -234,15 +265,24 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		} else {
 			// Append files
 			for _, item := range otherFilesToModify {
-				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
+				simplifiedResponseMessage = llm.AddTaggedFragment(
+					simplifiedResponseMessage,
+					item,
+					config[prompts.FilenameTagsName].([]string))
 			}
 			for _, item := range targetFilesToModify {
-				simplifiedResponseMessage = llm.AddTaggedFragment(simplifiedResponseMessage, item, fileNameTags)
+				simplifiedResponseMessage = llm.AddTaggedFragment(
+					simplifiedResponseMessage,
+					item,
+					config[prompts.FilenameTagsName].([]string))
 			}
 			// Append reasonings if any
-			if reasonings != "" {
-				simplifiedResponseMessage = llm.AddMultilineTaggedFragment(simplifiedResponseMessage, reasonings, reasoningsNameTags)
-			}
+			/*if reasonings != "" {
+				simplifiedResponseMessage = llm.AddMultilineTaggedFragment(
+					simplifiedResponseMessage,
+					reasonings,
+					reasoningsNameTags)
+			}*/
 		}
 
 		messages = append(messages, simplifiedResponseMessage)

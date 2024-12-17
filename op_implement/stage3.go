@@ -1,7 +1,6 @@
 package op_implement
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/llm"
@@ -11,8 +10,15 @@ import (
 )
 
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
-func Stage3(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, outputTagsRxStrings []string, fileNameEmbedTag string, fileNameTags []string,
-	stage2Messages []llm.Message, otherFiles []string, targetFiles []string, logger logging.ILogger) map[string]string {
+func Stage3(projectRootDir string,
+	perpetualDir string,
+	systemPrompt string,
+	config map[string]interface{},
+	filesToMdLangMappings [][2]string,
+	stage2Messages []llm.Message,
+	otherFiles []string,
+	targetFiles []string,
+	logger logging.ILogger) map[string]string {
 
 	logger.Traceln("Stage3: Starting")       // Add trace logging
 	defer logger.Traceln("Stage3: Finished") // Add trace logging
@@ -24,19 +30,6 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln(stage3Connector.GetDebugString())
 
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
-	}
-
-	stage3ChangesDonePromptTemplate := loadPrompt(prompts.ImplementStage3ChangesDonePromptFile)
-	stage3ChangesDoneResponse := loadPrompt(prompts.AIImplementStage3ChangesDoneResponseFile)
-	stage3ProcessFilePromptTemplate := loadPrompt(prompts.ImplementStage3ProcessFilePromptFile)
-	stage3ContinuePromptTemplate := loadPrompt(prompts.ImplementStage3ContinuePromptFile)
-
 	processedFileContents := make(map[string]string)
 	var processedFiles []string
 
@@ -45,17 +38,26 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Work pending:", workPending) // Add debug logging
 
 		// Generate change-done message from already processed files
-		stage3ChangesDoneMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ChangesDonePromptTemplate)
+		stage3ChangesDoneMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			config[prompts.ImplementStage3ChangesDonePromptName].(string))
+
 		for _, item := range processedFiles {
 			contents, ok := processedFileContents[item]
 			if !ok {
 				logger.Errorln("Failed to add file contents to stage3:", err)
 			} else {
-				stage3ChangesDoneMessage = llm.AddFileFragment(stage3ChangesDoneMessage, item, contents, fileNameTags)
+				stage3ChangesDoneMessage = llm.AddFileFragment(
+					stage3ChangesDoneMessage,
+					item,
+					contents,
+					config[prompts.FilenameTagsName].([]string))
 			}
 		}
 
-		stage3ChangesDoneResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), stage3ChangesDoneResponse)
+		stage3ChangesDoneResponseMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			config[prompts.ImplementStage3ChangesDoneResponseName].(string))
 
 		stage3Messages := append([]llm.Message(nil), stage2Messages...)
 		if len(processedFiles) > 0 {
@@ -76,10 +78,14 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 		logger.Debugln("Processing file:", pendingFile) // Add debug logging
 		// Create prompt from stage3ProcessFilePromptTemplate
-		stage3ProcessFilePrompt, err := utils.ReplaceTag(stage3ProcessFilePromptTemplate, fileNameEmbedTag, pendingFile)
+		stage3ProcessFilePrompt, err := utils.ReplaceTag(
+			config[prompts.ImplementStage3ProcessPromptName].(string),
+			config[prompts.FilenameEmpedRxName].(string),
+			pendingFile)
+
 		if err != nil {
 			logger.Errorln("Failed to replace filename tag", err)
-			stage3ProcessFilePrompt = stage3ProcessFilePromptTemplate
+			stage3ProcessFilePrompt = config[prompts.ImplementStage3ProcessPromptName].(string)
 		}
 
 		// Create prompt for to implement one of the files
@@ -126,7 +132,9 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 					}
 					// Add partial response to stage3 messages, with request to continue
 					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
-					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ContinuePromptTemplate))
+					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(
+						llm.NewMessage(llm.UserRequest),
+						config[prompts.ImplementStage3ContinuePromptName].(string)))
 				}
 
 				// Append response fragment
@@ -139,7 +147,9 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 			// Remove extra output tag from the start from non first response-fragments
 			for i := range responses {
 				if i > 0 {
-					responses[i], err = utils.GetTextAfterFirstMatches(responses[i], getEvenIndexElements(outputTagsRxStrings))
+					responses[i], err = utils.GetTextAfterFirstMatches(
+						responses[i],
+						getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)))
 					if err != nil {
 						logger.Panicln("Error while parsing output response fragment:", err)
 					}
@@ -148,7 +158,11 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 			// Parse LLM output, detect file body in response
 			combinedResponse := strings.Join(responses, "")
-			fileBodies, err = utils.ParseMultiTaggedText(combinedResponse, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), ignoreUnclosedTagErrors)
+			fileBodies, err = utils.ParseMultiTaggedText(
+				combinedResponse,
+				getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)),
+				getOddIndexElements(config[prompts.CodeTagsRxName].([]string)),
+				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Errorln("Error while parsing LLM response with output file:", err)
@@ -157,7 +171,7 @@ func Stage3(projectRootDir string, perpetualDir string, promptsDir string, syste
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody, err := utils.GetTextAfterFirstMatches(combinedResponse, getEvenIndexElements(outputTagsRxStrings))
+				fileBody, err := utils.GetTextAfterFirstMatches(combinedResponse, getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}
