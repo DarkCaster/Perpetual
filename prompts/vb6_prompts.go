@@ -33,48 +33,11 @@ func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *VB6Prompts) GetDocProjectIndexPrompt() string {
-	return "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *VB6Prompts) GetAIDocProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *VB6Prompts) GetDocProjectCodePrompt() string {
-	return DefaultDocProjectCodePrompt
-}
-
-func (p *VB6Prompts) GetAIDocProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *VB6Prompts) GetDocExamplePrompt() string {
-	return DefaultDocExamplePrompt
-}
-
-func (p *VB6Prompts) GetAIDocExampleResponse() string {
-	return DefaultAIDocExampleResponse
-}
-
-func (p *VB6Prompts) GetDocStage1WritePrompt() string {
-	return DefaultDocStage1WritePrompt
-}
-
-func (p *VB6Prompts) GetDocStage1RefinePrompt() string {
-	return DefaultDocStage1RefinePrompt
-}
-
-func (p *VB6Prompts) GetDocStage2WritePrompt() string {
-	return DefaultDocStage2WritePrompt
-}
-
-func (p *VB6Prompts) GetDocStage2RefinePrompt() string {
-	return DefaultDocStage2RefinePrompt
-}
-
-func (p *VB6Prompts) GetDocStage2ContinuePrompt() string {
-	return DefaultDocStage2ContinuePrompt
+func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
+	result := GetDefaultDocConfigTemplate()
+	// redefine language-dependent prompt
+	result[DocProjectIndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	return result
 }
 
 func (p *VB6Prompts) GetProjectFilesWhitelist() []string {

@@ -13,28 +13,10 @@ type Prompts interface {
 	GetProjectFilesToMarkdownMappings() [][2]string
 	GetSystemPrompts() map[string]string
 
-	// Annotate-operation prompts
+	// Configs for operations
 	GetAnnotateConfig() map[string]interface{}
-
-	// Annotate-operation prompts
 	GetImplementConfig() map[string]interface{}
-
-	// Doc project index and code prompts
-	GetDocProjectIndexPrompt() string
-	GetAIDocProjectIndexResponse() string
-	GetDocProjectCodePrompt() string
-	GetAIDocProjectCodeResponse() string
-	GetDocExamplePrompt() string
-	GetAIDocExampleResponse() string
-
-	// Doc stage1 prompts
-	GetDocStage1WritePrompt() string
-	GetDocStage1RefinePrompt() string
-
-	// Doc stage2 prompts
-	GetDocStage2WritePrompt() string
-	GetDocStage2RefinePrompt() string
-	GetDocStage2ContinuePrompt() string
+	GetDocConfig() map[string]interface{}
 }
 
 // Create particular Prompts implementation depending on requested language

@@ -34,48 +34,11 @@ func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *Py3Prompts) GetDocProjectIndexPrompt() string {
-	return "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *Py3Prompts) GetAIDocProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *Py3Prompts) GetDocProjectCodePrompt() string {
-	return DefaultDocProjectCodePrompt
-}
-
-func (p *Py3Prompts) GetAIDocProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *Py3Prompts) GetDocExamplePrompt() string {
-	return DefaultDocExamplePrompt
-}
-
-func (p *Py3Prompts) GetAIDocExampleResponse() string {
-	return DefaultAIDocExampleResponse
-}
-
-func (p *Py3Prompts) GetDocStage1WritePrompt() string {
-	return DefaultDocStage1WritePrompt
-}
-
-func (p *Py3Prompts) GetDocStage1RefinePrompt() string {
-	return DefaultDocStage1RefinePrompt
-}
-
-func (p *Py3Prompts) GetDocStage2WritePrompt() string {
-	return DefaultDocStage2WritePrompt
-}
-
-func (p *Py3Prompts) GetDocStage2RefinePrompt() string {
-	return DefaultDocStage2RefinePrompt
-}
-
-func (p *Py3Prompts) GetDocStage2ContinuePrompt() string {
-	return DefaultDocStage2ContinuePrompt
+func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
+	result := GetDefaultDocConfigTemplate()
+	// redefine language-dependent prompt
+	result[DocProjectIndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	return result
 }
 
 func (p *Py3Prompts) GetProjectFilesWhitelist() []string {

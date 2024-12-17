@@ -29,48 +29,11 @@ func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *BashPrompts) GetDocProjectIndexPrompt() string {
-	return "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-}
-
-func (p *BashPrompts) GetAIDocProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *BashPrompts) GetDocProjectCodePrompt() string {
-	return DefaultDocProjectCodePrompt
-}
-
-func (p *BashPrompts) GetAIDocProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *BashPrompts) GetDocExamplePrompt() string {
-	return DefaultDocExamplePrompt
-}
-
-func (p *BashPrompts) GetAIDocExampleResponse() string {
-	return DefaultAIDocExampleResponse
-}
-
-func (p *BashPrompts) GetDocStage1WritePrompt() string {
-	return DefaultDocStage1WritePrompt
-}
-
-func (p *BashPrompts) GetDocStage1RefinePrompt() string {
-	return DefaultDocStage1RefinePrompt
-}
-
-func (p *BashPrompts) GetDocStage2WritePrompt() string {
-	return DefaultDocStage2WritePrompt
-}
-
-func (p *BashPrompts) GetDocStage2RefinePrompt() string {
-	return DefaultDocStage2RefinePrompt
-}
-
-func (p *BashPrompts) GetDocStage2ContinuePrompt() string {
-	return DefaultDocStage2ContinuePrompt
+func (p *BashPrompts) GetDocConfig() map[string]interface{} {
+	result := GetDefaultDocConfigTemplate()
+	// redefine language-dependent prompt
+	result[DocProjectIndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	return result
 }
 
 func (p *BashPrompts) GetProjectFilesWhitelist() []string {

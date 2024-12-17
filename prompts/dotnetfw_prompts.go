@@ -31,48 +31,11 @@ func (p *DotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *DotNetFWPrompts) GetDocProjectIndexPrompt() string {
-	return "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-}
-
-func (p *DotNetFWPrompts) GetAIDocProjectIndexResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *DotNetFWPrompts) GetDocProjectCodePrompt() string {
-	return DefaultDocProjectCodePrompt
-}
-
-func (p *DotNetFWPrompts) GetAIDocProjectCodeResponse() string {
-	return DefaultAIAcknowledge
-}
-
-func (p *DotNetFWPrompts) GetDocExamplePrompt() string {
-	return DefaultDocExamplePrompt
-}
-
-func (p *DotNetFWPrompts) GetAIDocExampleResponse() string {
-	return DefaultAIDocExampleResponse
-}
-
-func (p *DotNetFWPrompts) GetDocStage1WritePrompt() string {
-	return DefaultDocStage1WritePrompt
-}
-
-func (p *DotNetFWPrompts) GetDocStage1RefinePrompt() string {
-	return DefaultDocStage1RefinePrompt
-}
-
-func (p *DotNetFWPrompts) GetDocStage2WritePrompt() string {
-	return DefaultDocStage2WritePrompt
-}
-
-func (p *DotNetFWPrompts) GetDocStage2RefinePrompt() string {
-	return DefaultDocStage2RefinePrompt
-}
-
-func (p *DotNetFWPrompts) GetDocStage2ContinuePrompt() string {
-	return DefaultDocStage2ContinuePrompt
+func (p *DotNetFWPrompts) GetDocConfig() map[string]interface{} {
+	result := GetDefaultDocConfigTemplate()
+	// redefine language-dependent prompt
+	result[DocProjectIndexPromptName] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	return result
 }
 
 func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
