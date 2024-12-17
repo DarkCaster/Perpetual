@@ -77,9 +77,6 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	logger.Debugln("Prompts directory:", promptsDir)
-
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	systemPrompts := map[string]string{}
@@ -307,7 +304,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Run stage 3
 	results := Stage3(
 		projectRootDir,
-		promptsDir,
+		perpetualDir,
 		systemPrompts[prompts.DefaultSystemPromptName],
 		implementConfig,
 		filesToMdLangMappings,
