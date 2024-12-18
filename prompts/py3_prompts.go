@@ -38,6 +38,7 @@ func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

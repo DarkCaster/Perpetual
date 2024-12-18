@@ -147,6 +147,11 @@ func GetDefaultDocConfigTemplate() map[string]interface{} {
 	result[DocStage2WritePromptName] = DefaultDocStage2WritePrompt
 	result[DocStage2ContinuePromptName] = DefaultDocStage2ContinuePrompt
 
+	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
+	result[FilenameTagsName] = DefaultFileNameTags
+	result[FilenameTagsRxName] = DefaultFileNameTagsRegexps
+	result[NoUploadCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+
 	return result
 }
 

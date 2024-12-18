@@ -33,6 +33,7 @@ func (p *BashPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

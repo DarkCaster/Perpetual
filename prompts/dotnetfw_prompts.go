@@ -35,6 +35,7 @@ func (p *DotNetFWPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[NoUploadCommentsRxName] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

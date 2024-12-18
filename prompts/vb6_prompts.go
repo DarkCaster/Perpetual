@@ -37,6 +37,7 @@ func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
