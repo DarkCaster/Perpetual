@@ -86,7 +86,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	implementConfig := map[string]interface{}{}
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
+		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
 	}
 
 	var projectFilesWhitelist []string
