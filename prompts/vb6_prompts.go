@@ -11,30 +11,30 @@ func (p *VB6Prompts) GetSystemPrompts() map[string]string {
 }
 
 func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
-	result := GetDefaultAnnotateConfigTemplate()
+	result := getDefaultAnnotateConfigTemplate()
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
-		{"(?i)^.*\\.frm$", DefaultAIAnnotatePrompt_VB6_Form},
-		{"(?i)^.*\\.cls$", DefaultAIAnnotatePrompt_VB6_Class},
-		{"(?i)^.*\\.bas$", DefaultAIAnnotatePrompt_VB6_Module},
-		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+		{"(?i)^.*\\.frm$", defaultAIAnnotatePrompt_VB6_Form},
+		{"(?i)^.*\\.cls$", defaultAIAnnotatePrompt_VB6_Class},
+		{"(?i)^.*\\.bas$", defaultAIAnnotatePrompt_VB6_Module},
+		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
-	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
 func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
-	result := GetDefaultImplementConfigTemplate()
+	result := getDefaultImplementConfigTemplate()
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
 	result[ImplementCommentsRxName] = []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
 	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
-	result := GetDefaultDocConfigTemplate()
+	result := getDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
@@ -63,9 +63,9 @@ func (p *VB6Prompts) GetProjectTestFilesBlacklist() []string {
 }
 
 func (p *VB6Prompts) GetReasoningsTagsRegexps() []string {
-	return DefaultReasoningsTagsRegexps
+	return defaultReasoningsTagsRegexps
 }
 
 func (p *VB6Prompts) GetReasoningsTags() []string {
-	return DefaultReasoningsTags
+	return defaultReasoningsTags
 }

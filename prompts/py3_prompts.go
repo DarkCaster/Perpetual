@@ -11,31 +11,31 @@ func (p *Py3Prompts) GetSystemPrompts() map[string]string {
 }
 
 func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
-	result := GetDefaultAnnotateConfigTemplate()
+	result := getDefaultAnnotateConfigTemplate()
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
-		{"(?i)^.*\\.py$", DefaultAIAnnotatePrompt_Py3},
-		{"(?i)^.*\\.pl$", DefaultAIAnnotatePrompt_Perl},
-		{"(?i)^.*\\.(bat|cmd)$", DefaultAIAnnotatePrompt_Bat},
-		{"(?i)^.*\\.(sh|bash)(\\.in)?$", DefaultAIAnnotatePrompt_Bash},
-		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+		{"(?i)^.*\\.py$", defaultAIAnnotatePrompt_Py3},
+		{"(?i)^.*\\.pl$", defaultAIAnnotatePrompt_Perl},
+		{"(?i)^.*\\.(bat|cmd)$", defaultAIAnnotatePrompt_Bat},
+		{"(?i)^.*\\.(sh|bash)(\\.in)?$", defaultAIAnnotatePrompt_Bash},
+		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
-	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
 func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
-	result := GetDefaultImplementConfigTemplate()
+	result := getDefaultImplementConfigTemplate()
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[CodeTagsRxName] = DefaultOutputTagsRegexps_WithNumbers
+	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
 	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
 	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
-	result := GetDefaultDocConfigTemplate()
+	result := getDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
@@ -76,9 +76,9 @@ func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
 }
 
 func (p *Py3Prompts) GetReasoningsTagsRegexps() []string {
-	return DefaultReasoningsTagsRegexps
+	return defaultReasoningsTagsRegexps
 }
 
 func (p *Py3Prompts) GetReasoningsTags() []string {
-	return DefaultReasoningsTags
+	return defaultReasoningsTags
 }

@@ -11,17 +11,17 @@ func (p *BashPrompts) GetSystemPrompts() map[string]string {
 }
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := GetDefaultAnnotateConfigTemplate()
+	result := getDefaultAnnotateConfigTemplate()
 	// file-type-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
-		{"(?i)^.*\\.(sh|bash|in)$", DefaultAIAnnotatePrompt_Bash},
-		{"^.*$", DefaultAIAnnotatePrompt_Generic},
+		{"(?i)^.*\\.(sh|bash|in)$", defaultAIAnnotatePrompt_Bash},
+		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
 	return result
 }
 
 func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
-	result := GetDefaultImplementConfigTemplate()
+	result := getDefaultImplementConfigTemplate()
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$"}
@@ -30,7 +30,7 @@ func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *BashPrompts) GetDocConfig() map[string]interface{} {
-	result := GetDefaultDocConfigTemplate()
+	result := getDefaultDocConfigTemplate()
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$"}
@@ -58,9 +58,9 @@ func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
 }
 
 func (p *BashPrompts) GetReasoningsTagsRegexps() []string {
-	return DefaultReasoningsTagsRegexps
+	return defaultReasoningsTagsRegexps
 }
 
 func (p *BashPrompts) GetReasoningsTags() []string {
-	return DefaultReasoningsTags
+	return defaultReasoningsTags
 }
