@@ -95,25 +95,25 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	// stage 1
 	result[ImplementStage1IndexPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	result[ImplementStage1IndexResponseName] = defaultAIAcknowledge
-	result[ImplementStage1AnalisysPromptName] = defaultImplementStage1SourceAnalysisPrompt
-	result[ImplementStage1AnalisysJsonModePromptName] = defaultImplementStage1SourceAnalysisJsonModePrompt
+	result[ImplementStage1AnalisysPromptName] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
+	result[ImplementStage1AnalisysJsonModePromptName] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
 	result[Stage1OutputSchemeName] = getDefaultListOfFilesOutputScheme()
 	result[Stage1OutputKey] = defaultListOfFilesOutputKey
 	// stage 2
-	result[ImplementStage2CodePromptName] = defaultImplementStage2ProjectCodePrompt
+	result[ImplementStage2CodePromptName] = "Here are the contents of my project's source code files."
 	result[ImplementStage2CodeResponseName] = defaultAIAcknowledge
-	result[ImplementStage2FilesToChangePromptName] = defaultImplementStage2FilesToChangePrompt
-	result[ImplementStage2FilesToChangeJsonModePromptName] = defaultImplementStage2FilesToChangeJsonModePrompt
-	result[ImplementStage2NoPlanningPromptName] = defaultImplementStage2NoPlanningPrompt
-	result[ImplementStage2NoPlanningResponseName] = defaultAIImplementStage2NoPlanningResponse
+	result[ImplementStage2FilesToChangePromptName] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
+	result[ImplementStage2FilesToChangeJsonModePromptName] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
+	result[ImplementStage2NoPlanningPromptName] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
+	result[ImplementStage2NoPlanningResponseName] = "I have carefully studied all the code provided to me, and I am ready to implement the task."
 	result[Stage2OutputSchemeName] = getDefaultListOfFilesOutputScheme()
 	result[Stage2OutputKey] = defaultListOfFilesOutputKey
 	//TODO: stage 2 with reasonings (rename it to stage3)
 	// stage 3 (probably it will be stage 4 after adding reasonings)
-	result[ImplementStage3ChangesDonePromptName] = defaultImplementStage3ChangesDonePrompt
+	result[ImplementStage3ChangesDonePromptName] = "Here are the contents of the files with the changes already implemented."
 	result[ImplementStage3ChangesDoneResponseName] = defaultAIAcknowledge
-	result[ImplementStage3ProcessPromptName] = defaultImplementStage3ProcessFilePrompt
-	result[ImplementStage3ContinuePromptName] = defaultImplementStage3ContinuePrompt
+	result[ImplementStage3ProcessPromptName] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
+	result[ImplementStage3ContinuePromptName] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[FilenameTagsName] = defaultFileNameTags
 	result[FilenameTagsRxName] = defaultFileNameTagsRegexps
@@ -155,27 +155,7 @@ const DefaultImplementStage2ReasoningsOutputKey = "reasonings"*/
 
 const defaultAIAcknowledge = "Understood. What's next?"
 
-const defaultImplementStage1SourceAnalysisPrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
-
-const defaultImplementStage1SourceAnalysisJsonModePrompt = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
-
-const defaultImplementStage2ProjectCodePrompt = "Here are the contents of my project's source code files."
-
-const defaultImplementStage2FilesToChangePrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
-
-const defaultImplementStage2FilesToChangeJsonModePrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
-
 /*const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"*/
-
-const defaultImplementStage2NoPlanningPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
-
-const defaultAIImplementStage2NoPlanningResponse = "I have carefully studied all the code provided to me, and I am ready to implement the task."
-
-const defaultImplementStage3ChangesDonePrompt = "Here are the contents of the files with the changes already implemented."
-
-const defaultImplementStage3ProcessFilePrompt = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
-
-const defaultImplementStage3ContinuePrompt = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 
 var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
