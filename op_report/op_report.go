@@ -59,8 +59,10 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	logger.Debugln("Prompts directory:", promptsDir)
+	implementConfig := map[string]interface{}{}
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
+	}
 
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
@@ -117,14 +119,6 @@ func Run(args []string, logger logging.ILogger) {
 	//fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
 	fileNameTagsStrings := []string{"### File: ", ""}
 
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
-	}
-
 	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
@@ -137,7 +131,10 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Generate report message
-		reportMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage1ProjectIndexPromptFile))
+		reportMessage = llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			implementConfig[prompts.ImplementStage1IndexPromptName].(string))
+
 		for _, filename := range fileNames {
 			annotation, ok := annotations[filename]
 			if !ok {
@@ -148,7 +145,10 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	} else if strings.ToUpper(reportType) == "CODE" {
 		// Generate report messages
-		reportMessage = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.ImplementStage2ProjectCodePromptFile))
+		reportMessage = llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			implementConfig[prompts.ImplementStage2CodePromptName].(string))
+
 		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
 		for _, filename := range fileNames {
 			fileContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
