@@ -175,7 +175,7 @@ func Run(args []string, logger logging.ILogger) {
 	for _, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
-		for _, mapping := range annotateConfig[prompts.AnnotateStage1PromptNames].([][]string) {
+		for _, mapping := range utils.InterfaceTo2DStringArray(annotateConfig[prompts.AnnotateStage1PromptNames]) {
 			matched, err := regexp.MatchString(mapping[0], filePath)
 			if err == nil && matched {
 				annotatePrompt = mapping[1]

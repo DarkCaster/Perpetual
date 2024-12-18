@@ -105,3 +105,12 @@ func InterfaceToStringArray(source interface{}) []string {
 	}
 	return target
 }
+
+func InterfaceTo2DStringArray(source interface{}) [][]string {
+	sourceArray := source.([]interface{})
+	target := make([][]string, len(sourceArray))
+	for i, element := range sourceArray {
+		target[i] = InterfaceToStringArray(element)
+	}
+	return target
+}
