@@ -33,12 +33,6 @@ const DefaultAIAnnotatePrompt_VB6_Module = "Create a summary for the Visual Basi
 
 const DefaultAIAnnotatePrompt_Generic = "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
 
-const DefaultAIAnnotateResponse = "Waiting for file contents"
-
-const DefaultAIAnnotateVariantPrompt = "Create another summary variant"
-
-const DefaultAIAnnotateCombinePrompt = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
-
 func GetDefaultAnnotateOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
@@ -80,11 +74,11 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[AnnotateStage1PromptNames] = [][2]string{
 		{"^.*$", "TEMPLATE VALUE, MUST BE REDEFINED"},
 	}
-	result[AnnotateStage1ResponseName] = DefaultAIAnnotateResponse
+	result[AnnotateStage1ResponseName] = "Waiting for file contents"
 	// prompt to generate another annotation variant
-	result[AnnotateStage2PromptVariantName] = DefaultAIAnnotateVariantPrompt
+	result[AnnotateStage2PromptVariantName] = "Create another summary variant"
 	// prompt to generate combined annotation
-	result[AnnotateStage2PromptCombineName] = DefaultAIAnnotateCombinePrompt
+	result[AnnotateStage2PromptCombineName] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 	// structured output scheme and lookup key
 	result[Stage1OutputSchemeName] = GetDefaultAnnotateOutputScheme()
 	result[Stage1OutputKey] = DefaultAnnotateOutputKey
@@ -170,7 +164,7 @@ const DefaultImplementStage2FilesToChangePrompt = "Here are the contents of the 
 
 const DefaultImplementStage2FilesToChangeJsonModePrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
 
-const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"
+/*const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"*/
 
 const DefaultImplementStage2NoPlanningPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
 
