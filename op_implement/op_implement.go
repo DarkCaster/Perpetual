@@ -125,18 +125,6 @@ func Run(args []string, logger logging.ILogger) {
 		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 	}
 
-	/*fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
-	fileNameTags := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
-	outputTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.OutputTagsRXFileName), 2, math.MaxInt, 2, logger)
-	reasoningsTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.ReasoningsTagsRXFileName), 2, 2, 2, logger)
-	reasoningsTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.ReasoningsTagsFileName), 2, 2, 2, logger)
-
-	var fileNameEmbedRXString string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.FileNameEmbedRXFileName), &fileNameEmbedRXString)
-	if err != nil {
-		logger.Panicln("Error loading filename-embed regexp json:", err)
-	}*/
-
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
