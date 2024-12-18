@@ -141,7 +141,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	var implementRegexps []*regexp.Regexp
-	for _, rx := range implementConfig[prompts.ImplementCommentsRxName].([]string) {
+	for _, rx := range utils.InterfaceToStringArray(implementConfig[prompts.ImplementCommentsRxName]) {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
 			logger.Panicln("Failed to compile 'implement' comment search regexp: ", err)
@@ -150,7 +150,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	var noUploadRegexps []*regexp.Regexp
-	for _, rx := range implementConfig[prompts.NoUploadCommentsRxName].([]string) {
+	for _, rx := range utils.InterfaceToStringArray(implementConfig[prompts.NoUploadCommentsRxName]) {
 		crx, err := regexp.Compile(rx)
 		if err != nil {
 			logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)

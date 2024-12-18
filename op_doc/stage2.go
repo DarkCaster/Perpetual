@@ -44,7 +44,7 @@ func Stage2(projectRootDir string,
 		projectIndexRequestMessage = llm.AddIndexFragment(
 			projectIndexRequestMessage,
 			item,
-			config[prompts.FilenameTagsName].([]string))
+			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -79,7 +79,7 @@ func Stage2(projectRootDir string,
 				sourceCodeMessage,
 				item,
 				contents,
-				config[prompts.FilenameTagsName].([]string))
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 		}
 		messages = append(messages, sourceCodeMessage)
 		logger.Debugln("Project source code message created")

@@ -51,7 +51,7 @@ func Stage3(projectRootDir string,
 					stage3ChangesDoneMessage,
 					item,
 					contents,
-					config[prompts.FilenameTagsName].([]string))
+					utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 			}
 		}
 
@@ -149,7 +149,7 @@ func Stage3(projectRootDir string,
 				if i > 0 {
 					responses[i], err = utils.GetTextAfterFirstMatches(
 						responses[i],
-						getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)))
+						getEvenIndexElements(utils.InterfaceToStringArray(config[prompts.CodeTagsRxName])))
 					if err != nil {
 						logger.Panicln("Error while parsing output response fragment:", err)
 					}
@@ -160,8 +160,8 @@ func Stage3(projectRootDir string,
 			combinedResponse := strings.Join(responses, "")
 			fileBodies, err = utils.ParseMultiTaggedText(
 				combinedResponse,
-				getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)),
-				getOddIndexElements(config[prompts.CodeTagsRxName].([]string)),
+				getEvenIndexElements(utils.InterfaceToStringArray(config[prompts.CodeTagsRxName])),
+				getOddIndexElements(utils.InterfaceToStringArray(config[prompts.CodeTagsRxName])),
 				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -171,7 +171,9 @@ func Stage3(projectRootDir string,
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody, err := utils.GetTextAfterFirstMatches(combinedResponse, getEvenIndexElements(config[prompts.CodeTagsRxName].([]string)))
+				fileBody, err := utils.GetTextAfterFirstMatches(
+					combinedResponse,
+					getEvenIndexElements(utils.InterfaceToStringArray(config[prompts.CodeTagsRxName])))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}

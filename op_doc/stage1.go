@@ -44,7 +44,7 @@ func Stage1(projectRootDir string,
 		projectIndexRequestMessage = llm.AddIndexFragment(
 			projectIndexRequestMessage,
 			item,
-			config[prompts.FilenameTagsName].([]string))
+			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -144,8 +144,8 @@ func Stage1(projectRootDir string,
 	}
 
 	llmRequestedFiles, err := utils.ParseTaggedText(aiResponses[0],
-		config[prompts.FilenameTagsRxName].([]string)[0],
-		config[prompts.FilenameTagsRxName].([]string)[1],
+		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[0],
+		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[1],
 		false)
 
 	if err != nil {

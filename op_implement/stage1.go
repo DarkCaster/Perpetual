@@ -39,7 +39,7 @@ func Stage1(projectRootDir string,
 		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(
 			stage1ProjectIndexRequestMessage,
 			item,
-			config[prompts.FilenameTagsName].([]string))
+			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -74,7 +74,7 @@ func Stage1(projectRootDir string,
 			stage1SourceAnalysisRequestMessage,
 			item,
 			contents,
-			config[prompts.FilenameTagsName].([]string))
+			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 	}
 	logger.Debugln("Created target files analysis request message")
 
@@ -120,8 +120,8 @@ func Stage1(projectRootDir string,
 	}
 
 	filesForReviewRaw, err := utils.ParseTaggedText(aiResponses[0],
-		config[prompts.FilenameTagsRxName].([]string)[0],
-		config[prompts.FilenameTagsRxName].([]string)[1],
+		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[0],
+		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[1],
 		false)
 
 	if err != nil {

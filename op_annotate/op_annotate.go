@@ -166,7 +166,7 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Debugln(connectorPost.GetDebugString())
 
 	// Load output tags regexps
-	outputTagsRxStrings := annotateConfig[prompts.CodeTagsRxName].([]string)
+	outputTagsRxStrings := utils.InterfaceToStringArray(annotateConfig[prompts.CodeTagsRxName])
 
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
@@ -206,7 +206,7 @@ func Run(args []string, logger logging.ILogger) {
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			annotateConfig[prompts.FilenameTagsName].([]string))
+			utils.InterfaceToStringArray(annotateConfig[prompts.FilenameTagsName]))
 
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {

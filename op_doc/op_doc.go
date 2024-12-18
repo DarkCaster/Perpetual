@@ -160,7 +160,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		var noUploadRegexps []*regexp.Regexp
-		for _, rx := range docConfig[prompts.NoUploadCommentsRxName].([]string) {
+		for _, rx := range utils.InterfaceToStringArray(docConfig[prompts.NoUploadCommentsRxName]) {
 			crx, err := regexp.Compile(rx)
 			if err != nil {
 				logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)

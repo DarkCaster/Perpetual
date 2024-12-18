@@ -96,3 +96,12 @@ func LoadStringPair(file string, minLen int, maxLen int, lenDivideBy int, logger
 	}
 	return result
 }
+
+func InterfaceToStringArray(source interface{}) []string {
+	sourceArray := source.([]interface{})
+	target := make([]string, len(sourceArray))
+	for i, element := range sourceArray {
+		target[i] = element.(string)
+	}
+	return target
+}

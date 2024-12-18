@@ -47,7 +47,7 @@ func Stage2(projectRootDir string,
 				stage2ProjectSourceCodeMessage,
 				item,
 				contents,
-				config[prompts.FilenameTagsName].([]string))
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 		}
 		messages = append(messages, stage2ProjectSourceCodeMessage)
 		logger.Debugln("Project source code message created")
@@ -88,7 +88,7 @@ func Stage2(projectRootDir string,
 				stage2FilesToChangeMessage,
 				item,
 				contents,
-				config[prompts.FilenameTagsName].([]string))
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 		}
 		messages = append(messages, stage2FilesToChangeMessage)
 		logger.Debugln("Files to change message created")
@@ -107,7 +107,7 @@ func Stage2(projectRootDir string,
 				stage2FilesNoPlanningMessage,
 				item,
 				contents,
-				config[prompts.FilenameTagsName].([]string))
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 		}
 		messages = append(messages, stage2FilesNoPlanningMessage)
 		logger.Debugln("Files for no planning message created")
@@ -179,8 +179,8 @@ func Stage2(projectRootDir string,
 			// Process response, parse files that will be created
 			filesToProcessRaw, err = utils.ParseTaggedText(
 				aiResponses[0],
-				config[prompts.FilenameTagsRxName].([]string)[0],
-				config[prompts.FilenameTagsRxName].([]string)[1],
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[0],
+				utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[1],
 				false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -268,13 +268,13 @@ func Stage2(projectRootDir string,
 				simplifiedResponseMessage = llm.AddTaggedFragment(
 					simplifiedResponseMessage,
 					item,
-					config[prompts.FilenameTagsName].([]string))
+					utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 			}
 			for _, item := range targetFilesToModify {
 				simplifiedResponseMessage = llm.AddTaggedFragment(
 					simplifiedResponseMessage,
 					item,
-					config[prompts.FilenameTagsName].([]string))
+					utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
 			}
 			// Append reasonings if any
 			/*if reasonings != "" {
