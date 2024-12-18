@@ -76,9 +76,6 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	promptsDir := filepath.Join(perpetualDir, prompts.PromptsDir)
-	logger.Debugln("Prompts directory:", promptsDir)
-
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	// Make main documentation file relative to the project root
@@ -116,9 +113,14 @@ func Run(args []string, logger logging.ILogger) {
 			op_annotate.Run(nil, logger)
 		}
 
-		systemPrompt, err := utils.LoadTextFile(filepath.Join(promptsDir, prompts.SystemPromptFile))
-		if err != nil {
-			logger.Warnln("Failed to read system prompt:", err)
+		systemPrompts := map[string]string{}
+		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.SystemPromptsConfigFile), &systemPrompts); err != nil {
+			logger.Panicf("Error loading %s config :%s", prompts.SystemPromptsConfigFile, err)
+		}
+
+		docConfig := map[string]interface{}{}
+		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpDocConfigFile), &docConfig); err != nil {
+			logger.Panicf("Error loading %s config :%s", prompts.OpDocConfigFile, err)
 		}
 
 		var filesToMdLangMappings [][2]string
@@ -157,23 +159,14 @@ func Run(args []string, logger logging.ILogger) {
 			projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 		}
 
-		var noUploadRxStrings []string
-		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.NoUploadCommentRXFileName), &noUploadRxStrings)
-		if err != nil {
-			logger.Panicln("Error reading no-upload regexps:", err)
-		}
-
 		var noUploadRegexps []*regexp.Regexp
-		for _, rx := range noUploadRxStrings {
+		for _, rx := range docConfig[prompts.NoUploadCommentsRxName].([]string) {
 			crx, err := regexp.Compile(rx)
 			if err != nil {
 				logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
 			}
 			noUploadRegexps = append(noUploadRegexps, crx)
 		}
-
-		fileNameTagsRxStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsRXFileName), 2, 2, 2, logger)
-		fileNameTags := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
 
 		// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 		fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
@@ -188,7 +181,17 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Run stage1 to find out what project-files contents we need to work on document
-		requestedFiles := Stage1(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTagsRxStrings, fileNameTags, fileNames, annotations, docFile, docExample, action, logger)
+		requestedFiles := Stage1(projectRootDir,
+			perpetualDir,
+			systemPrompts[prompts.DefaultSystemPromptName],
+			docConfig,
+			filesToMdLangMappings,
+			fileNames,
+			annotations,
+			docFile,
+			docExample,
+			action,
+			logger)
 
 		// Check requested files for no-upload mark and filter it out
 		var filteredRequestedFiles []string
@@ -207,7 +210,18 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Run stage2 to make changes to the document and save it to docContent
-		docContent = Stage2(projectRootDir, perpetualDir, promptsDir, systemPrompt, filesToMdLangMappings, fileNameTags, fileNames, filteredRequestedFiles, annotations, docFile, docExample, action, logger)
+		docContent = Stage2(projectRootDir,
+			perpetualDir,
+			systemPrompts[prompts.DefaultSystemPromptName],
+			docConfig,
+			filesToMdLangMappings,
+			fileNames,
+			filteredRequestedFiles,
+			annotations,
+			docFile,
+			docExample,
+			action,
+			logger)
 	}
 
 	// Add extra newline if not present

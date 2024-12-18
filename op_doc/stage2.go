@@ -10,7 +10,18 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string, perpetualDir string, promptsDir string, systemPrompt string, filesToMdLangMappings [][2]string, fileNameTags []string, projectFiles []string, filesForReview []string, annotations map[string]string, targetDocument string, exampleDocuemnt string, action string, logger logging.ILogger) string {
+func Stage2(projectRootDir string,
+	perpetualDir string,
+	systemPrompt string,
+	config map[string]interface{},
+	filesToMdLangMappings [][2]string,
+	projectFiles []string,
+	filesForReview []string,
+	annotations map[string]string,
+	targetDocument string,
+	exampleDocuemnt string,
+	action string,
+	logger logging.ILogger) string {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -22,20 +33,19 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	}
 	logger.Debugln(connector.GetDebugString())
 
-	loadPrompt := func(filePath string) string {
-		text, err := utils.LoadTextFile(filepath.Join(promptsDir, filePath))
-		if err != nil {
-			logger.Panicln("Failed to load prompt:", err)
-		}
-		return text
-	}
-
 	var messages []llm.Message
 
 	// Create project-index request message
-	projectIndexRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectIndexPromptFile))
+	projectIndexRequestMessage := llm.AddPlainTextFragment(
+		llm.NewMessage(llm.UserRequest),
+		config[prompts.DocProjectIndexPromptName].(string))
+
 	for _, item := range projectFiles {
-		projectIndexRequestMessage = llm.AddIndexFragment(projectIndexRequestMessage, item, fileNameTags)
+		projectIndexRequestMessage = llm.AddIndexFragment(
+			projectIndexRequestMessage,
+			item,
+			config[prompts.FilenameTagsName].([]string))
+
 		annotation := annotations[item]
 		if annotation == "" {
 			annotation = "No annotation available"
@@ -46,26 +56,39 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	projectIndexResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocProjectIndexResponseFile))
+	projectIndexResponseMessage := llm.AddPlainTextFragment(
+		llm.NewMessage(llm.SimulatedAIResponse),
+		config[prompts.DocProjectIndexResponseName].(string))
+
 	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
 
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents
-		sourceCodeMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocProjectCodePromptFile))
+		sourceCodeMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			config[prompts.DocProjectCodePromptName].(string))
+
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage2 prompt", err)
 			}
-			sourceCodeMessage = llm.AddFileFragment(sourceCodeMessage, item, contents, fileNameTags)
+			sourceCodeMessage = llm.AddFileFragment(
+				sourceCodeMessage,
+				item,
+				contents,
+				config[prompts.FilenameTagsName].([]string))
 		}
 		messages = append(messages, sourceCodeMessage)
 		logger.Debugln("Project source code message created")
 
 		// Create simulated response
-		sourceCodeResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocProjectCodeResponseFile))
+		sourceCodeResponseMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			config[prompts.DocProjectCodeResponseName].(string))
+
 		messages = append(messages, sourceCodeResponseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
@@ -74,7 +97,10 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 
 	if exampleDocuemnt != "" {
 		// Create document-example request message
-		docExampleRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(prompts.DocExamplePromptFile))
+		docExampleRequestMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.UserRequest),
+			config[prompts.DocExamplePromptName].(string))
+
 		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
 		if err != nil {
 			logger.Panicln("Failed to load example document:", err)
@@ -84,18 +110,21 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 		logger.Debugln("Created document-example request message")
 
 		// Create document-example simulated response
-		docExampleResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), loadPrompt(prompts.AIDocExampleResponseFile))
+		docExampleResponseMessage := llm.AddPlainTextFragment(
+			llm.NewMessage(llm.SimulatedAIResponse),
+			config[prompts.DocExampleResponseName].(string))
+
 		messages = append(messages, docExampleResponseMessage)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create document-processing request message
-	docPromptFile := prompts.DocStage2WritePromptFile
+	docPrompt := config[prompts.DocStage2WritePromptName].(string)
 	if action == "REFINE" {
-		docPromptFile = prompts.DocStage2RefinePromptFile
+		docPrompt = config[prompts.DocStage2RefinePromptName].(string)
 	}
 
-	docRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), loadPrompt(docPromptFile))
+	docRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), docPrompt)
 	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
 	if err != nil {
 		logger.Panicln("Failed to add document contents to stage2 prompt", err)
@@ -104,7 +133,7 @@ func Stage2(projectRootDir string, perpetualDir string, promptsDir string, syste
 	messages = append(messages, docRequestMessage)
 	logger.Debugln("Created document processing request message")
 
-	continuePrompt := loadPrompt(prompts.DocStage2ContinuePromptFile)
+	continuePrompt := config[prompts.DocStage2ContinuePromptName].(string)
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
