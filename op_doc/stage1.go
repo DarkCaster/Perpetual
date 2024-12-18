@@ -87,9 +87,9 @@ func Stage1(projectRootDir string,
 	}
 
 	// Create project-files analisys request message
-	prompt := config[prompts.DefaultDocStage1WritePrompt].(string)
+	prompt := config[prompts.DocStage1WritePromptName].(string)
 	if action == "REFINE" {
-		prompt = config[prompts.DefaultDocStage1RefinePrompt].(string)
+		prompt = config[prompts.DocStage1RefinePromptName].(string)
 	}
 
 	codeAnalysisRequestMessage := llm.AddPlainTextFragment(
