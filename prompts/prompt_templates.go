@@ -33,6 +33,17 @@ const defaultAIAnnotatePrompt_VB6_Module = "Create a summary for the Visual Basi
 
 const defaultAIAnnotatePrompt_Generic = "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
 
+const defaultAIAcknowledge = "Understood. What's next?"
+
+/*const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"*/
+
+var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
+var defaultFileNameTags = []string{"<filename>", "</filename>"}
+var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
+var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
+var defaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+var defaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}
+
 func getDefaultAnnotateOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
@@ -149,17 +160,3 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 
 	return result
 }
-
-/*const DefaultImplementStage2OutputKey = "list_of_files"
-const DefaultImplementStage2ReasoningsOutputKey = "reasonings"*/
-
-const defaultAIAcknowledge = "Understood. What's next?"
-
-/*const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"*/
-
-var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
-var defaultFileNameTags = []string{"<filename>", "</filename>"}
-var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
-var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
-var defaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
-var defaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}
