@@ -10,9 +10,6 @@ const ProjectFilesToMarkdownLangMappingFileName = "project_files_to_markdown_lan
 const ProjectFilesBlacklistFileName = "project_files_blacklist.json"
 const ProjectTestFilesBlacklistFileName = "project_test_files_blacklist.json"
 
-// System prompts
-const SystemPromptsConfigFile = "system_prompts.json"
-
 // Names for config files for different operations
 const OpAnnotateConfigFile = "op_annotate.json"
 const OpImplementConfigFile = "op_implement.json"

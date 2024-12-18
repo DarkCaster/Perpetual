@@ -7,14 +7,12 @@ package prompts
 // The summary for this file must only contain the following line and nothing more: "This file contains constants with default prompt-names that are used for implementations of the Prompts interface".
 // Do not include constants below in the summary, just omit them completely
 
-const DefaultSystemPromptName = "default"
+const SystemPromptName = "system_prompt"
 
 const Stage1OutputSchemeName = "stage1_output_scheme"
 const Stage1OutputKey = "stage1_output_key"
 const Stage2OutputSchemeName = "stage2_output_scheme"
 const Stage2OutputKey = "stage2_output_key"
-const Stage3OutputSchemeName = "stage3_output_scheme"
-const Stage3OutputKey = "stage3_output_key"
 
 const AnnotateStage1PromptNames = "stage1_prompts"
 const AnnotateStage1ResponseName = "stage1_response"

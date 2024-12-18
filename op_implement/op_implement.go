@@ -79,11 +79,6 @@ func Run(args []string, logger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
-	systemPrompts := map[string]string{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.SystemPromptsConfigFile), &systemPrompts); err != nil {
-		logger.Panicf("Error loading %s config :%s", prompts.SystemPromptsConfigFile, err)
-	}
-
 	implementConfig := map[string]interface{}{}
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
 		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
@@ -239,7 +234,6 @@ func Run(args []string, logger logging.ILogger) {
 			filesToReview = Stage1(
 				projectRootDir,
 				perpetualDir,
-				systemPrompts[prompts.DefaultSystemPromptName],
 				implementConfig,
 				filesToMdLangMappings,
 				fileNames,
@@ -268,7 +262,6 @@ func Run(args []string, logger logging.ILogger) {
 	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(
 		projectRootDir,
 		perpetualDir,
-		systemPrompts[prompts.DefaultSystemPromptName],
 		implementConfig,
 		filesToMdLangMappings,
 		planningMode,
@@ -293,7 +286,6 @@ func Run(args []string, logger logging.ILogger) {
 	results := Stage3(
 		projectRootDir,
 		perpetualDir,
-		systemPrompts[prompts.DefaultSystemPromptName],
 		implementConfig,
 		filesToMdLangMappings,
 		stage2Messages,

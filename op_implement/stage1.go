@@ -11,7 +11,6 @@ import (
 
 func Stage1(projectRootDir string,
 	perpetualDir string,
-	systemPrompt string,
 	config map[string]interface{},
 	filesToMdLangMappings [][2]string,
 	fileNames []string,
@@ -24,7 +23,7 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", config[prompts.SystemPromptName].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}

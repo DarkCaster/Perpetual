@@ -113,11 +113,6 @@ func Run(args []string, logger logging.ILogger) {
 			op_annotate.Run(nil, logger)
 		}
 
-		systemPrompts := map[string]string{}
-		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.SystemPromptsConfigFile), &systemPrompts); err != nil {
-			logger.Panicf("Error loading %s config :%s", prompts.SystemPromptsConfigFile, err)
-		}
-
 		docConfig := map[string]interface{}{}
 		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpDocConfigFile), &docConfig); err != nil {
 			logger.Panicf("Error loading %s config :%s", prompts.OpDocConfigFile, err)
@@ -183,7 +178,6 @@ func Run(args []string, logger logging.ILogger) {
 		// Run stage1 to find out what project-files contents we need to work on document
 		requestedFiles := Stage1(projectRootDir,
 			perpetualDir,
-			systemPrompts[prompts.DefaultSystemPromptName],
 			docConfig,
 			filesToMdLangMappings,
 			fileNames,
@@ -212,7 +206,6 @@ func Run(args []string, logger logging.ILogger) {
 		// Run stage2 to make changes to the document and save it to docContent
 		docContent = Stage2(projectRootDir,
 			perpetualDir,
-			systemPrompts[prompts.DefaultSystemPromptName],
 			docConfig,
 			filesToMdLangMappings,
 			fileNames,

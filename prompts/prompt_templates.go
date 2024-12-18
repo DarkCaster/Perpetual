@@ -41,8 +41,9 @@ var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/fil
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
-var defaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
-var defaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}
+
+//var defaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
+//var defaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}
 
 func getDefaultAnnotateOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
@@ -81,6 +82,7 @@ const defaultListOfFilesOutputKey = "list_of_files"
 
 func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
+	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// ack from AI
 	result[AnnotateStage1PromptNames] = [][2]string{
 		{"^.*$", "TEMPLATE VALUE, MUST BE REDEFINED"},
@@ -103,6 +105,7 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 
 func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
+	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// stage 1
 	result[ImplementStage1IndexPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	result[ImplementStage1IndexResponseName] = defaultAIAcknowledge
@@ -138,6 +141,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 
 func getDefaultDocConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
+	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 
 	result[DocExamplePromptName] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[DocExampleResponseName] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."

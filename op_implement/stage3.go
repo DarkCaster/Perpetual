@@ -12,7 +12,6 @@ import (
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
 func Stage3(projectRootDir string,
 	perpetualDir string,
-	systemPrompt string,
 	config map[string]interface{},
 	filesToMdLangMappings [][2]string,
 	stage2Messages []llm.Message,
@@ -24,7 +23,7 @@ func Stage3(projectRootDir string,
 	defer logger.Traceln("Stage3: Finished") // Add trace logging
 
 	// Create stage3 llm connector
-	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", systemPrompt, filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", config[prompts.SystemPromptName].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
