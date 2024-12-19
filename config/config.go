@@ -1,11 +1,14 @@
 package config
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type Config interface {
 	String(key string) string
-	Regexp(key string) regexp.Regexp
+	Regexp(key string) *regexp.Regexp
 	Object(key string) map[string]interface{}
-	Array(key string) []string
-	Array2D(key string) [][]string
+	StringArray(key string) []string
+	StringArray2D(key string) [][]string
+	RegexpArray(key string) []*regexp.Regexp
 }
