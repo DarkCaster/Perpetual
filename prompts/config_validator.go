@@ -168,3 +168,24 @@ func ValidateOpImplementConfig(config map[string]interface{}) error {
 
 	return nil
 }
+
+func ValidateOpDocConfig(config map[string]interface{}) error {
+	template := getDefaultDocConfigTemplate()
+	if err := validateConfigAgainstTemplate(template, config); err != nil {
+		return err
+	}
+
+	if err := validateEvenStringArray(config[FilenameTagsName], FilenameTagsName); err != nil {
+		return err
+	}
+
+	if err := validateEvenStringArray(config[FilenameTagsRxName], FilenameTagsRxName); err != nil {
+		return err
+	}
+
+	if err := validateNonEmptyStringArray(config[NoUploadCommentsRxName], NoUploadCommentsRxName); err != nil {
+		return err
+	}
+
+	return nil
+}

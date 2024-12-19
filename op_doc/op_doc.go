@@ -117,6 +117,9 @@ func Run(args []string, logger logging.ILogger) {
 		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpDocConfigFile), &docConfig); err != nil {
 			logger.Panicf("Error loading %s config :%s", prompts.OpDocConfigFile, err)
 		}
+		if err = prompts.ValidateOpDocConfig(docConfig); err != nil {
+			logger.Panicf("Failed to validate op_doc config: %s", err)
+		}
 
 		var filesToMdLangMappings [][2]string
 		err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
