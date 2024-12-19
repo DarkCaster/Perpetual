@@ -221,6 +221,18 @@ func TestValidateNonEmptyStringArray(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "empty-string only element",
+			value:   []interface{}{""},
+			arrName: "test",
+			wantErr: true,
+		},
+		{
+			name:    "empty-string element",
+			value:   []interface{}{"valid", ""},
+			arrName: "test",
+			wantErr: true,
+		},
+		{
 			name:    "non-string element",
 			value:   []interface{}{"valid", 123, "invalid"},
 			arrName: "test",

@@ -107,8 +107,12 @@ func validateNonEmptyStringArray(value interface{}, name string) error {
 	}
 
 	for i, v := range arr {
-		if _, ok := v.(string); !ok {
+		str, ok := v.(string)
+		if !ok {
 			return fmt.Errorf("%s[%d] must be a string", name, i)
+		}
+		if len(str) < 1 {
+			return fmt.Errorf("%s[%d] is empty", name, i)
 		}
 	}
 
@@ -130,6 +134,35 @@ func ValidateOpAnnotateConfig(config map[string]interface{}) error {
 	}
 
 	if err := validateEvenStringArray(config[CodeTagsRxName], CodeTagsRxName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateOpImplementConfig(config map[string]interface{}) error {
+	template := getDefaultImplementConfigTemplate()
+	if err := validateConfigAgainstTemplate(template, config); err != nil {
+		return err
+	}
+
+	if err := validateEvenStringArray(config[CodeTagsRxName], CodeTagsRxName); err != nil {
+		return err
+	}
+
+	if err := validateEvenStringArray(config[FilenameTagsName], FilenameTagsName); err != nil {
+		return err
+	}
+
+	if err := validateEvenStringArray(config[FilenameTagsRxName], FilenameTagsRxName); err != nil {
+		return err
+	}
+
+	if err := validateNonEmptyStringArray(config[ImplementCommentsRxName], ImplementCommentsRxName); err != nil {
+		return err
+	}
+
+	if err := validateNonEmptyStringArray(config[NoUploadCommentsRxName], NoUploadCommentsRxName); err != nil {
 		return err
 	}
 
