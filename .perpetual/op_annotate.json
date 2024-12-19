@@ -1,0 +1,52 @@
+{
+  "code_tags_rx": [
+    "(?m)\\s*```[a-zA-Z]+\\n?",
+    "(?m)```\\s*($|\\n)"
+  ],
+  "filename_tags": [
+    "<filename>",
+    "</filename>"
+  ],
+  "stage1_output_key": "generated_summary",
+  "stage1_output_scheme": {
+    "properties": {
+      "generated_summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "generated_summary"
+    ],
+    "type": "object"
+  },
+  "stage1_prompts": [
+    [
+      "(?i)^.*_test\\.go$",
+      "Create a summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\nThis file contains unit tests for <list of entities the tests target>"
+    ],
+    [
+      "(?i)^.*\\.go$",
+      "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the package name and a list of top-level entities. Skip entities declared inside functions from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
+    ],
+    [
+      "^.*$",
+      "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
+    ]
+  ],
+  "stage1_response": "Waiting for file contents",
+  "stage2_output_key": "generated_summary",
+  "stage2_output_scheme": {
+    "properties": {
+      "generated_summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "generated_summary"
+    ],
+    "type": "object"
+  },
+  "stage2_prompt_combine": "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more.",
+  "stage2_prompt_variant": "Create another summary variant",
+  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
+}
