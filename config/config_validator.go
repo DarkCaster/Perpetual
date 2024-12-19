@@ -1,9 +1,7 @@
-package prompts
+package config
 
 import (
 	"fmt"
-
-	"github.com/DarkCaster/Perpetual/config"
 )
 
 func validateConfigAgainstTemplate(template, config map[string]interface{}) error {
@@ -12,6 +10,14 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 		if _, exists := config[key]; !exists {
 			// If key is required but missing, return error
 			return fmt.Errorf("missing required key in config file: %s", key)
+		}
+	}
+
+	// Check that all required keys from config exist in template
+	for key := range config {
+		if _, exists := template[key]; !exists {
+			// If key is required but missing, return error
+			return fmt.Errorf("extra key in config file: %s", key)
 		}
 	}
 
@@ -48,30 +54,30 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 func validateOpAnnotateStage1Prompts(value interface{}) error {
 	arr, ok := value.([]interface{})
 	if !ok {
-		return fmt.Errorf("%s must be an array", config.K_AnnotateStage1Prompts)
+		return fmt.Errorf("%s must be an array", K_AnnotateStage1Prompts)
 	}
 
 	if len(arr) == 0 {
-		return fmt.Errorf("%s must contain at least one element", config.K_AnnotateStage1Prompts)
+		return fmt.Errorf("%s must contain at least one element", K_AnnotateStage1Prompts)
 	}
 
 	for i, outer := range arr {
 		innerArr, ok := outer.([]interface{})
 		if !ok {
-			return fmt.Errorf("%s[%d] must be an array", config.K_AnnotateStage1Prompts, i)
+			return fmt.Errorf("%s[%d] must be an array", K_AnnotateStage1Prompts, i)
 		}
 
 		if len(innerArr) != 2 {
-			return fmt.Errorf("%s[%d] must contain exactly 2 elements", config.K_AnnotateStage1Prompts, i)
+			return fmt.Errorf("%s[%d] must contain exactly 2 elements", K_AnnotateStage1Prompts, i)
 		}
 
 		for j, inner := range innerArr {
 			str, ok := inner.(string)
 			if !ok {
-				return fmt.Errorf("%s[%d][%d] must be a string", config.K_AnnotateStage1Prompts, i, j)
+				return fmt.Errorf("%s[%d][%d] must be a string", K_AnnotateStage1Prompts, i, j)
 			}
 			if len(str) < 1 {
-				return fmt.Errorf("%s[%d][%d] is empty", config.K_AnnotateStage1Prompts, i, j)
+				return fmt.Errorf("%s[%d][%d] is empty", K_AnnotateStage1Prompts, i, j)
 			}
 		}
 	}
@@ -122,20 +128,20 @@ func validateNonEmptyStringArray(value interface{}, name string) error {
 }
 
 func ValidateOpAnnotateConfig(cfg map[string]interface{}) error {
-	template := GetDefaultAnnotateConfigTemplate()
+	template := GetAnnotateConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
 
-	if err := validateOpAnnotateStage1Prompts(cfg[config.K_AnnotateStage1Prompts]); err != nil {
+	if err := validateOpAnnotateStage1Prompts(cfg[K_AnnotateStage1Prompts]); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_FilenameTags], config.K_FilenameTags); err != nil {
+	if err := validateEvenStringArray(cfg[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_CodeTagsRx], config.K_CodeTagsRx); err != nil {
+	if err := validateEvenStringArray(cfg[K_CodeTagsRx], K_CodeTagsRx); err != nil {
 		return err
 	}
 
@@ -143,28 +149,28 @@ func ValidateOpAnnotateConfig(cfg map[string]interface{}) error {
 }
 
 func ValidateOpImplementConfig(cfg map[string]interface{}) error {
-	template := GetDefaultImplementConfigTemplate()
+	template := GetImplementConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_CodeTagsRx], config.K_CodeTagsRx); err != nil {
+	if err := validateEvenStringArray(cfg[K_CodeTagsRx], K_CodeTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_FilenameTags], config.K_FilenameTags); err != nil {
+	if err := validateEvenStringArray(cfg[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_FilenameTagsRx], config.K_FilenameTagsRx); err != nil {
+	if err := validateEvenStringArray(cfg[K_FilenameTagsRx], K_FilenameTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(cfg[config.K_ImplementCommentsRx], config.K_ImplementCommentsRx); err != nil {
+	if err := validateNonEmptyStringArray(cfg[K_ImplementCommentsRx], K_ImplementCommentsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(cfg[config.K_NoUploadCommentsRx], config.K_NoUploadCommentsRx); err != nil {
+	if err := validateNonEmptyStringArray(cfg[K_NoUploadCommentsRx], K_NoUploadCommentsRx); err != nil {
 		return err
 	}
 
@@ -172,20 +178,20 @@ func ValidateOpImplementConfig(cfg map[string]interface{}) error {
 }
 
 func ValidateOpDocConfig(cfg map[string]interface{}) error {
-	template := GetDefaultDocConfigTemplate()
+	template := GetDocConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_FilenameTags], config.K_FilenameTags); err != nil {
+	if err := validateEvenStringArray(cfg[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(cfg[config.K_FilenameTagsRx], config.K_FilenameTagsRx); err != nil {
+	if err := validateEvenStringArray(cfg[K_FilenameTagsRx], K_FilenameTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(cfg[config.K_NoUploadCommentsRx], config.K_NoUploadCommentsRx); err != nil {
+	if err := validateNonEmptyStringArray(cfg[K_NoUploadCommentsRx], K_NoUploadCommentsRx); err != nil {
 		return err
 	}
 

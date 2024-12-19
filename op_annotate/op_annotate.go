@@ -138,7 +138,7 @@ func Run(args []string, logger logging.ILogger) {
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpAnnotateConfigFile), &annotateConfig); err != nil {
 		logger.Panicf("Error loading %s config :%s", config.OpAnnotateConfigFile, err)
 	}
-	if err = prompts.ValidateOpAnnotateConfig(annotateConfig); err != nil {
+	if err = config.ValidateOpAnnotateConfig(annotateConfig); err != nil {
 		logger.Panicf("Failed to validate op_annotate config: %s", err)
 	}
 

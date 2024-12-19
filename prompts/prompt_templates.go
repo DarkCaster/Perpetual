@@ -96,7 +96,7 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 	// structured output scheme and lookup key
 	result[config.K_Stage1OutputScheme] = getDefaultAnnotateOutputScheme()
-	result[config.K_Stage1Output] = defaultAnnotateOutputKey
+	result[config.K_Stage1OutputKey] = defaultAnnotateOutputKey
 	result[config.K_Stage2OutputScheme] = getDefaultAnnotateOutputScheme()
 	result[config.K_Stage2OutputKey] = defaultAnnotateOutputKey
 	// tags for providing filename to LLM
@@ -114,7 +114,7 @@ func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage1AnalisysPrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
 	result[config.K_ImplementStage1AnalisysJsonModePrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
 	result[config.K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
-	result[config.K_Stage1Output] = defaultListOfFilesOutputKey
+	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
 	// stage 2
 	result[config.K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
 	result[config.K_ImplementStage2CodeResponse] = defaultAIAcknowledge

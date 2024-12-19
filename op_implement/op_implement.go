@@ -84,7 +84,7 @@ func Run(args []string, logger logging.ILogger) {
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpImplementConfigFile), &implementConfig); err != nil {
 		logger.Panicf("Error loading %s config :%s", config.OpImplementConfigFile, err)
 	}
-	if err = prompts.ValidateOpImplementConfig(implementConfig); err != nil {
+	if err = config.ValidateOpImplementConfig(implementConfig); err != nil {
 		logger.Panicf("Failed to validate op_implement config: %s", err)
 	}
 

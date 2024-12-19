@@ -1,4 +1,4 @@
-package prompts
+package config
 
 import (
 	"testing"
@@ -33,6 +33,14 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 				"required": "yes",
 			},
 			config:  map[string]interface{}{},
+			wantErr: true,
+		},
+		{
+			name:     "extra key",
+			template: map[string]interface{}{},
+			config: map[string]interface{}{
+				"extra": "yes",
+			},
 			wantErr: true,
 		},
 		{

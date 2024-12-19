@@ -118,7 +118,7 @@ func Run(args []string, logger logging.ILogger) {
 		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpDocConfigFile), &docConfig); err != nil {
 			logger.Panicf("Error loading %s config :%s", config.OpDocConfigFile, err)
 		}
-		if err = prompts.ValidateOpDocConfig(docConfig); err != nil {
+		if err = config.ValidateOpDocConfig(docConfig); err != nil {
 			logger.Panicf("Failed to validate op_doc config: %s", err)
 		}
 
