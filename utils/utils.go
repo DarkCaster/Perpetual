@@ -78,21 +78,3 @@ func CalculateSHA256(filePath string) (string, error) {
 	checksum := hash.Sum(nil)
 	return fmt.Sprintf("%x", checksum), nil
 }
-
-func InterfaceToStringArray(source interface{}) []string {
-	sourceArray := source.([]interface{})
-	target := make([]string, len(sourceArray))
-	for i, element := range sourceArray {
-		target[i] = element.(string)
-	}
-	return target
-}
-
-func InterfaceTo2DStringArray(source interface{}) [][]string {
-	sourceArray := source.([]interface{})
-	target := make([][]string, len(sourceArray))
-	for i, element := range sourceArray {
-		target[i] = InterfaceToStringArray(element)
-	}
-	return target
-}
