@@ -137,6 +137,9 @@ func Run(args []string, logger logging.ILogger) {
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpAnnotateConfigFile), &annotateConfig); err != nil {
 		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
 	}
+	if err = prompts.ValidateAnnotateConfig(annotateConfig); err != nil {
+		logger.Panicf("Failed to validate op_annotate config: %s", err)
+	}
 
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,

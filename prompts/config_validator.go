@@ -4,12 +4,10 @@ import "fmt"
 
 func validateConfigAgainstTemplate(template, config map[string]interface{}) error {
 	// Check that all required keys from template exist in config
-	for key, value := range template {
+	for key := range template {
 		if _, exists := config[key]; !exists {
 			// If key is required but missing, return error
-			if value == nil {
-				return fmt.Errorf("missing required key in config file: %s", key)
-			}
+			return fmt.Errorf("missing required key in config file: %s", key)
 		}
 	}
 
