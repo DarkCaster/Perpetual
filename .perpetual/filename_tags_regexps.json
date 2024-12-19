@@ -1,4 +1,0 @@
-[
-  "(?m)\\s*<filename>\\n?",
-  "(?m)<\\/filename>\\s*$?"
-]

@@ -1,4 +1,0 @@
-[
-  "(?m)\\s*<reasoning>\\n?",
-  "(?m)<\\/reasoning>\\s*($|\\n)"
-]
