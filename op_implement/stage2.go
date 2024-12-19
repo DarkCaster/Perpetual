@@ -23,7 +23,7 @@ func Stage2(projectRootDir string,
 	defer logger.Traceln("Stage2: Finished")
 
 	// Create stage2 llm connector
-	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", config[prompts.SystemPromptName].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", config[prompts.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
@@ -35,7 +35,7 @@ func Stage2(projectRootDir string,
 		// Create target files analisys request message
 		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			config[prompts.ImplementStage2CodePromptName].(string))
+			config[prompts.K_ImplementStage2CodePrompt].(string))
 
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
@@ -46,7 +46,7 @@ func Stage2(projectRootDir string,
 				stage2ProjectSourceCodeMessage,
 				item,
 				contents,
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 		}
 		messages = append(messages, stage2ProjectSourceCodeMessage)
 		logger.Debugln("Project source code message created")
@@ -54,7 +54,7 @@ func Stage2(projectRootDir string,
 		// Create simulated response
 		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			config[prompts.ImplementStage2CodeResponseName].(string))
+			config[prompts.K_ImplementStage2CodeResponse].(string))
 
 		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
 		logger.Debugln("Project source code simulated response added")
@@ -75,7 +75,7 @@ func Stage2(projectRootDir string,
 		default:
 			stage2FilesToChangeMessage = llm.AddPlainTextFragment(
 				llm.NewMessage(llm.UserRequest),
-				config[prompts.ImplementStage2FilesToChangePromptName].(string))
+				config[prompts.K_ImplementStage2FilesToChangePrompt].(string))
 		}
 		// Attach target files
 		for _, item := range targetFiles {
@@ -87,7 +87,7 @@ func Stage2(projectRootDir string,
 				stage2FilesToChangeMessage,
 				item,
 				contents,
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 		}
 		messages = append(messages, stage2FilesToChangeMessage)
 		logger.Debugln("Files to change message created")
@@ -95,7 +95,7 @@ func Stage2(projectRootDir string,
 		// Create files to request for non-planning mode
 		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			config[prompts.ImplementStage2NoPlanningPromptName].(string))
+			config[prompts.K_ImplementStage2NoPlanningPrompt].(string))
 
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
@@ -106,7 +106,7 @@ func Stage2(projectRootDir string,
 				stage2FilesNoPlanningMessage,
 				item,
 				contents,
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 		}
 		messages = append(messages, stage2FilesNoPlanningMessage)
 		logger.Debugln("Files for no planning message created")
@@ -114,7 +114,7 @@ func Stage2(projectRootDir string,
 		// Create simulated response
 		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			config[prompts.ImplementStage2NoPlanningResponseName].(string))
+			config[prompts.K_ImplementStage2NoPlanningResponse].(string))
 
 		messages = append(messages, stage2FilesNoPlanningResponseMessage)
 		logger.Debugln("Files for no planning simulated response added")
@@ -178,8 +178,8 @@ func Stage2(projectRootDir string,
 			// Process response, parse files that will be created
 			filesToProcessRaw, err = utils.ParseTaggedText(
 				aiResponses[0],
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[0],
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[1],
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[0],
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[1],
 				false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -267,13 +267,13 @@ func Stage2(projectRootDir string,
 				simplifiedResponseMessage = llm.AddTaggedFragment(
 					simplifiedResponseMessage,
 					item,
-					utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+					utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 			}
 			for _, item := range targetFilesToModify {
 				simplifiedResponseMessage = llm.AddTaggedFragment(
 					simplifiedResponseMessage,
 					item,
-					utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+					utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 			}
 			// Append reasonings if any
 			/*if reasonings != "" {

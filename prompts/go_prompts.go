@@ -10,9 +10,9 @@ const goSystemPrompt = "You are a highly skilled Go programming language softwar
 
 func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[SystemPromptName] = goSystemPrompt
+	result[K_SystemPrompt] = goSystemPrompt
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptNames] = [][2]string{
+	result[K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests},
 		{"(?i)^.*\\.go$", defaultAIAnnotatePrompt_Go},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
@@ -22,20 +22,20 @@ func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *GoPrompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[SystemPromptName] = goSystemPrompt
+	result[K_SystemPrompt] = goSystemPrompt
 	// redefine language-dependent prompt
-	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[ImplementCommentsRxName] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
-	result[NoUploadCommentsRxName] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *GoPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[SystemPromptName] = goSystemPrompt
+	result[K_SystemPrompt] = goSystemPrompt
 	// redefine language-dependent prompt
-	result[DocProjectIndexPromptName] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[NoUploadCommentsRxName] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[K_DocProjectIndexPrompt] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

@@ -26,7 +26,7 @@ func Stage2(projectRootDir string,
 	defer logger.Traceln("Stage2: Finished")
 
 	// Create stage2 llm connector
-	connector, err := llm.NewLLMConnector(OpName+"_stage2", config[prompts.SystemPromptName].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage2", config[prompts.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
@@ -37,13 +37,13 @@ func Stage2(projectRootDir string,
 	// Create project-index request message
 	projectIndexRequestMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.UserRequest),
-		config[prompts.DocProjectIndexPromptName].(string))
+		config[prompts.K_DocProjectIndexPrompt].(string))
 
 	for _, item := range projectFiles {
 		projectIndexRequestMessage = llm.AddIndexFragment(
 			projectIndexRequestMessage,
 			item,
-			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+			utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -57,7 +57,7 @@ func Stage2(projectRootDir string,
 	// Create project-index simulated response
 	projectIndexResponseMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.SimulatedAIResponse),
-		config[prompts.DocProjectIndexResponseName].(string))
+		config[prompts.K_DocProjectIndexResponse].(string))
 
 	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
@@ -67,7 +67,7 @@ func Stage2(projectRootDir string,
 		// Create request with file-contents
 		sourceCodeMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			config[prompts.DocProjectCodePromptName].(string))
+			config[prompts.K_DocProjectCodePrompt].(string))
 
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
@@ -78,7 +78,7 @@ func Stage2(projectRootDir string,
 				sourceCodeMessage,
 				item,
 				contents,
-				utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+				utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 		}
 		messages = append(messages, sourceCodeMessage)
 		logger.Debugln("Project source code message created")
@@ -86,7 +86,7 @@ func Stage2(projectRootDir string,
 		// Create simulated response
 		sourceCodeResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			config[prompts.DocProjectCodeResponseName].(string))
+			config[prompts.K_DocProjectCodeResponse].(string))
 
 		messages = append(messages, sourceCodeResponseMessage)
 		logger.Debugln("Project source code simulated response added")
@@ -98,7 +98,7 @@ func Stage2(projectRootDir string,
 		// Create document-example request message
 		docExampleRequestMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			config[prompts.DocExamplePromptName].(string))
+			config[prompts.K_DocExamplePrompt].(string))
 
 		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
 		if err != nil {
@@ -111,16 +111,16 @@ func Stage2(projectRootDir string,
 		// Create document-example simulated response
 		docExampleResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			config[prompts.DocExampleResponseName].(string))
+			config[prompts.K_DocExampleResponse].(string))
 
 		messages = append(messages, docExampleResponseMessage)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create document-processing request message
-	docPrompt := config[prompts.DocStage2WritePromptName].(string)
+	docPrompt := config[prompts.K_DocStage2WritePrompt].(string)
 	if action == "REFINE" {
-		docPrompt = config[prompts.DocStage2RefinePromptName].(string)
+		docPrompt = config[prompts.K_DocStage2RefinePrompt].(string)
 	}
 
 	docRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), docPrompt)
@@ -132,7 +132,7 @@ func Stage2(projectRootDir string,
 	messages = append(messages, docRequestMessage)
 	logger.Debugln("Created document processing request message")
 
-	continuePrompt := config[prompts.DocStage2ContinuePromptName].(string)
+	continuePrompt := config[prompts.K_DocStage2ContinuePrompt].(string)
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()

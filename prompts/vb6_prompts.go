@@ -10,35 +10,35 @@ const vb6SystemPrompt = "You are a highly skilled Visual Basic 6 software develo
 
 func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[SystemPromptName] = vb6SystemPrompt
+	result[K_SystemPrompt] = vb6SystemPrompt
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptNames] = [][2]string{
+	result[K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.frm$", defaultAIAnnotatePrompt_VB6_Form},
 		{"(?i)^.*\\.cls$", defaultAIAnnotatePrompt_VB6_Class},
 		{"(?i)^.*\\.bas$", defaultAIAnnotatePrompt_VB6_Module},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
-	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
+	result[K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
 func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[SystemPromptName] = vb6SystemPrompt
+	result[K_SystemPrompt] = vb6SystemPrompt
 	// redefine language-dependent prompt
-	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
-	result[ImplementCommentsRxName] = []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
-	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
+	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
+	result[K_ImplementCommentsRx] = []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
+	result[K_NoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[SystemPromptName] = vb6SystemPrompt
+	result[K_SystemPrompt] = vb6SystemPrompt
 	// redefine language-dependent prompt
-	result[DocProjectIndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[NoUploadCommentsRxName] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
+	result[K_DocProjectIndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_NoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

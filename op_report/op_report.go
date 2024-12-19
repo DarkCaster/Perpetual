@@ -134,7 +134,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report message
 		reportMessage = llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			implementConfig[prompts.ImplementStage1IndexPromptName].(string))
+			implementConfig[prompts.K_ImplementStage1IndexPrompt].(string))
 
 		for _, filename := range fileNames {
 			annotation, ok := annotations[filename]
@@ -148,7 +148,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report messages
 		reportMessage = llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			implementConfig[prompts.ImplementStage2CodePromptName].(string))
+			implementConfig[prompts.K_ImplementStage2CodePrompt].(string))
 
 		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
 		for _, filename := range fileNames {

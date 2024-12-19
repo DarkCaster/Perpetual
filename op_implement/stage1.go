@@ -23,7 +23,7 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", config[prompts.SystemPromptName].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", config[prompts.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
@@ -32,13 +32,13 @@ func Stage1(projectRootDir string,
 	// Create project-index request message
 	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.UserRequest),
-		config[prompts.ImplementStage1IndexPromptName].(string))
+		config[prompts.K_ImplementStage1IndexPrompt].(string))
 
 	for _, item := range fileNames {
 		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(
 			stage1ProjectIndexRequestMessage,
 			item,
-			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+			utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -54,14 +54,14 @@ func Stage1(projectRootDir string,
 	// Create project-index simulated response
 	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.SimulatedAIResponse),
-		config[prompts.ImplementStage1IndexResponseName].(string))
+		config[prompts.K_ImplementStage1IndexResponse].(string))
 
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analisys request message
 	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.UserRequest),
-		config[prompts.ImplementStage1AnalisysPromptName].(string))
+		config[prompts.K_ImplementStage1AnalisysPrompt].(string))
 
 	for _, item := range targetFiles {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
@@ -73,7 +73,7 @@ func Stage1(projectRootDir string,
 			stage1SourceAnalysisRequestMessage,
 			item,
 			contents,
-			utils.InterfaceToStringArray(config[prompts.FilenameTagsName]))
+			utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
 	}
 	logger.Debugln("Created target files analysis request message")
 
@@ -119,8 +119,8 @@ func Stage1(projectRootDir string,
 	}
 
 	filesForReviewRaw, err := utils.ParseTaggedText(aiResponses[0],
-		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[0],
-		utils.InterfaceToStringArray(config[prompts.FilenameTagsRxName])[1],
+		utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[0],
+		utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[1],
 		false)
 
 	if err != nil {

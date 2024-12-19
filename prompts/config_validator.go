@@ -46,30 +46,30 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 func validateOpAnnotateStage1Prompts(value interface{}) error {
 	arr, ok := value.([]interface{})
 	if !ok {
-		return fmt.Errorf("%s must be an array", AnnotateStage1PromptNames)
+		return fmt.Errorf("%s must be an array", K_AnnotateStage1Prompts)
 	}
 
 	if len(arr) == 0 {
-		return fmt.Errorf("%s must contain at least one element", AnnotateStage1PromptNames)
+		return fmt.Errorf("%s must contain at least one element", K_AnnotateStage1Prompts)
 	}
 
 	for i, outer := range arr {
 		innerArr, ok := outer.([]interface{})
 		if !ok {
-			return fmt.Errorf("%s[%d] must be an array", AnnotateStage1PromptNames, i)
+			return fmt.Errorf("%s[%d] must be an array", K_AnnotateStage1Prompts, i)
 		}
 
 		if len(innerArr) != 2 {
-			return fmt.Errorf("%s[%d] must contain exactly 2 elements", AnnotateStage1PromptNames, i)
+			return fmt.Errorf("%s[%d] must contain exactly 2 elements", K_AnnotateStage1Prompts, i)
 		}
 
 		for j, inner := range innerArr {
 			str, ok := inner.(string)
 			if !ok {
-				return fmt.Errorf("%s[%d][%d] must be a string", AnnotateStage1PromptNames, i, j)
+				return fmt.Errorf("%s[%d][%d] must be a string", K_AnnotateStage1Prompts, i, j)
 			}
 			if len(str) < 1 {
-				return fmt.Errorf("%s[%d][%d] is empty", AnnotateStage1PromptNames, i, j)
+				return fmt.Errorf("%s[%d][%d] is empty", K_AnnotateStage1Prompts, i, j)
 			}
 		}
 	}
@@ -125,15 +125,15 @@ func ValidateOpAnnotateConfig(config map[string]interface{}) error {
 		return err
 	}
 
-	if err := validateOpAnnotateStage1Prompts(config[AnnotateStage1PromptNames]); err != nil {
+	if err := validateOpAnnotateStage1Prompts(config[K_AnnotateStage1Prompts]); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[FilenameTagsName], FilenameTagsName); err != nil {
+	if err := validateEvenStringArray(config[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[CodeTagsRxName], CodeTagsRxName); err != nil {
+	if err := validateEvenStringArray(config[K_CodeTagsRx], K_CodeTagsRx); err != nil {
 		return err
 	}
 
@@ -146,23 +146,23 @@ func ValidateOpImplementConfig(config map[string]interface{}) error {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[CodeTagsRxName], CodeTagsRxName); err != nil {
+	if err := validateEvenStringArray(config[K_CodeTagsRx], K_CodeTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[FilenameTagsName], FilenameTagsName); err != nil {
+	if err := validateEvenStringArray(config[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[FilenameTagsRxName], FilenameTagsRxName); err != nil {
+	if err := validateEvenStringArray(config[K_FilenameTagsRx], K_FilenameTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(config[ImplementCommentsRxName], ImplementCommentsRxName); err != nil {
+	if err := validateNonEmptyStringArray(config[K_ImplementCommentsRx], K_ImplementCommentsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(config[NoUploadCommentsRxName], NoUploadCommentsRxName); err != nil {
+	if err := validateNonEmptyStringArray(config[K_NoUploadCommentsRx], K_NoUploadCommentsRx); err != nil {
 		return err
 	}
 
@@ -175,15 +175,15 @@ func ValidateOpDocConfig(config map[string]interface{}) error {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[FilenameTagsName], FilenameTagsName); err != nil {
+	if err := validateEvenStringArray(config[K_FilenameTags], K_FilenameTags); err != nil {
 		return err
 	}
 
-	if err := validateEvenStringArray(config[FilenameTagsRxName], FilenameTagsRxName); err != nil {
+	if err := validateEvenStringArray(config[K_FilenameTagsRx], K_FilenameTagsRx); err != nil {
 		return err
 	}
 
-	if err := validateNonEmptyStringArray(config[NoUploadCommentsRxName], NoUploadCommentsRxName); err != nil {
+	if err := validateNonEmptyStringArray(config[K_NoUploadCommentsRx], K_NoUploadCommentsRx); err != nil {
 		return err
 	}
 

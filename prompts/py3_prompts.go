@@ -10,36 +10,36 @@ const py3SystemPrompt = "You are a highly skilled Python 3 programming language 
 
 func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[SystemPromptName] = py3SystemPrompt
+	result[K_SystemPrompt] = py3SystemPrompt
 	// file-dependent annotate prompts
-	result[AnnotateStage1PromptNames] = [][2]string{
+	result[K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.py$", defaultAIAnnotatePrompt_Py3},
 		{"(?i)^.*\\.pl$", defaultAIAnnotatePrompt_Perl},
 		{"(?i)^.*\\.(bat|cmd)$", defaultAIAnnotatePrompt_Bat},
 		{"(?i)^.*\\.(sh|bash)(\\.in)?$", defaultAIAnnotatePrompt_Bash},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
-	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
+	result[K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
 func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[SystemPromptName] = py3SystemPrompt
+	result[K_SystemPrompt] = py3SystemPrompt
 	// redefine language-dependent prompt
-	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[CodeTagsRxName] = defaultOutputTagsRegexps_WithNumbers
-	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
-	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
+	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
+	result[K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
+	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[SystemPromptName] = py3SystemPrompt
+	result[K_SystemPrompt] = py3SystemPrompt
 	// redefine language-dependent prompt
-	result[DocProjectIndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
+	result[K_DocProjectIndexPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

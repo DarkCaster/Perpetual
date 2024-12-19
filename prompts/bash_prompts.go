@@ -10,9 +10,9 @@ const bashSystemPrompt = "You are a highly skilled Bash scripting expert with ex
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[SystemPromptName] = bashSystemPrompt
+	result[K_SystemPrompt] = bashSystemPrompt
 	// file-type-dependent annotate prompts
-	result[AnnotateStage1PromptNames] = [][2]string{
+	result[K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.(sh|bash|in)$", defaultAIAnnotatePrompt_Bash},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
@@ -21,20 +21,20 @@ func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[SystemPromptName] = bashSystemPrompt
+	result[K_SystemPrompt] = bashSystemPrompt
 	// redefine language-dependent prompt
-	result[ImplementStage1IndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-	result[ImplementCommentsRxName] = []string{"^\\s*###IMPLEMENT###.*$"}
-	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$"}
+	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$"}
+	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *BashPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[SystemPromptName] = bashSystemPrompt
+	result[K_SystemPrompt] = bashSystemPrompt
 	// redefine language-dependent prompt
-	result[DocProjectIndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-	result[NoUploadCommentsRxName] = []string{"^\\s*###NOUPLOAD###.*$"}
+	result[K_DocProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
