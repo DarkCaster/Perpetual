@@ -9,7 +9,7 @@ type VB6Prompts struct{}
 const vb6SystemPrompt = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
-	result := getDefaultAnnotateConfigTemplate()
+	result := GetDefaultAnnotateConfigTemplate()
 	result[SystemPromptName] = vb6SystemPrompt
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
@@ -23,7 +23,7 @@ func (p *VB6Prompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
-	result := getDefaultImplementConfigTemplate()
+	result := GetDefaultImplementConfigTemplate()
 	result[SystemPromptName] = vb6SystemPrompt
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -34,7 +34,7 @@ func (p *VB6Prompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
-	result := getDefaultDocConfigTemplate()
+	result := GetDefaultDocConfigTemplate()
 	result[SystemPromptName] = vb6SystemPrompt
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."

@@ -9,7 +9,7 @@ type Py3Prompts struct{}
 const py3SystemPrompt = "You are a highly skilled Python 3 programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
-	result := getDefaultAnnotateConfigTemplate()
+	result := GetDefaultAnnotateConfigTemplate()
 	result[SystemPromptName] = py3SystemPrompt
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
@@ -24,7 +24,7 @@ func (p *Py3Prompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
-	result := getDefaultImplementConfigTemplate()
+	result := GetDefaultImplementConfigTemplate()
 	result[SystemPromptName] = py3SystemPrompt
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -35,7 +35,7 @@ func (p *Py3Prompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
-	result := getDefaultDocConfigTemplate()
+	result := GetDefaultDocConfigTemplate()
 	result[SystemPromptName] = py3SystemPrompt
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."

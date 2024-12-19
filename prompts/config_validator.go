@@ -120,7 +120,7 @@ func validateNonEmptyStringArray(value interface{}, name string) error {
 }
 
 func ValidateOpAnnotateConfig(config map[string]interface{}) error {
-	template := getDefaultAnnotateConfigTemplate()
+	template := GetDefaultAnnotateConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, config); err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func ValidateOpAnnotateConfig(config map[string]interface{}) error {
 }
 
 func ValidateOpImplementConfig(config map[string]interface{}) error {
-	template := getDefaultImplementConfigTemplate()
+	template := GetDefaultImplementConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, config); err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func ValidateOpImplementConfig(config map[string]interface{}) error {
 }
 
 func ValidateOpDocConfig(config map[string]interface{}) error {
-	template := getDefaultDocConfigTemplate()
+	template := GetDefaultDocConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, config); err != nil {
 		return err
 	}

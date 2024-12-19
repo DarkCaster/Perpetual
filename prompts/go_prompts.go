@@ -9,7 +9,7 @@ type GoPrompts struct{}
 const goSystemPrompt = "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := getDefaultAnnotateConfigTemplate()
+	result := GetDefaultAnnotateConfigTemplate()
 	result[SystemPromptName] = goSystemPrompt
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
@@ -21,7 +21,7 @@ func (p *GoPrompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *GoPrompts) GetImplementConfig() map[string]interface{} {
-	result := getDefaultImplementConfigTemplate()
+	result := GetDefaultImplementConfigTemplate()
 	result[SystemPromptName] = goSystemPrompt
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -31,7 +31,7 @@ func (p *GoPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *GoPrompts) GetDocConfig() map[string]interface{} {
-	result := getDefaultDocConfigTemplate()
+	result := GetDefaultDocConfigTemplate()
 	result[SystemPromptName] = goSystemPrompt
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."

@@ -80,7 +80,7 @@ func getDefaultListOfFilesOutputScheme() map[string]interface{} {
 
 const defaultListOfFilesOutputKey = "list_of_files"
 
-func getDefaultAnnotateConfigTemplate() map[string]interface{} {
+func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// ack from AI
@@ -103,7 +103,7 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultImplementConfigTemplate() map[string]interface{} {
+func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// stage 1
@@ -139,7 +139,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultDocConfigTemplate() map[string]interface{} {
+func GetDefaultDocConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[SystemPromptName] = "TEMPLATE VALUE, MUST BE REDEFINED"
 

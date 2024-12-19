@@ -9,7 +9,7 @@ type DotNetFWPrompts struct{}
 const dotNetSystemPrompt = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := getDefaultAnnotateConfigTemplate()
+	result := GetDefaultAnnotateConfigTemplate()
 	result[SystemPromptName] = dotNetSystemPrompt
 	// file-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
@@ -22,7 +22,7 @@ func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *DotNetFWPrompts) GetImplementConfig() map[string]interface{} {
-	result := getDefaultImplementConfigTemplate()
+	result := GetDefaultImplementConfigTemplate()
 	result[SystemPromptName] = dotNetSystemPrompt
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -32,7 +32,7 @@ func (p *DotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *DotNetFWPrompts) GetDocConfig() map[string]interface{} {
-	result := getDefaultDocConfigTemplate()
+	result := GetDefaultDocConfigTemplate()
 	result[SystemPromptName] = dotNetSystemPrompt
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."

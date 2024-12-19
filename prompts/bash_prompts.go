@@ -9,7 +9,7 @@ type BashPrompts struct{}
 const bashSystemPrompt = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := getDefaultAnnotateConfigTemplate()
+	result := GetDefaultAnnotateConfigTemplate()
 	result[SystemPromptName] = bashSystemPrompt
 	// file-type-dependent annotate prompts
 	result[AnnotateStage1PromptNames] = [][2]string{
@@ -20,7 +20,7 @@ func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
-	result := getDefaultImplementConfigTemplate()
+	result := GetDefaultImplementConfigTemplate()
 	result[SystemPromptName] = bashSystemPrompt
 	// redefine language-dependent prompt
 	result[ImplementStage1IndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
@@ -30,7 +30,7 @@ func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *BashPrompts) GetDocConfig() map[string]interface{} {
-	result := getDefaultDocConfigTemplate()
+	result := GetDefaultDocConfigTemplate()
 	result[SystemPromptName] = bashSystemPrompt
 	// redefine language-dependent prompt
 	result[DocProjectIndexPromptName] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
