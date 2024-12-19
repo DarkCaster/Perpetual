@@ -37,8 +37,7 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 	return nil
 }
 
-// validateAnnotateStage1Prompts validates that Stage1Prompts is a 2D array with correct structure
-func validateAnnotateStage1Prompts(value interface{}) error {
+func validateOpAnnotateStage1Prompts(value interface{}) error {
 	arr, ok := value.([]interface{})
 	if !ok {
 		return fmt.Errorf("%s must be an array", AnnotateStage1PromptNames)
@@ -68,7 +67,6 @@ func validateAnnotateStage1Prompts(value interface{}) error {
 	return nil
 }
 
-// validateEvenStringArray validates that array has even number of string elements
 func validateEvenStringArray(value interface{}, name string) error {
 	arr, ok := value.([]interface{})
 	if !ok {
@@ -88,13 +86,13 @@ func validateEvenStringArray(value interface{}, name string) error {
 	return nil
 }
 
-func ValidateAnnotateConfig(config map[string]interface{}) error {
+func ValidateOpAnnotateConfig(config map[string]interface{}) error {
 	template := getDefaultAnnotateConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, config); err != nil {
 		return err
 	}
 
-	if err := validateAnnotateStage1Prompts(config[AnnotateStage1PromptNames]); err != nil {
+	if err := validateOpAnnotateStage1Prompts(config[AnnotateStage1PromptNames]); err != nil {
 		return err
 	}
 

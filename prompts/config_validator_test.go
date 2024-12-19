@@ -77,7 +77,7 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 	}
 }
 
-func TestValidateAnnotateStage1Prompts(t *testing.T) {
+func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   interface{}
@@ -120,7 +120,7 @@ func TestValidateAnnotateStage1Prompts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateAnnotateStage1Prompts(tt.value)
+			err := validateOpAnnotateStage1Prompts(tt.value)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateAnnotateStage1Prompts() error = %v, wantErr %v", err, tt.wantErr)
 			}
