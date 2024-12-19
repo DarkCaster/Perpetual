@@ -83,6 +83,9 @@ func Run(args []string, logger logging.ILogger) {
 	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
 		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
 	}
+	if err = prompts.ValidateOpImplementConfig(implementConfig); err != nil {
+		logger.Panicf("Failed to validate op_implement config: %s", err)
+	}
 
 	var projectFilesWhitelist []string
 	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)

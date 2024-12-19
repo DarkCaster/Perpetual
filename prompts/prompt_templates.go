@@ -132,8 +132,8 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[FilenameTagsName] = defaultFileNameTags
 	result[FilenameTagsRxName] = defaultFileNameTagsRegexps
 	result[FilenameEmbedRxName] = "###FILENAME###"
-	result[NoUploadCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
-	result[ImplementCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[NoUploadCommentsRxName] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
+	result[ImplementCommentsRxName] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 	result[CodeTagsRxName] = defaultOutputTagsRegexps
 
 	return result
@@ -160,7 +160,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[FilenameTagsName] = defaultFileNameTags
 	result[FilenameTagsRxName] = defaultFileNameTagsRegexps
-	result[NoUploadCommentsRxName] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[NoUploadCommentsRxName] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 
 	return result
 }
