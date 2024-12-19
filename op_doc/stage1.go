@@ -3,15 +3,15 @@ package op_doc
 import (
 	"path/filepath"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
-	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
 func Stage1(projectRootDir string,
 	perpetualDir string,
-	config map[string]interface{},
+	cfg map[string]interface{},
 	filesToMdLangMappings [][2]string,
 	//fileNameTagsRxStrings []string,
 	//fileNameTags []string,
@@ -27,7 +27,7 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	connector, err := llm.NewLLMConnector(OpName+"_stage1", config[prompts.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg[config.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
@@ -37,13 +37,13 @@ func Stage1(projectRootDir string,
 	// Create project-index request message
 	projectIndexRequestMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.UserRequest),
-		config[prompts.K_DocProjectIndexPrompt].(string))
+		cfg[config.K_DocProjectIndexPrompt].(string))
 
 	for _, item := range projectFiles {
 		projectIndexRequestMessage = llm.AddIndexFragment(
 			projectIndexRequestMessage,
 			item,
-			utils.InterfaceToStringArray(config[prompts.K_FilenameTags]))
+			utils.InterfaceToStringArray(cfg[config.K_FilenameTags]))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -57,7 +57,7 @@ func Stage1(projectRootDir string,
 	// Create project-index simulated response
 	projectIndexResponseMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.SimulatedAIResponse),
-		config[prompts.K_DocProjectIndexResponse].(string))
+		cfg[config.K_DocProjectIndexResponse].(string))
 
 	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
@@ -66,7 +66,7 @@ func Stage1(projectRootDir string,
 		// Create document-example request message
 		docExampleRequestMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			config[prompts.K_DocExamplePrompt].(string))
+			cfg[config.K_DocExamplePrompt].(string))
 
 		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
 		if err != nil {
@@ -79,16 +79,16 @@ func Stage1(projectRootDir string,
 		// Create document-example simulated response
 		docExampleResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			config[prompts.K_DocExampleResponse].(string))
+			cfg[config.K_DocExampleResponse].(string))
 
 		messages = append(messages, docExampleResponseMessage)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create project-files analisys request message
-	prompt := config[prompts.K_DocStage1WritePrompt].(string)
+	prompt := cfg[config.K_DocStage1WritePrompt].(string)
 	if action == "REFINE" {
-		prompt = config[prompts.K_DocStage1RefinePrompt].(string)
+		prompt = cfg[config.K_DocStage1RefinePrompt].(string)
 	}
 
 	codeAnalysisRequestMessage := llm.AddPlainTextFragment(
@@ -143,8 +143,8 @@ func Stage1(projectRootDir string,
 	}
 
 	llmRequestedFiles, err := utils.ParseTaggedText(aiResponses[0],
-		utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[0],
-		utils.InterfaceToStringArray(config[prompts.K_FilenameTagsRx])[1],
+		utils.InterfaceToStringArray(cfg[config.K_FilenameTagsRx])[0],
+		utils.InterfaceToStringArray(cfg[config.K_FilenameTagsRx])[1],
 		false)
 
 	if err != nil {

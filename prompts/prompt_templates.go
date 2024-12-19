@@ -1,5 +1,7 @@
 package prompts
 
+import "github.com/DarkCaster/Perpetual/config"
+
 //###NOUPLOAD###
 
 // NOTE for summarization:
@@ -82,85 +84,85 @@ const defaultListOfFilesOutputKey = "list_of_files"
 
 func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
-	result[K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[config.K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// ack from AI
-	result[K_AnnotateStage1Prompts] = [][2]string{
+	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"^.*$", "TEMPLATE VALUE, MUST BE REDEFINED"},
 	}
-	result[K_AnnotateStage1Response] = "Waiting for file contents"
+	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	// prompt to generate another annotation variant
-	result[K_AnnotateStage2PromptVariant] = "Create another summary variant"
+	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
 	// prompt to generate combined annotation
-	result[K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
+	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 	// structured output scheme and lookup key
-	result[K_Stage1OutputScheme] = getDefaultAnnotateOutputScheme()
-	result[K_Stage1Output] = defaultAnnotateOutputKey
-	result[K_Stage2OutputScheme] = getDefaultAnnotateOutputScheme()
-	result[K_Stage2OutputKey] = defaultAnnotateOutputKey
+	result[config.K_Stage1OutputScheme] = getDefaultAnnotateOutputScheme()
+	result[config.K_Stage1Output] = defaultAnnotateOutputKey
+	result[config.K_Stage2OutputScheme] = getDefaultAnnotateOutputScheme()
+	result[config.K_Stage2OutputKey] = defaultAnnotateOutputKey
 	// tags for providing filename to LLM
-	result[K_FilenameTags] = defaultFileNameTags
-	result[K_CodeTagsRx] = defaultOutputTagsRegexps
+	result[config.K_FilenameTags] = defaultFileNameTags
+	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
 	return result
 }
 
 func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
-	result[K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[config.K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
 	// stage 1
-	result[K_ImplementStage1IndexPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
-	result[K_ImplementStage1IndexResponse] = defaultAIAcknowledge
-	result[K_ImplementStage1AnalisysPrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
-	result[K_ImplementStage1AnalisysJsonModePrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
-	result[K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
-	result[K_Stage1Output] = defaultListOfFilesOutputKey
+	result[config.K_ImplementStage1IndexPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[config.K_ImplementStage1IndexResponse] = defaultAIAcknowledge
+	result[config.K_ImplementStage1AnalisysPrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
+	result[config.K_ImplementStage1AnalisysJsonModePrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
+	result[config.K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage1Output] = defaultListOfFilesOutputKey
 	// stage 2
-	result[K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
-	result[K_ImplementStage2CodeResponse] = defaultAIAcknowledge
-	result[K_ImplementStage2FilesToChangePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
-	result[K_ImplementStage2FilesToChangeJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
-	result[K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
-	result[K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the task."
-	result[K_Stage2OutputScheme] = getDefaultListOfFilesOutputScheme()
-	result[K_Stage2OutputKey] = defaultListOfFilesOutputKey
+	result[config.K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_ImplementStage2CodeResponse] = defaultAIAcknowledge
+	result[config.K_ImplementStage2FilesToChangePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
+	result[config.K_ImplementStage2FilesToChangeJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
+	result[config.K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
+	result[config.K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the task."
+	result[config.K_Stage2OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage2OutputKey] = defaultListOfFilesOutputKey
 	//TODO: stage 2 with reasonings (rename it to stage3)
 	// stage 3 (probably it will be stage 4 after adding reasonings)
-	result[K_ImplementStage3ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
-	result[K_ImplementStage3ChangesDoneResponse] = defaultAIAcknowledge
-	result[K_ImplementStage3ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
-	result[K_ImplementStage3ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
+	result[config.K_ImplementStage3ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
+	result[config.K_ImplementStage3ChangesDoneResponse] = defaultAIAcknowledge
+	result[config.K_ImplementStage3ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
+	result[config.K_ImplementStage3ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameTags] = defaultFileNameTags
-	result[K_FilenameTagsRx] = defaultFileNameTagsRegexps
-	result[K_FilenameEmbedRx] = "###FILENAME###"
-	result[K_NoUploadCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
-	result[K_ImplementCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
-	result[K_CodeTagsRx] = defaultOutputTagsRegexps
+	result[config.K_FilenameTags] = defaultFileNameTags
+	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
+	result[config.K_FilenameEmbedRx] = "###FILENAME###"
+	result[config.K_NoUploadCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
+	result[config.K_ImplementCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
+	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
 
 	return result
 }
 
 func GetDefaultDocConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
-	result[K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[config.K_SystemPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
 
-	result[K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
-	result[K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
+	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
+	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
 
-	result[K_DocProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
-	result[K_DocProjectCodeResponse] = defaultAIAcknowledge
-	result[K_DocProjectIndexPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
-	result[K_DocProjectIndexResponse] = defaultAIAcknowledge
+	result[config.K_DocProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
+	result[config.K_DocProjectCodeResponse] = defaultAIAcknowledge
+	result[config.K_DocProjectIndexPrompt] = "TEMPLATE VALUE, MUST BE REDEFINED"
+	result[config.K_DocProjectIndexResponse] = defaultAIAcknowledge
 
-	result[K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename in <filename></filename> tags. Full text of the document provided below:"
-	result[K_DocStage1WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename in <filename></filename> tags. The text of the document in its current state provided below:"
-	result[K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project description and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"
-	result[K_DocStage2WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. The project description and relevant source code needed to work on the document have been provided to you previously. Complete the document from its curent state: write the required sections, improve already written text if needed. Use the notes across the document for instructions, be creative. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. The text of the document in its current state provided below:"
-	result[K_DocStage2ContinuePrompt] = "You previous response hit token limit. Continue writing document right from the point where it stopped. Do not repeat already completed fragment in your response."
+	result[config.K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename in <filename></filename> tags. Full text of the document provided below:"
+	result[config.K_DocStage1WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename in <filename></filename> tags. The text of the document in its current state provided below:"
+	result[config.K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project description and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"
+	result[config.K_DocStage2WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. The project description and relevant source code needed to work on the document have been provided to you previously. Complete the document from its curent state: write the required sections, improve already written text if needed. Use the notes across the document for instructions, be creative. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. The text of the document in its current state provided below:"
+	result[config.K_DocStage2ContinuePrompt] = "You previous response hit token limit. Continue writing document right from the point where it stopped. Do not repeat already completed fragment in your response."
 
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameTags] = defaultFileNameTags
-	result[K_FilenameTagsRx] = defaultFileNameTagsRegexps
-	result[K_NoUploadCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
+	result[config.K_FilenameTags] = defaultFileNameTags
+	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
+	result[config.K_NoUploadCommentsRx] = []string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 
 	return result
 }

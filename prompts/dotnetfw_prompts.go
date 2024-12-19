@@ -1,5 +1,7 @@
 package prompts
 
+import "github.com/DarkCaster/Perpetual/config"
+
 type DotNetFWPrompts struct{}
 
 // NOTE for summarization:
@@ -10,9 +12,9 @@ const dotNetSystemPrompt = "You are a highly skilled .NET Framework software dev
 
 func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[K_SystemPrompt] = dotNetSystemPrompt
+	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// file-dependent annotate prompts
-	result[K_AnnotateStage1Prompts] = [][2]string{
+	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS},
 		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet},
 		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml},
@@ -23,20 +25,20 @@ func (p *DotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *DotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[K_SystemPrompt] = dotNetSystemPrompt
+	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// redefine language-dependent prompt
-	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
-	result[K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *DotNetFWPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[K_SystemPrompt] = dotNetSystemPrompt
+	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// redefine language-dependent prompt
-	result[K_DocProjectIndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
-	result[K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
 

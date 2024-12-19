@@ -1,5 +1,7 @@
 package prompts
 
+import "github.com/DarkCaster/Perpetual/config"
+
 type BashPrompts struct{}
 
 // NOTE for summarization:
@@ -10,9 +12,9 @@ const bashSystemPrompt = "You are a highly skilled Bash scripting expert with ex
 
 func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := GetDefaultAnnotateConfigTemplate()
-	result[K_SystemPrompt] = bashSystemPrompt
+	result[config.K_SystemPrompt] = bashSystemPrompt
 	// file-type-dependent annotate prompts
-	result[K_AnnotateStage1Prompts] = [][2]string{
+	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.(sh|bash|in)$", defaultAIAnnotatePrompt_Bash},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
@@ -21,20 +23,20 @@ func (p *BashPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *BashPrompts) GetImplementConfig() map[string]interface{} {
 	result := GetDefaultImplementConfigTemplate()
-	result[K_SystemPrompt] = bashSystemPrompt
+	result[config.K_SystemPrompt] = bashSystemPrompt
 	// redefine language-dependent prompt
-	result[K_ImplementStage1IndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-	result[K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$"}
-	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
+	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[config.K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$"}
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *BashPrompts) GetDocConfig() map[string]interface{} {
 	result := GetDefaultDocConfigTemplate()
-	result[K_SystemPrompt] = bashSystemPrompt
+	result[config.K_SystemPrompt] = bashSystemPrompt
 	// redefine language-dependent prompt
-	result[K_DocProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
-	result[K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
+	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
