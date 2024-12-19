@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
@@ -123,13 +124,13 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Save annotate-operation config
-	saveConfig(prompts.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
+	saveConfig(config.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
 
 	// Save implement-operation config
-	saveConfig(prompts.OpImplementConfigFile, promptsObj.GetImplementConfig())
+	saveConfig(config.OpImplementConfigFile, promptsObj.GetImplementConfig())
 
 	// Save doc-operation config
-	saveConfig(prompts.OpDocConfigFile, promptsObj.GetDocConfig())
+	saveConfig(config.OpDocConfigFile, promptsObj.GetDocConfig())
 
 	// Save project files search white-list regexps to a json
 	logger.Debugln("Creating helper regexps and tags definitions")

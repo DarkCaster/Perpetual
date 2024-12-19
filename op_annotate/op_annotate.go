@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/prompts"
@@ -134,8 +135,8 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	annotateConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpAnnotateConfigFile), &annotateConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", prompts.OpAnnotateConfigFile, err)
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpAnnotateConfigFile), &annotateConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", config.OpAnnotateConfigFile, err)
 	}
 	if err = prompts.ValidateOpAnnotateConfig(annotateConfig); err != nil {
 		logger.Panicf("Failed to validate op_annotate config: %s", err)

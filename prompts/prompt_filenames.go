@@ -9,8 +9,3 @@ const ProjectFilesWhitelistFileName = "project_files_whitelist.json"
 const ProjectFilesToMarkdownLangMappingFileName = "project_files_to_markdown_lang_mappings.json"
 const ProjectFilesBlacklistFileName = "project_files_blacklist.json"
 const ProjectTestFilesBlacklistFileName = "project_test_files_blacklist.json"
-
-// Names for config files for different operations
-const OpAnnotateConfigFile = "op_annotate.json"
-const OpImplementConfigFile = "op_implement.json"
-const OpDocConfigFile = "op_doc.json"

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
@@ -80,8 +81,8 @@ func Run(args []string, logger logging.ILogger) {
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	implementConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpImplementConfigFile), &implementConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", config.OpImplementConfigFile, err)
 	}
 	if err = prompts.ValidateOpImplementConfig(implementConfig); err != nil {
 		logger.Panicf("Failed to validate op_implement config: %s", err)

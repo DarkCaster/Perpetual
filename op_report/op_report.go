@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
@@ -60,8 +61,8 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
 	implementConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.OpImplementConfigFile), &implementConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", prompts.OpImplementConfigFile, err)
+	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpImplementConfigFile), &implementConfig); err != nil {
+		logger.Panicf("Error loading %s config :%s", config.OpImplementConfigFile, err)
 	}
 
 	var projectFilesWhitelist []string
