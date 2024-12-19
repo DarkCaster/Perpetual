@@ -14,7 +14,7 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 		{
 			name: "valid config with all required keys",
 			template: map[string]interface{}{
-				"key1": nil,
+				"key1": "string",
 				"key2": "string",
 				"key3": []string{"arr"},
 				"key4": map[string]interface{}{},
@@ -30,7 +30,7 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 		{
 			name: "missing required key",
 			template: map[string]interface{}{
-				"required": nil,
+				"required": "yes",
 			},
 			config:  map[string]interface{}{},
 			wantErr: true,
@@ -62,6 +62,36 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 			},
 			config: map[string]interface{}{
 				"key": "not an object",
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil type for object value",
+			template: map[string]interface{}{
+				"key": map[string]interface{}{},
+			},
+			config: map[string]interface{}{
+				"key": nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil type for array value",
+			template: map[string]interface{}{
+				"key": []string{},
+			},
+			config: map[string]interface{}{
+				"key": nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil type for string value",
+			template: map[string]interface{}{
+				"key": "string",
+			},
+			config: map[string]interface{}{
+				"key": nil,
 			},
 			wantErr: true,
 		},
@@ -166,6 +196,55 @@ func TestValidateEvenStringArray(t *testing.T) {
 			err := validateEvenStringArray(tt.value, tt.arrName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateEvenStringArray() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidateNonEmptyStringArray(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   interface{}
+		arrName string
+		wantErr bool
+	}{
+		{
+			name:    "not an array",
+			value:   "string",
+			arrName: "test",
+			wantErr: true,
+		},
+		{
+			name:    "empty array",
+			value:   []interface{}{},
+			arrName: "test",
+			wantErr: true,
+		},
+		{
+			name:    "non-string element",
+			value:   []interface{}{"valid", 123, "invalid"},
+			arrName: "test",
+			wantErr: true,
+		},
+		{
+			name:    "valid single element",
+			value:   []interface{}{"valid"},
+			arrName: "test",
+			wantErr: false,
+		},
+		{
+			name:    "valid multiple elements",
+			value:   []interface{}{"one", "two", "three"},
+			arrName: "test",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateNonEmptyStringArray(tt.value, tt.arrName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateNonEmptyStringArray() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -1,6 +1,8 @@
 package prompts
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func validateConfigAgainstTemplate(template, config map[string]interface{}) error {
 	// Check that all required keys from template exist in config
@@ -22,8 +24,12 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 				}
 			} else if _, isString := templateVal.(string); isString {
 				// Validate value is a string
-				if _, ok := value.(string); !ok {
+				str, ok := value.(string)
+				if !ok {
 					return fmt.Errorf("config key '%s' must be a string", key)
+				}
+				if len(str) < 1 {
+					return fmt.Errorf("config key '%s' is empty", key)
 				}
 			} else if _, isObject := templateVal.(map[string]interface{}); isObject {
 				// Validate value is an object
@@ -58,8 +64,12 @@ func validateOpAnnotateStage1Prompts(value interface{}) error {
 		}
 
 		for j, inner := range innerArr {
-			if _, ok := inner.(string); !ok {
+			str, ok := inner.(string)
+			if !ok {
 				return fmt.Errorf("%s[%d][%d] must be a string", AnnotateStage1PromptNames, i, j)
+			}
+			if len(str) < 1 {
+				return fmt.Errorf("%s[%d][%d] is empty", AnnotateStage1PromptNames, i, j)
 			}
 		}
 	}
@@ -75,6 +85,25 @@ func validateEvenStringArray(value interface{}, name string) error {
 
 	if len(arr)%2 != 0 {
 		return fmt.Errorf("%s must contain even number of elements", name)
+	}
+
+	for i, v := range arr {
+		if _, ok := v.(string); !ok {
+			return fmt.Errorf("%s[%d] must be a string", name, i)
+		}
+	}
+
+	return nil
+}
+
+func validateNonEmptyStringArray(value interface{}, name string) error {
+	arr, ok := value.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s must be an array", name)
+	}
+
+	if len(arr) < 1 {
+		return fmt.Errorf("%s must contain at least one element", name)
 	}
 
 	for i, v := range arr {
