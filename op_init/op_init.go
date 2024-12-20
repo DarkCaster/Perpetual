@@ -9,7 +9,6 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
-	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -110,7 +109,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create a prompt-files based on the selected language
 	logger.Debugln("Creating prompt-files")
-	promptsObj, err := prompts.NewPrompts(lang)
+	promptsObj, err := newPrompts(lang)
 	if err != nil {
 		usage.PrintOperationUsage(err.Error(), initFlags)
 	}

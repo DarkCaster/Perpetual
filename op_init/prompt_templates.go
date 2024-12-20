@@ -1,4 +1,4 @@
-package prompts
+package op_init
 
 import "github.com/DarkCaster/Perpetual/config"
 

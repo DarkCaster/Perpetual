@@ -1,11 +1,11 @@
-package prompts
+package op_init
 
 import (
 	"fmt"
 	"strings"
 )
 
-type Prompts interface {
+type prompts interface {
 	// Project config - for selecting project files for proccessing, setting correct file type at markdown code-blocks
 	GetProjectConfig() map[string]interface{}
 	// Configs for operations
@@ -15,20 +15,20 @@ type Prompts interface {
 }
 
 // Create particular Prompts implementation depending on requested language
-func NewPrompts(targetLang string) (Prompts, error) {
+func newPrompts(targetLang string) (prompts, error) {
 	targetLang = strings.ToUpper(targetLang)
 
 	switch targetLang {
 	case "GO":
-		return &GoPrompts{}, nil
+		return &goPrompts{}, nil
 	case "DOTNETFW":
-		return &DotNetFWPrompts{}, nil
+		return &dotNetFWPrompts{}, nil
 	case "BASH":
-		return &BashPrompts{}, nil
+		return &bashPrompts{}, nil
 	case "PYTHON3":
-		return &Py3Prompts{}, nil
+		return &py3Prompts{}, nil
 	case "VB6":
-		return &VB6Prompts{}, nil
+		return &vb6Prompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
