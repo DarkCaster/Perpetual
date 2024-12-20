@@ -1,6 +1,7 @@
 package op_implement
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -12,7 +13,7 @@ import (
 // Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
 func Stage3(projectRootDir string,
 	perpetualDir string,
-	cfg map[string]interface{},
+	cfg config.Config,
 	filesToMdLangMappings [][2]string,
 	stage2Messages []llm.Message,
 	otherFiles []string,
@@ -23,7 +24,7 @@ func Stage3(projectRootDir string,
 	defer logger.Traceln("Stage3: Finished") // Add trace logging
 
 	// Create stage3 llm connector
-	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg[config.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
@@ -39,7 +40,7 @@ func Stage3(projectRootDir string,
 		// Generate change-done message from already processed files
 		stage3ChangesDoneMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			cfg[config.K_ImplementStage3ChangesDonePrompt].(string))
+			cfg.String(config.K_ImplementStage3ChangesDonePrompt))
 
 		for _, item := range processedFiles {
 			contents, ok := processedFileContents[item]
@@ -50,13 +51,13 @@ func Stage3(projectRootDir string,
 					stage3ChangesDoneMessage,
 					item,
 					contents,
-					utils.InterfaceToStringArray(cfg[config.K_FilenameTags]))
+					cfg.StringArray(config.K_FilenameTags))
 			}
 		}
 
 		stage3ChangesDoneResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg[config.K_ImplementStage3ChangesDoneResponse].(string))
+			cfg.String(config.K_ImplementStage3ChangesDoneResponse))
 
 		stage3Messages := append([]llm.Message(nil), stage2Messages...)
 		if len(processedFiles) > 0 {
@@ -77,14 +78,14 @@ func Stage3(projectRootDir string,
 
 		logger.Debugln("Processing file:", pendingFile) // Add debug logging
 		// Create prompt from stage3ProcessFilePromptTemplate
-		stage3ProcessFilePrompt, err := utils.ReplaceTag(
-			cfg[config.K_ImplementStage3ProcessPrompt].(string),
-			cfg[config.K_FilenameEmbedRx].(string),
+		stage3ProcessFilePrompt, err := utils.ReplaceTagRx(
+			cfg.String(config.K_ImplementStage3ProcessPrompt),
+			cfg.Regexp(config.K_FilenameEmbedRx),
 			pendingFile)
 
 		if err != nil {
 			logger.Errorln("Failed to replace filename tag", err)
-			stage3ProcessFilePrompt = cfg[config.K_ImplementStage3ProcessPrompt].(string)
+			stage3ProcessFilePrompt = cfg.String(config.K_ImplementStage3ProcessPrompt)
 		}
 
 		// Create prompt for to implement one of the files
@@ -133,7 +134,7 @@ func Stage3(projectRootDir string,
 					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
 					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(
 						llm.NewMessage(llm.UserRequest),
-						cfg[config.K_ImplementStage3ContinuePrompt].(string)))
+						cfg.String(config.K_ImplementStage3ContinuePrompt)))
 				}
 
 				// Append response fragment
@@ -146,9 +147,9 @@ func Stage3(projectRootDir string,
 			// Remove extra output tag from the start from non first response-fragments
 			for i := range responses {
 				if i > 0 {
-					responses[i], err = utils.GetTextAfterFirstMatches(
+					responses[i], err = utils.GetTextAfterFirstMatchesRx(
 						responses[i],
-						getEvenIndexElements(utils.InterfaceToStringArray(cfg[config.K_CodeTagsRx])))
+						getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
 					if err != nil {
 						logger.Panicln("Error while parsing output response fragment:", err)
 					}
@@ -157,10 +158,10 @@ func Stage3(projectRootDir string,
 
 			// Parse LLM output, detect file body in response
 			combinedResponse := strings.Join(responses, "")
-			fileBodies, err = utils.ParseMultiTaggedText(
+			fileBodies, err = utils.ParseMultiTaggedTextRx(
 				combinedResponse,
-				getEvenIndexElements(utils.InterfaceToStringArray(cfg[config.K_CodeTagsRx])),
-				getOddIndexElements(utils.InterfaceToStringArray(cfg[config.K_CodeTagsRx])),
+				getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
+				getOddIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
 				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -170,9 +171,9 @@ func Stage3(projectRootDir string,
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody, err := utils.GetTextAfterFirstMatches(
+				fileBody, err := utils.GetTextAfterFirstMatchesRx(
 					combinedResponse,
-					getEvenIndexElements(utils.InterfaceToStringArray(cfg[config.K_CodeTagsRx])))
+					getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}
@@ -212,16 +213,16 @@ func Stage3(projectRootDir string,
 	return processedFileContents
 }
 
-func getEvenIndexElements(arr []string) []string {
-	var evenIndexElements []string
+func getEvenIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var evenIndexElements []*regexp.Regexp
 	for i := 0; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}
 	return evenIndexElements
 }
 
-func getOddIndexElements(arr []string) []string {
-	var evenIndexElements []string
+func getOddIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var evenIndexElements []*regexp.Regexp
 	for i := 1; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}

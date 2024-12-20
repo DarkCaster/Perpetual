@@ -4,7 +4,6 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -80,12 +79,9 @@ func Run(args []string, logger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
-	implementConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpImplementConfigFile), &implementConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", config.OpImplementConfigFile, err)
-	}
-	if err = config.ValidateOpImplementConfig(implementConfig); err != nil {
-		logger.Panicf("Failed to validate op_implement config: %s", err)
+	implementConfig, err := config.LoadOpImplementConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading op_implement config :%s", err)
 	}
 
 	var projectFilesWhitelist []string
@@ -139,24 +135,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	var implementRegexps []*regexp.Regexp
-	for _, rx := range utils.InterfaceToStringArray(implementConfig[config.K_ImplementCommentsRx]) {
-		crx, err := regexp.Compile(rx)
-		if err != nil {
-			logger.Panicln("Failed to compile 'implement' comment search regexp: ", err)
-		}
-		implementRegexps = append(implementRegexps, crx)
-	}
-
-	var noUploadRegexps []*regexp.Regexp
-	for _, rx := range utils.InterfaceToStringArray(implementConfig[config.K_NoUploadCommentsRx]) {
-		crx, err := regexp.Compile(rx)
-		if err != nil {
-			logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
-		}
-		noUploadRegexps = append(noUploadRegexps, crx)
-	}
-
 	// Find files for operation. Select files that contains implement-mark
 	var targetFiles []string
 	if manualFilePath != "" {
@@ -169,7 +147,9 @@ func Run(args []string, logger logging.ILogger) {
 		if !found {
 			logger.Panicln("Requested file not found in project (make sure it is not excluded from processing by filters):", targetFile)
 		}
-		found, err = utils.FindInFile(filepath.Join(projectRootDir, targetFile), implementRegexps)
+		found, err = utils.FindInFile(
+			filepath.Join(projectRootDir, targetFile),
+			implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 		if err != nil {
 			logger.Panicln("Failed to search 'implement' comment in file: ", err)
 		}
@@ -181,7 +161,9 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Debugln("Searching project files for implement comment")
 		for _, filePath := range fileNames {
 			logger.Traceln(filePath)
-			found, err := utils.FindInFile(filepath.Join(projectRootDir, filePath), implementRegexps)
+			found, err := utils.FindInFile(
+				filepath.Join(projectRootDir, filePath),
+				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 			if err != nil {
 				logger.Panicln("Failed to search 'implement' comment in file: ", err)
 			}
@@ -252,7 +234,10 @@ func Run(args []string, logger logging.ILogger) {
 	// Check filesToReview files for presence of "no-upload" mark
 	var filteredFilesToReview []string
 	for _, file := range filesToReview {
-		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+		if found, err := utils.FindInRelativeFile(
+			projectRootDir,
+			file,
+			implementConfig.RegexpArray(config.K_NoUploadCommentsRx)); err == nil && !found {
 			filteredFilesToReview = append(filteredFilesToReview, file)
 		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
@@ -276,7 +261,10 @@ func Run(args []string, logger logging.ILogger) {
 
 	var filteredOtherFilesToModify []string
 	for _, file := range otherFilesToModify {
-		if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); (err == nil || os.IsNotExist(err)) && !found {
+		if found, err := utils.FindInRelativeFile(
+			projectRootDir,
+			file,
+			implementConfig.RegexpArray(config.K_NoUploadCommentsRx)); (err == nil || os.IsNotExist(err)) && !found {
 			filteredOtherFilesToModify = append(filteredOtherFilesToModify, file)
 		} else if found {
 			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)

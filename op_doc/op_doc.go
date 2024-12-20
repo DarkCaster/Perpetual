@@ -3,7 +3,6 @@ package op_doc
 import (
 	"flag"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -114,12 +113,9 @@ func Run(args []string, logger logging.ILogger) {
 			op_annotate.Run(nil, logger)
 		}
 
-		docConfig := map[string]interface{}{}
-		if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpDocConfigFile), &docConfig); err != nil {
-			logger.Panicf("Error loading %s config :%s", config.OpDocConfigFile, err)
-		}
-		if err = config.ValidateOpDocConfig(docConfig); err != nil {
-			logger.Panicf("Failed to validate op_doc config: %s", err)
+		docConfig, err := config.LoadOpDocConfig(perpetualDir)
+		if err != nil {
+			logger.Panicf("Error loading op_doc config :%s", err)
 		}
 
 		var filesToMdLangMappings [][2]string
@@ -158,15 +154,6 @@ func Run(args []string, logger logging.ILogger) {
 			projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
 		}
 
-		var noUploadRegexps []*regexp.Regexp
-		for _, rx := range utils.InterfaceToStringArray(docConfig[config.K_NoUploadCommentsRx]) {
-			crx, err := regexp.Compile(rx)
-			if err != nil {
-				logger.Panicln("Failed to compile 'no-upload' comment search regexp: ", err)
-			}
-			noUploadRegexps = append(noUploadRegexps, crx)
-		}
-
 		// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
 		fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 		if err != nil {
@@ -197,7 +184,10 @@ func Run(args []string, logger logging.ILogger) {
 			filteredRequestedFiles = requestedFiles
 		} else {
 			for _, file := range requestedFiles {
-				if found, err := utils.FindInRelativeFile(projectRootDir, file, noUploadRegexps); err == nil && !found {
+				if found, err := utils.FindInRelativeFile(
+					projectRootDir,
+					file,
+					docConfig.RegexpArray(config.K_NoUploadCommentsRx)); err == nil && !found {
 					filteredRequestedFiles = append(filteredRequestedFiles, file)
 				} else if found {
 					logger.Warnln("Skipping file marked with 'no-upload' comment:", file)

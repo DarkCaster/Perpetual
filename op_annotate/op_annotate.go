@@ -134,17 +134,14 @@ func Run(args []string, logger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	annotateConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpAnnotateConfigFile), &annotateConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", config.OpAnnotateConfigFile, err)
-	}
-	if err = config.ValidateOpAnnotateConfig(annotateConfig); err != nil {
-		logger.Panicf("Failed to validate op_annotate config: %s", err)
+	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading op_annotate config :%s", err)
 	}
 
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
-		annotateConfig[config.K_SystemPrompt].(string),
+		annotateConfig.String(config.K_SystemPrompt),
 		filesToMdLangMappings,
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
@@ -155,7 +152,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create new connector for "annotate_post" operation (stage2)
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
-		annotateConfig[config.K_SystemPrompt].(string),
+		annotateConfig.String(config.K_SystemPrompt),
 		filesToMdLangMappings,
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
@@ -164,9 +161,6 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	logger.Debugln(connectorPost.GetDebugString())
 
-	// Load output tags regexps
-	outputTagsRxStrings := utils.InterfaceToStringArray(annotateConfig[config.K_CodeTagsRx])
-
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
 	errorFlag := false
@@ -174,7 +168,7 @@ func Run(args []string, logger logging.ILogger) {
 	for _, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
-		for _, mapping := range utils.InterfaceTo2DStringArray(annotateConfig[config.K_AnnotateStage1Prompts]) {
+		for _, mapping := range annotateConfig.StringArray2D(config.K_AnnotateStage1Prompts) {
 			matched, err := regexp.MatchString(mapping[0], filePath)
 			if err == nil && matched {
 				annotatePrompt = mapping[1]
@@ -199,13 +193,13 @@ func Run(args []string, logger logging.ILogger) {
 
 		annotateSimulatedResponse := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			annotateConfig[config.K_AnnotateStage1Response].(string))
+			annotateConfig.String(config.K_AnnotateStage1Response))
 
 		fileContentsRequest := llm.AddFileFragment(
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			utils.InterfaceToStringArray(annotateConfig[config.K_FilenameTags]))
+			annotateConfig.StringArray(config.K_FilenameTags))
 
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
@@ -240,7 +234,11 @@ func Run(args []string, logger logging.ILogger) {
 			finalVariants := []string{}
 			for i, variant := range annotationVariants {
 				// Filter-out variants that contain code-blocks - this is not allowed
-				if blocks, err := utils.ParseMultiTaggedText(variant, getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+				if blocks, err := utils.ParseMultiTaggedTextRx(
+					variant,
+					getEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					getOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					true); err != nil || len(blocks) > 0 {
 					logger.Warnf("LLM response #%d contains code blocks, which is not allowed", i)
 					continue
 				}
@@ -278,11 +276,11 @@ func Run(args []string, logger logging.ILogger) {
 					if i < len(finalVariants)-1 {
 						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
 							llm.NewMessage(llm.UserRequest),
-							annotateConfig[config.K_AnnotateStage2PromptVariant].(string)))
+							annotateConfig.String(config.K_AnnotateStage2PromptVariant)))
 					} else {
 						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
 							llm.NewMessage(llm.UserRequest),
-							annotateConfig[config.K_AnnotateStage2PromptCombine].(string)))
+							annotateConfig.String(config.K_AnnotateStage2PromptCombine)))
 					}
 				}
 				// Perform the query
@@ -294,7 +292,11 @@ func Run(args []string, logger logging.ILogger) {
 				} else if status == llm.QueryMaxTokens {
 					logger.Warnf("LLM combined annotation reached max tokens")
 					variantSelectionStrategy = llm.Short
-				} else if blocks, err := utils.ParseMultiTaggedText(combinedAnnotation[0], getEvenIndexElements(outputTagsRxStrings), getOddIndexElements(outputTagsRxStrings), true); err != nil || len(blocks) > 0 {
+				} else if blocks, err := utils.ParseMultiTaggedTextRx(
+					combinedAnnotation[0],
+					getEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					getOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					true); err != nil || len(blocks) > 0 {
 					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
 					variantSelectionStrategy = llm.Short
 				} else {
@@ -357,16 +359,16 @@ func Run(args []string, logger logging.ILogger) {
 	}
 }
 
-func getEvenIndexElements(arr []string) []string {
-	var evenIndexElements []string
+func getEvenIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var evenIndexElements []*regexp.Regexp
 	for i := 0; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}
 	return evenIndexElements
 }
 
-func getOddIndexElements(arr []string) []string {
-	var evenIndexElements []string
+func getOddIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var evenIndexElements []*regexp.Regexp
 	for i := 1; i < len(arr); i += 2 {
 		evenIndexElements = append(evenIndexElements, arr[i])
 	}

@@ -11,10 +11,8 @@ import (
 
 func Stage1(projectRootDir string,
 	perpetualDir string,
-	cfg map[string]interface{},
+	cfg config.Config,
 	filesToMdLangMappings [][2]string,
-	//fileNameTagsRxStrings []string,
-	//fileNameTags []string,
 	projectFiles []string,
 	annotations map[string]string,
 	targetDocument string,
@@ -27,7 +25,7 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg[config.K_SystemPrompt].(string), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
@@ -37,13 +35,13 @@ func Stage1(projectRootDir string,
 	// Create project-index request message
 	projectIndexRequestMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.UserRequest),
-		cfg[config.K_DocProjectIndexPrompt].(string))
+		cfg.String(config.K_DocProjectIndexPrompt))
 
 	for _, item := range projectFiles {
 		projectIndexRequestMessage = llm.AddIndexFragment(
 			projectIndexRequestMessage,
 			item,
-			utils.InterfaceToStringArray(cfg[config.K_FilenameTags]))
+			cfg.StringArray(config.K_FilenameTags))
 
 		annotation := annotations[item]
 		if annotation == "" {
@@ -57,7 +55,7 @@ func Stage1(projectRootDir string,
 	// Create project-index simulated response
 	projectIndexResponseMessage := llm.AddPlainTextFragment(
 		llm.NewMessage(llm.SimulatedAIResponse),
-		cfg[config.K_DocProjectIndexResponse].(string))
+		cfg.String(config.K_DocProjectIndexResponse))
 
 	messages = append(messages, projectIndexResponseMessage)
 	logger.Debugln("Created project-index simulated response message")
@@ -66,7 +64,7 @@ func Stage1(projectRootDir string,
 		// Create document-example request message
 		docExampleRequestMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			cfg[config.K_DocExamplePrompt].(string))
+			cfg.String(config.K_DocExamplePrompt))
 
 		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
 		if err != nil {
@@ -79,16 +77,16 @@ func Stage1(projectRootDir string,
 		// Create document-example simulated response
 		docExampleResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg[config.K_DocExampleResponse].(string))
+			cfg.String(config.K_DocExampleResponse))
 
 		messages = append(messages, docExampleResponseMessage)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create project-files analisys request message
-	prompt := cfg[config.K_DocStage1WritePrompt].(string)
+	prompt := cfg.String(config.K_DocStage1WritePrompt)
 	if action == "REFINE" {
-		prompt = cfg[config.K_DocStage1RefinePrompt].(string)
+		prompt = cfg.String(config.K_DocStage1RefinePrompt)
 	}
 
 	codeAnalysisRequestMessage := llm.AddPlainTextFragment(
@@ -142,9 +140,9 @@ func Stage1(projectRootDir string,
 		logger.Errorln("Got empty response from AI")
 	}
 
-	llmRequestedFiles, err := utils.ParseTaggedText(aiResponses[0],
-		utils.InterfaceToStringArray(cfg[config.K_FilenameTagsRx])[0],
-		utils.InterfaceToStringArray(cfg[config.K_FilenameTagsRx])[1],
+	llmRequestedFiles, err := utils.ParseTaggedTextRx(aiResponses[0],
+		cfg.RegexpArray(config.K_FilenameTagsRx)[0],
+		cfg.RegexpArray(config.K_FilenameTagsRx)[1],
 		false)
 
 	if err != nil {
