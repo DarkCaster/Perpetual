@@ -114,17 +114,9 @@ func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string
 // - filenames filtered with whitelist and blacklist (relative to projectRootDir)
 // - all filenames processed (relative to projectRootDir)
 // - error, if any
-func GetProjectFileList(projectRootDir string, perpetualDir string, projectFilesWhitelist []string, projectFilesBlacklist []string) (map[string]string, []string, []string, error) {
+func GetProjectFileList(projectRootDir string, perpetualDir string, projectFilesWhitelist []*regexp.Regexp, projectFilesBlacklist []*regexp.Regexp) (map[string]string, []string, []string, error) {
 	var files []string
 	var allFiles []string
-	var blacklistRx []*regexp.Regexp
-	for _, strRx := range projectFilesBlacklist {
-		rx, err := regexp.Compile(strRx)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		blacklistRx = append(blacklistRx, rx)
-	}
 
 	// Recursively get all files at projectRootDir and make it names relative to projectRootDir
 	err := filepath.Walk(projectRootDir, func(path string, info os.FileInfo, err error) error {
@@ -149,15 +141,11 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	sort.Strings(allFiles)
 
 	// Generate filtered list of files
-	for _, searchRxStr := range projectFilesWhitelist {
-		searchRx, err := regexp.Compile(searchRxStr)
-		if err != nil {
-			return nil, nil, nil, err
-		}
+	for _, searchRx := range projectFilesWhitelist {
 		for _, file := range allFiles {
 			if searchRx.MatchString(file) {
 				dropFile := false
-				for _, dropRx := range blacklistRx {
+				for _, dropRx := range projectFilesBlacklist {
 					if dropRx.MatchString(file) {
 						dropFile = true
 						break
@@ -225,4 +213,21 @@ func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []stri
 	}
 
 	return filteredResult
+}
+
+func AppendUserFilterFromFile(userFilterFile string, sourceFilter []*regexp.Regexp) ([]*regexp.Regexp, error) {
+	var userFilesBlacklist []string
+	if err := LoadJsonFile(userFilterFile, &userFilesBlacklist); err != nil {
+		return nil, err
+	}
+	//compile to regex
+	var rx []*regexp.Regexp
+	for i, str := range userFilesBlacklist {
+		r, err := regexp.Compile(str)
+		if err != nil {
+			return nil, fmt.Errorf("error compiling regexp from filter-list at pos [%d]: %s", i, err)
+		}
+		rx = append(rx, r)
+	}
+	return append(sourceFilter, rx...), nil
 }

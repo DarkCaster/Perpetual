@@ -9,7 +9,6 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
-	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -84,44 +83,31 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicf("Error loading op_implement config :%s", err)
 	}
 
-	var projectFilesWhitelist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
+	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
-		logger.Panicln("Error reading project-files whitelist regexps:", err)
+		logger.Panicf("Error loading project config :%s", err)
 	}
 
-	var filesToMdLangMappings [][2]string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
-	if err != nil {
-		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
-	}
-
-	var projectFilesBlacklist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
-	if err != nil {
-		logger.Panicln("Error reading project-files blacklist regexps:", err)
-	}
+	projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
 
 	if userFilterFile != "" {
-		var userFilesBlacklist []string
-		err := utils.LoadJsonFile(userFilterFile, &userFilesBlacklist)
+		projectFilesBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, projectFilesBlacklist)
 		if err != nil {
-			logger.Panicln("Error reading user-supplied blacklist regexps:", err)
+			logger.Panicln("Error appending user blacklist-filter:", err)
 		}
-		projectFilesBlacklist = append(projectFilesBlacklist, userFilesBlacklist...)
 	}
 
 	if !includeTests {
-		var testFilesBlacklist []string
-		err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
-		if err != nil {
-			logger.Panicln("Error reading project-files blacklist regexps for unit-tests, you may have to rerun init:", err)
-		}
-		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
+		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
+	fileChecksums, fileNames, allFileNames, err := utils.GetProjectFileList(
+		projectRootDir,
+		perpetualDir,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectFilesBlacklist)
+
 	if err != nil {
 		logger.Panicln("Error getting project file-list:", err)
 	}
@@ -221,7 +207,7 @@ func Run(args []string, logger logging.ILogger) {
 				projectRootDir,
 				perpetualDir,
 				implementConfig,
-				filesToMdLangMappings,
+				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 				fileNames,
 				annotations,
 				targetFiles,
@@ -252,7 +238,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectRootDir,
 		perpetualDir,
 		implementConfig,
-		filesToMdLangMappings,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		planningMode,
 		allFileNames,
 		filesToReview,
@@ -279,7 +265,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectRootDir,
 		perpetualDir,
 		implementConfig,
-		filesToMdLangMappings,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		stage2Messages,
 		otherFilesToModify,
 		targetFilesToModify,

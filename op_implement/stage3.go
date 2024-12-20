@@ -14,7 +14,7 @@ import (
 func Stage3(projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
-	filesToMdLangMappings [][2]string,
+	filesToMdLangMappings [][]string,
 	stage2Messages []llm.Message,
 	otherFiles []string,
 	targetFiles []string,

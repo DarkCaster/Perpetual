@@ -13,7 +13,7 @@ import (
 func Stage2(projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
-	filesToMdLangMappings [][2]string,
+	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,

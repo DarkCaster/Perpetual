@@ -11,7 +11,6 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
-	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -60,49 +59,36 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	implementConfig := map[string]interface{}{}
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, config.OpImplementConfigFile), &implementConfig); err != nil {
-		logger.Panicf("Error loading %s config :%s", config.OpImplementConfigFile, err)
+	implementConfig, err := config.LoadOpImplementConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading op_implement config :%s", err)
 	}
 
-	var projectFilesWhitelist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist)
+	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
-		logger.Panicln("Error reading project-files whitelist regexps:", err)
+		logger.Panicf("Error loading project config :%s", err)
 	}
 
-	var filesToMdLangMappings [][2]string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings)
-	if err != nil {
-		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
-	}
-
-	var projectFilesBlacklist []string
-	err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist)
-	if err != nil {
-		logger.Panicln("Error reading project-files blacklist regexps:", err)
-	}
+	projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
 
 	if userFilterFile != "" {
-		var userFilesBlacklist []string
-		err := utils.LoadJsonFile(userFilterFile, &userFilesBlacklist)
+		projectFilesBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, projectFilesBlacklist)
 		if err != nil {
-			logger.Panicln("Error reading user-supplied blacklist regexps:", err)
+			logger.Panicln("Error appending user blacklist-filter:", err)
 		}
-		projectFilesBlacklist = append(projectFilesBlacklist, userFilesBlacklist...)
 	}
 
 	if !includeTests {
-		var testFilesBlacklist []string
-		err := utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectTestFilesBlacklistFileName), &testFilesBlacklist)
-		if err != nil {
-			logger.Panicln("Error reading project-files blacklist regexps for unit-tests, you may have to rerun init:", err)
-		}
-		projectFilesBlacklist = append(projectFilesBlacklist, testFilesBlacklist...)
+		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
+	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+		projectRootDir,
+		perpetualDir,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectFilesBlacklist)
+
 	if err != nil {
 		logger.Panicln("Error getting project file-list:", err)
 	}
@@ -134,7 +120,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report message
 		reportMessage = llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			implementConfig[config.K_ImplementStage1IndexPrompt].(string))
+			implementConfig.String(config.K_ImplementStage1IndexPrompt))
 
 		for _, filename := range fileNames {
 			annotation, ok := annotations[filename]
@@ -148,7 +134,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report messages
 		reportMessage = llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			implementConfig[config.K_ImplementStage2CodePrompt].(string))
+			implementConfig.String(config.K_ImplementStage2CodePrompt))
 
 		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
 		for _, filename := range fileNames {
@@ -162,7 +148,10 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid report type:", reportType)
 	}
 
-	reportStrings, err := llm.RenderMessagesToAIStrings(filesToMdLangMappings, []llm.Message{reportMessage})
+	reportStrings, err := llm.RenderMessagesToAIStrings(
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		[]llm.Message{reportMessage})
+
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)
 	}

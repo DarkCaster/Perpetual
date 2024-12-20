@@ -11,7 +11,6 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
-	"github.com/DarkCaster/Perpetual/prompts"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -69,22 +68,17 @@ func Run(args []string, logger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
-	var projectFilesWhitelist []string
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesWhitelistFileName), &projectFilesWhitelist); err != nil {
-		logger.Panicln("error reading project-files whitelist regexps:", err)
+	projectConfig, err := config.LoadProjectConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading project config :%s", err)
 	}
 
-	var filesToMdLangMappings [][2]string
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesToMarkdownLangMappingFileName), &filesToMdLangMappings); err != nil {
-		logger.Warnln("Error reading optional filename to markdown-lang mappings:", err)
-	}
+	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+		projectRootDir,
+		perpetualDir,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectConfig.RegexpArray(config.K_ProjectFilesBlacklist))
 
-	var projectFilesBlacklist []string
-	if err = utils.LoadJsonFile(filepath.Join(perpetualDir, prompts.ProjectFilesBlacklistFileName), &projectFilesBlacklist); err != nil {
-		logger.Panicln("error reading project-files blacklist regexps:", err)
-	}
-
-	fileChecksums, fileNames, _, err := utils.GetProjectFileList(projectRootDir, perpetualDir, projectFilesWhitelist, projectFilesBlacklist)
 	if err != nil {
 		logger.Panicln("error getting project file-list:", err)
 	}
@@ -142,7 +136,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
-		filesToMdLangMappings,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
@@ -153,7 +147,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Create new connector for "annotate_post" operation (stage2)
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
 		annotateConfig.String(config.K_SystemPrompt),
-		filesToMdLangMappings,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {

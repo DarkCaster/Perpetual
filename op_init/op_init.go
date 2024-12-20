@@ -123,32 +123,11 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	// Save annotate-operation config
+	// Save operation-config files
 	saveConfig(config.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
-
-	// Save implement-operation config
 	saveConfig(config.OpImplementConfigFile, promptsObj.GetImplementConfig())
-
-	// Save doc-operation config
 	saveConfig(config.OpDocConfigFile, promptsObj.GetDocConfig())
 
-	// Save project files search white-list regexps to a json
-	logger.Debugln("Creating helper regexps and tags definitions")
-	saveJson := func(filePath string, v any) {
-		logger.Traceln("Saving json:", filePath)
-		err = utils.SaveJsonFile(filepath.Join(perpetualDir, filePath), v)
-		if err != nil {
-			logger.Panicln(err)
-		}
-	}
-
-	logger.Traceln("Saving project files whitelist regexps")
-	saveJson(prompts.ProjectFilesWhitelistFileName, promptsObj.GetProjectFilesWhitelist())
-	saveJson(prompts.ProjectFilesToMarkdownLangMappingFileName, promptsObj.GetProjectFilesToMarkdownMappings())
-
-	logger.Traceln("Saving project files blacklist regexps")
-	saveJson(prompts.ProjectFilesBlacklistFileName, promptsObj.GetProjectFilesBlacklist())
-
-	logger.Traceln("Saving project test files blacklist regexps")
-	saveJson(prompts.ProjectTestFilesBlacklistFileName, promptsObj.GetProjectTestFilesBlacklist())
+	// Save project-config file
+	saveConfig(config.ProjectConfigFile, promptsObj.GetProjectConfig())
 }
