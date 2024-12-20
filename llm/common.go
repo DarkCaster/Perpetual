@@ -11,7 +11,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string) string {
+func getMarkdownCodeBlockType(filesToMdLangMappings [][]string, fileName string) string {
 	for _, mapping := range filesToMdLangMappings {
 		matched, err := regexp.MatchString(mapping[0], fileName)
 		if err == nil && matched {
@@ -65,7 +65,7 @@ func getMarkdownCodeBlockType(filesToMdLangMappings [][2]string, fileName string
 	}
 }
 
-func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][2]string, messages []Message) ([]llms.MessageContent, error) {
+func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, messages []Message) ([]llms.MessageContent, error) {
 	var result []llms.MessageContent
 	for _, message := range messages {
 		var llmMessage llms.MessageContent
@@ -181,7 +181,7 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][2]string,
 	return result, nil
 }
 
-func RenderMessagesToAIStrings(filesToMdLangMappings [][2]string, messages []Message) ([]string, error) {
+func RenderMessagesToAIStrings(filesToMdLangMappings [][]string, messages []Message) ([]string, error) {
 	messageContents, err := renderMessagesToGenericAILangChainFormat(filesToMdLangMappings, messages)
 	if err != nil {
 		return nil, err

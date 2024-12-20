@@ -23,7 +23,7 @@ type OllamaLLMConnector struct {
 	BaseURL               string
 	Model                 string
 	SystemPrompt          string
-	FilesToMdLangMappings [][2]string
+	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
 	MaxTokensSegments     int
@@ -35,7 +35,7 @@ type OllamaLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][2]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -53,7 +53,7 @@ func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string,
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OLLAMA"

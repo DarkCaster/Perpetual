@@ -49,7 +49,7 @@ type LLMConnector interface {
 	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
-func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][2]string, outputSchema map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	// Input parameters check
 	if operation == "" {
 		return nil, errors.New("operation name is empty")

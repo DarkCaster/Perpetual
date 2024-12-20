@@ -23,7 +23,7 @@ type OpenAILLMConnector struct {
 	Token                 string
 	Model                 string
 	SystemPrompt          string
-	FilesToMdLangMappings [][2]string
+	FilesToMdLangMappings [][]string
 	MaxTokensSegments     int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
@@ -32,7 +32,7 @@ type OpenAILLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
+func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -48,7 +48,7 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OPENAI"

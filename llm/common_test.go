@@ -109,21 +109,21 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 func TestRenderMessagesWithMappings(t *testing.T) {
 	testCases := []struct {
 		name     string
-		mappings [][2]string
+		mappings [][]string
 		messages []Message
 		expected []llms.MessageContent
 		err      error
 	}{
 		{
 			name:     "Empty messages",
-			mappings: [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
 			messages: []Message{},
 			expected: []llms.MessageContent{},
 			err:      errors.New("no messages was generated"),
 		},
 		{
 			name:     "User request message",
-			mappings: [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
 			messages: []Message{
 				NewMessage(UserRequest),
 			},
@@ -134,7 +134,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "AI response message",
-			mappings: [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
 			messages: []Message{
 				NewMessage(SimulatedAIResponse),
 			},
@@ -145,7 +145,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "Real AI response with raw response",
-			mappings: [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
 			messages: []Message{
 				SetRawResponse(NewMessage(RealAIResponse), "This is a raw response."),
 			},
@@ -154,7 +154,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "Multiple messages with different fragments",
-			mappings: [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
 			messages: []Message{
 				AddFileFragment(AddPlainTextFragment(NewMessage(SimulatedAIResponse), "This is a file content."), "file.bas", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n", []string{"<filename>", "</filename>"}),
 				AddFileFragment(AddPlainTextFragment(NewMessage(SimulatedAIResponse), "This is a file content."), "File.BAS", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}", []string{"<filename>", "</filename>"}),

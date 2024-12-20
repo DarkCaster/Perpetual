@@ -24,7 +24,7 @@ type AnthropicLLMConnector struct {
 	Token                 string
 	Model                 string
 	SystemPrompt          string
-	FilesToMdLangMappings [][2]string
+	FilesToMdLangMappings [][]string
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -34,7 +34,7 @@ type AnthropicLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][2]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -51,7 +51,7 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		VariantStrategy:       variantStrategy}
 }
 
-func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][2]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "ANTHROPIC"
