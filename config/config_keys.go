@@ -53,3 +53,8 @@ const K_DocStage1WritePrompt = "stage1_write_prompt"
 const K_DocStage2RefinePrompt = "stage2_refine_prompt"
 const K_DocStage2WritePrompt = "stage2_write_prompt"
 const K_DocStage2ContinuePrompt = "stage2_continue_prompt"
+
+const K_ProjectFilesBlacklist = "project_files_blacklist"
+const K_ProjectFilesWhitelist = "project_files_whitelist"
+const K_ProjectTestFilesBlacklist = "project_test_files_blacklist"
+const K_ProjectMdCodeMappings = "files_to_md_code_mappings"

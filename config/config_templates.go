@@ -88,3 +88,12 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_NoUploadCommentsRx] = templateStringArray
 	return result
 }
+
+func GetProjectConfigTemplate() map[string]interface{} {
+	result := map[string]interface{}{}
+	result[K_ProjectFilesBlacklist] = templateStringArray
+	result[K_ProjectFilesWhitelist] = templateStringArray
+	result[K_ProjectTestFilesBlacklist] = templateStringArray
+	result[K_ProjectMdCodeMappings] = templateString2DArray
+	return result
+}
