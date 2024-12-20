@@ -1,5 +1,5 @@
 {
-  "file_to_md_code_mappings": [],
+  "files_to_md_code_mappings": [],
   "project_files_blacklist": [
     "(?i)^vendor(\\\\|\\/).*"
   ],
