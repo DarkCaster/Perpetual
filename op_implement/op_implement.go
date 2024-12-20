@@ -261,7 +261,7 @@ func Run(args []string, logger logging.ILogger) {
 	otherFilesToModify = filteredOtherFilesToModify
 
 	// Run stage 3
-	results := Stage3(
+	results := Stage4(
 		projectRootDir,
 		perpetualDir,
 		implementConfig,

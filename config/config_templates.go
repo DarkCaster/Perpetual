@@ -51,12 +51,11 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage2NoPlanningResponse] = templateString
 	result[K_Stage2OutputScheme] = templateObject
 	result[K_Stage2OutputKey] = templateString
-	//TODO: stage 2 with reasonings (rename it to stage3)
-	// stage 3 (probably it will be stage 4 after adding reasonings)
-	result[K_ImplementStage3ChangesDonePrompt] = templateString
-	result[K_ImplementStage3ChangesDoneResponse] = templateString
-	result[K_ImplementStage3ProcessPrompt] = templateString
-	result[K_ImplementStage3ContinuePrompt] = templateString
+	// stage 4
+	result[K_ImplementStage4ChangesDonePrompt] = templateString
+	result[K_ImplementStage4ChangesDoneResponse] = templateString
+	result[K_ImplementStage4ProcessPrompt] = templateString
+	result[K_ImplementStage4ContinuePrompt] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[K_FilenameTags] = templateStringArray
 	result[K_FilenameTagsRx] = templateStringArray

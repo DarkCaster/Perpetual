@@ -114,11 +114,11 @@ func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_Stage2OutputScheme] = getDefaultListOfFilesOutputScheme()
 	result[config.K_Stage2OutputKey] = defaultListOfFilesOutputKey
 	//TODO: stage 2 with reasonings (rename it to stage3)
-	// stage 3 (probably it will be stage 4 after adding reasonings)
-	result[config.K_ImplementStage3ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
-	result[config.K_ImplementStage3ChangesDoneResponse] = defaultAIAcknowledge
-	result[config.K_ImplementStage3ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
-	result[config.K_ImplementStage3ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
+	// stage 4
+	result[config.K_ImplementStage4ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
+	result[config.K_ImplementStage4ChangesDoneResponse] = defaultAIAcknowledge
+	result[config.K_ImplementStage4ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
+	result[config.K_ImplementStage4ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps

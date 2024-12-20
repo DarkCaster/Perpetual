@@ -36,10 +36,10 @@ const K_ImplementStage2FilesToChangeJsonModePrompt = "stage2_tochange_json_mode_
 const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
 const K_ImplementStage2NoPlanningResponse = "stage2_noplanning_response"
 
-const K_ImplementStage3ChangesDonePrompt = "stage3_changes_done_prompt"
-const K_ImplementStage3ChangesDoneResponse = "stage3_changes_done_response"
-const K_ImplementStage3ProcessPrompt = "stage3_process_prompt"
-const K_ImplementStage3ContinuePrompt = "stage3_continue_prompt"
+const K_ImplementStage4ChangesDonePrompt = "stage4_changes_done_prompt"
+const K_ImplementStage4ChangesDoneResponse = "stage4_changes_done_response"
+const K_ImplementStage4ProcessPrompt = "stage4_process_prompt"
+const K_ImplementStage4ContinuePrompt = "stage4_continue_prompt"
 
 const K_DocExamplePrompt = "example_doc_prompt"
 const K_DocExampleResponse = "example_doc_response"

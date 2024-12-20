@@ -10,8 +10,8 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-// Perform the actual code implementation process based on the Stage2 answer, which includes the contents of other files related to the files for which we need to implement the code.
-func Stage3(projectRootDir string,
+// Perform the actual code implementation process based on the Stage 2 and 3 answers, which includes the contents of other files related to the files for which we need to implement the code and extra reasonings (if enabled).
+func Stage4(projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
@@ -20,15 +20,15 @@ func Stage3(projectRootDir string,
 	targetFiles []string,
 	logger logging.ILogger) map[string]string {
 
-	logger.Traceln("Stage3: Starting")       // Add trace logging
-	defer logger.Traceln("Stage3: Finished") // Add trace logging
+	logger.Traceln("Stage4: Starting")       // Add trace logging
+	defer logger.Traceln("Stage4: Finished") // Add trace logging
 
-	// Create stage3 llm connector
-	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	// Create stage4 llm connector
+	stage4Connector, err := llm.NewLLMConnector(OpName+"_stage4", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Panicln("Failed to create stage3 LLM connector:", err)
+		logger.Panicln("Failed to create stage4 LLM connector:", err)
 	}
-	logger.Debugln(stage3Connector.GetDebugString())
+	logger.Debugln(stage4Connector.GetDebugString())
 
 	processedFileContents := make(map[string]string)
 	var processedFiles []string
@@ -38,31 +38,31 @@ func Stage3(projectRootDir string,
 		logger.Debugln("Work pending:", workPending) // Add debug logging
 
 		// Generate change-done message from already processed files
-		stage3ChangesDoneMessage := llm.AddPlainTextFragment(
+		stage4ChangesDoneMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage3ChangesDonePrompt))
+			cfg.String(config.K_ImplementStage4ChangesDonePrompt))
 
 		for _, item := range processedFiles {
 			contents, ok := processedFileContents[item]
 			if !ok {
-				logger.Errorln("Failed to add file contents to stage3:", err)
+				logger.Errorln("Failed to add file contents to stage4:", err)
 			} else {
-				stage3ChangesDoneMessage = llm.AddFileFragment(
-					stage3ChangesDoneMessage,
+				stage4ChangesDoneMessage = llm.AddFileFragment(
+					stage4ChangesDoneMessage,
 					item,
 					contents,
 					cfg.StringArray(config.K_FilenameTags))
 			}
 		}
 
-		stage3ChangesDoneResponseMessage := llm.AddPlainTextFragment(
+		stage4ChangesDoneResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage3ChangesDoneResponse))
+			cfg.String(config.K_ImplementStage4ChangesDoneResponse))
 
-		stage3Messages := append([]llm.Message(nil), stage2Messages...)
+		stage4Messages := append([]llm.Message(nil), stage2Messages...)
 		if len(processedFiles) > 0 {
-			stage3Messages = append(stage3Messages, stage3ChangesDoneMessage)
-			stage3Messages = append(stage3Messages, stage3ChangesDoneResponseMessage)
+			stage4Messages = append(stage4Messages, stage4ChangesDoneMessage)
+			stage4Messages = append(stage4Messages, stage4ChangesDoneResponseMessage)
 		}
 
 		pendingFile := ""
@@ -77,28 +77,28 @@ func Stage3(projectRootDir string,
 		}
 
 		logger.Debugln("Processing file:", pendingFile) // Add debug logging
-		// Create prompt from stage3ProcessFilePromptTemplate
-		stage3ProcessFilePrompt, err := utils.ReplaceTagRx(
-			cfg.String(config.K_ImplementStage3ProcessPrompt),
+		// Create prompt from stage4ProcessFilePromptTemplate
+		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
+			cfg.String(config.K_ImplementStage4ProcessPrompt),
 			cfg.Regexp(config.K_FilenameEmbedRx),
 			pendingFile)
 
 		if err != nil {
 			logger.Errorln("Failed to replace filename tag", err)
-			stage3ProcessFilePrompt = cfg.String(config.K_ImplementStage3ProcessPrompt)
+			stage4ProcessFilePrompt = cfg.String(config.K_ImplementStage4ProcessPrompt)
 		}
 
 		// Create prompt for to implement one of the files
-		stage3Messages = append(stage3Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage3ProcessFilePrompt))
+		stage4Messages = append(stage4Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessFilePrompt))
 
 		var fileBodies []string
-		onFailRetriesLeft := stage3Connector.GetOnFailureRetryLimit()
+		onFailRetriesLeft := stage4Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Create a copy, so it will be automatically discarded on file retry
-			stage3MessagesTry := append([]llm.Message(nil), stage3Messages...)
+			stage4MessagesTry := append([]llm.Message(nil), stage4Messages...)
 			// Initialize temporary variables for handling partial answers
 			var responses []string
 			continueGeneration := true
@@ -108,8 +108,8 @@ func Stage3(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				logger.Infoln("Running stage3: implementing code for:", pendingFile)
-				aiResponses, status, err := stage3Connector.Query(1, stage3MessagesTry...)
+				logger.Infoln("Running stage4: implementing code for:", pendingFile)
+				aiResponses, status, err := stage4Connector.Query(1, stage4MessagesTry...)
 				if err != nil {
 					// Retry file on LLM error
 					if onFailRetriesLeft < 1 {
@@ -121,7 +121,7 @@ func Stage3(projectRootDir string,
 					}
 				} else if status == llm.QueryMaxTokens {
 					// Try to recover other parts of the file if reached max tokens
-					if generateTry >= stage3Connector.GetMaxTokensSegments() {
+					if generateTry >= stage4Connector.GetMaxTokensSegments() {
 						logger.Errorln("LLM query reached token limit, and we are reached segment limit, not attempting to continue")
 					} else {
 						logger.Warnln("LLM query reached token limit, attempting to continue and file recover")
@@ -130,11 +130,11 @@ func Stage3(projectRootDir string,
 						// Disable some possible parsing errors in future
 						ignoreUnclosedTagErrors = true
 					}
-					// Add partial response to stage3 messages, with request to continue
-					stage3MessagesTry = append(stage3MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
-					stage3MessagesTry = append(stage3MessagesTry, llm.AddPlainTextFragment(
+					// Add partial response to stage4 messages, with request to continue
+					stage4MessagesTry = append(stage4MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
+					stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(
 						llm.NewMessage(llm.UserRequest),
-						cfg.String(config.K_ImplementStage3ContinuePrompt)))
+						cfg.String(config.K_ImplementStage4ContinuePrompt)))
 				}
 
 				// Append response fragment
