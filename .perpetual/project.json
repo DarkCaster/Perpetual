@@ -1,0 +1,14 @@
+{
+  "file_to_md_code_mappings": [],
+  "project_files_blacklist": [
+    "(?i)^vendor(\\\\|\\/).*"
+  ],
+  "project_files_whitelist": [
+    "(?i)^.*\\.go$"
+  ],
+  "project_test_files_blacklist": [
+    "(?i)^.*_test\\.go$",
+    "(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
+    "(?i)^test(\\\\|\\/).*\\.go$"
+  ]
+}
