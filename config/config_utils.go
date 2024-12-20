@@ -94,7 +94,7 @@ func validateNonEmptyStringArray(value interface{}, name string) error {
 	return nil
 }
 
-// TODO: create tests for this
+// TODO: create unit tests for this method
 func compileRegexArray(source []string, name string) ([]*regexp.Regexp, error) {
 	result := make([]*regexp.Regexp, len(source))
 	for i, rxStr := range source {
