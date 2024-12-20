@@ -42,26 +42,18 @@ func (p *DotNetFWPrompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
-func (p *DotNetFWPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"(?i)^.*\\.(cs|vb|xaml)$"}
-}
-
-func (p *DotNetFWPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{}
-}
-
-func (p *DotNetFWPrompts) GetProjectFilesBlacklist() []string {
-	return []string{
+func (p *DotNetFWPrompts) GetProjectConfig() map[string]interface{} {
+	result := GetDefaultProjectConfigTemplate()
+	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(cs|vb|xaml)$"}
+	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^.*AssemblyInfo\\.cs$",
 		"(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)",
 		"(?i)^.*(\\\\|\\/)(bin\\\\|obj\\\\|bin\\/|obj\\/)",
 	}
-}
-
-func (p *DotNetFWPrompts) GetProjectTestFilesBlacklist() []string {
-	return []string{
+	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^.*tests?\\.(cs|vb)$",
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 	}
+	return result
 }

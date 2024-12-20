@@ -40,22 +40,13 @@ func (p *BashPrompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
-func (p *BashPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"(?i)^.*\\.(sh|bash|in)$"}
-}
-
-func (p *BashPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{}
-}
-
-func (p *BashPrompts) GetProjectFilesBlacklist() []string {
-	return []string{}
-}
-
-func (p *BashPrompts) GetProjectTestFilesBlacklist() []string {
-	return []string{
+func (p *BashPrompts) GetProjectConfig() map[string]interface{} {
+	result := GetDefaultProjectConfigTemplate()
+	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(sh|bash|in)$"}
+	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^.*tests?\\.(sh|bash|in)$",
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 	}
+	return result
 }

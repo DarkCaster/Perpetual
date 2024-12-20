@@ -44,23 +44,14 @@ func (p *VB6Prompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
-func (p *VB6Prompts) GetProjectFilesWhitelist() []string {
-	return []string{"(?i)^.*\\.(frm|cls|bas)$"}
-}
-
-func (p *VB6Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}
-}
-
-func (p *VB6Prompts) GetProjectFilesBlacklist() []string {
-	return []string{}
-}
-
-// Implement the new method for blacklisting test files
-func (p *VB6Prompts) GetProjectTestFilesBlacklist() []string {
-	return []string{
+func (p *VB6Prompts) GetProjectConfig() map[string]interface{} {
+	result := GetDefaultProjectConfigTemplate()
+	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(frm|cls|bas)$"}
+	result[config.K_ProjectMdCodeMappings] = [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}
+	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^.*tests?\\.(cls|bas|frm)$",
 		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 		"(?i)^tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 	}
+	return result
 }

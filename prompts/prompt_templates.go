@@ -145,3 +145,11 @@ func GetDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
 	return result
 }
+
+func GetDefaultProjectConfigTemplate() map[string]interface{} {
+	result := config.GetProjectConfigTemplate()
+	result[config.K_ProjectFilesBlacklist] = []string{}
+	result[config.K_ProjectTestFilesBlacklist] = []string{}
+	result[config.K_ProjectMdCodeMappings] = [][2]string{}
+	return result
+}

@@ -41,22 +41,14 @@ func (p *GoPrompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
-func (p *GoPrompts) GetProjectFilesWhitelist() []string {
-	return []string{"(?i)^.*\\.go$"}
-}
-
-func (p *GoPrompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{}
-}
-
-func (p *GoPrompts) GetProjectFilesBlacklist() []string {
-	return []string{"(?i)^vendor(\\\\|\\/).*"}
-}
-
-func (p *GoPrompts) GetProjectTestFilesBlacklist() []string {
-	return []string{
+func (p *GoPrompts) GetProjectConfig() map[string]interface{} {
+	result := GetDefaultProjectConfigTemplate()
+	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.go$"}
+	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^vendor(\\\\|\\/).*"}
+	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^.*_test\\.go$",
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
 		"(?i)^test(\\\\|\\/).*\\.go$",
 	}
+	return result
 }

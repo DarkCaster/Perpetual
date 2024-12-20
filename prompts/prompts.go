@@ -6,12 +6,8 @@ import (
 )
 
 type Prompts interface {
-	// General helpers
-	GetProjectFilesWhitelist() []string
-	GetProjectFilesBlacklist() []string
-	GetProjectTestFilesBlacklist() []string
-	GetProjectFilesToMarkdownMappings() [][2]string
-
+	// Project config - for selecting project files for proccessing, setting correct file type at markdown code-blocks
+	GetProjectConfig() map[string]interface{}
 	// Configs for operations
 	GetAnnotateConfig() map[string]interface{}
 	GetImplementConfig() map[string]interface{}

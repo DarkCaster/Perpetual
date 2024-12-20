@@ -45,8 +45,9 @@ func (p *Py3Prompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
-func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
-	return []string{
+func (p *Py3Prompts) GetProjectConfig() map[string]interface{} {
+	result := GetDefaultProjectConfigTemplate()
+	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.py$",
 		"(?i)^.*\\.pl$",
 		"(?i)^.*\\.(bat|cmd)$",
@@ -54,18 +55,8 @@ func (p *Py3Prompts) GetProjectFilesWhitelist() []string {
 		"(?i)^.*\\.sh\\.in$",
 		"(?i)^.*\\.bash\\.in$",
 	}
-}
-
-func (p *Py3Prompts) GetProjectFilesToMarkdownMappings() [][2]string {
-	return [][2]string{}
-}
-
-func (p *Py3Prompts) GetProjectFilesBlacklist() []string {
-	return []string{"(?i)^venv(\\\\|\\/).*"}
-}
-
-func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
-	return []string{
+	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^venv(\\\\|\\/).*"}
+	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^test_.*\\.py$",
 		"(?i)^.*(\\\\|\\/)test_.*\\.py$",
 		"(?i)^.*_test\\.py$",
@@ -76,4 +67,5 @@ func (p *Py3Prompts) GetProjectTestFilesBlacklist() []string {
 		"(?i)^unittest(\\\\|\\/).*\\.py$",
 		"(?i)^pytest(\\\\|\\/).*\\.py$",
 	}
+	return result
 }
