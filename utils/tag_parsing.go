@@ -58,33 +58,6 @@ func ParseMultiTaggedTextRx(sourceText string, startTags []*regexp.Regexp, endTa
 	return result, nil
 }
 
-// Parse text enclosed with multiple start and end tags provided as regexps.
-func ParseMultiTaggedText(sourceText string, startTagRegexps []string, endTagRegexps []string, ignoreUnclosedTagErrors bool) ([]string, error) {
-	var startTags []*regexp.Regexp
-	for _, startTagRegexp := range startTagRegexps {
-		startTag, err := regexp.Compile(startTagRegexp)
-		if err != nil {
-			return nil, err
-		}
-		startTags = append(startTags, startTag)
-	}
-
-	var endTags []*regexp.Regexp
-	for _, endTagRegexp := range endTagRegexps {
-		endTag, err := regexp.Compile(endTagRegexp)
-		if err != nil {
-			return nil, err
-		}
-		endTags = append(endTags, endTag)
-	}
-	return ParseMultiTaggedTextRx(sourceText, startTags, endTags, ignoreUnclosedTagErrors)
-}
-
-// Parse text enclosed with start and end tags provided as regexps.
-func ParseTaggedText(sourceText string, startTagRegexp string, endTagRegexp string, ignoreUnclosedTagErrors bool) ([]string, error) {
-	return ParseMultiTaggedText(sourceText, []string{startTagRegexp}, []string{endTagRegexp}, ignoreUnclosedTagErrors)
-}
-
 func ParseTaggedTextRx(sourceText string, startTags *regexp.Regexp, endTags *regexp.Regexp, ignoreUnclosedTagErrors bool) ([]string, error) {
 	return ParseMultiTaggedTextRx(sourceText, []*regexp.Regexp{startTags}, []*regexp.Regexp{endTags}, ignoreUnclosedTagErrors)
 }
@@ -105,30 +78,12 @@ func ReplaceTagRx(text string, searchRegex *regexp.Regexp, replacement string) (
 	return strings.Join(parts, ""), nil
 }
 
-// Search and replace all matches of searchRegex in the text
-// Please, consider not to use it on big texts.
-func ReplaceTag(text, searchRegex, replacement string) (string, error) {
-	rx, err := regexp.Compile(searchRegex)
-	if err != nil {
-		return "", err
-	}
-	return ReplaceTagRx(text, rx, replacement)
-}
-
 func GetTextAfterFirstMatchRx(text string, searchRegexp *regexp.Regexp) (string, error) {
 	match := searchRegexp.FindStringIndex(text)
 	if match == nil {
 		return text, nil
 	}
 	return text[match[1]:], nil
-}
-
-func GetTextAfterFirstMatch(text, searchRegexp string) (string, error) {
-	rx, err := regexp.Compile(searchRegexp)
-	if err != nil {
-		return "", err
-	}
-	return GetTextAfterFirstMatchRx(text, rx)
 }
 
 func GetTextAfterFirstMatchesRx(text string, searchRegexps []*regexp.Regexp) (string, error) {
@@ -142,23 +97,8 @@ func GetTextAfterFirstMatchesRx(text string, searchRegexps []*regexp.Regexp) (st
 	return text, nil
 }
 
-func GetTextAfterFirstMatches(text string, searchRegexps []string) (string, error) {
-	for _, element := range searchRegexps {
-		var err error
-		text, err = GetTextAfterFirstMatch(text, element)
-		if err != nil {
-			return text, err
-		}
-	}
-	return text, nil
-}
-
-func GetTextBeforeLastMatch(text, searchRegexp string) (string, error) {
-	rx, err := regexp.Compile(searchRegexp)
-	if err != nil {
-		return "", err
-	}
-	matches := rx.FindAllStringIndex(text, -1)
+func GetTextBeforeLastMatchRx(text string, searchRegexp *regexp.Regexp) (string, error) {
+	matches := searchRegexp.FindAllStringIndex(text, -1)
 	if len(matches) == 0 {
 		return text, nil
 	}
@@ -166,10 +106,10 @@ func GetTextBeforeLastMatch(text, searchRegexp string) (string, error) {
 	return text[:lastMatch[0]], nil
 }
 
-func GetTextBeforeLastMatches(text string, searchRegexps []string) (string, error) {
+func GetTextBeforeLastMatchesRx(text string, searchRegexps []*regexp.Regexp) (string, error) {
 	for _, element := range searchRegexps {
 		var err error
-		text, err = GetTextBeforeLastMatch(text, element)
+		text, err = GetTextBeforeLastMatchRx(text, element)
 		if err != nil {
 			return text, err
 		}

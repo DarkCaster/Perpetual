@@ -2,7 +2,7 @@ package utils
 
 import (
 	"errors"
-	"regexp/syntax"
+	"regexp"
 	"testing"
 )
 
@@ -83,7 +83,7 @@ func TestReplaceTag(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := ReplaceTag(tc.text, tc.tagRegex, tc.replacement)
+			result, err := ReplaceTagRx(tc.text, regexp.MustCompile(tc.tagRegex), tc.replacement)
 			if tc.shouldError && err == nil {
 				t.Errorf("Expected error, but got nil")
 			} else if !tc.shouldError && err != nil {
@@ -167,24 +167,6 @@ func TestParseTaggedText(t *testing.T) {
 			expectedResult: []string{"text", "more text"},
 			ignUncTagErr:   false,
 			expectedError:  nil,
-		},
-		{
-			name:           "Invalid start tag regex",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  "[",
-			endTagRegex:    "</tag>",
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
-		},
-		{
-			name:           "Invalid end tag regex",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  "<tag>",
-			endTagRegex:    "]",
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("unclosed tag"),
 		},
 		{
 			name:           "Second match tag missing",
@@ -370,7 +352,7 @@ func TestParseTaggedText(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := ParseTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex, tc.ignUncTagErr)
+			result, err := ParseTaggedTextRx(tc.sourceText, regexp.MustCompile(tc.startTagRegex), regexp.MustCompile(tc.endTagRegex), tc.ignUncTagErr)
 			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}
@@ -526,42 +508,6 @@ func TestParseMultiTaggedText(t *testing.T) {
 			expectedError:  errors.New("invalid tag order"),
 		},
 		{
-			name:           "Invalid start tag regex, 1-st tag",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  []string{"[", "<x>"},
-			endTagRegex:    []string{"</tag>", "</x>"},
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
-		},
-		{
-			name:           "Invalid start tag regex, 2-nd tag",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  []string{"<tag>", "["},
-			endTagRegex:    []string{"</tag>", "</x>"},
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
-		},
-		{
-			name:           "Invalid end tag regex, 1-st tag",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  []string{"<tag>", "<x>"},
-			endTagRegex:    []string{"[", "</x>"},
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
-		},
-		{
-			name:           "Invalid end tag regex, 2-nd tag",
-			sourceText:     "Line with <tag>text</tag>",
-			startTagRegex:  []string{"<tag>", "<x>"},
-			endTagRegex:    []string{"</tag>", "["},
-			expectedResult: nil,
-			ignUncTagErr:   false,
-			expectedError:  errors.New("error parsing regexp: missing closing ]: `[`"),
-		},
-		{
 			name:           "Second match tag missing",
 			sourceText:     "Line 1 <tag><x>text</tag><tag>more text",
 			startTagRegex:  []string{"<tag>", "<x>"},
@@ -583,7 +529,15 @@ func TestParseMultiTaggedText(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := ParseMultiTaggedText(tc.sourceText, tc.startTagRegex, tc.endTagRegex, tc.ignUncTagErr)
+			var startRx []*regexp.Regexp
+			for _, str := range tc.startTagRegex {
+				startRx = append(startRx, regexp.MustCompile(str))
+			}
+			var endRx []*regexp.Regexp
+			for _, str := range tc.endTagRegex {
+				endRx = append(endRx, regexp.MustCompile(str))
+			}
+			result, err := ParseMultiTaggedTextRx(tc.sourceText, startRx, endRx, tc.ignUncTagErr)
 			if !equalStringSlices(result, tc.expectedResult) {
 				t.Errorf("Expected result %v, but got %v", tc.expectedResult, result)
 			}
@@ -626,18 +580,11 @@ func TestGetTextAfterFirstMatch(t *testing.T) {
 			expectedResult: "",
 			expectedError:  nil,
 		},
-		{
-			name:           "Invalid regex",
-			text:           "Hello, world!",
-			searchRegex:    "[a-",
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := GetTextAfterFirstMatch(tc.text, tc.searchRegex)
+			result, err := GetTextAfterFirstMatchRx(tc.text, regexp.MustCompile(tc.searchRegex))
 			if tc.expectedError == nil && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			} else if tc.expectedError != nil && err == nil {
@@ -694,32 +641,15 @@ func TestGetTextAfterFirstMatches(t *testing.T) {
 			expectedResult: "",
 			expectedError:  nil,
 		},
-		{
-			name:           "Invalid 1-st regexp",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"[a-", "abc"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
-		{
-			name:           "Invalid 2-nd regexp",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"abc", "[b-"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
-		{
-			name:           "Invalid all regexps",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"[a-", "[b-"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := GetTextAfterFirstMatches(tc.text, tc.searchRegexps)
+			var rx []*regexp.Regexp
+			for _, str := range tc.searchRegexps {
+				rx = append(rx, regexp.MustCompile(str))
+			}
+			result, err := GetTextAfterFirstMatchesRx(tc.text, rx)
 			if tc.expectedError == nil && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			} else if tc.expectedError != nil && err == nil {
@@ -762,18 +692,11 @@ func TestGetTextBeforeLastMatch(t *testing.T) {
 			expectedResult: "",
 			expectedError:  nil,
 		},
-		{
-			name:           "Invalid regex",
-			text:           "Hello, world!",
-			searchRegex:    "[a-",
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := GetTextBeforeLastMatch(tc.text, tc.searchRegex)
+			result, err := GetTextBeforeLastMatchRx(tc.text, regexp.MustCompile(tc.searchRegex))
 			if tc.expectedError == nil && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			} else if tc.expectedError != nil && err == nil {
@@ -830,32 +753,15 @@ func TestGetTextBeforeLastMatches(t *testing.T) {
 			expectedResult: "",
 			expectedError:  nil,
 		},
-		{
-			name:           "Invalid 1-st regexp",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"[a-", "abc"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
-		{
-			name:           "Invalid 2-nd regexp",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"abc", "[b-"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
-		{
-			name:           "Invalid all regexps",
-			text:           "Hello, world!",
-			searchRegexps:  []string{"[a-", "[b-"},
-			expectedResult: "",
-			expectedError:  &syntax.Error{},
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := GetTextBeforeLastMatches(tc.text, tc.searchRegexps)
+			var rx []*regexp.Regexp
+			for _, str := range tc.searchRegexps {
+				rx = append(rx, regexp.MustCompile(str))
+			}
+			result, err := GetTextBeforeLastMatchesRx(tc.text, rx)
 			if tc.expectedError == nil && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			} else if tc.expectedError != nil && err == nil {
