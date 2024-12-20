@@ -29,6 +29,17 @@ func processProjectConfig(cfg map[string]interface{}) error {
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
+	// Validate K_ProjectMdCodeMappings
+	mappings := interfaceTo2DStringArray(cfg[K_ProjectMdCodeMappings])
+	for i, mapping := range mappings {
+		if len(mapping) != 2 {
+			return fmt.Errorf("%s[%d] must contain exactly 2 elements", K_ProjectMdCodeMappings, i)
+		}
+		// Try compiling first element as regexp
+		if _, err := regexp.Compile(mapping[0]); err != nil {
+			return fmt.Errorf("%s[%d][0] must be a valid regexp: %s", K_ProjectMdCodeMappings, i, err)
+		}
+	}
 	//precompile regexps
 	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectFilesBlacklist]), K_ProjectFilesBlacklist); err != nil {
 		return err
