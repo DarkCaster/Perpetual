@@ -15,10 +15,10 @@ type projectConfig struct {
 func LoadProjectConfig(baseDir string) (Config, error) {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, ProjectConfigFile), &storageObject); err != nil {
-		return nil, fmt.Errorf("error loading project config: %s", err)
+		return nil, err
 	}
 	if err := processProjectConfig(storageObject); err != nil {
-		return nil, fmt.Errorf("failed to validate project config: %s", err)
+		return nil, err
 	}
 	return &projectConfig{cfgValues: storageObject}, nil
 }

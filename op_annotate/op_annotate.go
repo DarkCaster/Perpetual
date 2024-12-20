@@ -70,7 +70,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
-		logger.Panicf("Error loading project config :%s", err)
+		logger.Panicf("Error loading project config: %s", err)
 	}
 
 	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
@@ -80,7 +80,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectConfig.RegexpArray(config.K_ProjectFilesBlacklist))
 
 	if err != nil {
-		logger.Panicln("error getting project file-list:", err)
+		logger.Panicln("Error getting project file-list:", err)
 	}
 
 	// Check fileNames array for case collisions
@@ -130,7 +130,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
 	if err != nil {
-		logger.Panicf("Error loading op_annotate config :%s", err)
+		logger.Panicf("Error loading op_annotate config: %s", err)
 	}
 
 	// Create llm connector for annotate stage1

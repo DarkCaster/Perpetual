@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"path/filepath"
 	"regexp"
 
@@ -15,10 +14,10 @@ type opDocConfig struct {
 func LoadOpDocConfig(baseDir string) (Config, error) {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpDocConfigFile), &storageObject); err != nil {
-		return nil, fmt.Errorf("error loading op_doc config: %s", err)
+		return nil, err
 	}
 	if err := processOpDocConfig(storageObject); err != nil {
-		return nil, fmt.Errorf("failed to validate op_doc config: %s", err)
+		return nil, err
 	}
 	return &opDocConfig{cfgValues: storageObject}, nil
 }

@@ -114,12 +114,12 @@ func Run(args []string, logger logging.ILogger) {
 
 		docConfig, err := config.LoadOpDocConfig(perpetualDir)
 		if err != nil {
-			logger.Panicf("Error loading op_doc config :%s", err)
+			logger.Panicf("Error loading op_doc config: %s", err)
 		}
 
 		projectConfig, err := config.LoadProjectConfig(perpetualDir)
 		if err != nil {
-			logger.Panicf("Error loading project config :%s", err)
+			logger.Panicf("Error loading project config: %s", err)
 		}
 
 		projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)

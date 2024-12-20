@@ -15,10 +15,10 @@ type opAnnotateConfig struct {
 func LoadOpAnnotateConfig(baseDir string) (Config, error) {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpAnnotateConfigFile), &storageObject); err != nil {
-		return nil, fmt.Errorf("error loading op_annotate config: %s", err)
+		return nil, err
 	}
 	if err := processOpAnnotateConfig(storageObject); err != nil {
-		return nil, fmt.Errorf("failed to validate op_annotate config: %s", err)
+		return nil, err
 	}
 	return &opAnnotateConfig{cfgValues: storageObject}, nil
 }

@@ -15,10 +15,10 @@ type opImplementConfig struct {
 func LoadOpImplementConfig(baseDir string) (Config, error) {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpImplementConfigFile), &storageObject); err != nil {
-		return nil, fmt.Errorf("error loading op_implement config: %s", err)
+		return nil, err
 	}
 	if err := processOpImplementConfig(storageObject); err != nil {
-		return nil, fmt.Errorf("failed to validate op_implement config: %s", err)
+		return nil, err
 	}
 	return &opImplementConfig{cfgValues: storageObject}, nil
 }
@@ -67,7 +67,7 @@ func processOpImplementConfig(cfg map[string]interface{}) error {
 		cfg[K_NoUploadCommentsRx] = rxArr
 	}
 	if rx, err := regexp.Compile(cfg[K_FilenameEmbedRx].(string)); err != nil {
-		return fmt.Errorf("failed to compile %s regexp: %s", K_FilenameEmbedRx, err)
+		return fmt.Errorf("%s must be a valid regexp: %s", K_FilenameEmbedRx, err)
 	} else {
 		cfg[K_FilenameEmbedRx] = rx
 	}
