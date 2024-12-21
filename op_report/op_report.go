@@ -134,7 +134,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report messages
 		reportMessage = llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			implementConfig.String(config.K_ImplementStage3CodePrompt))
+			implementConfig.String(config.K_ImplementStage2CodePrompt))
 
 		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
 		for _, filename := range fileNames {
