@@ -104,16 +104,16 @@ func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage1AnalisysJsonModePrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
 	result[config.K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
 	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
-	// stage 2
-	result[config.K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
-	result[config.K_ImplementStage2CodeResponse] = defaultAIAcknowledge
-	result[config.K_ImplementStage2FilesToChangePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
-	result[config.K_ImplementStage2FilesToChangeJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
-	result[config.K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
-	result[config.K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the task."
-	result[config.K_Stage2OutputScheme] = getDefaultListOfFilesOutputScheme()
-	result[config.K_Stage2OutputKey] = defaultListOfFilesOutputKey
-	//TODO: stage 2 with reasonings (rename it to stage3)
+	// stage 3
+	result[config.K_ImplementStage3CodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_ImplementStage3CodeResponse] = defaultAIAcknowledge
+	result[config.K_ImplementStage3FilesToChangePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags."
+	result[config.K_ImplementStage3FilesToChangeJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the code."
+	result[config.K_ImplementStage3NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the marked changes, one file at a time."
+	result[config.K_ImplementStage3NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the task."
+	result[config.K_Stage3OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage3OutputKey] = defaultListOfFilesOutputKey
+
 	// stage 4
 	result[config.K_ImplementStage4ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
 	result[config.K_ImplementStage4ChangesDoneResponse] = defaultAIAcknowledge

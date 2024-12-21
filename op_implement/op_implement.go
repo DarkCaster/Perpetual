@@ -233,8 +233,8 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	filesToReview = filteredFilesToReview
 
-	// Run stage 2
-	stage2Messages, otherFilesToModify, targetFilesToModify := Stage2(
+	// Run stage 3
+	stage3Messages, otherFilesToModify, targetFilesToModify := Stage3(
 		projectRootDir,
 		perpetualDir,
 		implementConfig,
@@ -266,7 +266,7 @@ func Run(args []string, logger logging.ILogger) {
 		perpetualDir,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		stage2Messages,
+		stage3Messages,
 		otherFilesToModify,
 		targetFilesToModify,
 		logger)

@@ -9,7 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage2(projectRootDir string,
+func Stage3(projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
@@ -19,44 +19,44 @@ func Stage2(projectRootDir string,
 	targetFiles []string,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
-	logger.Traceln("Stage2: Starting")
-	defer logger.Traceln("Stage2: Finished")
+	logger.Traceln("Stage3: Starting")
+	defer logger.Traceln("Stage3: Finished")
 
-	// Create stage2 llm connector
-	stage2Connector, err := llm.NewLLMConnector(OpName+"_stage2", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	// Create stage3 llm connector
+	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		logger.Panicln("Failed to create stage2 LLM connector:", err)
+		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
-	logger.Debugln(stage2Connector.GetDebugString())
+	logger.Debugln(stage3Connector.GetDebugString())
 
 	var messages []llm.Message
 
 	if len(filesForReview) > 0 {
 		// Create target files analisys request message
-		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(
+		stage3ProjectSourceCodeMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage2CodePrompt))
+			cfg.String(config.K_ImplementStage3CodePrompt))
 
 		for _, item := range filesForReview {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
-				logger.Panicln("Failed to add file contents to stage2 prompt", err)
+				logger.Panicln("Failed to add file contents to stage3 prompt", err)
 			}
-			stage2ProjectSourceCodeMessage = llm.AddFileFragment(
-				stage2ProjectSourceCodeMessage,
+			stage3ProjectSourceCodeMessage = llm.AddFileFragment(
+				stage3ProjectSourceCodeMessage,
 				item,
 				contents,
 				cfg.StringArray(config.K_FilenameTags))
 		}
-		messages = append(messages, stage2ProjectSourceCodeMessage)
+		messages = append(messages, stage3ProjectSourceCodeMessage)
 		logger.Debugln("Project source code message created")
 
 		// Create simulated response
-		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
+		stage3ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage2CodeResponse))
+			cfg.String(config.K_ImplementStage3CodeResponse))
 
-		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
+		messages = append(messages, stage3ProjectSourceCodeResponseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
@@ -64,18 +64,14 @@ func Stage2(projectRootDir string,
 
 	if planningMode > 0 {
 		// Create files to change request message
-		var stage2FilesToChangeMessage llm.Message
+		var stage3FilesToChangeMessage llm.Message
 		switch planningMode {
-		/*case 2:
-		stage2FilesToChangeMessage = llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			loadPrompt(prompts.ImplementStage2FilesToChangeExtendedPromptFile))*/
 		case 1:
 			fallthrough
 		default:
-			stage2FilesToChangeMessage = llm.AddPlainTextFragment(
+			stage3FilesToChangeMessage = llm.AddPlainTextFragment(
 				llm.NewMessage(llm.UserRequest),
-				cfg.String(config.K_ImplementStage2FilesToChangePrompt))
+				cfg.String(config.K_ImplementStage3FilesToChangePrompt))
 		}
 		// Attach target files
 		for _, item := range targetFiles {
@@ -83,40 +79,40 @@ func Stage2(projectRootDir string,
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesToChangeMessage = llm.AddFileFragment(
-				stage2FilesToChangeMessage,
+			stage3FilesToChangeMessage = llm.AddFileFragment(
+				stage3FilesToChangeMessage,
 				item,
 				contents,
 				cfg.StringArray(config.K_FilenameTags))
 		}
-		messages = append(messages, stage2FilesToChangeMessage)
+		messages = append(messages, stage3FilesToChangeMessage)
 		logger.Debugln("Files to change message created")
 	} else {
 		// Create files to request for non-planning mode
-		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(
+		stage3FilesNoPlanningMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage2NoPlanningPrompt))
+			cfg.String(config.K_ImplementStage3NoPlanningPrompt))
 
 		for _, item := range targetFiles {
 			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
 			if err != nil {
 				logger.Panicln("Failed to add file contents to stage1 prompt", err)
 			}
-			stage2FilesNoPlanningMessage = llm.AddFileFragment(
-				stage2FilesNoPlanningMessage,
+			stage3FilesNoPlanningMessage = llm.AddFileFragment(
+				stage3FilesNoPlanningMessage,
 				item,
 				contents,
 				cfg.StringArray(config.K_FilenameTags))
 		}
-		messages = append(messages, stage2FilesNoPlanningMessage)
+		messages = append(messages, stage3FilesNoPlanningMessage)
 		logger.Debugln("Files for no planning message created")
 
 		// Create simulated response
-		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
+		stage3FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage2NoPlanningResponse))
+			cfg.String(config.K_ImplementStage3NoPlanningResponse))
 
-		messages = append(messages, stage2FilesNoPlanningResponseMessage)
+		messages = append(messages, stage3FilesNoPlanningResponseMessage)
 		logger.Debugln("Files for no planning simulated response added")
 	}
 
@@ -130,7 +126,7 @@ func Stage2(projectRootDir string,
 		var aiResponses []string
 		reasonings := ""
 		ambiguousReasonings := false
-		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
+		onFailRetriesLeft := stage3Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
@@ -138,10 +134,10 @@ func Stage2(projectRootDir string,
 			reasonings = ""
 			ambiguousReasonings = false
 			// Request LLM to provide file list that will be modified (or created) while implementing code
-			logger.Infoln("Running stage2: planning changes")
+			logger.Infoln("Running stage3: planning changes")
 			var status llm.QueryStatus
 			//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-			aiResponses, status, err = stage2Connector.Query(1, messages...)
+			aiResponses, status, err = stage3Connector.Query(1, messages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -288,7 +284,7 @@ func Stage2(projectRootDir string,
 		logger.Debugln("Simplified response message created")
 	} else {
 		// Just copy target files into results without real LLM interaction in order to save tokens
-		logger.Infoln("Running stage2: planning disabled")
+		logger.Infoln("Running stage3: planning disabled")
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
 		logger.Debugln("Target files added to modify list")
 	}

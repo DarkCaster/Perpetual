@@ -42,15 +42,15 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage1AnalisysJsonModePrompt] = templateString
 	result[K_Stage1OutputScheme] = templateObject
 	result[K_Stage1OutputKey] = templateString
-	// stage 2
-	result[K_ImplementStage2CodePrompt] = templateString
-	result[K_ImplementStage2CodeResponse] = templateString
-	result[K_ImplementStage2FilesToChangePrompt] = templateString
-	result[K_ImplementStage2FilesToChangeJsonModePrompt] = templateString
-	result[K_ImplementStage2NoPlanningPrompt] = templateString
-	result[K_ImplementStage2NoPlanningResponse] = templateString
-	result[K_Stage2OutputScheme] = templateObject
-	result[K_Stage2OutputKey] = templateString
+	// stage 3
+	result[K_ImplementStage3CodePrompt] = templateString
+	result[K_ImplementStage3CodeResponse] = templateString
+	result[K_ImplementStage3FilesToChangePrompt] = templateString
+	result[K_ImplementStage3FilesToChangeJsonModePrompt] = templateString
+	result[K_ImplementStage3NoPlanningPrompt] = templateString
+	result[K_ImplementStage3NoPlanningResponse] = templateString
+	result[K_Stage3OutputScheme] = templateObject
+	result[K_Stage3OutputKey] = templateString
 	// stage 4
 	result[K_ImplementStage4ChangesDonePrompt] = templateString
 	result[K_ImplementStage4ChangesDoneResponse] = templateString
