@@ -8,7 +8,7 @@ import (
 )
 
 func FilterAndTrimResponses(responses []string, forbiddenTagPairs []*regexp.Regexp, logger logging.ILogger) []string {
-	finalResponses := []string{}
+	var finalResponses []string
 	var evenIndexElements []*regexp.Regexp
 	for i := 0; i < len(forbiddenTagPairs); i += 2 {
 		evenIndexElements = append(evenIndexElements, forbiddenTagPairs[i])
@@ -17,6 +17,7 @@ func FilterAndTrimResponses(responses []string, forbiddenTagPairs []*regexp.Rege
 	for i := 1; i < len(forbiddenTagPairs); i += 2 {
 		oddIndexElements = append(oddIndexElements, forbiddenTagPairs[i])
 	}
+	var checkUnique = make(map[string]bool)
 	for i, variant := range responses {
 		// Filter-out variants that contain code-blocks - this is not allowed
 		if blocks, err := ParseMultiTaggedTextRx(variant, evenIndexElements, oddIndexElements, true); err != nil || len(blocks) > 0 {
@@ -29,7 +30,10 @@ func FilterAndTrimResponses(responses []string, forbiddenTagPairs []*regexp.Rege
 			logger.Warnf("LLM response #%d is empty", i)
 			continue
 		}
-		finalResponses = append(finalResponses, variant)
+		if !checkUnique[variant] {
+			finalResponses = append(finalResponses, variant)
+			checkUnique[variant] = true
+		}
 	}
 	return finalResponses
 }
