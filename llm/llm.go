@@ -34,6 +34,7 @@ const (
 	Short VariantSelectionStrategy = iota
 	Long
 	Combine
+	Best
 )
 
 type LLMConnector interface {

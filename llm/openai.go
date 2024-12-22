@@ -131,6 +131,8 @@ func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPro
 			variantStrategy = Long
 		} else if curStrategy == "COMBINE" {
 			variantStrategy = Combine
+		} else if curStrategy == "BEST" {
+			variantStrategy = Best
 		} else {
 			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
 		}

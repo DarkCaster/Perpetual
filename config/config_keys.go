@@ -16,6 +16,7 @@ const K_AnnotateStage1Prompts = "stage1_prompts"
 const K_AnnotateStage1Response = "stage1_response"
 const K_AnnotateStage2PromptVariant = "stage2_prompt_variant"
 const K_AnnotateStage2PromptCombine = "stage2_prompt_combine"
+const K_AnnotateStage2PromptBest = "stage2_prompt_best"
 
 const K_FilenameTags = "filename_tags"
 const K_FilenameTagsRx = "filename_tags_rx"

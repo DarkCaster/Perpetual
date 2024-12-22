@@ -19,8 +19,8 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	result[K_AnnotateStage1Response] = templateString
 	// prompt to generate another annotation variant
 	result[K_AnnotateStage2PromptVariant] = templateString
-	// prompt to generate combined annotation
 	result[K_AnnotateStage2PromptCombine] = templateString
+	result[K_AnnotateStage2PromptBest] = templateString
 	// tags for providing filename to LLM
 	result[K_FilenameTags] = templateStringArray
 	result[K_CodeTagsRx] = templateStringArray

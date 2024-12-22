@@ -244,7 +244,7 @@ func Run(args []string, logger logging.ILogger) {
 			variantSelectionStrategy := connector.GetVariantSelectionStrategy()
 
 			// Combine the annotation using LLM
-			if variantSelectionStrategy == llm.Combine {
+			if variantSelectionStrategy == llm.Combine || variantSelectionStrategy == llm.Best {
 				// Create message-chain for request
 				combinedMessages := []llm.Message{annotateRequest, annotateSimulatedResponse, fileContentsRequest}
 				for i, variant := range finalVariants {
@@ -253,10 +253,14 @@ func Run(args []string, logger logging.ILogger) {
 						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
 							llm.NewMessage(llm.UserRequest),
 							annotateConfig.String(config.K_AnnotateStage2PromptVariant)))
-					} else {
+					} else if variantSelectionStrategy == llm.Combine {
 						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
 							llm.NewMessage(llm.UserRequest),
 							annotateConfig.String(config.K_AnnotateStage2PromptCombine)))
+					} else if variantSelectionStrategy == llm.Best {
+						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
+							llm.NewMessage(llm.UserRequest),
+							annotateConfig.String(config.K_AnnotateStage2PromptBest)))
 					}
 				}
 				// Perform the query

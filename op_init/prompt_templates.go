@@ -66,6 +66,7 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
 	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
+	result[config.K_AnnotateStage2PromptBest] = "Evaluate the summaries you have created and choose summary variant that better matches the original instructions. Output the text of the selected summary variant in the response, nothing more."
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
 	return result
