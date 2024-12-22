@@ -23,72 +23,49 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	stage1Connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
-	logger.Debugln(stage1Connector.GetDebugString())
+	logger.Debugln(connector.GetDebugString())
 
 	// Create project-index request message
-	stage1ProjectIndexRequestMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.UserRequest),
-		cfg.String(config.K_ImplementStage1IndexPrompt))
-
-	for _, item := range fileNames {
-		stage1ProjectIndexRequestMessage = llm.AddIndexFragment(
-			stage1ProjectIndexRequestMessage,
-			item,
-			cfg.StringArray(config.K_FilenameTags))
-
-		annotation := annotations[item]
+	projectIndexRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage1IndexPrompt))
+	for _, filename := range fileNames {
+		projectIndexRequest = llm.AddIndexFragment(projectIndexRequest, filename, cfg.StringArray(config.K_FilenameTags))
+		annotation := annotations[filename]
 		if annotation == "" {
 			annotation = "No annotation available"
 		}
-
-		stage1ProjectIndexRequestMessage = llm.AddPlainTextFragment(
-			stage1ProjectIndexRequestMessage,
-			annotation)
+		projectIndexRequest = llm.AddPlainTextFragment(projectIndexRequest, annotation)
 	}
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	stage1ProjectIndexResponseMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.SimulatedAIResponse),
-		cfg.String(config.K_ImplementStage1IndexResponse))
-
+	projectIndexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage1IndexResponse))
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analisys request message
-	stage1SourceAnalysisRequestMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.UserRequest),
-		cfg.String(config.K_ImplementStage1AnalisysPrompt))
-
-	for _, item := range targetFiles {
-		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
+	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage1AnalisysPrompt))
+	for _, filename := range targetFiles {
+		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
 		if err != nil {
 			logger.Panicln("failed to add file contents to stage1 prompt", err)
 		}
-		stage1SourceAnalysisRequestMessage = llm.AddFileFragment(
-			stage1SourceAnalysisRequestMessage,
-			item,
-			contents,
-			cfg.StringArray(config.K_FilenameTags))
+		analysisRequest = llm.AddFileFragment(analysisRequest, filename, contents, cfg.StringArray(config.K_FilenameTags))
 	}
 	logger.Debugln("Created target files analysis request message")
 
-	var aiResponses []string
-	onFailRetriesLeft := stage1Connector.GetOnFailureRetryLimit()
+	var filesForReviewRaw []string
+	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
-		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponses, status, err = stage1Connector.Query(1,
-			stage1ProjectIndexRequestMessage,
-			stage1ProjectIndexResponseMessage,
-			stage1SourceAnalysisRequestMessage)
+		aiResponses, status, err := connector.Query(1, projectIndexRequest, projectIndexResponse, analysisRequest)
+		// Handle LLM query errors
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed: ", err)
@@ -104,29 +81,27 @@ func Stage1(projectRootDir string,
 			}
 			continue
 		}
+		// Handle empty response
 		if len(aiResponses) < 1 || aiResponses[0] == "" {
-			logger.Warnln("Got empty response from AI, retrying")
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("Got empty response from AI")
+			} else {
+				logger.Warnln("Got empty response from AI, retrying")
+			}
 			continue
 		}
-		logger.Debugln("LLM query completed")
+		//TODO: add JSON-mode response parsing here
+		// Use regular parsing to extract file-list
+		filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
+			cfg.RegexpArray(config.K_FilenameTagsRx)[0],
+			cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+			false)
+		if err != nil {
+			logger.Panicln("Failed to parse list of files for review", err)
+		}
+		logger.Debugln("Parsed list of files for review from LLM response")
 		break
 	}
-
-	// Process response, parse files of interest from ai response
-	if len(aiResponses) < 1 || aiResponses[0] == "" {
-		logger.Errorln("Got empty response from AI")
-	}
-
-	filesForReviewRaw, err := utils.ParseTaggedTextRx(aiResponses[0],
-		cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-		cfg.RegexpArray(config.K_FilenameTagsRx)[1],
-		false)
-
-	if err != nil {
-		logger.Panicln("Failed to parse list of files for review", err)
-	}
-	logger.Debugln("Parsed list of files for review from LLM response")
-
 	// Filter all requested files through project file-list, return only files found in project file-list
 	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, fileNames, logger)
 }
