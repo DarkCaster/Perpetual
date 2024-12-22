@@ -271,7 +271,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	otherFilesToModify = filteredOtherFilesToModify
 
-	// Run stage 4
+	// Run stage 4 - implement code in selected files
 	results := Stage4(
 		projectRootDir,
 		perpetualDir,
