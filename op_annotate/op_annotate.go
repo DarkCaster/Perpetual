@@ -225,25 +225,7 @@ func Run(args []string, logger logging.ILogger) {
 				continue
 			}
 			// Some final filtering and preparations of produced annotation variants
-			finalVariants := []string{}
-			for i, variant := range annotationVariants {
-				// Filter-out variants that contain code-blocks - this is not allowed
-				if blocks, err := utils.ParseMultiTaggedTextRx(
-					variant,
-					getEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
-					getOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
-					true); err != nil || len(blocks) > 0 {
-					logger.Warnf("LLM response #%d contains code blocks, which is not allowed", i)
-					continue
-				}
-				// Trim unneded symbols from both ends of annotation
-				variant = strings.Trim(variant, " \t\n") //note: there is a space character first, do not remove it
-				if len(variant) < 1 {
-					logger.Warnf("LLM response #%d is empty", i)
-					continue
-				}
-				finalVariants = append(finalVariants, variant)
-			}
+			finalVariants := utils.FilterAndTrimResponses(annotationVariants, annotateConfig.RegexpArray(config.K_CodeTagsRx), logger)
 			// Stop there if no responses available for further processing
 			if len(finalVariants) < 1 {
 				logger.Errorln("No LLM responses available")

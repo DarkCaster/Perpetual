@@ -94,7 +94,8 @@ func Stage2(projectRootDir string,
 		logger.Debugln("Files for no planning simulated response added")
 	}
 
-	// When planning mode set to extended mode, create list of files with request to generate a work plan of what needs to be done to implement the task
+	// When planning mode set to extended mode, create list of files with request
+	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: generating reasonings")
 		// Create files to change request message
@@ -116,10 +117,49 @@ func Stage2(projectRootDir string,
 		// Add message to history
 		messages = append(messages, stage2ReasoningsRequestMessage)
 		logger.Debugln("Files to change message created")
-		//TODO: query LLM to generate reasonings
-		//TODO: extract reasonings
-		//TODO: add it to message-history
+		//query LLM to generate reasonings
+		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
+		if onFailRetriesLeft < 1 {
+			onFailRetriesLeft = 1
+		}
+		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+			aiResponses, status, err := stage2Connector.Query(1, messages...)
+			if err != nil {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("LLM query failed: ", err)
+				} else {
+					logger.Warnln("LLM query failed, retrying: ", err)
+				}
+				continue
+			} else if status == llm.QueryMaxTokens {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("LLM query reached token limit")
+				} else {
+					logger.Warnln("LLM query failed, retrying: ", err)
+				}
+				continue
+			}
+			// Reasonings should not include code blocks
+			aiResponses = utils.FilterAndTrimResponses(aiResponses, cfg.RegexpArray(config.K_CodeTagsRx), logger)
+			//TODO: for multi-response mode, add code here that combine responses together or select the most appropriate response
+			reasonings := ""
+			if len(aiResponses) > 0 {
+				reasonings = aiResponses[0]
+			}
+			// Final check
+			if reasonings == "" {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("Filtered reasonings response from AI is empty")
+				} else {
+					logger.Warnln("Filtered reasonings response from AI is empty, retrying")
+				}
+				continue
+			}
+			// Save reasonings to message-history
+			stage2ReasoningsResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), reasonings)
+			messages = append(messages, stage2ReasoningsResponseMessage)
+			break
+		}
 	}
-
 	return messages
 }
