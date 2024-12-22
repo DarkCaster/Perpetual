@@ -17,6 +17,7 @@ func Stage3(projectRootDir string,
 	allFileNames []string,
 	filesForReview []string,
 	targetFiles []string,
+	messages []llm.Message,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage3: Starting")
@@ -29,115 +30,56 @@ func Stage3(projectRootDir string,
 	}
 	logger.Debugln(stage3Connector.GetDebugString())
 
-	var messages []llm.Message
-
-	if len(filesForReview) > 0 {
-		// Create target files analisys request message
-		stage3ProjectSourceCodeMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage3CodePrompt))
-
-		for _, item := range filesForReview {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage3 prompt", err)
-			}
-			stage3ProjectSourceCodeMessage = llm.AddFileFragment(
-				stage3ProjectSourceCodeMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
-		messages = append(messages, stage3ProjectSourceCodeMessage)
-		logger.Debugln("Project source code message created")
-
-		// Create simulated response
-		stage3ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage3CodeResponse))
-
-		messages = append(messages, stage3ProjectSourceCodeResponseMessage)
-		logger.Debugln("Project source code simulated response added")
-	} else {
-		logger.Infoln("Not creating extra source-code review")
-	}
-
-	if planningMode > 0 {
-		// Create files to change request message
-		var stage3FilesToChangeMessage llm.Message
-		switch planningMode {
-		case 1:
-			fallthrough
-		default:
-			stage3FilesToChangeMessage = llm.AddPlainTextFragment(
-				llm.NewMessage(llm.UserRequest),
-				cfg.String(config.K_ImplementStage3FilesToChangePrompt))
-		}
-		// Attach target files
-		for _, item := range targetFiles {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage1 prompt", err)
-			}
-			stage3FilesToChangeMessage = llm.AddFileFragment(
-				stage3FilesToChangeMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
-		messages = append(messages, stage3FilesToChangeMessage)
-		logger.Debugln("Files to change message created")
-	} else {
-		// Create files to request for non-planning mode
-		stage3FilesNoPlanningMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage3NoPlanningPrompt))
-
-		for _, item := range targetFiles {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage1 prompt", err)
-			}
-			stage3FilesNoPlanningMessage = llm.AddFileFragment(
-				stage3FilesNoPlanningMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
-		messages = append(messages, stage3FilesNoPlanningMessage)
-		logger.Debugln("Files for no planning message created")
-
-		// Create simulated response
-		stage3FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage3NoPlanningResponse))
-
-		messages = append(messages, stage3FilesNoPlanningResponseMessage)
-		logger.Debugln("Files for no planning simulated response added")
-	}
-
 	// Resulted filenames
 	var targetFilesToModify []string
 	var otherFilesToModify []string
 
-	// Only perform real planning step if enabled
+	// When planning disabled, just copy target files into results without real LLM interaction in order to save tokens
+	if planningMode == 0 {
+		logger.Infoln("Running stage3: planning disabled")
+		targetFilesToModify = append(targetFilesToModify, targetFiles...)
+		logger.Debugln("Target files added to modify list")
+	}
+
+	// When using planning without reasoning, create request that will include target files content
+	if planningMode == 1 {
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningPrompt))
+		//TODO: place json-mode request here
+		// Attach target files
+		for _, item := range targetFiles {
+			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
+			if err != nil {
+				logger.Panicln("Failed to add file contents to stage3 prompt", err)
+			}
+			request = llm.AddFileFragment(request, item, contents, cfg.StringArray(config.K_FilenameTags))
+		}
+		// Add message to history
+		messages = append(messages, request)
+		logger.Debugln("Files-to-change request message created (full)")
+	}
+
+	// When using planning WITH reasoning, create request that will only ask to create list of files to be changed
+	if planningMode == 2 {
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningLitePrompt))
+		//TODO: place json-mode request here
+		// Add message to history
+		messages = append(messages, request)
+		logger.Debugln("Files-to-change request message created (simplified)")
+	}
+
+	// Send request
 	if planningMode > 0 {
-		var filesToProcessRaw []string
-		var aiResponses []string
-		reasonings := ""
-		ambiguousReasonings := false
+		filesToProcessRaw := []string{}
 		onFailRetriesLeft := stage3Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
+		// Make request and retry on errors
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			reasonings = ""
-			ambiguousReasonings = false
 			// Request LLM to provide file list that will be modified (or created) while implementing code
-			logger.Infoln("Running stage3: planning changes")
+			logger.Infoln("Running stage3: requesting list of files for changes")
 			var status llm.QueryStatus
-			//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-			aiResponses, status, err = stage3Connector.Query(1, messages...)
+			aiResponses, status, err := stage3Connector.Query(1, messages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -154,23 +96,15 @@ func Stage3(projectRootDir string,
 				continue
 			}
 			if len(aiResponses) < 1 || aiResponses[0] == "" {
-				logger.Warnln("Got empty response from AI, retrying")
+				filesToProcessRaw = []string{}
+				if onFailRetriesLeft < 1 {
+					logger.Errorln("Got empty response from AI")
+				} else {
+					logger.Warnln("Got empty response from AI, retrying")
+				}
 				continue
 			}
-			// Get reasonings
-			/*if planningMode == 2 {
-				reasoningsArr, err := utils.ParseTaggedText(aiResponses[0], reasoningsTagsRxStrings[0], reasoningsTagsRxStrings[1], false)
-				if err != nil {
-					logger.Warnln("Cannot extract reasonings text-block from LLM response")
-				} else if len(reasoningsArr) < 1 {
-					logger.Warnln("Reasonings text-block from LLM response is empty")
-				} else if len(reasoningsArr) > 1 {
-					logger.Warnln("More than 1 reasonings text-blocks detected")
-					ambiguousReasonings = true
-				} else {
-					reasonings = reasoningsArr[0]
-				}
-			}*/
+			//TODO: add list-parsing from JSON here
 			// Process response, parse files that will be created
 			filesToProcessRaw, err = utils.ParseTaggedTextRx(
 				aiResponses[0],
@@ -188,15 +122,8 @@ func Stage3(projectRootDir string,
 			break
 		}
 
-		// Extra checks
+		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
-		logger.Debugln("Reasonings length:", len(reasonings))
-		logger.Debugln("AmbiguousReasonings:", ambiguousReasonings)
-		if len(aiResponses) < 1 || aiResponses[0] == "" {
-			logger.Errorln("Got empty response from AI")
-		}
-
-		// Check all selected files
 		logger.Infoln("Files to modify selected by LLM:")
 		for _, check := range filesToProcessRaw {
 			// remove new line from the end of filename, if present
@@ -212,9 +139,7 @@ func Stage3(projectRootDir string,
 			//make file path relative to project root
 			file, err := utils.MakePathRelative(projectRootDir, check, true)
 			if err != nil {
-				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory, removing reasonings", check)
-				reasonings = ""
-				ambiguousReasonings = false
+				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory", check)
 				continue
 			}
 			// Sort files selected by LLM
@@ -252,41 +177,16 @@ func Stage3(projectRootDir string,
 		}
 		logger.Debugln("Files to modify parsed")
 
-		// Generate simplified ai message, with list of files, and reasonings if present
-		simplifiedResponseMessage := llm.NewMessage(llm.SimulatedAIResponse)
-		if ambiguousReasonings {
-			logger.Warnln("Not attempting to reformat response because of ambiguous reasonings")
-			simplifiedResponseMessage = llm.SetRawResponse(simplifiedResponseMessage, aiResponses[0])
-		} else {
-			// Append files
-			for _, item := range otherFilesToModify {
-				simplifiedResponseMessage = llm.AddTaggedFragment(
-					simplifiedResponseMessage,
-					item,
-					cfg.StringArray(config.K_FilenameTags))
-			}
-			for _, item := range targetFilesToModify {
-				simplifiedResponseMessage = llm.AddTaggedFragment(
-					simplifiedResponseMessage,
-					item,
-					cfg.StringArray(config.K_FilenameTags))
-			}
-			// Append reasonings if any
-			/*if reasonings != "" {
-				simplifiedResponseMessage = llm.AddMultilineTaggedFragment(
-					simplifiedResponseMessage,
-					reasonings,
-					reasoningsNameTags)
-			}*/
+		// Generate simulated AI message, with list of files
+		response := llm.NewMessage(llm.SimulatedAIResponse)
+		for _, item := range otherFilesToModify {
+			response = llm.AddTaggedFragment(response, item, cfg.StringArray(config.K_FilenameTags))
 		}
-
-		messages = append(messages, simplifiedResponseMessage)
-		logger.Debugln("Simplified response message created")
-	} else {
-		// Just copy target files into results without real LLM interaction in order to save tokens
-		logger.Infoln("Running stage3: planning disabled")
-		targetFilesToModify = append(targetFilesToModify, targetFiles...)
-		logger.Debugln("Target files added to modify list")
+		for _, item := range targetFilesToModify {
+			response = llm.AddTaggedFragment(response, item, cfg.StringArray(config.K_FilenameTags))
+		}
+		messages = append(messages, response)
+		logger.Debugln("File-list response message created")
 	}
 
 	return messages, otherFilesToModify, targetFilesToModify
