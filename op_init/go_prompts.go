@@ -12,7 +12,7 @@ type goPrompts struct{}
 const goSystemPrompt = "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := GetDefaultAnnotateConfigTemplate()
+	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = goSystemPrompt
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
@@ -24,7 +24,7 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *goPrompts) GetImplementConfig() map[string]interface{} {
-	result := GetDefaultImplementConfigTemplate()
+	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = goSystemPrompt
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -34,7 +34,7 @@ func (p *goPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *goPrompts) GetDocConfig() map[string]interface{} {
-	result := GetDefaultDocConfigTemplate()
+	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = goSystemPrompt
 	// redefine language-dependent prompt
 	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -43,7 +43,7 @@ func (p *goPrompts) GetDocConfig() map[string]interface{} {
 }
 
 func (p *goPrompts) GetProjectConfig() map[string]interface{} {
-	result := GetDefaultProjectConfigTemplate()
+	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.go$"}
 	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^vendor(\\\\|\\/).*"}
 	result[config.K_ProjectTestFilesBlacklist] = []string{

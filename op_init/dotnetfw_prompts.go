@@ -12,7 +12,7 @@ type dotNetFWPrompts struct{}
 const dotNetSystemPrompt = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
 
 func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
-	result := GetDefaultAnnotateConfigTemplate()
+	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
@@ -25,7 +25,7 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 }
 
 func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
-	result := GetDefaultImplementConfigTemplate()
+	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -35,7 +35,7 @@ func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 }
 
 func (p *dotNetFWPrompts) GetDocConfig() map[string]interface{} {
-	result := GetDefaultDocConfigTemplate()
+	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = dotNetSystemPrompt
 	// redefine language-dependent prompt
 	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
@@ -44,7 +44,7 @@ func (p *dotNetFWPrompts) GetDocConfig() map[string]interface{} {
 }
 
 func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
-	result := GetDefaultProjectConfigTemplate()
+	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(cs|vb|xaml)$"}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^.*AssemblyInfo\\.cs$",

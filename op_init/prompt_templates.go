@@ -61,7 +61,7 @@ func getDefaultListOfFilesOutputScheme() map[string]interface{} {
 
 const defaultListOfFilesOutputKey = "list_of_files"
 
-func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
+func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := config.GetAnnotateConfigTemplate()
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
@@ -71,7 +71,7 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetDefaultImplementConfigTemplate() map[string]interface{} {
+func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result := config.GetImplementConfigTemplate()
 	// stage 1
 	result[config.K_ImplementStage1IndexResponse] = defaultAIAcknowledge
@@ -108,7 +108,7 @@ func GetDefaultImplementConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetDefaultDocConfigTemplate() map[string]interface{} {
+func getDefaultDocConfigTemplate() map[string]interface{} {
 	result := config.GetDocConfigTemplate()
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
@@ -126,7 +126,7 @@ func GetDefaultDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetDefaultProjectConfigTemplate() map[string]interface{} {
+func getDefaultProjectConfigTemplate() map[string]interface{} {
 	result := config.GetProjectConfigTemplate()
 	result[config.K_ProjectFilesBlacklist] = []string{}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}
