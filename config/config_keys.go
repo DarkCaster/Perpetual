@@ -37,11 +37,13 @@ const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
 const K_ImplementStage2NoPlanningResponse = "stage2_noplanning_response"
 const K_ImplementStage2ReasoningsPrompt = "stage2_reasonings_prompt"
 
-// prompt to generate list of files that will be changed with attaching the target files, when extended planning is disabled
-const K_ImplementStage3FilesToChangePrompt = "stage3_tochange_prompt"
-const K_ImplementStage3FilesToChangeJsonModePrompt = "stage3_tochange_json_mode_prompt"
+// Prompt to generate list of files that will be changed, with attaching target files. Used when extra reasonings disabled
+const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"
+const K_ImplementStage3PlanningJsonModePrompt = "stage3_planning_json_mode_prompt"
 
-//TODO: prompt to generate list of files that will be changed without attaching target file-list
+// Prompt to generate list of files that will be changed, continuation of stage 2 with reasonings - not attaching target files
+const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
+const K_ImplementStage3PlanningLiteJsonModePrompt = "stage3_planning_lite_json_mode_prompt"
 
 const K_ImplementStage4ChangesDonePrompt = "stage4_changes_done_prompt"
 const K_ImplementStage4ChangesDoneResponse = "stage4_changes_done_response"
