@@ -37,31 +37,10 @@ const defaultAIAnnotatePrompt_Generic = "Create a summary for the file in my nex
 
 const defaultAIAcknowledge = "Understood. What's next?"
 
-/*const DefaultImplementStage2FilesToChangeExtendedPrompt = "Here are the contents of the source code files that interest me. The files contain sections of code that need to be implemented. They are marked with the comment \"###IMPLEMENT###\". Review all the source code provided to you and create a list of file names that will be changed or created by you as a result of implementing the code. Place each filename in <filename></filename> tags.\n\nAfter the list of file names, write your reasoning about what needs to be done in these files to implement the task. Don't write actual code in your reasoning yet. Place reasoning in a single block between tags <reasoning></reasoning>"*/
-
 var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
-
-//var defaultReasoningsTagsRegexps = []string{"(?m)\\s*<reasoning>\\n?", "(?m)<\\/reasoning>\\s*($|\\n)"}
-//var defaultReasoningsTags = []string{"<reasoning>", "</reasoning>"}
-
-func getDefaultAnnotateOutputScheme() map[string]interface{} {
-	return map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"generated_summary": map[string]interface{}{
-				"type": "string",
-			},
-		},
-		"required": []string{
-			"generated_summary",
-		},
-	}
-}
-
-const defaultAnnotateOutputKey = "generated_summary"
 
 func getDefaultListOfFilesOutputScheme() map[string]interface{} {
 	return map[string]interface{}{
@@ -87,10 +66,6 @@ func GetDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
 	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
-	result[config.K_Stage1OutputScheme] = getDefaultAnnotateOutputScheme()
-	result[config.K_Stage1OutputKey] = defaultAnnotateOutputKey
-	result[config.K_Stage2OutputScheme] = getDefaultAnnotateOutputScheme()
-	result[config.K_Stage2OutputKey] = defaultAnnotateOutputKey
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
 	return result

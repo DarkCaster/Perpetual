@@ -21,11 +21,6 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	result[K_AnnotateStage2PromptVariant] = templateString
 	// prompt to generate combined annotation
 	result[K_AnnotateStage2PromptCombine] = templateString
-	// structured output scheme and lookup key
-	result[K_Stage1OutputScheme] = templateObject
-	result[K_Stage1OutputKey] = templateString
-	result[K_Stage2OutputScheme] = templateObject
-	result[K_Stage2OutputKey] = templateString
 	// tags for providing filename to LLM
 	result[K_FilenameTags] = templateStringArray
 	result[K_CodeTagsRx] = templateStringArray
