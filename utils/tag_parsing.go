@@ -116,3 +116,19 @@ func GetTextBeforeLastMatchesRx(text string, searchRegexps []*regexp.Regexp) (st
 	}
 	return text, nil
 }
+
+func GetEvenIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var evenIndexElements []*regexp.Regexp
+	for i := 0; i < len(arr); i += 2 {
+		evenIndexElements = append(evenIndexElements, arr[i])
+	}
+	return evenIndexElements
+}
+
+func GetOddIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
+	var oddIndexElements []*regexp.Regexp
+	for i := 1; i < len(arr); i += 2 {
+		oddIndexElements = append(oddIndexElements, arr[i])
+	}
+	return oddIndexElements
+}

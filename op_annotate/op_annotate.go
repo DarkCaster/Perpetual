@@ -270,8 +270,8 @@ func Run(args []string, logger logging.ILogger) {
 					variantSelectionStrategy = llm.Short
 				} else if blocks, err := utils.ParseMultiTaggedTextRx(
 					combinedAnnotation[0],
-					getEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
-					getOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					utils.GetEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					utils.GetOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
 					true); err != nil || len(blocks) > 0 {
 					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
 					variantSelectionStrategy = llm.Short
@@ -333,20 +333,4 @@ func Run(args []string, logger logging.ILogger) {
 	if errorFlag {
 		logger.Panicln("Not all files were successfully annotated. Run annotate again to try to index the failed files.")
 	}
-}
-
-func getEvenIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
-	var evenIndexElements []*regexp.Regexp
-	for i := 0; i < len(arr); i += 2 {
-		evenIndexElements = append(evenIndexElements, arr[i])
-	}
-	return evenIndexElements
-}
-
-func getOddIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
-	var evenIndexElements []*regexp.Regexp
-	for i := 1; i < len(arr); i += 2 {
-		evenIndexElements = append(evenIndexElements, arr[i])
-	}
-	return evenIndexElements
 }

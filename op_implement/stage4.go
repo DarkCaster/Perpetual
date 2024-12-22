@@ -1,7 +1,6 @@
 package op_implement
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -149,7 +148,7 @@ func Stage4(projectRootDir string,
 				if i > 0 {
 					responses[i], err = utils.GetTextAfterFirstMatchesRx(
 						responses[i],
-						getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
+						utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
 					if err != nil {
 						logger.Panicln("Error while parsing output response fragment:", err)
 					}
@@ -160,8 +159,8 @@ func Stage4(projectRootDir string,
 			combinedResponse := strings.Join(responses, "")
 			fileBodies, err = utils.ParseMultiTaggedTextRx(
 				combinedResponse,
-				getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
-				getOddIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
+				utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
+				utils.GetOddIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
 				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -173,7 +172,7 @@ func Stage4(projectRootDir string,
 				// Try to remove only first match then, last resort
 				fileBody, err := utils.GetTextAfterFirstMatchesRx(
 					combinedResponse,
-					getEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
+					utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}
@@ -211,20 +210,4 @@ func Stage4(projectRootDir string,
 	}
 
 	return processedFileContents
-}
-
-func getEvenIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
-	var evenIndexElements []*regexp.Regexp
-	for i := 0; i < len(arr); i += 2 {
-		evenIndexElements = append(evenIndexElements, arr[i])
-	}
-	return evenIndexElements
-}
-
-func getOddIndexElements(arr []*regexp.Regexp) []*regexp.Regexp {
-	var evenIndexElements []*regexp.Regexp
-	for i := 1; i < len(arr); i += 2 {
-		evenIndexElements = append(evenIndexElements, arr[i])
-	}
-	return evenIndexElements
 }
