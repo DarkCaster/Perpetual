@@ -98,7 +98,6 @@ func Stage2(projectRootDir string,
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: generating reasonings")
-		// Create files to change request message
 		stage2ReasoningsRequestMessage := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
 			cfg.String(config.K_ImplementStage2ReasoningsPrompt))
@@ -116,7 +115,7 @@ func Stage2(projectRootDir string,
 		}
 		// Add message to history
 		messages = append(messages, stage2ReasoningsRequestMessage)
-		logger.Debugln("Files to change message created")
+		logger.Debugln("Planning request message created")
 		//query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
