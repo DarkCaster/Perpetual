@@ -148,7 +148,7 @@ func Stage4(projectRootDir string,
 				if i > 0 {
 					responses[i], err = utils.GetTextAfterFirstMatchesRx(
 						responses[i],
-						utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
+						utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
 					if err != nil {
 						logger.Panicln("Error while parsing output response fragment:", err)
 					}
@@ -159,8 +159,8 @@ func Stage4(projectRootDir string,
 			combinedResponse := strings.Join(responses, "")
 			fileBodies, err = utils.ParseMultiTaggedTextRx(
 				combinedResponse,
-				utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
-				utils.GetOddIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)),
+				utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)),
+				utils.GetOddRegexps(cfg.RegexpArray(config.K_CodeTagsRx)),
 				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -172,7 +172,7 @@ func Stage4(projectRootDir string,
 				// Try to remove only first match then, last resort
 				fileBody, err := utils.GetTextAfterFirstMatchesRx(
 					combinedResponse,
-					utils.GetEvenIndexElements(cfg.RegexpArray(config.K_CodeTagsRx)))
+					utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
 				if err != nil {
 					logger.Panicln("Error while parsing body from combined fragments:", err)
 				}

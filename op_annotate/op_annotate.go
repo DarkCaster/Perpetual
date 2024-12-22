@@ -270,8 +270,8 @@ func Run(args []string, logger logging.ILogger) {
 					variantSelectionStrategy = llm.Short
 				} else if blocks, err := utils.ParseMultiTaggedTextRx(
 					combinedAnnotation[0],
-					utils.GetEvenIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
-					utils.GetOddIndexElements(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					utils.GetEvenRegexps(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					utils.GetOddRegexps(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
 					true); err != nil || len(blocks) > 0 {
 					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
 					variantSelectionStrategy = llm.Short
