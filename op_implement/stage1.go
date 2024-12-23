@@ -23,7 +23,7 @@ func Stage1(projectRootDir string,
 	defer logger.Traceln("Stage1: Finished")
 
 	// Create stage1 llm connector
-	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage1", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, cfg.Object(config.K_Stage1OutputScheme), llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
@@ -46,7 +46,12 @@ func Stage1(projectRootDir string,
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analisys request message
-	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage1AnalisysPrompt))
+	analisysPrompt := cfg.String(config.K_ImplementStage1AnalisysPrompt)
+	if connector.GetOutputFormat() == llm.OutputJson {
+		analisysPrompt = cfg.String(config.K_ImplementStage1AnalisysJsonModePrompt)
+	}
+
+	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analisysPrompt)
 	for _, filename := range targetFiles {
 		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
 		if err != nil {
@@ -91,6 +96,9 @@ func Stage1(projectRootDir string,
 			continue
 		}
 		//TODO: add JSON-mode response parsing here
+		if connector.GetOutputFormat() == llm.OutputJson {
+			logger.Panicln("JSON")
+		}
 		// Use regular parsing to extract file-list
 		filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
 			cfg.RegexpArray(config.K_FilenameTagsRx)[0],
