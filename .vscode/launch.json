@@ -29,6 +29,14 @@
 			"args": ["implement","-pr"],
 		},
 		{
+			"name": "Launch Package: implement -u -pr",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["implement","-u","-pr"],
+		},
+		{
 			"name": "Launch Package: implement",
 			"type": "go",
 			"request": "launch",
