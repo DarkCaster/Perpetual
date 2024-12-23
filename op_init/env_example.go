@@ -156,7 +156,7 @@ OPENAI_MODEL_OP_ANNOTATE_POST="gpt-4o-mini" # used to process multiple response-
 # OPENAI_MODEL_OP_DOC_STAGE2="gpt-4o"
 OPENAI_MODEL="gpt-4o"
 OPENAI_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
-OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine
+OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
 OPENAI_VARIANT_COUNT="1" # will be used as fallback
 OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 OPENAI_MAX_TOKENS_OP_ANNOTATE="768"
@@ -265,8 +265,6 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # Experimental: switch to use structured JSON output format for some operations, may work better with some models
 # Supported values: plain, json. Default: plain
-# OLLAMA_FORMAT_OP_ANNOTATE="json"
-# OLLAMA_FORMAT_OP_ANNOTATE_POST="json"
 # OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
 # OLLAMA_FORMAT_OP_IMPLEMENT_STAGE2="json"
 # OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
