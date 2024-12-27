@@ -95,17 +95,23 @@ func Stage1(projectRootDir string,
 			}
 			continue
 		}
-		//TODO: add JSON-mode response parsing here
 		if connector.GetOutputFormat() == llm.OutputJson {
-			logger.Panicln("JSON")
+			// Use json-mode parsing
+			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponses[0], cfg.String(config.K_Stage1OutputKey))
+		} else {
+			// Use regular parsing to extract file-list
+			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
+				cfg.RegexpArray(config.K_FilenameTagsRx)[0],
+				cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+				false)
 		}
-		// Use regular parsing to extract file-list
-		filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
-			cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-			cfg.RegexpArray(config.K_FilenameTagsRx)[1],
-			false)
 		if err != nil {
-			logger.Panicln("Failed to parse list of files for review", err)
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("Failed to parse list of files for review", err)
+			} else {
+				logger.Warnln("Failed to parse list of files for review", err)
+			}
+			continue
 		}
 		logger.Debugln("Parsed list of files for review from LLM response")
 		break

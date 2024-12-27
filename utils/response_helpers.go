@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -36,4 +38,28 @@ func FilterAndTrimResponses(responses []string, forbiddenTagPairs []*regexp.Rege
 		}
 	}
 	return finalResponses
+}
+
+func ParseListFromJSON(jsonData, key string) ([]string, error) {
+	var bJsonData = []byte(jsonData)
+	if err := CheckUTF8(bJsonData); err != nil {
+		return nil, err
+	}
+	objMap := map[string]interface{}{}
+	if err := json.Unmarshal(bJsonData, &objMap); err != nil {
+		return nil, err
+	}
+	outputObj, exists := objMap[key]
+	if !exists {
+		return nil, fmt.Errorf("cannot find object with key %s in deserialized json", key)
+	}
+	outputArray, ok := outputObj.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("failed to convert output object to array")
+	}
+	target := make([]string, len(outputArray))
+	for i, element := range outputArray {
+		target[i] = fmt.Sprint(element)
+	}
+	return target, nil
 }
