@@ -1,8 +1,6 @@
 package op_implement
 
 import (
-	"path/filepath"
-
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -50,15 +48,7 @@ func Stage1(projectRootDir string,
 	if connector.GetOutputFormat() == llm.OutputJson {
 		analisysPrompt = cfg.String(config.K_ImplementStage1AnalisysJsonModePrompt)
 	}
-
-	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analisysPrompt)
-	for _, filename := range targetFiles {
-		contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
-		if err != nil {
-			logger.Panicln("failed to add file contents to stage1 prompt", err)
-		}
-		analysisRequest = llm.AddFileFragment(analysisRequest, filename, contents, cfg.StringArray(config.K_FilenameTags))
-	}
+	analysisRequest := llm.ComposeMessageWithFiles(projectRootDir, analisysPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
 	logger.Debugln("Created target files analysis request message")
 
 	var filesForReviewRaw []string

@@ -67,23 +67,14 @@ func Stage2(projectRootDir string,
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled")
 		// Create files to request for non-planning mode
-		stage2FilesNoPlanningMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage2NoPlanningPrompt))
-		// Attach target files
-		for _, item := range targetFiles {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage1 prompt", err)
-			}
-			stage2FilesNoPlanningMessage = llm.AddFileFragment(
-				stage2FilesNoPlanningMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
+		requestMessage := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_ImplementStage2NoPlanningPrompt),
+			targetFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
 		// Add message to history
-		messages = append(messages, stage2FilesNoPlanningMessage)
+		messages = append(messages, requestMessage)
 		logger.Debugln("Files for no planning message created")
 		// Create simulated response
 		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
@@ -98,31 +89,21 @@ func Stage2(projectRootDir string,
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: generating reasonings")
-		stage2ReasoningsRequestMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage2ReasoningsPrompt))
-		// Attach target files
-		for _, item := range targetFiles {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage2 prompt", err)
-			}
-			stage2ReasoningsRequestMessage = llm.AddFileFragment(
-				stage2ReasoningsRequestMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
-		// Add message to history
-		messages = append(messages, stage2ReasoningsRequestMessage)
-		logger.Debugln("Planning request message created")
+		//generate actual request message that will me used with LLM
+		requestMessage := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_ImplementStage2ReasoningsPrompt),
+			targetFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
+		tmpMessages := append(messages, requestMessage)
 		//query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			aiResponses, status, err := stage2Connector.Query(1, messages...)
+			aiResponses, status, err := stage2Connector.Query(1, tmpMessages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -154,9 +135,18 @@ func Stage2(projectRootDir string,
 				}
 				continue
 			}
+			// Add final request message to history
+			finalRequestMessage := llm.ComposeMessageWithFiles(
+				projectRootDir,
+				cfg.String(config.K_ImplementStage2ReasoningsPromptFinal),
+				targetFiles,
+				cfg.StringArray(config.K_FilenameTags),
+				logger)
+			messages = append(messages, finalRequestMessage)
+			logger.Debugln("Planning request message created")
 			// Save reasonings to message-history
-			stage2ReasoningsResponseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), reasonings)
-			messages = append(messages, stage2ReasoningsResponseMessage)
+			responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), reasonings)
+			messages = append(messages, responseMessage)
 			break
 		}
 	}
