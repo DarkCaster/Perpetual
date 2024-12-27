@@ -35,6 +35,7 @@ const K_ImplementStage2CodeResponse = "stage2_code_response"
 const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
 const K_ImplementStage2NoPlanningResponse = "stage2_noplanning_response"
 const K_ImplementStage2ReasoningsPrompt = "stage2_reasonings_prompt"
+const K_ImplementStage2ReasoningsPromptFinal = "stage2_reasonings_prompt_final"
 
 // Prompt to generate list of files that will be changed, with attaching target files. Used when extra reasonings disabled
 const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"

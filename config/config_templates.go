@@ -43,6 +43,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage2NoPlanningPrompt] = templateString
 	result[K_ImplementStage2NoPlanningResponse] = templateString
 	result[K_ImplementStage2ReasoningsPrompt] = templateString
+	result[K_ImplementStage2ReasoningsPromptFinal] = templateString
 	// stage 3
 	result[K_ImplementStage3PlanningPrompt] = templateString
 	result[K_ImplementStage3PlanningJsonModePrompt] = templateString
