@@ -774,3 +774,92 @@ func TestGetTextBeforeLastMatches(t *testing.T) {
 		})
 	}
 }
+
+func TestGetEvenRegexps(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    []*regexp.Regexp
+		expected []*regexp.Regexp
+	}{
+		{
+			name:     "Empty input",
+			input:    []*regexp.Regexp{},
+			expected: []*regexp.Regexp{},
+		},
+		{
+			name:     "Single element",
+			input:    []*regexp.Regexp{regexp.MustCompile("a")},
+			expected: []*regexp.Regexp{regexp.MustCompile("a")},
+		},
+		{
+			name:     "Even number of elements",
+			input:    []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("b"), regexp.MustCompile("c"), regexp.MustCompile("d")},
+			expected: []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("c")},
+		},
+		{
+			name:     "Odd number of elements",
+			input:    []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("b"), regexp.MustCompile("c")},
+			expected: []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("c")},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := GetEvenRegexps(tc.input)
+			if !equalRegexSlices(result, tc.expected) {
+				t.Errorf("Expected %v, but got %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestGetOddRegexps(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    []*regexp.Regexp
+		expected []*regexp.Regexp
+	}{
+		{
+			name:     "Empty input",
+			input:    []*regexp.Regexp{},
+			expected: []*regexp.Regexp{},
+		},
+		{
+			name:     "Single element",
+			input:    []*regexp.Regexp{regexp.MustCompile("a")},
+			expected: []*regexp.Regexp{},
+		},
+		{
+			name:     "Even number of elements",
+			input:    []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("b"), regexp.MustCompile("c"), regexp.MustCompile("d")},
+			expected: []*regexp.Regexp{regexp.MustCompile("b"), regexp.MustCompile("d")},
+		},
+		{
+			name:     "Odd number of elements",
+			input:    []*regexp.Regexp{regexp.MustCompile("a"), regexp.MustCompile("b"), regexp.MustCompile("c")},
+			expected: []*regexp.Regexp{regexp.MustCompile("b")},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := GetOddRegexps(tc.input)
+			if !equalRegexSlices(result, tc.expected) {
+				t.Errorf("Expected %v, but got %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+// Helper function to compare slices of regexps
+func equalRegexSlices(a, b []*regexp.Regexp) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].String() != b[i].String() {
+			return false
+		}
+	}
+	return true
+}
