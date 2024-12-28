@@ -76,11 +76,16 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_DocProjectCodeResponse] = templateString
 	result[K_DocProjectIndexPrompt] = templateString
 	result[K_DocProjectIndexResponse] = templateString
+	// stage 1
 	result[K_DocStage1RefinePrompt] = templateString
+	result[K_DocStage1RefineJsonModePrompt] = templateString
 	result[K_DocStage1WritePrompt] = templateString
+	result[K_DocStage1WriteJsonModePrompt] = templateString
 	result[K_DocStage2RefinePrompt] = templateString
 	result[K_DocStage2WritePrompt] = templateString
 	result[K_DocStage2ContinuePrompt] = templateString
+	result[K_Stage1OutputScheme] = templateObject
+	result[K_Stage1OutputKey] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[K_FilenameTags] = templateStringArray
 	result[K_FilenameTagsRx] = templateStringArray
