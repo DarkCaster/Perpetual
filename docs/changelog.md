@@ -2,17 +2,17 @@
 
 ## v2.0.0
 
-This major release aims to make the `op_implement` operation more usable with smaller models (sub-15B models run with Ollama).
+This major release aims to make the `implement` operation more usable with smaller models (sub 15B models run with Ollama).
 
 ### Breaking changes
 
-- Added initial support for json structured output mode. Disabled by default for now, currently only works with Ollama and OpenaAI. May provide better results with Ollama when using smaller models.
+- User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion name and stored inside json config-files. Configs include all needed prompts, text-tags and regexp definitions used with particular operation.
 
-- Split extra reasoning mode for `op_implement` into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection prompts together producing smaller and simplier instructions. May imrove results with Ollama when using smaller models.
+- Split extra reasoning mode for `implement` operation into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection prompts together producing smaller and simplier instructions. May imrove results with Ollama when using smaller models.
 
-- User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion-type and stored inside json config-files. Configs also include all needed text-tags and regexp definitions within corresponding json file.
+- Added initial support for structured json output mode for `implement` operation (stages 1 and 3), and for `doc` operation (stage 1). Disabled by default for now, currently only works with Ollama and OpenAI. May provide better results with Ollama when using smaller models, and a bit less costs for OpenAI.
 
-**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `op_implement` stages 2,3,4 config, if not using defaults.
+**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2,3,4 config, if not using defaults.
 
 ## v1.9.0
 
