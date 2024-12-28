@@ -1,8 +1,6 @@
 package op_implement
 
 import (
-	"path/filepath"
-
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -43,16 +41,12 @@ func Stage3(projectRootDir string,
 
 	// When using planning without reasoning, create request that will include target files content
 	if planningMode == 1 {
-		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningPrompt))
-		//TODO: place json-mode request here
-		// Attach target files
-		for _, item := range targetFiles {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage3 prompt", err)
-			}
-			request = llm.AddFileFragment(request, item, contents, cfg.StringArray(config.K_FilenameTags))
-		}
+		request := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_ImplementStage3PlanningPrompt),
+			targetFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
 		// Add message to history
 		messages = append(messages, request)
 		logger.Debugln("Files-to-change request message created (full)")
