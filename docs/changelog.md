@@ -2,11 +2,13 @@
 
 ## v2.0.0
 
+This major release aims to make the `op_implement` operation more usable with smaller models (sub-15B models run with Ollama).
+
 ### Breaking changes
 
-- Added initial support for json structured output mode. Disabled by default for now, currently only works with Ollama and OpenaAI. May improve results for supported operations/stages in future.
+- Added initial support for json structured output mode. Disabled by default for now, currently only works with Ollama and OpenaAI. May provide better results with Ollama when using smaller models.
 
-- Split extra reasoning mode for `op_implement` into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection instructions together within single query producing smaller and simplier instructions, which should provide better results with smaller models.
+- Split extra reasoning mode for `op_implement` into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection prompts together producing smaller and simplier instructions. May imrove results with Ollama when using smaller models.
 
 - User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion-type and stored inside json config-files. Configs also include all needed text-tags and regexp definitions within corresponding json file.
 
