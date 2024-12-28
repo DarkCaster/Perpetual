@@ -160,7 +160,8 @@ OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: shor
 OPENAI_VARIANT_COUNT="1" # will be used as fallback
 OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
-# Experimental: switch to use structured JSON output format for some operations, may work better with some models
+# Experimental: switch to use structured JSON output format for supported operations
+# May produce better results than plain mode with small models
 # Supported values: plain, json. Default: plain
 # OPENAI_FORMAT_OP_IMPLEMENT_STAGE1="json"
 # OPENAI_FORMAT_OP_IMPLEMENT_STAGE3="json"
