@@ -22,11 +22,11 @@ func Stage3(projectRootDir string,
 	defer logger.Traceln("Stage3: Finished")
 
 	// Create stage3 llm connector
-	stage3Connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, map[string]interface{}{}, llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, cfg.Object(config.K_Stage3OutputScheme), llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
-	logger.Debugln(stage3Connector.GetDebugString())
+	logger.Debugln(connector.GetDebugString())
 
 	// Resulted filenames
 	var targetFilesToModify []string
@@ -39,32 +39,46 @@ func Stage3(projectRootDir string,
 		logger.Debugln("Target files added to modify list")
 	}
 
+	// Declare jsonModeMessages, it will be used as messages history sent to llm when using json mode
+	jsonModeMessages := make([]llm.Message, len(messages), len(messages)+1)
+	copy(jsonModeMessages, messages)
+
 	// When using planning without reasoning, create request that will include target files content
 	if planningMode == 1 {
+		// Create normal mode request and add it to history
 		request := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ImplementStage3PlanningPrompt),
 			targetFiles,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		// Add message to history
 		messages = append(messages, request)
+		// Create json mode request and add it to json mode history
+		jsonModeRequest := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
+			targetFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
+		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (full)")
 	}
 
 	// When using planning WITH reasoning, create request that will only ask to create list of files to be changed
 	if planningMode == 2 {
+		// Create normal mode request and add it to history
 		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningLitePrompt))
-		//TODO: place json-mode request here
-		// Add message to history
 		messages = append(messages, request)
+		// Create json mode request and add it to json mode history
+		jsonModeRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningLiteJsonModePrompt))
+		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (simplified)")
 	}
 
 	// Send request
 	if planningMode > 0 {
-		filesToProcessRaw := []string{}
-		onFailRetriesLeft := stage3Connector.GetOnFailureRetryLimit()
+		var filesToProcessRaw []string
+		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
@@ -73,7 +87,12 @@ func Stage3(projectRootDir string,
 			// Request LLM to provide file list that will be modified (or created) while implementing code
 			logger.Infoln("Running stage3: requesting list of files for changes")
 			var status llm.QueryStatus
-			aiResponses, status, err := stage3Connector.Query(1, messages...)
+			// Select messages to send, depending on mode
+			targetMessages := messages
+			if connector.GetOutputFormat() == llm.OutputJson {
+				targetMessages = jsonModeMessages
+			}
+			aiResponses, status, err := connector.Query(1, targetMessages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -90,21 +109,25 @@ func Stage3(projectRootDir string,
 				continue
 			}
 			if len(aiResponses) < 1 || aiResponses[0] == "" {
-				filesToProcessRaw = []string{}
 				if onFailRetriesLeft < 1 {
-					logger.Errorln("Got empty response from AI")
+					logger.Panicln("Got empty response from AI")
 				} else {
 					logger.Warnln("Got empty response from AI, retrying")
 				}
 				continue
 			}
-			//TODO: add list-parsing from JSON here
 			// Process response, parse files that will be created
-			filesToProcessRaw, err = utils.ParseTaggedTextRx(
-				aiResponses[0],
-				cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-				cfg.RegexpArray(config.K_FilenameTagsRx)[1],
-				false)
+			if connector.GetOutputFormat() == llm.OutputJson {
+				// Use json-mode parsing
+				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], cfg.String(config.K_Stage3OutputKey))
+			} else {
+				// Use regular parsing to extract file-list
+				filesToProcessRaw, err = utils.ParseTaggedTextRx(
+					aiResponses[0],
+					cfg.RegexpArray(config.K_FilenameTagsRx)[0],
+					cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+					false)
+			}
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Failed to parse list of files for review", err)
@@ -179,9 +202,11 @@ func Stage3(projectRootDir string,
 		for _, item := range targetFilesToModify {
 			response = llm.AddTaggedFragment(response, item, cfg.StringArray(config.K_FilenameTags))
 		}
+		// Add response to the normal-mode message history, because it better aligns with tags used to denote the filenames
 		messages = append(messages, response)
 		logger.Debugln("File-list response message created")
 	}
 
+	// Always return normal-mode message history
 	return messages, otherFilesToModify, targetFilesToModify
 }
