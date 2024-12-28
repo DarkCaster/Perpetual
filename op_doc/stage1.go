@@ -62,24 +62,12 @@ func Stage1(projectRootDir string,
 
 	if exampleDocuemnt != "" {
 		// Create document-example request message
-		docExampleRequestMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_DocExamplePrompt))
-
-		exampleContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, exampleDocuemnt))
-		if err != nil {
-			logger.Panicln("Failed to load example document:", err)
-		}
-		docExampleRequestMessage = llm.AddPlainTextFragment(docExampleRequestMessage, exampleContents)
-		messages = append(messages, docExampleRequestMessage)
+		requestMessage := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, cfg.String(config.K_DocExamplePrompt), exampleDocuemnt, logger)
+		messages = append(messages, requestMessage)
 		logger.Debugln("Created document-example request message")
-
 		// Create document-example simulated response
-		docExampleResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_DocExampleResponse))
-
-		messages = append(messages, docExampleResponseMessage)
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocExampleResponse))
+		messages = append(messages, responseMessage)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
