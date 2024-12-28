@@ -1,8 +1,6 @@
 package op_implement
 
 import (
-	"path/filepath"
-
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -34,30 +32,18 @@ func Stage2(projectRootDir string,
 	// Generate messages with listing of source code files requested at stage 1 (if any)
 	if len(filesForReview) > 0 {
 		// Create target files analisys request message
-		stage2ProjectSourceCodeMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_ImplementStage2CodePrompt))
-		// Add actual files to it
-		for _, item := range filesForReview {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage2 prompt", err)
-			}
-			stage2ProjectSourceCodeMessage = llm.AddFileFragment(
-				stage2ProjectSourceCodeMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
+		realRequestMessage := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_ImplementStage2CodePrompt),
+			filesForReview,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
 		// Add message to history
-		messages = append(messages, stage2ProjectSourceCodeMessage)
+		messages = append(messages, realRequestMessage)
 		logger.Debugln("Project source code message created")
-		// Create simulated response
-		stage2ProjectSourceCodeResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage2CodeResponse))
-		// Add message to history
-		messages = append(messages, stage2ProjectSourceCodeResponseMessage)
+		// Create simulated response and add message to history
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage2CodeResponse))
+		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
@@ -76,12 +62,9 @@ func Stage2(projectRootDir string,
 		// Add message to history
 		messages = append(messages, requestMessage)
 		logger.Debugln("Files for no planning message created")
-		// Create simulated response
-		stage2FilesNoPlanningResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_ImplementStage2NoPlanningResponse))
-		// Add message to history
-		messages = append(messages, stage2FilesNoPlanningResponseMessage)
+		// Create simulated response and add it to history
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage2NoPlanningResponse))
+		messages = append(messages, responseMessage)
 		logger.Debugln("Files for no planning simulated response added")
 	}
 
@@ -89,21 +72,24 @@ func Stage2(projectRootDir string,
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: generating reasonings")
-		//generate actual request message that will me used with LLM
+		// Generate actual request message that will me used with LLM
 		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ImplementStage2ReasoningsPrompt),
 			targetFiles,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		tmpMessages := append(messages, requestMessage)
-		//query LLM to generate reasonings
+		// realMessages message-history will be used for actual LLM prompt
+		realMessages := make([]llm.Message, len(messages), len(messages)+1)
+		copy(realMessages, messages)
+		realMessages = append(realMessages, requestMessage)
+		// Query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			aiResponses, status, err := stage2Connector.Query(1, tmpMessages...)
+			aiResponses, status, err := stage2Connector.Query(1, realMessages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed: ", err)
@@ -135,7 +121,7 @@ func Stage2(projectRootDir string,
 				}
 				continue
 			}
-			// Add final request message to history
+			// Add final request message to history - it use simplier instructions that will less likely affect next stages
 			finalRequestMessage := llm.ComposeMessageWithFiles(
 				projectRootDir,
 				cfg.String(config.K_ImplementStage2ReasoningsPromptFinal),
