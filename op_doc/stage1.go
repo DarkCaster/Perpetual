@@ -77,16 +77,14 @@ func Stage1(projectRootDir string,
 	logger.Debugln("Created code-analysis request message")
 
 	// Perform LLM query
-	var aiResponses []string
+	var filesForReviewRaw []string
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		logger.Infoln("Running stage1: find project files for review")
-		var status llm.QueryStatus
-		//NOTE: do not use := here, looks like it will make copy of aiResponse, and effectively result in empty file-list (tested on golang 1.22.3)
-		aiResponses, status, err = connector.Query(1, messages...)
+		aiResponses, status, err := connector.Query(1, messages...)
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed: ", err)
@@ -102,29 +100,37 @@ func Stage1(projectRootDir string,
 			}
 			continue
 		}
+		// Handle empty response
 		if len(aiResponses) < 1 || aiResponses[0] == "" {
-			logger.Warnln("Got empty response from AI, retrying")
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("Got empty response from AI")
+			} else {
+				logger.Warnln("Got empty response from AI, retrying")
+			}
 			continue
 		}
-		logger.Debugln("LLM query completed")
+		if connector.GetOutputFormat() == llm.OutputJson {
+			// Use json-mode parsing
+			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponses[0], cfg.String(config.K_Stage1OutputKey))
+		} else {
+			// Use regular parsing to extract file-list
+			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
+				cfg.RegexpArray(config.K_FilenameTagsRx)[0],
+				cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+				false)
+		}
+		if err != nil {
+			if onFailRetriesLeft < 1 {
+				logger.Panicln("Failed to parse list of files for review", err)
+			} else {
+				logger.Warnln("Failed to parse list of files for review", err)
+			}
+			continue
+		}
+		logger.Debugln("Parsed list of files for review from LLM response")
 		break
 	}
 
-	// Process response, parse files of interest from ai response
-	if len(aiResponses) < 1 || aiResponses[0] == "" {
-		logger.Errorln("Got empty response from AI")
-	}
-
-	llmRequestedFiles, err := utils.ParseTaggedTextRx(aiResponses[0],
-		cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-		cfg.RegexpArray(config.K_FilenameTagsRx)[1],
-		false)
-
-	if err != nil {
-		logger.Panicln("Failed to parse list of files for review", err)
-	}
-	logger.Debugln("Parsed list of files for review from LLM response")
-
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, llmRequestedFiles, []string{targetDocument}, projectFiles, logger)
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{targetDocument}, projectFiles, logger)
 }
