@@ -93,6 +93,14 @@ func GetDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
+func GetReportConfigTemplate() map[string]interface{} {
+	result := map[string]interface{}{}
+	result[K_ReportBriefPrompt] = templateString
+	result[K_ReportCodePrompt] = templateString
+	result[K_FilenameTags] = templateStringArray
+	return result
+}
+
 func GetProjectConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_ProjectFilesBlacklist] = templateStringArray

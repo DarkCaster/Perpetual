@@ -8,4 +8,5 @@ package config
 const OpAnnotateConfigFile = "op_annotate.json"
 const OpImplementConfigFile = "op_implement.json"
 const OpDocConfigFile = "op_doc.json"
+const OpReportConfigFile = "op_report.json"
 const ProjectConfigFile = "project.json"
