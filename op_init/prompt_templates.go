@@ -42,7 +42,7 @@ var defaultFileNameTags = []string{"<filename>", "</filename>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 
-func getDefaultListOfFilesOutputScheme() map[string]interface{} {
+func getDefaultListOfFilesOutputSchema() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
@@ -78,7 +78,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage1IndexResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage1AnalisysPrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments. Place each filename in <filename></filename> tags."
 	result[config.K_ImplementStage1AnalisysJsonModePrompt] = "Here are the contents of the source code files that interest me. Sections of code that need to be created are marked with the comment \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the code marked with \"###IMPLEMENT###\" comments."
-	result[config.K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
 	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
 	// stage 2
 	result[config.K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
@@ -93,7 +93,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage3PlanningLitePrompt] = "Now create a list of file names that will be changed or created by you as a result of implementing the code according to your work plan. Place each filename in <filename></filename> tags."
 	result[config.K_ImplementStage3PlanningLiteJsonModePrompt] = "Now create a list of files that will be changed or created by you as a result of implementing the code according to your work plan."
 
-	result[config.K_Stage3OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage3OutputSchema] = getDefaultListOfFilesOutputSchema()
 	result[config.K_Stage3OutputKey] = defaultListOfFilesOutputKey
 
 	// stage 4
@@ -122,7 +122,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_DocStage1RefineJsonModePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of files from the project description that you will need to work on the document. Full text of the document provided below:"
 	result[config.K_DocStage1WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename in <filename></filename> tags. The text of the document in its current state provided below:"
 	result[config.K_DocStage1WriteJsonModePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and the project description that was provided earlier and create a list of files from the project description that you will need to work on the document. The text of the document in its current state provided below:"
-	result[config.K_Stage1OutputScheme] = getDefaultListOfFilesOutputScheme()
+	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
 	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
 	// stage 2
 	result[config.K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project description and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"

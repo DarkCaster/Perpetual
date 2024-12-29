@@ -35,7 +35,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage1IndexResponse] = templateString
 	result[K_ImplementStage1AnalisysPrompt] = templateString
 	result[K_ImplementStage1AnalisysJsonModePrompt] = templateString
-	result[K_Stage1OutputScheme] = templateObject
+	result[K_Stage1OutputSchema] = templateObject
 	result[K_Stage1OutputKey] = templateString
 	// stage 2
 	result[K_ImplementStage2CodePrompt] = templateString
@@ -49,7 +49,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage3PlanningJsonModePrompt] = templateString
 	result[K_ImplementStage3PlanningLitePrompt] = templateString
 	result[K_ImplementStage3PlanningLiteJsonModePrompt] = templateString
-	result[K_Stage3OutputScheme] = templateObject
+	result[K_Stage3OutputSchema] = templateObject
 	result[K_Stage3OutputKey] = templateString
 	// stage 4
 	result[K_ImplementStage4ChangesDonePrompt] = templateString
@@ -84,7 +84,7 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_DocStage2RefinePrompt] = templateString
 	result[K_DocStage2WritePrompt] = templateString
 	result[K_DocStage2ContinuePrompt] = templateString
-	result[K_Stage1OutputScheme] = templateObject
+	result[K_Stage1OutputSchema] = templateObject
 	result[K_Stage1OutputKey] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[K_FilenameTags] = templateStringArray

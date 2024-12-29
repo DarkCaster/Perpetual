@@ -7,9 +7,9 @@ package config
 
 const K_SystemPrompt = "system_prompt"
 
-const K_Stage1OutputScheme = "stage1_output_scheme"
+const K_Stage1OutputSchema = "stage1_output_schema"
 const K_Stage1OutputKey = "stage1_output_key"
-const K_Stage3OutputScheme = "stage3_output_scheme"
+const K_Stage3OutputSchema = "stage3_output_schema"
 const K_Stage3OutputKey = "stage3_output_key"
 
 const K_AnnotateStage1Prompts = "stage1_prompts"

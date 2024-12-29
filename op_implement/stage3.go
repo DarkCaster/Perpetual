@@ -22,7 +22,7 @@ func Stage3(projectRootDir string,
 	defer logger.Traceln("Stage3: Finished")
 
 	// Create stage3 llm connector
-	connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, cfg.Object(config.K_Stage3OutputScheme), llm.GetSimpleRawMessageLogger(perpetualDir))
+	connector, err := llm.NewLLMConnector(OpName+"_stage3", cfg.String(config.K_SystemPrompt), filesToMdLangMappings, cfg.Object(config.K_Stage3OutputSchema), llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
