@@ -118,18 +118,12 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Generate report message
-		reportMessage = llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			implementConfig.String(config.K_ImplementStage1IndexPrompt))
-
-		for _, filename := range fileNames {
-			annotation, ok := annotations[filename]
-			if !ok {
-				annotation = "No annotation available"
-			}
-			reportMessage = llm.AddIndexFragment(reportMessage, filename, fileNameTagsStrings)
-			reportMessage = llm.AddPlainTextFragment(reportMessage, annotation)
-		}
+		reportMessage = llm.ComposeMessageWithAnnotations(
+			implementConfig.String(config.K_ImplementStage1IndexPrompt),
+			fileNames,
+			fileNameTagsStrings,
+			annotations,
+			logger)
 	} else if strings.ToUpper(reportType) == "CODE" {
 		// Generate report messages
 		reportMessage = llm.AddPlainTextFragment(

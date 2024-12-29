@@ -28,15 +28,12 @@ func Stage1(projectRootDir string,
 	logger.Debugln(connector.GetDebugString())
 
 	// Create project-index request message
-	projectIndexRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage1IndexPrompt))
-	for _, filename := range fileNames {
-		projectIndexRequest = llm.AddIndexFragment(projectIndexRequest, filename, cfg.StringArray(config.K_FilenameTags))
-		annotation := annotations[filename]
-		if annotation == "" {
-			annotation = "No annotation available"
-		}
-		projectIndexRequest = llm.AddPlainTextFragment(projectIndexRequest, annotation)
-	}
+	projectIndexRequest := llm.ComposeMessageWithAnnotations(
+		cfg.String(config.K_ImplementStage1IndexPrompt),
+		fileNames,
+		cfg.StringArray(config.K_FilenameTags),
+		annotations,
+		logger)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response

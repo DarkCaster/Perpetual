@@ -33,22 +33,12 @@ func Stage1(projectRootDir string,
 
 	var messages []llm.Message
 	// Create project-index request message
-	projectIndexRequestMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.UserRequest),
-		cfg.String(config.K_DocProjectIndexPrompt))
-
-	for _, item := range projectFiles {
-		projectIndexRequestMessage = llm.AddIndexFragment(
-			projectIndexRequestMessage,
-			item,
-			cfg.StringArray(config.K_FilenameTags))
-
-		annotation := annotations[item]
-		if annotation == "" {
-			annotation = "No annotation available"
-		}
-		projectIndexRequestMessage = llm.AddPlainTextFragment(projectIndexRequestMessage, annotation)
-	}
+	projectIndexRequestMessage := llm.ComposeMessageWithAnnotations(
+		cfg.String(config.K_DocProjectIndexPrompt),
+		projectFiles,
+		cfg.StringArray(config.K_FilenameTags),
+		annotations,
+		logger)
 	messages = append(messages, projectIndexRequestMessage)
 	logger.Debugln("Created project-index request message")
 
