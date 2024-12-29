@@ -1,13 +1,11 @@
 package op_doc
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
-	"github.com/DarkCaster/Perpetual/utils"
 )
 
 func Stage2(projectRootDir string,
@@ -52,30 +50,17 @@ func Stage2(projectRootDir string,
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents
-		sourceCodeMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			cfg.String(config.K_DocProjectCodePrompt))
-
-		for _, item := range filesForReview {
-			contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-			if err != nil {
-				logger.Panicln("Failed to add file contents to stage2 prompt", err)
-			}
-			sourceCodeMessage = llm.AddFileFragment(
-				sourceCodeMessage,
-				item,
-				contents,
-				cfg.StringArray(config.K_FilenameTags))
-		}
-		messages = append(messages, sourceCodeMessage)
+		requestMessage := llm.ComposeMessageWithFiles(
+			projectRootDir,
+			cfg.String(config.K_DocProjectCodePrompt),
+			filesForReview,
+			cfg.StringArray(config.K_FilenameTags),
+			logger)
+		messages = append(messages, requestMessage)
 		logger.Debugln("Project source code message created")
-
 		// Create simulated response
-		sourceCodeResponseMessage := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			cfg.String(config.K_DocProjectCodeResponse))
-
-		messages = append(messages, sourceCodeResponseMessage)
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocProjectCodeResponse))
+		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
@@ -108,7 +93,8 @@ func Stage2(projectRootDir string,
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		// Work with a copy of message-chain, to discard it on retry
-		messagesTry := append([]llm.Message(nil), messages...)
+		messagesTry := make([]llm.Message, len(messages), len(messages)+4)
+		copy(messagesTry, messages)
 		// Initialize temporary variables for handling partial answers
 		var responses []string
 		continueGeneration := true
