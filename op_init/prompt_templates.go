@@ -134,6 +134,13 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
+func getDefaultReportConfigTemplate() map[string]interface{} {
+	result := config.GetReportConfigTemplate()
+	result[config.K_ReportCodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_FilenameTags] = []string{"### File: ", ""}
+	return result
+}
+
 func getDefaultProjectConfigTemplate() map[string]interface{} {
 	result := config.GetProjectConfigTemplate()
 	result[config.K_ProjectFilesBlacklist] = []string{}

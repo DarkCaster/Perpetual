@@ -126,6 +126,7 @@ func Run(args []string, logger logging.ILogger) {
 	saveConfig(config.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
 	saveConfig(config.OpImplementConfigFile, promptsObj.GetImplementConfig())
 	saveConfig(config.OpDocConfigFile, promptsObj.GetDocConfig())
+	saveConfig(config.OpReportConfigFile, promptsObj.GetReportConfig())
 
 	// Save project-config file
 	saveConfig(config.ProjectConfigFile, promptsObj.GetProjectConfig())

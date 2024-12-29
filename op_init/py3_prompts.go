@@ -70,3 +70,9 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 	}
 	return result
 }
+
+func (p *py3Prompts) GetReportConfig() map[string]interface{} {
+	result := getDefaultReportConfigTemplate()
+	result[config.K_ReportBriefPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	return result
+}
