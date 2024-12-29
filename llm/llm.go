@@ -105,7 +105,7 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 	case "ANTHROPIC":
 		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
-		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputSchema, outputFormat, llmRawMessageLogger)
 	case "OLLAMA":
 		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputSchema, outputFormat, llmRawMessageLogger)
 	default:

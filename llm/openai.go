@@ -24,6 +24,8 @@ type OpenAILLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings [][]string
+	FieldsToInject        map[string]interface{}
+	OutputFormat          OutputFormat
 	MaxTokensSegments     int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
@@ -32,7 +34,7 @@ type OpenAILLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
+func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -40,6 +42,8 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
+		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -48,7 +52,7 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OPENAI"
@@ -138,7 +142,39 @@ func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPro
 		}
 	}
 
-	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	// make some additional tweaks to the schema according to
+	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+	fieldsToInject := map[string]interface{}{}
+	if outputFormat == OutputJson {
+		jsonSchema := map[string]interface{}{"type": "json_schema"}
+		innerSchema := map[string]interface{}{"strict": true}
+		jsonSchema["json_schema"] = innerSchema
+		fieldsToInject["response_format"] = jsonSchema
+		innerSchema["schema"] = outputSchema
+		processOpenAISchema(outputSchema)
+	} else {
+		outputFormat = OutputPlain
+	}
+
+	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+}
+
+func processOpenAISchema(target map[string]interface{}) {
+	//if object contain field "type":"object", inject "additionalProperties" field
+	if t, ok := target["type"]; ok && t == "object" {
+		target["additionalProperties"] = false
+	}
+	for k, v := range target {
+		if k == "type" || k == "additionalProperties" {
+			continue
+		}
+		//process inner objects recursively
+		inner, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		processOpenAISchema(inner)
+	}
 }
 
 func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -152,6 +188,11 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	openAiOptions := append([]openai.Option{}, openai.WithToken(p.Token), openai.WithModel(p.Model))
 	if p.BaseURL != "" {
 		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
+	}
+
+	if p.OutputFormat == OutputJson {
+		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
+		openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 	}
 
 	model, err := openai.New(openAiOptions...)
@@ -208,6 +249,10 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 		if choice.StopReason == "length" {
 			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
+				if p.OutputFormat == OutputJson {
+					//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
+					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+				}
 				return []string{choice.Content}, QueryMaxTokens, nil
 			}
 			continue
