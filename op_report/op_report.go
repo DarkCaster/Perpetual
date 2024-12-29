@@ -110,13 +110,11 @@ func Run(args []string, logger logging.ILogger) {
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, logger)
-
 		// Load annotations
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
 		if err != nil {
 			logger.Panicln("Error loading annotations:", err)
 		}
-
 		// Generate report message
 		reportMessage = llm.ComposeMessageWithAnnotations(
 			implementConfig.String(config.K_ImplementStage1IndexPrompt),
@@ -126,25 +124,16 @@ func Run(args []string, logger logging.ILogger) {
 			logger)
 	} else if strings.ToUpper(reportType) == "CODE" {
 		// Generate report messages
-		reportMessage = llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			implementConfig.String(config.K_ImplementStage2CodePrompt))
-
-		// Iterate over fileNames and add file contents to report message using llm.AddFileFragment
-		for _, filename := range fileNames {
-			fileContents, err := utils.LoadTextFile(filepath.Join(projectRootDir, filename))
-			if err != nil {
-				logger.Panicln("Error reading file:", filename, err)
-			}
-			reportMessage = llm.AddFileFragment(reportMessage, filename, fileContents, fileNameTagsStrings)
-		}
+		reportMessage = llm.ComposeMessageWithFiles(
+			projectRootDir,
+			implementConfig.String(config.K_ImplementStage2CodePrompt),
+			fileNames,
+			fileNameTagsStrings,
+			logger)
 	} else {
 		logger.Panicln("Invalid report type:", reportType)
 	}
-
-	reportStrings, err := llm.RenderMessagesToAIStrings(
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		[]llm.Message{reportMessage})
+	reportStrings, err := llm.RenderMessagesToAIStrings(projectConfig.StringArray2D(config.K_ProjectMdCodeMappings), []llm.Message{reportMessage})
 
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)
