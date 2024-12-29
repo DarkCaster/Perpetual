@@ -56,7 +56,7 @@ func Stage1(projectRootDir string,
 		logger.Debugln("Created document-example simulated response message")
 	}
 
-	// Create project-files analisys request message
+	// Create project-files analysis request message
 	var prompt string
 	if action == "WRITE" {
 		prompt = cfg.String(config.K_DocStage1WritePrompt)

@@ -17,7 +17,7 @@ import (
 
 const (
 	OpName = "report"
-	OpDesc = "Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analisys"
+	OpDesc = "Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis"
 )
 
 func Run(args []string, logger logging.ILogger) {

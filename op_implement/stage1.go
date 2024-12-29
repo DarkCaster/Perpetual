@@ -40,12 +40,12 @@ func Stage1(projectRootDir string,
 	projectIndexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage1IndexResponse))
 	logger.Debugln("Created project-index simulated response message")
 
-	// Create target files analisys request message
-	analisysPrompt := cfg.String(config.K_ImplementStage1AnalisysPrompt)
+	// Create target files analysis request message
+	analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
 	if connector.GetOutputFormat() == llm.OutputJson {
-		analisysPrompt = cfg.String(config.K_ImplementStage1AnalisysJsonModePrompt)
+		analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
 	}
-	analysisRequest := llm.ComposeMessageWithFiles(projectRootDir, analisysPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
+	analysisRequest := llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
 	logger.Debugln("Created target files analysis request message")
 
 	var filesForReviewRaw []string

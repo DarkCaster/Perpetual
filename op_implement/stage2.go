@@ -31,7 +31,7 @@ func Stage2(projectRootDir string,
 
 	// Generate messages with listing of source code files requested at stage 1 (if any)
 	if len(filesForReview) > 0 {
-		// Create target files analisys request message
+		// Create target files analysis request message
 		realRequestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ImplementStage2CodePrompt),
