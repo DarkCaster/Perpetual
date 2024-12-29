@@ -1,8 +1,6 @@
 package op_doc
 
 import (
-	"path/filepath"
-
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -33,50 +31,49 @@ func Stage1(projectRootDir string,
 
 	var messages []llm.Message
 	// Create project-index request message
-	projectIndexRequestMessage := llm.ComposeMessageWithAnnotations(
+	indexRequest := llm.ComposeMessageWithAnnotations(
 		cfg.String(config.K_DocProjectIndexPrompt),
 		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
-	messages = append(messages, projectIndexRequestMessage)
+	messages = append(messages, indexRequest)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	projectIndexResponseMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.SimulatedAIResponse),
-		cfg.String(config.K_DocProjectIndexResponse))
-
-	messages = append(messages, projectIndexResponseMessage)
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocProjectIndexResponse))
+	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
 	if exampleDocuemnt != "" {
 		// Create document-example request message
-		requestMessage := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, cfg.String(config.K_DocExamplePrompt), exampleDocuemnt, logger)
-		messages = append(messages, requestMessage)
+		exampleDocRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, cfg.String(config.K_DocExamplePrompt), exampleDocuemnt, logger)
+		messages = append(messages, exampleDocRequest)
 		logger.Debugln("Created document-example request message")
 		// Create document-example simulated response
-		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocExampleResponse))
-		messages = append(messages, responseMessage)
+		exampleDocResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocExampleResponse))
+		messages = append(messages, exampleDocResponse)
 		logger.Debugln("Created document-example simulated response message")
 	}
 
 	// Create project-files analisys request message
-	prompt := cfg.String(config.K_DocStage1WritePrompt)
-	if action == "REFINE" {
+	var prompt string
+	if action == "WRITE" {
+		prompt = cfg.String(config.K_DocStage1WritePrompt)
+		if connector.GetOutputFormat() == llm.OutputJson {
+			prompt = cfg.String(config.K_DocStage1WriteJsonModePrompt)
+		}
+	} else if action == "REFINE" {
 		prompt = cfg.String(config.K_DocStage1RefinePrompt)
+		if connector.GetOutputFormat() == llm.OutputJson {
+			prompt = cfg.String(config.K_DocStage1RefineJsonModePrompt)
+		}
+	} else {
+		logger.Panicln("Invalid action:", action)
 	}
 
-	codeAnalysisRequestMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.UserRequest),
-		prompt)
-
-	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
-	if err != nil {
-		logger.Panicln("failed to add file contents to stage1 prompt", err)
-	}
-	codeAnalysisRequestMessage = llm.AddPlainTextFragment(codeAnalysisRequestMessage, contents)
-	messages = append(messages, codeAnalysisRequestMessage)
+	analysisRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetDocument, logger)
+	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
 	// Perform LLM query
