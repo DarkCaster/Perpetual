@@ -59,7 +59,7 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	implementConfig, err := config.LoadOpImplementConfig(perpetualDir)
+	reportConfig, err := config.LoadOpReportConfig(perpetualDir)
 	if err != nil {
 		logger.Panicf("Error loading op_implement config: %s", err)
 	}
@@ -117,7 +117,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		// Generate report message
 		reportMessage = llm.ComposeMessageWithAnnotations(
-			implementConfig.String(config.K_ImplementStage1IndexPrompt),
+			reportConfig.String(config.K_ImplementStage1IndexPrompt),
 			fileNames,
 			fileNameTagsStrings,
 			annotations,
@@ -126,7 +126,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report messages
 		reportMessage = llm.ComposeMessageWithFiles(
 			projectRootDir,
-			implementConfig.String(config.K_ImplementStage2CodePrompt),
+			reportConfig.String(config.K_ImplementStage2CodePrompt),
 			fileNames,
 			fileNameTagsStrings,
 			logger)
