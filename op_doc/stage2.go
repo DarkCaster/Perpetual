@@ -35,21 +35,18 @@ func Stage2(projectRootDir string,
 	var messages []llm.Message
 
 	// Create project-index request message
-	projectIndexRequestMessage := llm.ComposeMessageWithAnnotations(
+	indexRequest := llm.ComposeMessageWithAnnotations(
 		cfg.String(config.K_DocProjectIndexPrompt),
 		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
-	messages = append(messages, projectIndexRequestMessage)
+	messages = append(messages, indexRequest)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	projectIndexResponseMessage := llm.AddPlainTextFragment(
-		llm.NewMessage(llm.SimulatedAIResponse),
-		cfg.String(config.K_DocProjectIndexResponse))
-
-	messages = append(messages, projectIndexResponseMessage)
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocProjectIndexResponse))
+	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
 	// Add files requested by LLM
@@ -96,28 +93,19 @@ func Stage2(projectRootDir string,
 	}
 
 	// Create document-processing request message
-	docPrompt := cfg.String(config.K_DocStage2WritePrompt)
+	prompt := cfg.String(config.K_DocStage2WritePrompt)
 	if action == "REFINE" {
-		docPrompt = cfg.String(config.K_DocStage2RefinePrompt)
+		prompt = cfg.String(config.K_DocStage2RefinePrompt)
 	}
-
-	docRequestMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), docPrompt)
-	contents, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetDocument))
-	if err != nil {
-		logger.Panicln("Failed to add document contents to stage2 prompt", err)
-	}
-	docRequestMessage = llm.AddPlainTextFragment(docRequestMessage, contents)
-	messages = append(messages, docRequestMessage)
+	documentRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetDocument, logger)
+	messages = append(messages, documentRequest)
 	logger.Debugln("Created document processing request message")
-
-	continuePrompt := cfg.String(config.K_DocStage2ContinuePrompt)
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
 	}
-
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		// Work with a copy of message-chain, to discard it on retry
 		messagesTry := append([]llm.Message(nil), messages...)
@@ -151,7 +139,7 @@ func Stage2(projectRootDir string,
 				}
 				// Add partial response to stage2 messages, with request to continue
 				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
-				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), continuePrompt))
+				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocStage2ContinuePrompt)))
 			}
 			// Append response fragment
 			responses = append(responses, aiResponses[0])
