@@ -50,7 +50,13 @@ type LLMConnector interface {
 	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
-func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
+func NewLLMConnector(operation string,
+	systemPrompt string,
+	filesToMdLangMappings [][]string,
+	outputSchema map[string]interface{},
+	outputSchemaName string,
+	outputSchemaDesc string,
+	llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	// Input parameters check
 	if operation == "" {
 		return nil, errors.New("operation name is empty")
@@ -105,9 +111,25 @@ func NewLLMConnector(operation string, systemPrompt string, filesToMdLangMapping
 	case "ANTHROPIC":
 		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
 	case "OPENAI":
-		return NewOpenAILLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputSchema, outputFormat, llmRawMessageLogger)
+		return NewOpenAILLMConnectorFromEnv(
+			subProfile,
+			operation,
+			systemPrompt,
+			filesToMdLangMappings,
+			outputSchema,
+			outputSchemaName,
+			outputSchemaDesc,
+			outputFormat,
+			llmRawMessageLogger)
 	case "OLLAMA":
-		return NewOllamaLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, outputSchema, outputFormat, llmRawMessageLogger)
+		return NewOllamaLLMConnectorFromEnv(
+			subProfile,
+			operation,
+			systemPrompt,
+			filesToMdLangMappings,
+			outputSchema,
+			outputFormat,
+			llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}

@@ -138,6 +138,7 @@ func Run(args []string, logger logging.ILogger) {
 		annotateConfig.String(config.K_SystemPrompt),
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
+		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
@@ -149,6 +150,7 @@ func Run(args []string, logger logging.ILogger) {
 		annotateConfig.String(config.K_SystemPrompt),
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
+		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)

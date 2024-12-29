@@ -52,7 +52,16 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		VariantStrategy:       variantStrategy}
 }
 
-func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
+func NewOpenAILLMConnectorFromEnv(
+	subprofile string,
+	operation string,
+	systemPrompt string,
+	filesToMdLangMappings [][]string,
+	outputSchema map[string]interface{},
+	outputSchemaName string,
+	outputSchemaDesc string,
+	outputFormat OutputFormat,
+	llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "OPENAI"
@@ -147,7 +156,7 @@ func NewOpenAILLMConnectorFromEnv(subprofile string, operation string, systemPro
 	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
 		jsonSchema := map[string]interface{}{"type": "json_schema"}
-		innerSchema := map[string]interface{}{"strict": true}
+		innerSchema := map[string]interface{}{"strict": true, "name": outputSchemaName, "description": outputSchemaDesc}
 		jsonSchema["json_schema"] = innerSchema
 		fieldsToInject["response_format"] = jsonSchema
 		innerSchema["schema"] = outputSchema
