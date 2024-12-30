@@ -25,6 +25,8 @@ type AnthropicLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings [][]string
+	FieldsToInject        map[string]interface{}
+	OutputFormat          OutputFormat
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -34,7 +36,7 @@ type AnthropicLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -42,6 +44,8 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
+		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -51,7 +55,16 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		VariantStrategy:       variantStrategy}
 }
 
-func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
+func NewAnthropicLLMConnectorFromEnv(
+	subprofile string,
+	operation string,
+	systemPrompt string,
+	filesToMdLangMappings [][]string,
+	outputSchema map[string]interface{},
+	outputSchemaName string,
+	outputSchemaDesc string,
+	outputFormat OutputFormat,
+	llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	prefix := "ANTHROPIC"
@@ -142,7 +155,19 @@ func NewAnthropicLLMConnectorFromEnv(subprofile string, operation string, system
 		}
 	}
 
-	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	// make some additional tweaks to the schema according to
+	// https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+	fieldsToInject := map[string]interface{}{}
+	if outputFormat == OutputJson {
+		fieldsToInject["tool_choice"] = map[string]string{"type": "tool", "name": outputSchemaName}
+		toolSchema := map[string]interface{}{"name": outputSchemaName, "description": outputSchemaDesc}
+		toolSchema["input_schema"] = outputSchema
+		fieldsToInject["tools"] = []map[string]interface{}{toolSchema}
+	} else {
+		outputFormat = OutputPlain
+	}
+
+	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -157,6 +182,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	anthropicOptions := append([]anthropic.Option{}, anthropic.WithToken(p.Token), anthropic.WithModel(p.Model))
 	if p.BaseURL != "" {
 		anthropicOptions = append(anthropicOptions, anthropic.WithBaseURL(p.BaseURL))
+	}
+
+	if p.OutputFormat == OutputJson {
+		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
+		anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 	}
 
 	model, err := anthropic.New(anthropicOptions...)
@@ -229,6 +259,10 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		// Check for max tokens
 		if response.Choices[0].StopReason == "max_tokens" {
 			if lastResort {
+				if p.OutputFormat == OutputJson {
+					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
+					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+				}
 				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
 			}
 			continue
@@ -249,7 +283,7 @@ func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 }
 
 func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
-	return OutputPlain
+	return p.OutputFormat
 }
 
 func (p *AnthropicLLMConnector) GetOptionsString() string {

@@ -109,7 +109,16 @@ func NewLLMConnector(operation string,
 
 	switch provider {
 	case "ANTHROPIC":
-		return NewAnthropicLLMConnectorFromEnv(subProfile, operation, systemPrompt, filesToMdLangMappings, llmRawMessageLogger)
+		return NewAnthropicLLMConnectorFromEnv(
+			subProfile,
+			operation,
+			systemPrompt,
+			filesToMdLangMappings,
+			outputSchema,
+			outputSchemaName,
+			outputSchemaDesc,
+			outputFormat,
+			llmRawMessageLogger)
 	case "OPENAI":
 		return NewOpenAILLMConnectorFromEnv(
 			subProfile,
