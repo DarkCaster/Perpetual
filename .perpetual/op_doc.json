@@ -20,6 +20,7 @@
   "stage1_output_schema": {
     "properties": {
       "list_of_files": {
+        "description": "List of files according to the request",
         "items": {
           "type": "string"
         },
