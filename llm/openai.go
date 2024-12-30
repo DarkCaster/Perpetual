@@ -282,7 +282,7 @@ func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 }
 
 func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
-	return OutputPlain
+	return p.OutputFormat
 }
 
 func (p *OpenAILLMConnector) GetOptionsString() string {
