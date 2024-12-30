@@ -47,7 +47,8 @@ func getDefaultListOfFilesOutputSchema() map[string]interface{} {
 		"type": "object",
 		"properties": map[string]interface{}{
 			"list_of_files": map[string]interface{}{
-				"type": "array",
+				"type":        "array",
+				"description": "List of files according to the request",
 				"items": map[string]string{
 					"type": "string",
 				},
