@@ -22,12 +22,13 @@ func initFlags() *flag.FlagSet {
 
 func Run(args []string, logger logging.ILogger) {
 	lang := ""
-	var help, verbose, trace bool
+	var help, verbose, trace, clean bool
 	// Parse flags for the "init" operation
 	initFlags := initFlags()
 	initFlags.BoolVar(&help, "h", false, "Show usage")
 	initFlags.StringVar(&lang, "l", "", "Select programming language for setting up default LLM prompts (valid values: go|dotnetfw|bash|python3|vb6|...)")
 	initFlags.BoolVar(&verbose, "v", false, "Enable debug logging")
+	initFlags.BoolVar(&clean, "c", false, "Clean obsolete files and directories")
 	initFlags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	initFlags.Parse(args)
 
@@ -130,4 +131,47 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Save project-config file
 	saveConfig(config.ProjectConfigFile, promptsObj.GetProjectConfig())
+
+	obsoleteFiles := []string{
+		"filename_embed_regexp.json",
+		"filename_tags_regexps.json",
+		"filename_tags.json",
+		"no_upload_comment_regexps.json",
+		"output_tags_regexps.json",
+		"project_files_blacklist.json",
+		"project_files_to_markdown_lang_mappings.json",
+		"project_files_whitelist.json",
+		"reasonings_tags_regexps.json",
+		"reasonings_tags.json",
+	}
+
+	for _, file := range obsoleteFiles {
+		filePath := filepath.Join(perpetualDir, file)
+		if _, err := os.Stat(filePath); err == nil {
+			if clean {
+				logger.Infoln("Removing obsolete config file:", file)
+				if err := os.Remove(filePath); err != nil {
+					logger.Panicln("Failed to remove obsolete file:", file, "Error:", err)
+				}
+			} else {
+				logger.Warnln("Obsolete config file found (use init with -c flag to remove):", file)
+			}
+		}
+	}
+
+	obsoleteDirs := []string{"prompts"}
+
+	for _, dir := range obsoleteDirs {
+		dirPath := filepath.Join(perpetualDir, dir)
+		if _, err := os.Stat(dirPath); err == nil {
+			if clean {
+				logger.Infoln("Removing obsolete directory:", dir)
+				if err := os.RemoveAll(dirPath); err != nil {
+					logger.Panicln("Failed to remove obsolete directory:", dir, "Error:", err)
+				}
+			} else {
+				logger.Warnln("Obsolete directory found (use init with -c flag to remove):", dir)
+			}
+		}
+	}
 }
