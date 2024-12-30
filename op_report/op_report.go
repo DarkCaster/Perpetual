@@ -102,10 +102,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	//TODO: Load filename tags from file when using llm-agnostic formatting
-	//fileNameTagsStrings := utils.LoadStringPair(filepath.Join(perpetualDir, prompts.FileNameTagsFileName), 2, 2, 2, logger)
-	fileNameTagsStrings := []string{"### File: ", ""}
-
 	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
@@ -119,7 +115,7 @@ func Run(args []string, logger logging.ILogger) {
 		reportMessage = llm.ComposeMessageWithAnnotations(
 			reportConfig.String(config.K_ImplementStage1IndexPrompt),
 			fileNames,
-			fileNameTagsStrings,
+			reportConfig.StringArray(config.K_FilenameTags),
 			annotations,
 			logger)
 	} else if strings.ToUpper(reportType) == "CODE" {
@@ -128,7 +124,7 @@ func Run(args []string, logger logging.ILogger) {
 			projectRootDir,
 			reportConfig.String(config.K_ImplementStage2CodePrompt),
 			fileNames,
-			fileNameTagsStrings,
+			reportConfig.StringArray(config.K_FilenameTags),
 			logger)
 	} else {
 		logger.Panicln("Invalid report type:", reportType)
