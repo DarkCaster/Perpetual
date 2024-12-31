@@ -10,13 +10,15 @@ This major release aims to make the `implement` operation more usable with small
 
 - Split extra reasoning mode for `implement` operation into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection prompts together producing smaller and simplier instructions. May imrove results with Ollama when using smaller models.
 
-- Added support for structured json output mode for `implement` operation (stages 1 and 3), and for `doc` operation (stage 1). May provide better results with Ollama when using smaller models, probably a bit less costs for OpenAI or Anthropic. Disabled by default.
+- Added support for structured json output mode for `implement` operation (stages 1 and 3), and for `doc` operation (stage 1). May provide better results with Ollama when using smaller models, probably a bit less costs for OpenAI or Anthropic. Disabled by default. For Ollama minimum supported version is 0.5.1, results may vary depending on model used. For OpenAI minimum requirement is `gpt-4o` and newer. For Anthropic it should work with `Claude 3` models and newer.
 
 **NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2,3,4 config, if not using defaults.
 
 ### Improvements
 
 - On `implement` stage 3 when generating list of files that will be changed, always add user-requested files (with ###IMPLEMENT### comments) to the list of files by default (can be disabled).
+
+- When running `init`, warn about obsolete config files in `.perpetual` subdir that no longer needed, add `-c` flag to remove it automatically
 
 ## v1.9.0
 
