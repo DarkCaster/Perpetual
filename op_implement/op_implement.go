@@ -23,7 +23,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, reasonings, verbose, trace, includeTests bool
+	var help, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var manualFilePath, userFilterFile string
 
 	// Parse flags for the "implement" operation
@@ -35,6 +35,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
+	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -253,6 +254,7 @@ func Run(args []string, logger logging.ILogger) {
 		allFileNames,
 		filesToReview,
 		targetFiles,
+		notEnforceTargetFiles,
 		messages,
 		logger)
 

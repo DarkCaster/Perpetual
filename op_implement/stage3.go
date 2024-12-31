@@ -15,6 +15,7 @@ func Stage3(projectRootDir string,
 	allFileNames []string,
 	filesForReview []string,
 	targetFiles []string,
+	notEnforceTargetFiles bool,
 	messages []llm.Message,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
@@ -39,11 +40,14 @@ func Stage3(projectRootDir string,
 	var targetFilesToModify []string
 	var otherFilesToModify []string
 
+	if !notEnforceTargetFiles || planningMode == 0 {
+		targetFilesToModify = append(targetFilesToModify, targetFiles...)
+		logger.Debugln("Target files added to modify list")
+	}
+
 	// When planning disabled, just copy target files into results without real LLM interaction in order to save tokens
 	if planningMode == 0 {
 		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
-		targetFilesToModify = append(targetFilesToModify, targetFiles...)
-		logger.Debugln("Target files added to modify list")
 	}
 
 	// Declare jsonModeMessages, it will be used as messages history sent to llm when using json mode
@@ -171,7 +175,7 @@ func Stage3(projectRootDir string,
 			if found {
 				file, found := utils.CaseInsensitiveFileSearch(file, targetFilesToModify)
 				if found {
-					logger.Warnln("Skipping file that already in target files:", file)
+					logger.Debugln("Skipping file that already in target files:", file)
 				} else {
 					// This file among files to modify
 					targetFilesToModify = append(targetFilesToModify, file)
