@@ -41,7 +41,7 @@ func Stage3(projectRootDir string,
 
 	// When planning disabled, just copy target files into results without real LLM interaction in order to save tokens
 	if planningMode == 0 {
-		logger.Infoln("Running stage3: planning disabled")
+		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
 		logger.Debugln("Target files added to modify list")
 	}
@@ -92,7 +92,7 @@ func Stage3(projectRootDir string,
 		// Make request and retry on errors
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Request LLM to provide file list that will be modified (or created) while implementing code
-			logger.Infoln("Running stage3: requesting list of files for changes")
+			logger.Infoln("Running stage3: generating list of files for processing")
 			var status llm.QueryStatus
 			// Select messages to send, depending on mode
 			targetMessages := messages

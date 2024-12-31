@@ -57,7 +57,7 @@ func Stage2(projectRootDir string,
 
 	// When planning is disabled, just create messages with listing of files marked to implement and request for step-by-step implementation
 	if planningMode == 0 {
-		logger.Infoln("Running stage2: planning disabled")
+		logger.Infoln("Running stage2: planning disabled, not generating work plan")
 		// Create files to request for non-planning mode
 		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
@@ -77,7 +77,7 @@ func Stage2(projectRootDir string,
 	// When planning mode set to extended mode, create list of files with request
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
-		logger.Infoln("Running stage2: generating reasonings")
+		logger.Infoln("Running stage2: generating work plan")
 		// Generate actual request message that will me used with LLM
 		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
