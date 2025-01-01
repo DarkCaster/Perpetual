@@ -198,7 +198,7 @@ func Stage3(projectRootDir string,
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
 							llm.AppendFileToMessage(messageWithTargetFiles, projectRootDir, file, cfg.StringArray(config.K_FilenameTags), logger)
-							targetFilesToModify = append(targetFilesToModify, file)
+							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 						} else {
 							otherFilesToModify = append(otherFilesToModify, file)
