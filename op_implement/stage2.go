@@ -14,7 +14,7 @@ func Stage2(projectRootDir string,
 	planningMode int,
 	filesForReview []string,
 	targetFiles []string,
-	logger logging.ILogger) ([]llm.Message, llm.Message) {
+	logger logging.ILogger) ([]llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -55,7 +55,7 @@ func Stage2(projectRootDir string,
 		logger.Infoln("Not adding any source code files for review")
 	}
 
-	var messageWithTargetFiles llm.Message
+	var msgIndexToAddExtraFiles int
 	// When planning is disabled, just create messages with listing of files marked to implement and request for step-by-step implementation
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled, not generating work plan")
@@ -67,8 +67,8 @@ func Stage2(projectRootDir string,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
 		// Add message to history
-		messageWithTargetFiles = requestMessage
 		messages = append(messages, requestMessage)
+		msgIndexToAddExtraFiles = len(messages) - 1
 		logger.Debugln("Files for no planning message created")
 		// Create simulated response and add it to history
 		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage2NoPlanningResponse))
@@ -136,8 +136,8 @@ func Stage2(projectRootDir string,
 				targetFiles,
 				cfg.StringArray(config.K_FilenameTags),
 				logger)
-			messageWithTargetFiles = finalRequestMessage
 			messages = append(messages, finalRequestMessage)
+			msgIndexToAddExtraFiles = len(messages) - 1
 			logger.Debugln("Planning request message created")
 			// Save reasonings to message-history
 			responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), reasonings)
@@ -145,5 +145,5 @@ func Stage2(projectRootDir string,
 			break
 		}
 	}
-	return messages, messageWithTargetFiles
+	return messages, msgIndexToAddExtraFiles
 }

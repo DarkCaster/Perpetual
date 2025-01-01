@@ -17,7 +17,7 @@ func Stage3(projectRootDir string,
 	targetFiles []string,
 	notEnforceTargetFiles bool,
 	messages []llm.Message,
-	messageWithTargetFiles llm.Message,
+	msgIndexToAddExtraFiles int,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage3: Starting")
@@ -64,8 +64,8 @@ func Stage3(projectRootDir string,
 			targetFiles,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		messageWithTargetFiles = request
 		messages = append(messages, request)
+		msgIndexToAddExtraFiles = len(messages) - 1
 		// Create json mode request and add it to json mode history
 		jsonModeRequest := llm.ComposeMessageWithFiles(
 			projectRootDir,
@@ -197,7 +197,12 @@ func Stage3(projectRootDir string,
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
-							llm.AppendFileToMessage(messageWithTargetFiles, projectRootDir, file, cfg.StringArray(config.K_FilenameTags), logger)
+							messages[msgIndexToAddExtraFiles] = llm.AppendFileToMessage(
+								messages[msgIndexToAddExtraFiles],
+								projectRootDir,
+								file,
+								cfg.StringArray(config.K_FilenameTags),
+								logger)
 							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 						} else {
