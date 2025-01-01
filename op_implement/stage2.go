@@ -90,7 +90,6 @@ func Stage2(projectRootDir string,
 		// realMessages message-history will be used for actual LLM prompt
 		realMessages := make([]llm.Message, len(messages), len(messages)+1)
 		copy(realMessages, messages)
-		messageWithTargetFiles = requestMessage
 		realMessages = append(realMessages, requestMessage)
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
@@ -137,6 +136,7 @@ func Stage2(projectRootDir string,
 				targetFiles,
 				cfg.StringArray(config.K_FilenameTags),
 				logger)
+			messageWithTargetFiles = finalRequestMessage
 			messages = append(messages, finalRequestMessage)
 			logger.Debugln("Planning request message created")
 			// Save reasonings to message-history
