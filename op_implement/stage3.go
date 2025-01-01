@@ -154,7 +154,7 @@ func Stage3(projectRootDir string,
 
 		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
-		logger.Infoln("Files to modify selected by LLM:")
+		logger.Infoln("Files for processing selected by LLM:")
 		for _, check := range filesToProcessRaw {
 			// remove new line from the end of filename, if present
 			if check != "" && check[len(check)-1] == '\n' {
