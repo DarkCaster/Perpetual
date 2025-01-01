@@ -12,13 +12,17 @@ func ComposeMessageWithFiles(projectRootDir, prompt string, targetFiles, filenam
 	result := AddPlainTextFragment(NewMessage(UserRequest), prompt)
 	// Attach target-files contents
 	for _, item := range targetFiles {
-		text, err := utils.LoadTextFile(filepath.Join(projectRootDir, item))
-		if err != nil {
-			logger.Panicln("Failed to attach file to prompt:", err)
-		}
-		result = AddFileFragment(result, item, text, filenameTags)
+		result = AppendFileToMessage(result, projectRootDir, item, filenameTags, logger)
 	}
 	return result
+}
+
+func AppendFileToMessage(message Message, projectRootDir, file string, filenameTags []string, logger logging.ILogger) Message {
+	text, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
+	if err != nil {
+		logger.Panicln("Failed to attach file to prompt:", err)
+	}
+	return AddFileFragment(message, file, text, filenameTags)
 }
 
 func ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetFile string, logger logging.ILogger) Message {
