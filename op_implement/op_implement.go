@@ -2,7 +2,6 @@ package op_implement
 
 import (
 	"flag"
-	"os"
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -218,21 +217,13 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	// Check filesToReview files for presence of "no-upload" mark
-	var filteredFilesToReview []string
-	for _, file := range filesToReview {
-		if found, err := utils.FindInRelativeFile(
-			projectRootDir,
-			file,
-			implementConfig.RegexpArray(config.K_NoUploadCommentsRx)); err == nil && !found {
-			filteredFilesToReview = append(filteredFilesToReview, file)
-		} else if found {
-			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
-		} else {
-			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
-		}
-	}
-	filesToReview = filteredFilesToReview
+	// Filter filesToReview files for presence of "no-upload" mark
+	filesToReview = utils.FilterNoUploadProjectFiles(
+		projectRootDir,
+		filesToReview,
+		implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+		false,
+		logger)
 
 	// Run stage 2 - create file review, create reasonings
 	messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
@@ -259,20 +250,12 @@ func Run(args []string, logger logging.ILogger) {
 		msgIndexToAddExtraFiles,
 		logger)
 
-	var filteredOtherFilesToModify []string
-	for _, file := range otherFilesToModify {
-		if found, err := utils.FindInRelativeFile(
-			projectRootDir,
-			file,
-			implementConfig.RegexpArray(config.K_NoUploadCommentsRx)); (err == nil || os.IsNotExist(err)) && !found {
-			filteredOtherFilesToModify = append(filteredOtherFilesToModify, file)
-		} else if found {
-			logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
-		} else {
-			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
-		}
-	}
-	otherFilesToModify = filteredOtherFilesToModify
+	otherFilesToModify = utils.FilterNoUploadProjectFiles(
+		projectRootDir,
+		otherFilesToModify,
+		implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+		true,
+		logger)
 
 	// Run stage 4 - implement code in selected files
 	results := Stage4(

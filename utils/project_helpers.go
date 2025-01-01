@@ -171,6 +171,20 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	return fileChecksums, files, allFiles, nil
 }
 
+func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noUploadRegexps []*regexp.Regexp, allowMissingFiles bool, logger logging.ILogger) []string {
+	var results []string
+	for _, file := range sourceFiles {
+		if found, err := FindInRelativeFile(projectRootDir, file, noUploadRegexps); (err == nil || (allowMissingFiles && os.IsNotExist(err))) && !found {
+			results = append(results, file)
+		} else if found {
+			logger.Warnln("Skipping file marked as 'no-upload':", file)
+		} else {
+			logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
+		}
+	}
+	return results
+}
+
 func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {
 	var filteredResult []string
 	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
