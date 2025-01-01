@@ -35,7 +35,7 @@ func Stage2(projectRootDir string,
 	// This will store message history to re-use on this and next stages
 	var messages []llm.Message
 
-	// Generate messages with listing of source code files requested at stage 1 (if any)
+	// Generate messages with listing of source files requested for review at stage 1, if any
 	if len(filesForReview) > 0 {
 		// Create target files analysis request message
 		realRequestMessage := llm.ComposeMessageWithFiles(
@@ -52,7 +52,7 @@ func Stage2(projectRootDir string,
 		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
-		logger.Infoln("Not creating extra source-code review")
+		logger.Infoln("Not adding any source code files for review")
 	}
 
 	// When planning is disabled, just create messages with listing of files marked to implement and request for step-by-step implementation
