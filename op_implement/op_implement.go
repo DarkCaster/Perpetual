@@ -235,7 +235,7 @@ func Run(args []string, logger logging.ILogger) {
 	filesToReview = filteredFilesToReview
 
 	// Run stage 2 - create file review, create reasonings
-	messages := Stage2(projectRootDir,
+	messages, messageWithTargetFiles := Stage2(projectRootDir,
 		perpetualDir,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
@@ -256,6 +256,7 @@ func Run(args []string, logger logging.ILogger) {
 		targetFiles,
 		notEnforceTargetFiles,
 		messages,
+		messageWithTargetFiles,
 		logger)
 
 	var filteredOtherFilesToModify []string

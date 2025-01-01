@@ -14,7 +14,7 @@ func Stage2(projectRootDir string,
 	planningMode int,
 	filesForReview []string,
 	targetFiles []string,
-	logger logging.ILogger) []llm.Message {
+	logger logging.ILogger) ([]llm.Message, llm.Message) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -55,6 +55,7 @@ func Stage2(projectRootDir string,
 		logger.Infoln("Not adding any source code files for review")
 	}
 
+	var messageWithTargetFiles llm.Message
 	// When planning is disabled, just create messages with listing of files marked to implement and request for step-by-step implementation
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled, not generating work plan")
@@ -66,6 +67,7 @@ func Stage2(projectRootDir string,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
 		// Add message to history
+		messageWithTargetFiles = requestMessage
 		messages = append(messages, requestMessage)
 		logger.Debugln("Files for no planning message created")
 		// Create simulated response and add it to history
@@ -88,6 +90,7 @@ func Stage2(projectRootDir string,
 		// realMessages message-history will be used for actual LLM prompt
 		realMessages := make([]llm.Message, len(messages), len(messages)+1)
 		copy(realMessages, messages)
+		messageWithTargetFiles = requestMessage
 		realMessages = append(realMessages, requestMessage)
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
@@ -142,5 +145,5 @@ func Stage2(projectRootDir string,
 			break
 		}
 	}
-	return messages
+	return messages, messageWithTargetFiles
 }

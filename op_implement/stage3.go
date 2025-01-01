@@ -17,6 +17,7 @@ func Stage3(projectRootDir string,
 	targetFiles []string,
 	notEnforceTargetFiles bool,
 	messages []llm.Message,
+	messageWithTargetFiles llm.Message,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage3: Starting")
@@ -63,6 +64,7 @@ func Stage3(projectRootDir string,
 			targetFiles,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
+		messageWithTargetFiles = request
 		messages = append(messages, request)
 		// Create json mode request and add it to json mode history
 		jsonModeRequest := llm.ComposeMessageWithFiles(
@@ -167,7 +169,7 @@ func Stage3(projectRootDir string,
 			//make file path relative to project root
 			file, err := utils.MakePathRelative(projectRootDir, check, true)
 			if err != nil {
-				logger.Errorln("Not using file mentioned by LLM, because it is outside project root directory", check)
+				logger.Errorln("Not using file, because it is outside project root directory", check)
 				continue
 			}
 			// Sort files selected by LLM
@@ -175,30 +177,33 @@ func Stage3(projectRootDir string,
 			if found {
 				file, found := utils.CaseInsensitiveFileSearch(file, targetFilesToModify)
 				if found {
-					logger.Debugln("Skipping file that already in target files:", file)
+					logger.Debugln("Skipping file that already among target files:", file)
 				} else {
 					// This file among files to modify
 					targetFilesToModify = append(targetFilesToModify, file)
-					logger.Infoln(file, "(requested by User)")
+					logger.Infoln(file, "(among initial target files)")
 				}
 			} else {
 				file, found := utils.CaseInsensitiveFileSearch(file, otherFilesToModify)
 				if found {
-					logger.Warnln("Skipping file that already in requested files:", file)
+					logger.Warnln("Skipping already requested file:", file)
 				} else {
 					// Check if this file among files for review or not
 					file, found := utils.CaseInsensitiveFileSearch(file, filesForReview)
 					if found {
 						otherFilesToModify = append(otherFilesToModify, file)
-						logger.Infoln(file, "(requested by LLM)")
+						logger.Infoln(file)
 					} else {
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
-							logger.Panicln("File requested by LLM is among project files not provided for review, this will cause file corruption:", file)
+							llm.AppendFileToMessage(messageWithTargetFiles, projectRootDir, file, cfg.StringArray(config.K_FilenameTags), logger)
+							targetFilesToModify = append(targetFilesToModify, file)
+							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
+						} else {
+							otherFilesToModify = append(otherFilesToModify, file)
+							logger.Infoln(file, "(new file)")
 						}
-						otherFilesToModify = append(otherFilesToModify, file)
-						logger.Infoln(file, "(requested by LLM, new file)")
 					}
 				}
 			}
