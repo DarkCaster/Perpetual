@@ -200,7 +200,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	if p.OutputFormat == OutputJson {
-		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
+		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
 		openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 	}
 

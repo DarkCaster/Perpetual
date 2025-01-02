@@ -9,18 +9,40 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func NewMitmHTTPClient(valuesToInject map[string]interface{}) *http.Client {
+type requestTransformer interface {
+	ProcessBody(body map[string]interface{}) map[string]interface{}
+}
+
+type bodyValuesInjector struct {
+	ValuesToInject map[string]interface{}
+}
+
+func newTopLevelBodyValuesInjector(valuesToInject map[string]interface{}) requestTransformer {
+	return &bodyValuesInjector{
+		ValuesToInject: valuesToInject,
+	}
+}
+
+func (p *bodyValuesInjector) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	// inject new values to body json at the top level
+	for name, value := range p.ValuesToInject {
+		body[name] = value
+	}
+	return body
+}
+
+func newMitmHTTPClient(transformers ...requestTransformer) *http.Client {
 	return &http.Client{
 		Transport: &mitmTransport{
-			Transport:      http.DefaultTransport,
-			ValuesToInject: valuesToInject,
+			Transport:    http.DefaultTransport,
+			Transformers: transformers,
 		},
 	}
 }
 
 type mitmTransport struct {
-	Transport      http.RoundTripper
-	ValuesToInject map[string]interface{}
+	Transport    http.RoundTripper
+	Transformers []requestTransformer
 }
 
 func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -48,9 +70,9 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err := json.Unmarshal(bodyData, &bodyObj); err != nil {
 		return nil, err
 	}
-	// inject new values to body json at the top level
-	for name, value := range t.ValuesToInject {
-		bodyObj[name] = value
+	// apply request transformations
+	for _, transformer := range t.Transformers {
+		bodyObj = transformer.ProcessBody(bodyObj)
 	}
 	// convert modified body back into JSON
 	newBody, err := json.Marshal(bodyObj)

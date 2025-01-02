@@ -185,7 +185,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	if p.OutputFormat == OutputJson {
-		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
+		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
 		anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 	}
 

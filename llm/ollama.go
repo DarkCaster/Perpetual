@@ -163,7 +163,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	if p.OutputFormat == OutputJson {
-		mitmClient := NewMitmHTTPClient(p.FieldsToInject)
+		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
 		ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 	}
 
