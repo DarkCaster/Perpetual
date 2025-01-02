@@ -123,9 +123,9 @@ func Stage2(projectRootDir string,
 			// Final check
 			if reasonings == "" {
 				if onFailRetriesLeft < 1 {
-					logger.Panicln("Filtered reasonings response from AI is empty")
+					logger.Panicln("Filtered reasonings response from AI is empty or invalid")
 				} else {
-					logger.Warnln("Filtered reasonings response from AI is empty, retrying")
+					logger.Warnln("Filtered reasonings response from AI is empty or invalid, retrying")
 				}
 				continue
 			}
