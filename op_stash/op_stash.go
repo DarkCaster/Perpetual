@@ -87,7 +87,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error reading stash directory:", err)
 	}
 
-	fileStashes := make([]os.DirEntry, 0)
+	fileStashes := make([]os.DirEntry, 0, len(stashes))
 	for _, entry := range stashes {
 		if entry.Type().IsRegular() {
 			fileStashes = append(fileStashes, entry)
