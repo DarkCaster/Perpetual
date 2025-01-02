@@ -115,7 +115,6 @@ func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string
 // - all filenames processed (relative to projectRootDir)
 // - error, if any
 func GetProjectFileList(projectRootDir string, perpetualDir string, projectFilesWhitelist []*regexp.Regexp, projectFilesBlacklist []*regexp.Regexp) (map[string]string, []string, []string, error) {
-	var files []string
 	var allFiles []string
 
 	// Recursively get all files at projectRootDir and make it names relative to projectRootDir
@@ -141,6 +140,7 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	sort.Strings(allFiles)
 
 	// Generate filtered list of files
+	var files []string
 	for _, searchRx := range projectFilesWhitelist {
 		for _, file := range allFiles {
 			if searchRx.MatchString(file) {
