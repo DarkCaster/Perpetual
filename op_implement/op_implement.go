@@ -257,6 +257,17 @@ func Run(args []string, logger logging.ILogger) {
 		true,
 		logger)
 
+	otherFilesToModify, fileStatus := utils.FilterFilesWithWBLists(
+		otherFilesToModify,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectFilesBlacklist)
+
+	for file, status := range fileStatus {
+		if !status {
+			logger.Warnln("File was filtered-out with global project whitelist or blacklist:", file)
+		}
+	}
+
 	// Run stage 4 - implement code in selected files
 	results := Stage4(
 		projectRootDir,
