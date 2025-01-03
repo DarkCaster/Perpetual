@@ -2,27 +2,27 @@
 
 ## v2.0.0
 
-This major release aims to make the `implement` operation more usable with smaller models (sub 15B models run with Ollama).
+This major release aims to make the `implement` operation more usable with smaller models (sub-15B models run with Ollama).
 
 ### Breaking changes
 
-- User-customizable prompts at `.perpetual/prompts` dir moved to base `.perpetual` dir. Prompts now grouped together by opeartion name and stored inside json config-files. Configs include all needed prompts, text-tags and regexp definitions used with particular operation.
+- User-customizable prompts in the `.perpetual/prompts` directory have been moved to the base `.perpetual` directory. Prompts are now grouped together by operation name and stored inside JSON config files. Configs include all needed prompts, text tags, and regex definitions used with each specific operation.
 
-- Split extra reasoning mode for `implement` operation into dedicated stage, so implement operation now have 4 stages instead of 3. This allow not to mix reasonings and changes-detection prompts together producing smaller and simplier instructions. May imrove results with Ollama when using smaller models.
+- Split the extra reasoning mode for the `implement` operation into a dedicated stage, so the implement operation now has 4 stages instead of 3. This allows for separating reasonings and change-detection prompts, producing smaller and simpler instructions. May improve results with Ollama when using smaller models.
 
-- Added support for structured json output mode for `implement` operation (stages 1 and 3), and for `doc` operation (stage 1). May provide better results with Ollama when using smaller models, probably a bit less costs for OpenAI or Anthropic. For Ollama minimum supported version is 0.5.1, results may vary depending on model used. For OpenAI minimum requirement is `gpt-4o` and newer. For Anthropic it should work with `Claude 3` models and newer.
+- Added support for structured JSON output mode for the `implement` operation (stages 1 and 3) and for the `doc` operation (stage 1). This may provide better results with Ollama when using smaller models and potentially reduce costs for OpenAI or Anthropic. For Ollama, the minimum supported version is 0.5.1, and results may vary depending on the model used. For OpenAI, the minimum requirement is `gpt-4o` and newer. For Anthropic, it should work with `Claude 3` models and newer.
 
-**NOTE**: you will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2,3,4 config, if not using defaults.
+**NOTE**: You will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2, 3, and 4 configurations if not using defaults.
 
 ### Improvements
 
-- On `implement` stage 3 when generating list of files that will be changed, always add user-requested files (with ###IMPLEMENT### comments) to the list of files by default (can be disabled).
+- In `implement` stage 3, when generating a list of files to be changed, user-requested files (with ###IMPLEMENT### comments) are always added to the list by default (can be disabled).
 
-- When running `init`, warn about obsolete config files in `.perpetual` subdir that no longer needed, add `-c` flag to remove it automatically.
+- When running `init`, the system now warns about obsolete config files in the `.perpetual` subdirectory that are no longer needed. Use the `-c` flag to remove them automatically.
 
-- Add `best` variant selection strategy for `annotate` operation.
+- Added the `best` variant selection strategy for the `annotate` operation.
 
-- Added support for `o1` series of models for OpenAI provider. Only recommended for use with `doc` operation. It is too slow, and less predictable.
+- Added support for the `o1` series of models for the OpenAI provider. This is only recommended for use with the `doc` operation as it is slower and less predictable.
 
 ## v1.9.0
 
