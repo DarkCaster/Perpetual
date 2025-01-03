@@ -4,7 +4,7 @@
 
 This major release aims to make the `implement` operation more usable with smaller models (sub-15B models run with Ollama).
 
-### Breaking changes
+### Breaking Changes
 
 - User-customizable prompts in the `.perpetual/prompts` directory have been moved to the base `.perpetual` directory. Prompts are now grouped together by operation name and stored inside JSON config files. Configs include all needed prompts, text tags, and regex definitions used with each specific operation.
 
@@ -26,7 +26,7 @@ This major release aims to make the `implement` operation more usable with small
 
 ## v1.9.0
 
-### Breaking changes
+### Breaking Changes
 
 - Improve `annotate` operation: Added multi-stage annotation generation with support for multiple annotation variants and different selection strategies. The operation now generates multiple variants of source file annotations and selects the optimal one using configurable strategies:
   - `short`: Selects the shortest variant (default)
@@ -60,7 +60,7 @@ This major release aims to make the `implement` operation more usable with small
 
 ## v1.8.0
 
-### Breaking changes
+### Breaking Changes
 
 - Rework prompting for `annotate` operation: use separate prompts for different file-types when asking LLM to create a file summary. Now `annotate` operation is usable even with the small OSS models like `Yi-Coder` (9B) or `DeepSeek Coder V2 Lite` (16B) and similar.
   - For using local models with ollama [see comments, tips and tricks here](ollama.md)
