@@ -231,11 +231,25 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 	}
 
+	streamFunc := func(ctx context.Context, chunk []byte) error {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+		return nil
+	}
+
+	finalOptions := make([]llms.CallOption, len(p.Options), len(p.Options)+1)
+	copy(finalOptions, p.Options)
+	streamingEnabled := false
+
 	// Perform LLM query
-	finalOptions := append([]llms.CallOption{}, p.Options...)
 	if maxCandidates > 1 {
 		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
+	} else {
+		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+		streamingEnabled = true
 	}
+
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
@@ -252,10 +266,13 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	for i, choice := range response.Choices {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-			if len(choice.Content) > 0 {
-				p.RawMessageLogger(choice.Content)
-			} else {
+			if !streamingEnabled {
+				p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
+				if len(choice.Content) > 0 {
+					p.RawMessageLogger(choice.Content)
+				}
+			}
+			if len(choice.Content) < 1 {
 				p.RawMessageLogger("<empty response>")
 			}
 			p.RawMessageLogger("\n\n\n")
