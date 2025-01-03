@@ -133,6 +133,24 @@ This configuration uses the Anthropic provider with different models for each st
 
 Note that if stage-specific variables are not set, the `doc` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for each stage of the `doc` operation if needed.
 
+## Workflow
+
+The `doc` operation follows a structured workflow to ensure efficient and accurate documentation generation:
+
+1. **Initialization:**
+   - The `doc` operation begins by parsing command-line flags to determine its behavior.
+   - It locates the project's root directory and the `.perpetual` configuration directory.
+   - Environment variables are loaded from `.env` files to configure the core LLM parameters.
+   - Prompts are loaded from the `.perpetual/op_doc.json` file.
+
+2. **File Discovery:**
+   - The operation scans the project directory to locate project source code files, applying whitelist and blacklist regex patterns.
+   - It automatically reannotates changed files
+
+3. **Documentation Generation or Refinement:**
+   - **Stage 1:** analyzes the project-index and determines which files are relevant for the documentation task.
+   - **Stage 2:** writes or refines the document content based on the provided source files and analyzed information.
+
 ## Best Practices
 
 1. **Use Example Documents**: Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. Mostly useful on `write` actions to copy writing style and structure from the reference document.
