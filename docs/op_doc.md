@@ -1,4 +1,4 @@
-# Document operation
+# Document Operation
 
 The `doc` operation is an essential component of the `Perpetual` tool, designed to create or rework documentation files in markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation, leveraging the power of Large Language Models (LLMs) to produce high-quality, context-aware documentation based on your project's source code and existing documentation.
 
@@ -35,33 +35,33 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-vv`: Enable both debug and trace logging for the highest level of verbosity.
 
-Examples:
+### Examples:
 
-1. Create a new document:
+1. **Create a new document:**
 
    ```sh
    Perpetual doc -r docs/new_feature.md -a draft
    ```
 
-   Edit `docs/new_feature.md` draft, add the most basic structure of future document, your instructions and notes about any aspect of the document starting with words `Notes on implementation:`. After editing `docs/new_feature.md` document draft and adding basic notes, section-drafts, basic document structure, run
+   Edit `docs/new_feature.md` draft, add the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`. After editing the draft and adding basic notes, section drafts, and the basic document structure, run:
 
    ```sh
    Perpetual doc -r docs/new_feature.md -a write
    ```
 
-   Also you can use another document as style and structure reference when writing current document:
+   You can also use another document as a style and structure reference when writing the current document:
 
    ```sh
    Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
    ```
 
-2. Refine an existing document using an example for style:
+2. **Refine an existing document using an example for style:**
 
    ```sh
    Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
    ```
 
-3. Write a document with debug logging enabled:
+3. **Write a document with debug logging enabled:**
 
    ```sh
    Perpetual doc -r docs/troubleshooting.md -v
@@ -69,47 +69,52 @@ Examples:
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
 
-1. Stage 1: Analyzes the project and determines which files are relevant for the documentation task.
-2. Stage 2: Generates or refines the document content based on the analyzed information and the specified action.
+1. **Stage 1:** Analyzes the project and determines which files are relevant for the documentation task.
+2. **Stage 2:** Generates or refines the document content based on the analyzed information and the specified action.
+
+## Prompts Configuration
+
+Customization of LLM prompts for the `doc` operation is handled through the `.perpetual/op_doc.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
+
 
 ## Configuration
 
 The `doc` operation can be configured using environment variables defined in the `.env` file. These variables allow you to customize the behavior of the LLM used for generating documentation. Here are the key configuration options that affect the `doc` operation:
 
-1. LLM Provider:
+1. **LLM Provider:**
    - `LLM_PROVIDER_OP_DOC_STAGE1`: Specifies the LLM provider to use for the first stage of the `doc` operation.
    - `LLM_PROVIDER_OP_DOC_STAGE2`: Specifies the LLM provider to use for the second stage of the `doc` operation.
-   If not set, both stages fall back to the general `LLM_PROVIDER`.
+   - If not set, both stages fall back to the general `LLM_PROVIDER`.
 
-2. Model Selection:
+2. **Model Selection:**
    - `ANTHROPIC_MODEL_OP_DOC_STAGE1`, `ANTHROPIC_MODEL_OP_DOC_STAGE2`: Specify the Anthropic models to use for each stage of documentation (e.g., "claude-3-sonnet-20240229" for stage 1 and "claude-3-opus-20240229" for stage 2).
    - `OPENAI_MODEL_OP_DOC_STAGE1`, `OPENAI_MODEL_OP_DOC_STAGE2`: Specify the OpenAI models to use for each stage of documentation.
    - `OLLAMA_MODEL_OP_DOC_STAGE1`, `OLLAMA_MODEL_OP_DOC_STAGE2`: Specify the Ollama models to use for each stage of documentation.
 
-3. Token Limits:
+3. **Token Limits:**
    - `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response.
    - `OPENAI_MAX_TOKENS_OP_DOC_STAGE1`, `OPENAI_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using OpenAI.
    - `OLLAMA_MAX_TOKENS_OP_DOC_STAGE1`, `OLLAMA_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using Ollama.
    - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached. This parameter limits how many times the LLM will attempt to continue generating content when it reaches the token limit. It helps prevent excessive API calls and ensures the document generation process doesn't run indefinitely.
 
-   For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if hit token limits, but results may be suboptimal. If needed to generate small document it is better in general to set bigger token limit, and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
+   For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If needed to generate a small document, it is generally better to set a larger token limit and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
 
-4. Retry Settings:
+4. **Retry Settings:**
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Anthropic.
    - `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using OpenAI.
    - `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Ollama.
 
-5. Temperature:
+5. **Temperature:**
    - `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for the LLM during each stage of documentation generation when using Anthropic.
    - `OPENAI_TEMPERATURE_OP_DOC_STAGE1`, `OPENAI_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using OpenAI.
    - `OLLAMA_TEMPERATURE_OP_DOC_STAGE1`, `OLLAMA_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using Ollama.
 
-   Lower values (e.g., 0.3-0.5) are recommended for more focused and consistent output, higher values (0.5-0.9) for producing more creative documentation.
+   Lower values (e.g., 0.3-0.5) are recommended for more focused and consistent output, while higher values (0.5-0.9) can be used for producing more creative documentation.
 
-6. Other LLM Parameters:
+6. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for each stage of the `doc` operation by appending `_OP_DOC_STAGE1` or `_OP_DOC_STAGE2` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_DOC_STAGE1`). These are particularly useful for fine-tuning the output of smaller local Ollama models.
 
-Example configuration in `.env` file:
+### Example Configuration in `.env` File:
 
 ```sh
 LLM_PROVIDER="anthropic"
@@ -132,7 +137,7 @@ Note that if stage-specific variables are not set, the `doc` operation will fall
 
 1. **Use Example Documents**: Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. Mostly useful on `write` actions to copy writing style and structure from the reference document.
 
-2. **Iterative Refinement**: Start with a `draft` action, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about document topic, format, structure and style inside the document draft (or document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
+2. **Iterative Refinement**: Start with a `draft` action, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about the document topic, format, structure, and style inside the document draft (or the document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
 
 3. **Regular Updates**: As your project evolves, regularly use the `refine` action to keep your documentation up-to-date with the latest changes in your codebase.
 
