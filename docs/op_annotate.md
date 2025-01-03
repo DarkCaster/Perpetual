@@ -1,6 +1,6 @@
 # Annotate Operation
 
-The `annotate` operation is a crucial part of `Perpetual`. It generates annotations for project source-code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within `Perpetual`. The project index is stored in the `.perpetual` directory as `annotations.json` and is only updated when necessary, saving you costs and time on LLM API access.
+The `annotate` operation is a crucial part of `Perpetual`. It generates annotations for a project's source code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within `Perpetual`. The project index is stored in the `.perpetual` directory as `annotations.json` and is only updated when necessary, saving you costs and time on LLM API access.
 
 While the `annotate` operation is an essential component of the `Perpetual` workflow, it is not typically necessary to run it manually. Other operations, such as the `implement` operation, automatically trigger the `annotate` operation when needed to ensure that the project's annotations are current before proceeding with their tasks.
 
@@ -16,7 +16,7 @@ The `annotate` operation supports several command-line flags to customize its be
 
 - `-f`: Force annotation of all files, even for files whose annotations are up to date. This flag is useful when you want to regenerate all annotations, regardless of whether the files have changed since the last annotation.
 
-- `-d`: Perform a dry run without actually generating annotations. This flag will list the files that would be annotated, without making LLM requests and updating annotations.
+- `-d`: Perform a dry run without actually generating annotations. This flag will list the files that would be annotated without making LLM requests and updating annotations.
 
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
@@ -72,7 +72,7 @@ The `annotate` operation can be configured using environment variables defined i
    - `OLLAMA_MODEL_OP_ANNOTATE`: Specifies the Ollama model to use for annotation.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting token limit - this is an indication that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
+   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting the token limit, this indicates that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
 
 4. **Retry Settings:**
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE`, `OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE`, `OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE`: Specify the number of retries on failure for the `annotate` operation.
@@ -110,11 +110,15 @@ Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are n
 
 Customization of LLM prompts for the `annotate` operation is handled through the `.perpetual/op_annotate.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
 
+- **`stage1_prompts`**: Prompts used during the initial stage of annotation. Each entry in this array contains a regular expression `pattern` to match against a file's name and a corresponding `prompt` to generate an annotation for that file type. This allows the LLM to tailor annotations based on the specific type of source code file being processed, ensuring that the summaries are concise and relevant to each file's contents and purpose.
+
+Other important parameters:
+
 - **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations. This ensures that code snippets are properly formatted and tagged for better results with the configured LLM provider and model.
 
 - **`filename_tags`**: Tagging conventions used to identify filenames within the annotations. This allows the LLM to recognize and process filenames accurately, facilitating better integration with the project's file structure.
 
-- **`stage1_prompts`**: Prompts used during the initial stage of annotation. Each entry in this array contains a regular expression `pattern` to match against a file's name and a corresponding `prompt` to generate an annotation for that file type. This allows the LLM to tailor annotations based on the specific type of source-code file being processed, ensuring that the summaries are concise and relevant to each file's contents and purpose.
+When using OpenAI or Anthropic LLMs, you do not need to change the `code_tags_rx` and `filename_tags` parameters, but sometimes you may need to do this for smaller models run with Ollama.
 
 ### Example `op_annotate.json` Configuration (partial)
 
@@ -144,7 +148,7 @@ Customization of LLM prompts for the `annotate` operation is handled through the
    - Prompts are loaded from the `.perpetual/op_annotate.json` file.
 
 2. **File Discovery:**
-   - The operation scans the project directory to identify source-code files to annotate, applying whitelist and blacklist regex patterns.
+   - The operation scans the project directory to identify source code files to annotate, applying whitelist and blacklist regex patterns.
    - It calculates checksums for these files to track changes since the last annotation.
 
 3. **Annotation Decision:**
@@ -160,4 +164,4 @@ Customization of LLM prompts for the `annotate` operation is handled through the
    - Generated annotations are saved to the `annotations.json` file in the `.perpetual` directory.
    - Checksums are updated to reflect the latest state of each annotated file.
 
-If any file fails to be annotated after the specified number of retries, the operation will not stop right away, but exit with an error after all other files are finished, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
+If any file fails to be annotated after the specified number of retries, the operation will not stop immediately but will exit with an error after all other files are processed, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
