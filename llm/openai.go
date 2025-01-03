@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -199,10 +202,12 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
 	}
 
+	transformers := []requestTransformer{newO1ModelTransformer()}
 	if p.OutputFormat == OutputJson {
-		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
-		openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
+	mitmClient := newMitmHTTPClient(transformers...)
+	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
 	model, err := openai.New(openAiOptions...)
 	if err != nil {
@@ -307,4 +312,71 @@ func (p *OpenAILLMConnector) GetVariantCount() int {
 
 func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
+}
+
+type o1ModelTransformer struct{}
+
+func newO1ModelTransformer() requestTransformer {
+	return &o1ModelTransformer{}
+}
+
+func (p *o1ModelTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	model, exist := body["model"].(string)
+	if !exist {
+		return body
+	}
+	model = strings.ToLower(model)
+	// Do nothing for any non o1/o3 models
+	if !strings.HasPrefix(model, "o") {
+		return body
+	}
+	iMessages, exist := body["messages"].([]interface{})
+	if !exist {
+		return body
+	}
+
+	var messages []map[string]interface{}
+	sysMsgIdx := -1
+	for i, imsg := range iMessages {
+		msg := imsg.(map[string]interface{})
+		if msg["role"] == "system" {
+			sysMsgIdx = i
+		}
+		messages = append(messages, msg)
+	}
+
+	// Transform request to match requirements according to doc: //https://platform.openai.com/docs/guides/reasoning
+	date := time.Now().UTC()
+	if matches := regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`).FindStringSubmatch(model); len(matches) > 0 {
+		//parse model date
+		var err error
+		date, err = time.Parse("2006-01-02", matches[1])
+		if err == nil {
+			date = date.Add(time.Hour)
+		} else {
+			date = time.Now().UTC()
+		}
+	}
+	//Add "Formatting re-enabled" string into the first line of the system message for models that require it
+	if mark, _ := time.Parse("2006-01-02", "2024-12-17"); model != "o1-mini" && model != "o1-preview" && date.After(mark) && sysMsgIdx > -1 {
+		messages[sysMsgIdx]["content"] = "Formatting re-enabled\n" + messages[sysMsgIdx]["content"].(string)
+		//convert "system" message role into "developer" message role, as "system" now unsupported
+		messages[sysMsgIdx]["role"] = "developer"
+	} else {
+		//convert system message into the "user" message
+		messages[sysMsgIdx]["role"] = "user"
+		//insert acknowledge as "assistant" message
+		messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": "Understood. I will follow these instructions in my subsequent answers."})
+	}
+	//remove unsupported parameters from top level: temperature, top_p, presence_penalty, frequency_penalty, logprobs, top_logprobs, logit_bias
+	delete(body, "temperature")
+	delete(body, "top_p")
+	delete(body, "presence_penalty")
+	delete(body, "frequency_penalty")
+	delete(body, "logprobs")
+	delete(body, "top_logprobs")
+	delete(body, "logit_bias")
+	//set new messages object to body
+	body["messages"] = messages
+	return body
 }
