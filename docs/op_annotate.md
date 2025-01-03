@@ -72,7 +72,7 @@ The `annotate` operation can be configured using environment variables defined i
    - `OLLAMA_MODEL_OP_ANNOTATE`: Specifies the Ollama model to use for annotation.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit.
+   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting token limit - this is an indication that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
 
 4. **Retry Settings:**
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE`, `OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE`, `OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE`: Specify the number of retries on failure for the `annotate` operation.
@@ -140,7 +140,8 @@ Customization of LLM prompts for the `annotate` operation is handled through the
 1. **Initialization:**
    - The `annotate` operation begins by parsing command-line flags to determine its behavior.
    - It locates the project's root directory and the `.perpetual` configuration directory.
-   - Environment variables are loaded from `.env` files to configure the core LLM parameters, prompts loaded from `.perpetual/annotations.json` file
+   - Environment variables are loaded from `.env` files to configure the core LLM parameters.
+   - Prompts are loaded from the `.perpetual/op_annotate.json` file.
 
 2. **File Discovery:**
    - The operation scans the project directory to identify source-code files to annotate, applying whitelist and blacklist regex patterns.
@@ -158,3 +159,5 @@ Customization of LLM prompts for the `annotate` operation is handled through the
 5. **Annotation Storage:**
    - Generated annotations are saved to the `annotations.json` file in the `.perpetual` directory.
    - Checksums are updated to reflect the latest state of each annotated file.
+
+If any file fails to be annotated after the specified number of retries, the operation will not stop right away, but exit with an error after all other files are finished, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
