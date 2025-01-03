@@ -269,3 +269,41 @@ func TestValidateNonEmptyStringArray(t *testing.T) {
 		})
 	}
 }
+
+func TestCompileRegexArray(t *testing.T) {
+	tests := []struct {
+		name    string
+		source  []string
+		wantErr bool
+	}{
+		{
+			name:    "valid regex patterns",
+			source:  []string{`^[a-z]+$`, `^[0-9]+$`},
+			wantErr: false,
+		},
+		{
+			name:    "invalid regex pattern",
+			source:  []string{`^[a-z+$`},
+			wantErr: true,
+		},
+		{
+			name:    "empty regex array",
+			source:  []string{},
+			wantErr: false,
+		},
+		{
+			name:    "nil value",
+			source:  nil,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := compileRegexArray(tt.source, "test")
+			if (err != nil) != tt.wantErr {
+				t.Errorf("compileRegexArray() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
