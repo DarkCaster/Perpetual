@@ -35,7 +35,7 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-vv`: Enable both debug and trace logging for the highest level of verbosity.
 
-### Examples:
+### Examples
 
 1. **Create a new document:**
 
@@ -72,12 +72,7 @@ When executed, the `doc` operation will analyze your project's structure, releva
 1. **Stage 1:** Analyzes the project and determines which files are relevant for the documentation task.
 2. **Stage 2:** Generates or refines the document content based on the analyzed information and the specified action.
 
-## Prompts Configuration
-
-Customization of LLM prompts for the `doc` operation is handled through the `.perpetual/op_doc.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
-
-
-## Configuration
+## LLM Configuration
 
 The `doc` operation can be configured using environment variables defined in the `.env` file. These variables allow you to customize the behavior of the LLM used for generating documentation. Here are the key configuration options that affect the `doc` operation:
 
@@ -99,19 +94,32 @@ The `doc` operation can be configured using environment variables defined in the
 
    For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If needed to generate a small document, it is generally better to set a larger token limit and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
 
-4. **Retry Settings:**
+4. **JSON Structured Output Mode:**
+   To enable JSON-structured output mode for the `doc` operation, set the appropriate environment variables in your `.env` file. This mode can be enabled for Stage 1 for OpenAI, Anthropic, and Ollama providers, providing faster responses and slightly lower costs. Note that not all models may support or work reliably with JSON-structured output.
+
+   **Enable JSON-structured output mode:**
+
+   ```sh
+   ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
+   OPENAI_FORMAT_OP_DOC_STAGE1="json"
+   OLLAMA_FORMAT_OP_DOC_STAGE1="json"
+   ```
+
+   Refer to the `.env.example` file for more detailed configurations and ensure that the selected models are compatible with JSON-structured output mode.
+
+5. **Retry Settings:**
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Anthropic.
    - `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using OpenAI.
    - `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Ollama.
 
-5. **Temperature:**
+6. **Temperature:**
    - `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for the LLM during each stage of documentation generation when using Anthropic.
    - `OPENAI_TEMPERATURE_OP_DOC_STAGE1`, `OPENAI_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using OpenAI.
    - `OLLAMA_TEMPERATURE_OP_DOC_STAGE1`, `OLLAMA_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using Ollama.
 
    Lower values (e.g., 0.3-0.5) are recommended for more focused and consistent output, while higher values (0.5-0.9) can be used for producing more creative documentation.
 
-6. **Other LLM Parameters:**
+7. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for each stage of the `doc` operation by appending `_OP_DOC_STAGE1` or `_OP_DOC_STAGE2` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_DOC_STAGE1`). These are particularly useful for fine-tuning the output of smaller local Ollama models.
 
 ### Example Configuration in `.env` File:
@@ -127,11 +135,30 @@ ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.5"
 ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="0.7"
 ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
 ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="2"
+
+# Enable JSON-structured output mode for doc operation stages
+ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
+OPENAI_FORMAT_OP_DOC_STAGE1="json"
+OLLAMA_FORMAT_OP_DOC_STAGE1="json"
 ```
 
-This configuration uses the Anthropic provider with different models for each stage, sets appropriate token limits and continuation segments, uses slightly different temperatures, and allows for retries on failure.
+This configuration uses the Anthropic provider with different models for each stage, sets appropriate token limits and continuation segments, uses slightly different temperatures, enables JSON-structured output mode for Stage 1, and allows for retries on failure.
 
 Note that if stage-specific variables are not set, the `doc` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for each stage of the `doc` operation if needed.
+
+## Prompts Configuration
+
+Customization of LLM prompts for the `doc` operation is handled through the `.perpetual/op_doc.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. Since the `doc` operation is somewhat experimental and requires a robust and intelligent LLM model to work effectively, you may want to alter some of the prompts to better suit your process.
+
+Other important parameters (not recommended to change unless having problems):
+
+- **`filename_tags_rx`**: Regular expressions used to detect and parse the list of files for stage 1 LLM response if not using JSON structured output mode.
+
+- **`filename_tags`**: Tagging conventions used to identify filenames within the annotations. This allows the LLM to recognize and process filenames accurately, facilitating better integration with the project's file structure.
+
+- **`noupload_comments_rx`**: Regular expressions used to detect `no-upload` comments that mark source files forbidden to upload for processing due to privacy or other concerns.
+
+- **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters used if JSON structured output mode is enabled for stage 1 of the operation.
 
 ## Workflow
 
@@ -145,15 +172,15 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 
 2. **File Discovery:**
    - The operation scans the project directory to locate project source code files, applying whitelist and blacklist regex patterns.
-   - It automatically reannotates changed files
+   - It automatically reannotates changed files unless the `-n` flag is used to skip this step.
 
 3. **Documentation Generation or Refinement:**
-   - **Stage 1:** analyzes the project-index and determines which files are relevant for the documentation task.
-   - **Stage 2:** writes or refines the document content based on the provided source files and analyzed information.
+   - **Stage 1:** Analyzes the project-index and determines which files are relevant for the documentation task.
+   - **Stage 2:** Generates or refines the document content based on the provided source files and analyzed information.
 
 ## Best Practices
 
-1. **Use Example Documents**: Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. Mostly useful on `write` actions to copy writing style and structure from the reference document.
+1. **Use Example Documents**: Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. This is mostly useful for `write` actions to copy the writing style and structure from the reference document.
 
 2. **Iterative Refinement**: Start with a `draft` action, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. You should add instructions about the document topic, format, structure, and style inside the document draft (or the document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
 
