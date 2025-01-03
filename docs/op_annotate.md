@@ -58,7 +58,7 @@ You can instruct the LLM to alter annotations for specific files in a way you pr
 
 You may add similar notes to other parts of your code. The LLM will use these hints to alter the generated annotations as specifically instructed.
 
-## Configuration
+## LLM Configuration
 
 The `annotate` operation can be configured using environment variables defined in the `.env` file. These variables allow you to customize the behavior of the LLM (Large Language Model) used for generating annotations. Here are the key configuration options that affect the `annotate` operation:
 
@@ -105,3 +105,56 @@ This configuration uses the Anthropic provider with the Claude 3 Haiku model, se
 Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are not set, the `annotate` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for the `annotate` operation if needed.
 
 **Warning:** The `annotate` operation will process all files, including source-code files marked with `###NOUPLOAD###` comments. To improve your privacy, you may configure `Perpetual` to use a local LLM with Ollama for the `annotate` operation only.
+
+## Prompts Configuration
+
+Customization of LLM prompts for the `annotate` operation is handled through the `.perpetual/op_annotate.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
+
+- **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations. This ensures that code snippets are properly formatted and tagged for better results with the configured LLM provider and model.
+
+- **`filename_tags`**: Tagging conventions used to identify filenames within the annotations. This allows the LLM to recognize and process filenames accurately, facilitating better integration with the project's file structure.
+
+- **`stage1_prompts`**: Prompts used during the initial stage of annotation. Each entry in this array contains a regular expression `pattern` to match against a file's name and a corresponding `prompt` to generate an annotation for that file type. This allows the LLM to tailor annotations based on the specific type of source-code file being processed, ensuring that the summaries are concise and relevant to each file's contents and purpose.
+
+### Example `op_annotate.json` Configuration (partial)
+
+```json
+{
+  "stage1_prompts": [
+    {
+      "pattern": "(?i)^.*\\.go$",
+      "prompt": "Create a summary for the GO source file that explains its purpose and functionality."
+    },
+    {
+      "pattern": "(?i)^.*\\.py$",
+      "prompt": "Generate an annotation summarizing the Python script's main components and their roles."
+    }
+  ],
+  "filename_tags": ["<filename>", "</filename>"],
+  "code_tags_rx": ["(?m)```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"]
+}
+```
+
+## Workflow
+
+1. **Initialization:**
+   - The `annotate` operation begins by parsing command-line flags to determine its behavior.
+   - It locates the project's root directory and the `.perpetual` configuration directory.
+   - Environment variables are loaded from `.env` files to configure the core LLM parameters, prompts loaded from `.perpetual/annotations.json` file
+
+2. **File Discovery:**
+   - The operation scans the project directory to identify source-code files to annotate, applying whitelist and blacklist regex patterns.
+   - It calculates checksums for these files to track changes since the last annotation.
+
+3. **Annotation Decision:**
+   - Based on the provided flags (`-f`, `-d`, `-r`), the operation determines which files require annotation.
+   - In dry-run mode (`-d`), it lists the files that would be annotated without making any changes.
+
+4. **Annotation Generation:**
+   - For each selected file, the operation selects an appropriate prompt from `stage1_prompts` based on the file type.
+   - It sends these prompts to the configured LLM provider to generate annotations.
+   - If multiple annotation variants are returned, the operation may combine or select the best variant based on the configured strategy.
+
+5. **Annotation Storage:**
+   - Generated annotations are saved to the `annotations.json` file in the `.perpetual` directory.
+   - Checksums are updated to reflect the latest state of each annotated file.
