@@ -22,6 +22,8 @@ This major release aims to make the `implement` operation more usable with small
 
 - Add `best` variant selection strategy for `annotate` operation.
 
+- Added support for `o1` series of models for OpenAI provider. Only recommended for use with `doc` operation. It is too slow, and less predictable.
+
 ## v1.9.0
 
 ### Breaking changes
