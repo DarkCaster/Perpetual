@@ -24,8 +24,8 @@ To effectively use the `implement` operation, follow this typical workflow:
 
 1. **Project Setup**:
    - Create the basic structure of your project, including main files and directories.
-   - Initialize your project for use with Perpetual tool by using `init` operation.
-   - Create local `.env` configuration file at `<project_root>/.perpetual/.env` and/or global configuration file at `~/.config/Perpetual/.env` on Linux, `<User profile dir>\AppData\Roaming\Perpetual\.env` on Windows. Settings from the local project configuration file will take precedence over global configuration settings.
+   - Initialize your project for use with Perpetual tool by using the `init` operation.
+   - Create a local `.env` configuration file at `<project_root>/.perpetual/.env` and/or a global configuration file at `~/.config/Perpetual/.env` on Linux or `<User profile dir>\AppData\Roaming\Perpetual\.env` on Windows. Settings from the local project configuration file will take precedence over global configuration settings.
 
 2. **Marking Implementation Points**:
    - In your source files, use `###IMPLEMENT###` comments to indicate where you want code to be generated or modified.
@@ -63,13 +63,13 @@ To effectively use the `implement` operation, follow this typical workflow:
 ### Special Comments
 
 - `###IMPLEMENT###`: Marks sections for code implementation. You can provide detailed instructions after this comment.
-- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive or unneeded information. Files with this comment will not be sent to the LLM for processing on `implement` operation. **This is not meant for privacy**, but to reduce LLM context clogging with unrelated code. To ensure the file will never be processed by LLM, use `project_files_blacklist.json` (see the `init` operation).
+- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive or unneeded information. Files with this comment will not be sent to the LLM for processing on the `implement` operation. **This will still expose your file to the LLM** on the `annotate` (always) or `doc` operation (if using the `-f` flag).
 
-It's important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information.
+  It's important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information. It was initially meant to reduce LLM context clogging with unrelated code. **To ensure the file will never be processed by the LLM, use `project.json` (see below).**
 
-### Examining logs
+## Examining Logs
 
-`Perpetual` provides detailed logging of LLM interaction at `<project_root>/.perpetual/.message_log.txt` file: This file contains unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
+`Perpetual` provides detailed logging of LLM interactions at `<project_root>/.perpetual/.message_log.txt` file. This file contains an unformatted log of the actual messages exchanged between `Perpetual` and the LLM. This log provides a complete record of the communication, including any repeated messages, and can be useful if you need to understand the exact content of the messages sent to the LLM.
 
 ## Command-Line Usage
 
@@ -87,34 +87,56 @@ Supported flags:
 - `-pr`: Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
 - `-u`: Do not exclude unit-tests source files from processing.
-- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (use `project_test_files_blacklist.json` or `project_files_blacklist.json` inside `<project_root>/.perpetual` directory as reference)
+- `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (Use `project.json` inside the `<project_root>/.perpetual` directory as a reference)
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
 
-## Configuration
+## LLM Configuration
 
 The `implement` operation can be fine-tuned using environment variables in the `.env` file. These variables allow you to customize the behavior of the LLM used for code implementation. Key configuration options include:
 
 1. **LLM Provider**:
-   - `LLM_PROVIDER_OP_IMPLEMENT_STAGE1`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE2`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE3`: Specify the LLM provider for each stage of the implement operation.
+   - `LLM_PROVIDER_OP_IMPLEMENT_STAGE1`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE2`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE3`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE4`: Specify the LLM provider for each stage of the implement operation.
 
 2. **Model Selection**:
    - `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3`: Anthropic models for each stage.
-   - Similar variables exist for OpenAI and Ollama providers (e.g `OPENAI_MODEL_OP_IMPLEMENT_STAGE1`, `OLLAMA_MODEL_OP_IMPLEMENT_STAGE1` etc)
+   - Similar variables exist for OpenAI and Ollama providers (e.g., `OPENAI_MODEL_OP_IMPLEMENT_STAGE1`, `OLLAMA_MODEL_OP_IMPLEMENT_STAGE1`, etc.)
 
 3. **Token Limits**:
    - `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3`: Set maximum tokens for each stage.
+   - Similar variables exist for OpenAI and Ollama providers.
 
-4. **Retry Settings**:
+4. **JSON Structured Output Mode:**
+
+   JSON structured output mode is supported for stages 1 and 3. This mode can be enabled to provide faster responses and slightly lower costs. Note that not all models may support or work reliably with JSON-structured output.
+
+   **Enable JSON-structured output mode:**
+
+   To enable JSON-structured output mode for different providers, add the following options to your `.env` file:
+
+   ```sh
+   ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
+   ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
+   OPENAI_FORMAT_OP_IMPLEMENT_STAGE1="json"
+   OPENAI_FORMAT_OP_IMPLEMENT_STAGE3="json"
+   OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
+   OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
+   ```
+
+   This mode can be enabled for Stage 1 and 3 for OpenAI, Anthropic, and Ollama providers, providing faster responses and slightly lower costs. Note that not all models may support or work reliably with JSON-structured output.
+
+5. **Retry Settings**:
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3`: Specify retry attempts for each stage.
+   - Similar variables exist for OpenAI and Ollama providers.
 
-5. **Temperature**:
+6. **Temperature**:
    - `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3`: Set temperature for each stage.
+   - Similar variables exist for OpenAI and Ollama providers.
 
-6. **Other LLM Parameters**:
+7. **Other LLM Parameters**:
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: Can be set for each stage by appending `_OP_IMPLEMENT_STAGE1`, `_OP_IMPLEMENT_STAGE2`, or `_OP_IMPLEMENT_STAGE3`.
 
-Example configuration in `.env` file:
+**Example configuration in `.env` file:**
 
 ```sh
 LLM_PROVIDER="anthropic"
@@ -130,9 +152,36 @@ ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.5"
 ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
 ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
 ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
+
+# Enable JSON-structured output mode
+ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
+ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
 ```
 
 This configuration uses the Anthropic provider with the Claude 3.5 Sonnet model for stages 2 and 3, and the Claude 3 Haiku model for stage 1, where it collects context for stages 2 and 3 using the cheaper model to lower costs. It sets a maximum of 4096 tokens, uses a temperature of 0.5, and allows up to 3 retries on failure for each stage. As of the date of writing this document, Claude 3.5 Sonnet is recommended for all stages, but in the future, it may be better to set an even more powerful model for stage 3 when it becomes available.
+
+## Prompts Configuration
+
+Customization of LLM prompts for the `implement` operation is handled through the `.perpetual/op_implement.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. You may want to change it in case of problems, but normally you should not do it unless you are adapting prompts for a programming language or project type not supported by Perpetual.
+
+**Special Options:**
+
+- **`code_tags_rx`**: Regular expressions to identify code blocks in responses.
+- **`filename_embed_rx`**: Regular expression to embed filename into file implementation request.
+- **`filename_tags`**: Tags used to denote filenames in messages.
+- **`filename_tags_rx`**: Regular expressions to parse filename tags.
+- **`implement_comments_rx`**: Regular expressions to detect `###IMPLEMENT###` comments.
+- **`noupload_comments_rx`**: Regular expressions to detect `###NOUPLOAD###` comments.
+
+**Note:** Users should not modify these special options unless encountering specific problems, as they are critical for the correct parsing and handling of LLM responses.
+
+- **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters used if JSON structured output mode is enabled for stage 1 of the operation.
+
+- **`stage3_output_key`**, **`stage3_output_schema`**, **`stage3_output_schema_desc`**, **`stage3_output_schema_name`**: Parameters used if JSON structured output mode is enabled for stage 3 of the operation.
+
+## Project Configuration
+
+Global project configuration is handled through the `.perpetual/project.json` configuration file. It defines what source code files are targets for processing with Perpetual and what are not. You should update paths and regexps used for project-file selection to fit your specific project requirements.
 
 ## Best Practices
 
@@ -148,13 +197,13 @@ To get the most out of the `implement` operation, consider these best practices:
 
 5. **Consistent Coding Style**: Ensure your project has a consistent coding style. The LLM will attempt to match the style of existing code, so maintaining consistency helps produce better results.
 
-6. **Maintaining Good Project Architecture**: The better and easier to understand and maintain your architecture is, the better results the LLM will provide. Use S.O.L.I.D. principles, split your code into smaller and more specialized units. Place each unit into separate files.
+6. **Maintaining Good Project Architecture**: The better and easier to understand and maintain your architecture is, the better results the LLM will provide. Use S.O.L.I.D. principles, split your code into smaller and more specialized units, and place each unit into separate files.
 
 7. **Use Planning Flags**: For complex implementations that may require creating new files or extensive changes, use the `-p` or `-pr` flags to enable more thorough planning.
 
-8. **Use of `###NOUPLOAD###` comment**: Use the `###NOUPLOAD###` comment in files containing sensitive information to prevent them from being directly processed by the LLM in the `implement` operation. Be aware of its limitations as described earlier in this document. For complete exclusion of files from processing, use `project_files_blacklist.json` (see the `init` operation).
+8. **Use of `###NOUPLOAD###` Comment**: Use the `###NOUPLOAD###` comment in files containing sensitive information to prevent them from being directly processed by the LLM in the `implement` operation. Be aware of its limitations as described earlier in this document. For complete exclusion of files from processing, use blacklist defined at `project.json`.
 
-   The `###NOUPLOAD###` comment can also be used to prevent the LLM context from being clogged with unnecessary information. For example, you may want to avoid uploading implementations of some interfaces when only the interface is sufficient to implement the task, or some large files with text constants to lower the risk of the LLM treating it as direct instructions. This is especially useful when using LLMs with smaller context windows.
+   The `###NOUPLOAD###` comment can also be used to prevent the LLM context from being clogged with unnecessary information. For example, you may want to avoid uploading implementations of some interfaces when only the interface is sufficient to implement the task, or some large files with text constants to lower the risk of the LLM treating them as direct instructions. This is especially useful when using LLMs with smaller context windows.
 
 9. **Iterative Refinement**: If the initial implementation isn't satisfactory, refine your `###IMPLEMENT###` comments and re-run the operation. Each iteration can bring you closer to the desired result.
 
@@ -162,34 +211,41 @@ To get the most out of the `implement` operation, consider these best practices:
 
 ## Implementation Details
 
-The `implement` operation is divided into three main stages.
+The `implement` operation is divided into four main stages.
 
 ### Stage 1: Context Gathering
 
 This stage is responsible for analyzing the project and gathering context for the implementation. It performs the following tasks:
 
-1. Run `annotate` to update project source-code files annotations.
-2. Generates a project-index containing file names and their annotations.
-3. Creates a request for files with `###IMPLEMENT###` comments. It queries the LLM to identify what project source-code files are relevant for the implementation according to the project index.
-4. Returns the list of files to review.
+1. **Run `annotate`** to update project source-code files annotations.
+2. **Generate a project index** containing file names and their annotations.
+3. **Create a request for files** with `###IMPLEMENT###` comments. It queries the LLM to identify which project source-code files are relevant for the implementation according to the project index.
+4. **Return the list of files** to review.
 
-### Stage 2: Planning
+### Stage 2: Generating Work Plan
 
 This stage plans the implementation based on the context gathered in Stage 1. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that are needed to implement requested code.
-2. Querying the LLM to determine which files will be modified or created as a result of implementing code.
-3. Processing the LLM's response to extract file-list and reasoning (if enabled with `-pr` flag).
+1. **Gather Source Code**: Collects source code from relevant project files requested by the LLM in Stage 1.
+2. **Generate Reasonings**: If the planning mode includes reasoning (`-pr` flag), it requests the LLM to generate a detailed work plan outlining the steps needed to implement the requested changes. This helps in organizing the implementation tasks and ensuring comprehensive coverage of the requirements.
 
-### Stage 3: Code Generation
+### Stage 3: Planning Changes
 
-This final stage generates the actual code based on the planning from Stage 2. It includes:
+This stage plans the implementation based on the context gathered in Stages 1 and 2. It includes:
 
-1. Gather source code from relevant project files requested by LLM at stage 1, that are needed to implement requested code. Also, if available, use reasonings extracted from stage 2 as further instructions.
-2. Iteratively processing each file that needs modification or creation.
-3. Querying the LLM to produce the implemented code.
-4. Handling partial responses and continuing generation if token limits are reached.
-5. Parsing and storing the generated code for each file.
+1. **Querying the LLM** to determine which files will be modified or created as a result of implementing the code.
+2. **Processing the LLM's Response** to extract a list of files to modify or create. This involves parsing the LLM's output to identify relevant filenames and ensuring they align with the project's file structure and naming conventions.
+
+### Stage 4: Code Generation
+
+This final stage generates the actual code based on the planning from Stages 2 and 3. It includes:
+
+1. **Gather Source Code and Work Plan**: Utilizes the source code from relevant project files and, if available, the work plan from Stage 2 as further instructions.
+2. **Iteratively Process Each File**: For each file that needs modification or creation:
+   - **Query the LLM** to produce the implemented code.
+   - **Handle Partial Responses** and continue generation if token limits are reached.
+   - **Parse and Store** the generated code for each file.
+3. **Integrate Generated Code**: Saves the generated code into the appropriate files, replacing the `###IMPLEMENT###` comments and ensuring that the code integrates seamlessly with the existing codebase.
 
 ## Error Handling and Retries
 
@@ -197,22 +253,20 @@ The `implement` operation includes robust error handling and retry mechanisms to
 
 1. **LLM Query Failures**: If an LLM query fails, the operation will retry up to the number of times specified in the `<PROVIDER>_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE<NUMBER>` environment variables.
 
-2. **Token Limit Handling**: If the LLM response reaches the token limit, the operation attempts to continue generating code from where it left off. This is particularly useful for large files or complex implementations, but the result heavily depends on the LLM's ability to follow the instruction. Currently (as of September 2024) works best with Anthropic Claude 3.5 Sonnet model, and may also work well with GPT-4 or GPT-4o model.
+2. **Token Limit Handling**: If the LLM response reaches the token limit, the operation attempts to continue generating code from where it left off. This is particularly useful for large files or complex implementations, but the result heavily depends on the LLM's ability to follow the instructions. Currently (as of September 2024), it works best with the Anthropic Claude 3.5 Sonnet model and may also work well with GPT-4 or GPT-4o models.
 
-3. **Invalid Responses**: The operation checks for properly formatted code-blocks in the LLM responses (by default it tries to detect MD formatted code-blocks, but you may customize it for any other format). If no valid code is found, it will retry the query. Currently, there are no plans for using so-called `JSON-mode`, or other similar fancy features of leading LLM providers and models - because it's not so universal and even provides worse results, at least for now. This may change in the future.
-
-4. **File Processing Errors**: If there's an error processing a specific file, the operation logs the error and continues with the next file, ensuring that a single file doesn't halt the entire process.
+3. **Invalid Responses**: The operation checks for properly formatted code blocks in the LLM responses (by default, it tries to detect Markdown-formatted code blocks, but you may customize it for any other format). If no valid code is found, it will retry the query.
 
 ## Performance Considerations
 
-The `implement` operation can take a lot of time (when using locally running LLM) or money when using commercial LLM providers, especially for large projects or complex implementations. Consider the following to optimize performance:
+The `implement` operation can consume significant time (when using a locally running LLM) or incur costs when using commercial LLM providers, especially for large projects or complex tasks. Consider the following to optimize performance:
 
-1. **Use Appropriate Models**: Choose LLM models/providers that balance between capability and speed. For example, using a smaller model for Stage 1 and more powerful models for Stages 2 and 3. You may also try using small local models with Ollama for `annotate` operation, this will save you some money on auto re-annotating of changed files.
+1. **Use Appropriate Models**: Choose LLM models/providers that balance capability and speed. For example, using a smaller model for Stages 1 and 3 and more powerful models for Stages 2 and 4. You may also try using small local models with Ollama for the `annotate` operation to save on costs associated with auto re-annotating changed files.
 
-2. **Do not use `-p` or `-pr` flags unless needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags, if you know that changes won't produce any new files, or not trigger rewrites in other files not marked with `###IMPLEMENT###` comments.
+2. **Do Not Use `-p` or `-pr` Flags Unless Needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags if you believe that the implementation won't produce any new files or cause changes in other files not marked with `###IMPLEMENT###` comments.
 
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.
 
-4. **Use the `-u` flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-u` flag to include them in processing (this will disable filter for such files). This will provide additional context for the LLM and allow it to see and modify unit-tests. However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.
+4. **Use the `-u` Flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-u` flag to include them in processing (this will disable the filter for such files). This provides additional context for the LLM and allows it to see and modify unit-tests. However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.
 
 5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.
