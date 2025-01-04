@@ -256,8 +256,15 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 			continue
 		}
 
-		// There was a message written into the log, so add separator
+		// There was a message received, log it
 		if p.RawMessageLogger != nil {
+			if !p.Streaming && len(response.Choices[0].Content) > 0 {
+				p.RawMessageLogger(response.Choices[0].Content)
+			}
+			if len(response.Choices[0].Content) < 1 {
+				p.RawMessageLogger("<empty response>")
+			}
+			// add separator
 			p.RawMessageLogger("\n\n\n")
 		}
 
