@@ -30,7 +30,7 @@ Note that `Perpetual` is a tool designed mainly to assist programmers, with the 
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently, `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). If using OpenAI, avoid using GPT-3.5-Turbo and other legacy models with small context windows, as they simply cannot fit the content of the request. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used to offload some tasks locally.
+Currently, `Perpetual` supports working with OpenAI, Anthropic, Ollama and generic OpenAI-compatible providers (with some limitations). If using OpenAI, avoid using GPT-3.5-Turbo and other legacy models with small context windows, as they simply cannot fit the content of the request. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used to offload some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
 
 `Perpetual` utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
