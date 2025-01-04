@@ -4,7 +4,7 @@ This document outlines the current technical limitations. These limitations may 
 
 ## File Operations
 
-Given `Perpetual`'s focus on direct codebase interaction and to maintain its simplicity it has some limitations on file operations:
+Given `Perpetual`'s focus on direct codebase interaction and to maintain its simplicity, it has some limitations on file operations:
 
 - Cannot delete files
 - Cannot run external tools or commands on the user's system
@@ -62,7 +62,7 @@ These limitations are in place to enhance security and simplify implementation u
   - This is particularly important for case-sensitive file systems (e.g., Linux)
   - Not applicable for Windows due to its case-insensitive file system
 
-`Perpetual` will automatically adjust filename casing to align with existing project paths when necessary. This ensures consistency across different operating systems and prevents potential conflicts.
+`Perpetual` checks for filename case collisions to align with existing project paths when necessary. This ensures consistency across different operating systems and prevents potential conflicts.
 
 ## Project Root Detection
 
