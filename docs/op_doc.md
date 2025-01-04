@@ -122,7 +122,7 @@ The `doc` operation can be configured using environment variables defined in the
 7. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for each stage of the `doc` operation by appending `_OP_DOC_STAGE1` or `_OP_DOC_STAGE2` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_DOC_STAGE1`). These are particularly useful for fine-tuning the output of smaller local Ollama models.
 
-### Example Configuration in `.env` File:
+### Example Configuration in `.env` File
 
 ```sh
 LLM_PROVIDER="anthropic"
