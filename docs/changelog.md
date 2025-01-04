@@ -24,6 +24,8 @@ This major release aims to make the `implement` operation more usable with small
 
 - Added support for the `o1` series of models for the OpenAI provider. This is only recommended for use with the `doc` operation as it is slower and less predictable.
 
+- Added support for generic OpenAI-API compatible providers. See `.env.example` for more info.
+
 ## v1.9.0
 
 ### Breaking Changes
