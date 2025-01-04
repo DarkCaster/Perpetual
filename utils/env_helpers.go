@@ -10,6 +10,38 @@ import (
 	"github.com/joho/godotenv"
 )
 
+func BackupEnvVars(vars ...string) map[string]string {
+	result := make(map[string]string)
+	for _, name := range vars {
+		value, err := GetEnvString(name)
+		if err != nil {
+			continue
+		}
+		result[name] = value
+	}
+	return result
+}
+
+func UnsetEnvVars(vars ...string) error {
+	var lastErr error = nil
+	for _, name := range vars {
+		if err := os.Unsetenv(name); err != nil {
+			lastErr = err
+		}
+	}
+	return lastErr
+}
+
+func RestoreEnvVars(backup map[string]string) error {
+	var lastErr error = nil
+	for key, value := range backup {
+		if err := os.Setenv(key, value); err != nil {
+			lastErr = err
+		}
+	}
+	return lastErr
+}
+
 func GetEnvString(vars ...string) (string, error) {
 	for _, v := range vars {
 		if value := os.Getenv(v); value != "" {
