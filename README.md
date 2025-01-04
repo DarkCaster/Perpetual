@@ -18,7 +18,7 @@ It focuses on direct interaction with the project's codebase, eliminating the ne
 
 ### Warning
 
-While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it tries to change and creates a `stash` that can be (re)applied or reverted on command.
+While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it attempts to change and creates a `stash` that can be (re)applied or reverted on command.
 
 Since the LLM almost never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run the `Perpetual`'s `implement` operation multiple times to achieve a satisfactory result ([see below how to use it](#writing-code-with-perpetual)).
 
@@ -30,7 +30,7 @@ Note that `Perpetual` is a tool designed mainly to assist programmers, with the 
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently, `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). If using OpenAI, avoid using GPT-3.5-Turbo and other legacy models with small context windows, as they simply cannot fit the content of the request. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, Qwen2.5-Coder-Instruct (7B and up) model can be used to offload some tasks locally.
+Currently, `Perpetual` supports working with OpenAI and Anthropic models. It also supports locally hosted models with Ollama (highly experimental). If using OpenAI, avoid using GPT-3.5-Turbo and other legacy models with small context windows, as they simply cannot fit the content of the request. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used to offload some tasks locally.
 
 `Perpetual` utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
@@ -63,7 +63,7 @@ Supported operations:
 
 ### Initialize a New Project
 
-To initialize a new `Perpetual` project, navigate to the root directory of your project in the console, and run the following command:
+To initialize a new `Perpetual` project, navigate to the root directory of your project in the console and run the following command:
 
 ```sh
 Perpetual init -l <language>
@@ -80,7 +80,7 @@ Additional files created when executing `Perpetual` operations. **DO NOT ADD THE
 
 - `.annotations.json` — Current annotations generated for your project files.
 - `.message_log.txt` — Raw LLM interaction log (see below).
-- `.stash` subdirectory — Contain backups of source code files it changes
+- `.stash` subdirectory — Contains backups of source code files it changes.
 
 You should be cautious when modifying these settings. You can always rewrite them by running the `init` command in the project root directory again.
 
