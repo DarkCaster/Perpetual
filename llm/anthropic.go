@@ -189,6 +189,13 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 	}
 
+	// Create backup of env vars and unset them
+	envBackup := utils.BackupEnvVars("ANTHROPIC_API_KEY")
+	utils.UnsetEnvVars("ANTHROPIC_API_KEY")
+
+	// Defer env vars restore
+	defer utils.RestoreEnvVars(envBackup)
+
 	model, err := anthropic.New(anthropicOptions...)
 	if err != nil {
 		return []string{}, QueryInitFailed, err

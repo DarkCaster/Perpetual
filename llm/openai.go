@@ -209,6 +209,13 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	mitmClient := newMitmHTTPClient(transformers...)
 	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
+	// Create backup of env vars and unset them
+	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
+	utils.UnsetEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
+
+	// Defer env vars restore
+	defer utils.RestoreEnvVars(envBackup)
+
 	model, err := openai.New(openAiOptions...)
 	if err != nil {
 		return []string{}, QueryInitFailed, err
