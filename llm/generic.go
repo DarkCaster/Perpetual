@@ -1,12 +1,15 @@
 package llm
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
 )
 
 //###NOUPLOAD###
@@ -29,9 +32,11 @@ type GenericLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	MaxTokensFormat       maxTokensFormat
+	Streaming             bool
 	FilesToMdLangMappings [][]string
 	MaxTokensSegments     int
 	OnFailRetries         int
+	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
 	Variants              int
@@ -67,6 +72,11 @@ func NewGenericLLMConnectorFromEnv(
 		default:
 			return nil, fmt.Errorf("invalid max tokens format provided for %s provider: %s", prefix, format)
 		}
+	}
+
+	streaming, err := utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
+	if err != nil {
+		streaming = 0
 	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
@@ -107,8 +117,9 @@ func NewGenericLLMConnectorFromEnv(
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithSeed(seed))
+	seed := math.MaxInt
+	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
+		seed = customSeed
 	}
 
 	variants := 1
@@ -139,9 +150,11 @@ func NewGenericLLMConnectorFromEnv(
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		MaxTokensFormat:       maxTokensFormat,
+		Streaming:             streaming > 0,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
+		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               extraOptions,
 		Variants:              variants,
@@ -150,13 +163,131 @@ func NewGenericLLMConnectorFromEnv(
 }
 
 func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+	if len(messages) < 1 {
+		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+	}
+	if maxCandidates < 1 {
+		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
+	}
+
+	var providerOptions []openai.Option
+	providerOptions = append(providerOptions, openai.WithModel(p.Model))
+	if p.BaseURL != "" {
+		providerOptions = append(providerOptions, openai.WithBaseURL(p.BaseURL))
+	}
+	if p.Token != "" {
+		providerOptions = append(providerOptions, openai.WithToken(p.Token))
+	}
+	if p.MaxTokensFormat == MaxTokensOld {
+		mitmClient := newMitmHTTPClient(newMaxTokensModelTransformer())
+		providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
+	}
+
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "OPENAI_API_BASE", "OPENAI_ORGANIZATION")
 	utils.UnsetEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "OPENAI_API_BASE", "OPENAI_ORGANIZATION")
 	// Defer env vars restore
 	defer utils.RestoreEnvVars(envBackup)
 
-	return []string{}, QueryInitFailed, errors.New("generic llm connector is not meant to be used directly")
+	model, err := openai.New(providerOptions...)
+	if err != nil {
+		return []string{}, QueryInitFailed, err
+	}
+
+	var llmMessages []llms.MessageContent
+	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+
+	// Convert messages to send into LangChain format
+	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
+	if err != nil {
+		return []string{}, QueryInitFailed, err
+	}
+	llmMessages = append(llmMessages, convertedMessages...)
+
+	if p.RawMessageLogger != nil {
+		for _, m := range llmMessages {
+			p.RawMessageLogger(fmt.Sprint(m))
+			p.RawMessageLogger("\n\n\n")
+		}
+	}
+
+	streamFunc := func(ctx context.Context, chunk []byte) error {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+		return nil
+	}
+
+	options := make([]llms.CallOption, len(p.Options), len(p.Options)+1)
+	copy(options, p.Options)
+
+	if p.Streaming {
+		options = append(options, llms.WithStreamingFunc(streamFunc))
+	}
+
+	finalContent := []string{}
+	for i := 0; i < maxCandidates; i++ {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
+		}
+
+		// Generate new seed for each response if seed is set
+		finalOptions := make([]llms.CallOption, len(options), len(options)+1)
+		copy(finalOptions, options)
+
+		if p.Seed != math.MaxInt {
+			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
+		}
+
+		// Perform LLM query
+		response, err := model.GenerateContent(context.Background(), llmMessages, finalOptions...)
+		lastResort := len(finalContent) < 1 && i == maxCandidates-1
+		if err != nil {
+			if lastResort {
+				return []string{}, QueryFailed, err
+			}
+			continue
+		}
+
+		if len(response.Choices) < 1 {
+			if lastResort {
+				return []string{}, QueryFailed, errors.New("received empty response from model")
+			}
+			continue
+		}
+
+		// There was a message written into the log, so add separator
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("\n\n\n")
+		}
+
+		//not all providers return correct stop reason "length"
+		//try to compare actual returned message length in tokens with limit defined in options
+		callOpts := llms.CallOptions{}
+		for _, opt := range finalOptions {
+			opt(&callOpts)
+		}
+		maxTokens := callOpts.MaxTokens
+		if maxTokens < 1 {
+			maxTokens = math.MaxInt
+		}
+		//get generates message size in tokens
+		responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int)
+		if !ok {
+			responseTokens = maxTokens
+		}
+		//and compare
+		if responseTokens >= maxTokens || response.Choices[0].StopReason == "length" {
+			if lastResort {
+				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
+			}
+			continue
+		}
+		finalContent = append(finalContent, response.Choices[0].Content)
+	}
+
+	//return finalContent
+	return finalContent, QueryOk, nil
 }
 
 func (p *GenericLLMConnector) GetMaxTokensSegments() int {
@@ -195,4 +326,21 @@ func (p *GenericLLMConnector) GetVariantCount() int {
 
 func (p *GenericLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
+}
+
+type maxTokensModelTransformer struct{}
+
+func newMaxTokensModelTransformer() requestTransformer {
+	return &maxTokensModelTransformer{}
+}
+
+func (p *maxTokensModelTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	maxTokens, exist := body["max_completion_tokens"].(string)
+	if !exist {
+		return body
+	}
+	delete(body, "max_completion_tokens")
+	//set new messages object to body
+	body["max_tokens"] = maxTokens
+	return body
 }

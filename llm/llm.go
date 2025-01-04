@@ -145,6 +145,13 @@ func NewLLMConnector(operation string,
 			outputSchema,
 			outputFormat,
 			llmRawMessageLogger)
+	case "GENERIC":
+		return NewGenericLLMConnectorFromEnv(
+			subProfile,
+			operation,
+			systemPrompt,
+			filesToMdLangMappings,
+			llmRawMessageLogger)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
 	}
