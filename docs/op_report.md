@@ -1,8 +1,8 @@
-# Report operation
+# Report Operation
 
-The `report` operation generates a comprehensive report of the project's source code. This report can be manually uploaded into a 3rd-party LLM for further analysis, or added to its internal knowledge base. The operation provides two types of reports: a detailed code report and a brief summary report.
+The `report` operation generates a comprehensive report of the project's source code. This report can be manually uploaded into a third-party LLM for further analysis or added to its internal knowledge base. The operation provides two types of reports: a detailed code report and a brief summary report.
 
-While the `report` operation doesn't have its own configuration, it heavily relies on the `annotate` operation internally. Therefore, it depends on the proper configuration of the `annotate` operation for optimal results.
+The `report` operation relies on both the `op_report` and `project` configurations and heavily depends on the `annotate` operation internally for optimal results.
 
 ## Usage
 
@@ -30,33 +30,33 @@ The `report` operation supports several command-line flags to customize its beha
 
 - `-vv`: Enable both debug and trace logging. This flag provides the highest level of verbosity, useful for troubleshooting or understanding the internal workings of the report generation process.
 
-Examples:
+### Examples
 
-1. Generate a detailed code report and display it in the console:
+1. **Generate a detailed code report and display it in the console:**
 
    ```sh
    Perpetual report
    ```
 
-2. Generate a brief report and save it to a file:
+2. **Generate a brief report and save it to a file:**
 
    ```sh
    Perpetual report -t brief -r project_summary.txt
    ```
 
-3. Generate a detailed code report with debug logging:
+3. **Generate a detailed code report with debug logging:**
 
    ```sh
    Perpetual report -v
    ```
 
-4. Generate a report including unit test files:
+4. **Generate a report including unit test files:**
 
    ```sh
    Perpetual report -u
    ```
 
-5. Generate a report using a custom filter file:
+5. **Generate a report using a custom filter file:**
 
    ```sh
    Perpetual report -x custom_filter.json
@@ -72,5 +72,5 @@ The generated report can be used for various purposes, such as:
 
 1. Providing a comprehensive overview of the project structure and contents.
 2. Facilitating code reviews by presenting the entire codebase in a single document.
-3. Enabling easy analysis of the project using an LLM by uploading the report into the 3rd-party LLM user interface for further manual analysis.
+3. Enabling easy analysis of the project using an LLM by uploading the report into the third-party LLM user interface for further manual analysis.
 4. Creating documentation or summaries of the project's current state.
