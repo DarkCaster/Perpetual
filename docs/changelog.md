@@ -26,6 +26,10 @@ This major release aims to make the `implement` operation more usable with small
 
 - Added support for generic OpenAI-API compatible providers. See `.env.example` for more info.
 
+### Bug Fixes
+
+- Automatically unset env-variables that may affect OpenAI, Anthropic, and Generic providers if using both default and non-default profiles in your `.env` file, like `OPENAI_*` and `OPENAI1_*`.
+
 ## v1.9.0
 
 ### Breaking Changes
@@ -90,7 +94,7 @@ This major release aims to make the `implement` operation more usable with small
 
 ### Bug Fixes
 
-- Check project root dir is not a symbolic link, as this behavior is not supported and will lead to no files to process
+- Check project root dir is not a symbolic link, as this behavior is not supported and will lead to no files to process.
 
 ## v1.7.3
 
