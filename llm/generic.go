@@ -335,12 +335,12 @@ func newMaxTokensModelTransformer() requestTransformer {
 }
 
 func (p *maxTokensModelTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
-	maxTokens, exist := body["max_completion_tokens"].(string)
-	if !exist {
+	defer delete(body, "max_completion_tokens")
+
+	if maxTokens, exist := body["max_completion_tokens"]; exist {
+		body["max_tokens"] = maxTokens
 		return body
 	}
-	delete(body, "max_completion_tokens")
-	//set new messages object to body
-	body["max_tokens"] = maxTokens
+
 	return body
 }
