@@ -52,8 +52,7 @@ func Stage3(projectRootDir string,
 	}
 
 	// Declare jsonModeMessages, it will be used as messages history sent to llm when using json mode
-	jsonModeMessages := make([]llm.Message, len(messages), len(messages)+1)
-	copy(jsonModeMessages, messages)
+	jsonModeMessages := utils.NewSlice(messages...)
 
 	// When using planning without reasoning, create request that will include target files content
 	if planningMode == 1 {

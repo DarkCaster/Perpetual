@@ -110,7 +110,7 @@ func Run(args []string, logger logging.ILogger) {
 			if !found {
 				logger.Panicln("Requested file not found in project")
 			}
-			filesToAnnotate = []string{requestedFile}
+			filesToAnnotate = utils.NewSlice(requestedFile)
 		} else {
 			filesToAnnotate = make([]string, 0, len(fileChecksums))
 			for file := range fileChecksums {
@@ -248,7 +248,7 @@ func Run(args []string, logger logging.ILogger) {
 			// Combine the annotation using LLM
 			if variantSelectionStrategy == llm.Combine || variantSelectionStrategy == llm.Best {
 				// Create message-chain for request
-				combinedMessages := []llm.Message{annotateRequest, annotateSimulatedResponse, fileContentsRequest}
+				combinedMessages := utils.NewSlice(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 				for i, variant := range finalVariants {
 					combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), variant))
 					if i < len(finalVariants)-1 {

@@ -157,7 +157,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
-	ollamaOptions := append([]ollama.Option{}, ollama.WithModel(p.Model))
+	ollamaOptions := utils.NewSlice(ollama.WithModel(p.Model))
 	if p.BaseURL != "" {
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
@@ -172,8 +172,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, err
 	}
 
-	var llmMessages []llms.MessageContent
-	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
@@ -196,7 +196,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return nil
 	}
 
-	options := append(p.Options, llms.WithStreamingFunc(streamFunc))
 	finalContent := []string{}
 
 	for i := 0; i < maxCandidates; i++ {
@@ -204,8 +203,10 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
+		finalOptions := utils.NewSlice(p.Options...)
+		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+
 		// Generate new seed for each response if seed is set
-		finalOptions := append([]llms.CallOption{}, options...)
 		if p.Seed != math.MaxInt {
 			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
 		}

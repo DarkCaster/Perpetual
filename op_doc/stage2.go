@@ -6,6 +6,7 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/utils"
 )
 
 func Stage2(projectRootDir string,
@@ -99,8 +100,7 @@ func Stage2(projectRootDir string,
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		// Work with a copy of message-chain, to discard it on retry
-		messagesTry := make([]llm.Message, len(messages), len(messages)+4)
-		copy(messagesTry, messages)
+		messagesTry := utils.NewSlice(messages...)
 		// Initialize temporary variables for handling partial answers
 		var responses []string
 		continueGeneration := true

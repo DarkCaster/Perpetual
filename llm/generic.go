@@ -170,8 +170,7 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
-	var providerOptions []openai.Option
-	providerOptions = append(providerOptions, openai.WithModel(p.Model))
+	providerOptions := utils.NewSlice(openai.WithModel(p.Model))
 	if p.BaseURL != "" {
 		providerOptions = append(providerOptions, openai.WithBaseURL(p.BaseURL))
 	}
@@ -194,8 +193,8 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		return []string{}, QueryInitFailed, err
 	}
 
-	var llmMessages []llms.MessageContent
-	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
@@ -218,23 +217,17 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		return nil
 	}
 
-	options := make([]llms.CallOption, len(p.Options), len(p.Options)+1)
-	copy(options, p.Options)
-
-	if p.Streaming {
-		options = append(options, llms.WithStreamingFunc(streamFunc))
-	}
-
 	finalContent := []string{}
 	for i := 0; i < maxCandidates; i++ {
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
+		finalOptions := utils.NewSlice(p.Options...)
+		if p.Streaming {
+			finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+		}
 		// Generate new seed for each response if seed is set
-		finalOptions := make([]llms.CallOption, len(options), len(options)+1)
-		copy(finalOptions, options)
-
 		if p.Seed != math.MaxInt {
 			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
 		}

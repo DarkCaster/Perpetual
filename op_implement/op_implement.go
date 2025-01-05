@@ -281,7 +281,7 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Extra failsafe: filter-out files from results that not among initial files to modify
 	var filteredResults = make(map[string]string)
-	finalFilesToModify := append(append([]string{}, targetFilesToModify...), otherFilesToModify...)
+	finalFilesToModify := append(utils.NewSlice(targetFilesToModify...), otherFilesToModify...)
 	for file, content := range results {
 		skip := true
 		for _, targetFile := range finalFilesToModify {

@@ -78,3 +78,10 @@ func CalculateSHA256(filePath string) (string, error) {
 	checksum := hash.Sum(nil)
 	return fmt.Sprintf("%x", checksum), nil
 }
+
+// This is a bit lame, but at least we can be sure that we'll always get a separate slice that doesn't overlap with anything.
+func NewSlice[T any](vars ...T) []T {
+	result := make([]T, len(vars))
+	copy(result, vars)
+	return result
+}

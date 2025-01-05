@@ -88,9 +88,7 @@ func Stage2(projectRootDir string,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
 		// realMessages message-history will be used for actual LLM prompt
-		realMessages := make([]llm.Message, len(messages), len(messages)+1)
-		copy(realMessages, messages)
-		realMessages = append(realMessages, requestMessage)
+		realMessages := append(utils.NewSlice(messages...), requestMessage)
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {

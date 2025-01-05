@@ -64,7 +64,7 @@ func Stage4(projectRootDir string,
 			llm.NewMessage(llm.SimulatedAIResponse),
 			cfg.String(config.K_ImplementStage4ChangesDoneResponse))
 
-		stage4Messages := append([]llm.Message(nil), stage2Messages...)
+		stage4Messages := utils.NewSlice(stage2Messages...)
 		if len(processedFiles) > 0 {
 			stage4Messages = append(stage4Messages, stage4ChangesDoneMessage)
 			stage4Messages = append(stage4Messages, stage4ChangesDoneResponseMessage)
@@ -102,8 +102,8 @@ func Stage4(projectRootDir string,
 			onFailRetriesLeft = 1
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			// Create a copy, so it will be automatically discarded on file retry
-			stage4MessagesTry := append([]llm.Message(nil), stage4Messages...)
+			// Create a copy, so it will be discarded on file retry
+			stage4MessagesTry := utils.NewSlice(stage4Messages...)
 			// Initialize temporary variables for handling partial answers
 			var responses []string
 			continueGeneration := true

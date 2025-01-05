@@ -197,12 +197,12 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
-	openAiOptions := append([]openai.Option{}, openai.WithToken(p.Token), openai.WithModel(p.Model))
+	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithModel(p.Model))
 	if p.BaseURL != "" {
 		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
 	}
 
-	transformers := []requestTransformer{newO1ModelTransformer()}
+	transformers := utils.NewSlice(newO1ModelTransformer())
 	if p.OutputFormat == OutputJson {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
@@ -221,8 +221,8 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return []string{}, QueryInitFailed, err
 	}
 
-	var llmMessages []llms.MessageContent
-	llmMessages = append(llmMessages, llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
@@ -245,8 +245,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		return nil
 	}
 
-	finalOptions := make([]llms.CallOption, len(p.Options), len(p.Options)+1)
-	copy(finalOptions, p.Options)
+	finalOptions := utils.NewSlice(p.Options...)
 	streamingEnabled := false
 
 	// Perform LLM query
