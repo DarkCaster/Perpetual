@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -79,9 +80,12 @@ func CalculateSHA256(filePath string) (string, error) {
 	return fmt.Sprintf("%x", checksum), nil
 }
 
-// This is a bit lame, but at least we can be sure that we'll always get a separate slice that doesn't overlap with anything.
+// Used to produce completely new slice from another slice or single elements, where we need it.
+// This is a bit lame but simple approach that allow to mess safely with original slice afterwards.
 func NewSlice[T any](vars ...T) []T {
-	result := make([]T, len(vars))
+	// Give extra capacity to support adding a few elements right after creating the slice without repacking
+	extraCapacity := int(math.Ceil(math.Log2(float64(len(vars)+1)))) + 1
+	result := make([]T, len(vars), len(vars)+extraCapacity)
 	copy(result, vars)
 	return result
 }
