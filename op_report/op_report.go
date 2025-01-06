@@ -113,7 +113,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 		// Generate report message
 		reportMessage = llm.ComposeMessageWithAnnotations(
-			reportConfig.String(config.K_ImplementStage1IndexPrompt),
+			reportConfig.String(config.K_ReportBriefPrompt),
 			fileNames,
 			reportConfig.StringArray(config.K_FilenameTags),
 			annotations,
@@ -122,7 +122,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Generate report messages
 		reportMessage = llm.ComposeMessageWithFiles(
 			projectRootDir,
-			reportConfig.String(config.K_ImplementStage2CodePrompt),
+			reportConfig.String(config.K_ReportCodePrompt),
 			fileNames,
 			reportConfig.StringArray(config.K_FilenameTags),
 			logger)
