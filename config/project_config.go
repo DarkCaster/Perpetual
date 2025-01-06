@@ -73,7 +73,7 @@ func (o *projectConfig) Regexp(key string) *regexp.Regexp {
 }
 
 func (o *projectConfig) RegexpArray(key string) []*regexp.Regexp {
-	return o.cfgValues[key].([]*regexp.Regexp)
+	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
 }
 
 func (o *projectConfig) String(key string) string {

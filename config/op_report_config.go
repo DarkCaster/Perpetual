@@ -49,7 +49,7 @@ func (o *opReportConfig) Regexp(key string) *regexp.Regexp {
 }
 
 func (o *opReportConfig) RegexpArray(key string) []*regexp.Regexp {
-	return o.cfgValues[key].([]*regexp.Regexp)
+	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
 }
 
 func (o *opReportConfig) String(key string) string {

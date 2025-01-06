@@ -88,7 +88,7 @@ func (o *opImplementConfig) Regexp(key string) *regexp.Regexp {
 }
 
 func (o *opImplementConfig) RegexpArray(key string) []*regexp.Regexp {
-	return o.cfgValues[key].([]*regexp.Regexp)
+	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
 }
 
 func (o *opImplementConfig) String(key string) string {

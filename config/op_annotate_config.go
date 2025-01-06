@@ -97,7 +97,7 @@ func (o *opAnnotateConfig) Regexp(key string) *regexp.Regexp {
 }
 
 func (o *opAnnotateConfig) RegexpArray(key string) []*regexp.Regexp {
-	return o.cfgValues[key].([]*regexp.Regexp)
+	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
 }
 
 func (o *opAnnotateConfig) String(key string) string {

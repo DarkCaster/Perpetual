@@ -108,7 +108,7 @@ func compileRegexArray(source []string, name string) ([]*regexp.Regexp, error) {
 
 func interfaceToStringArray(source interface{}) []string {
 	sourceArray := source.([]interface{})
-	target := make([]string, len(sourceArray))
+	target := make([]string, len(sourceArray), cap(sourceArray))
 	for i, element := range sourceArray {
 		target[i] = element.(string)
 	}
@@ -117,7 +117,7 @@ func interfaceToStringArray(source interface{}) []string {
 
 func interfaceTo2DStringArray(source interface{}) [][]string {
 	sourceArray := source.([]interface{})
-	target := make([][]string, len(sourceArray))
+	target := make([][]string, len(sourceArray), cap(sourceArray))
 	for i, element := range sourceArray {
 		target[i] = interfaceToStringArray(element)
 	}

@@ -66,7 +66,7 @@ func (o *opDocConfig) Regexp(key string) *regexp.Regexp {
 }
 
 func (o *opDocConfig) RegexpArray(key string) []*regexp.Regexp {
-	return o.cfgValues[key].([]*regexp.Regexp)
+	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
 }
 
 func (o *opDocConfig) String(key string) string {
