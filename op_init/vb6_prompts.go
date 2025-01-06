@@ -59,6 +59,6 @@ func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 
 func (p *vb6Prompts) GetReportConfig() map[string]interface{} {
 	result := getDefaultReportConfigTemplate()
-	result[config.K_ReportBriefPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ReportBriefPrompt] = "This document contains description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result
 }

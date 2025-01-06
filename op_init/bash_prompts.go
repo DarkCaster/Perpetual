@@ -54,6 +54,6 @@ func (p *bashPrompts) GetProjectConfig() map[string]interface{} {
 
 func (p *bashPrompts) GetReportConfig() map[string]interface{} {
 	result := getDefaultReportConfigTemplate()
-	result[config.K_ReportBriefPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[config.K_ReportBriefPrompt] = "This document contains description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	return result
 }

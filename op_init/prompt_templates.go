@@ -149,7 +149,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 
 func getDefaultReportConfigTemplate() map[string]interface{} {
 	result := config.GetReportConfigTemplate()
-	result[config.K_ReportCodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_ReportCodePrompt] = "This document contains the project's source code files."
 	result[config.K_FilenameTags] = []string{"### File: ", ""}
 	return result
 }
