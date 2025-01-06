@@ -67,6 +67,14 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}",
 			"args": ["doc","-a","write","-r","test.md"],
+		},
+		{
+			"name": "Launch Package: report",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["report"],
 		}
 	]
 }
