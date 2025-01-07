@@ -26,7 +26,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Parse flags for the "init" operation
 	initFlags := initFlags()
 	initFlags.BoolVar(&help, "h", false, "Show usage")
-	initFlags.StringVar(&lang, "l", "", "Select programming language for setting up default LLM prompts (valid values: go|dotnetfw|bash|python3|vb6|...)")
+	initFlags.StringVar(&lang, "l", "", "Select programming language for setting up default LLM prompts (valid values: go|dotnetfw|bash|python3|vb6|c)")
 	initFlags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	initFlags.BoolVar(&clean, "c", false, "Clean obsolete files and directories")
 	initFlags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
