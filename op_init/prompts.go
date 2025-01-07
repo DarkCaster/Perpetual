@@ -32,6 +32,8 @@ func newPrompts(targetLang string) (prompts, error) {
 		return &vb6Prompts{}, nil
 	case "C":
 		return &cPrompts{}, nil
+	case "CPP":
+		return &cppPrompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
