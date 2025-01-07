@@ -19,6 +19,7 @@ func (p *cppPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP},
 		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C},
 		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP},
+		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
@@ -50,6 +51,7 @@ func (p *cppPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$",
 		"(?i)^.*\\.c$",
 		"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$",
+		"(?i)^.*\\.(s|asm)$",
 		"(?i)^.*(CMakeLists.txt|\\.cmake)",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{

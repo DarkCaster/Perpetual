@@ -18,6 +18,7 @@ func (p *cPrompts) GetAnnotateConfig() map[string]interface{} {
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C},
 		{"(?i)^.*\\.h$", defaultAIAnnotatePrompt_H},
+		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
@@ -48,6 +49,7 @@ func (p *cPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.c$",
 		"(?i)^.*\\.h$",
+		"(?i)^.*\\.(s|asm)$",
 		"(?i)^.*(CMakeLists.txt|\\.cmake)",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{
