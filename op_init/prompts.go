@@ -34,6 +34,8 @@ func newPrompts(targetLang string) (prompts, error) {
 		return &cPrompts{}, nil
 	case "CPP":
 		return &cppPrompts{}, nil
+	case "ARDUINO":
+		return &arduinoPrompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
