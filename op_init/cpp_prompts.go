@@ -16,8 +16,9 @@ func (p *cppPrompts) GetAnnotateConfig() map[string]interface{} {
 	result[config.K_SystemPrompt] = cppSystemPrompt
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
-		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm|hpp)$", defaultAIAnnotatePrompt_CPP},
-		{"(?i)^.*\\.(h|h\\+\\+)$", defaultAIAnnotatePrompt_H_CPP},
+		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP},
+		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C},
+		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake},
 		{"^.*$", defaultAIAnnotatePrompt_Generic},
 	}
@@ -46,8 +47,9 @@ func (p *cppPrompts) GetDocConfig() map[string]interface{} {
 func (p *cppPrompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
-		"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm|hpp)$",
-		"(?i)^.*\\.(h|h\\+\\+)$",
+		"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$",
+		"(?i)^.*\\.c$",
+		"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$",
 		"(?i)^.*(CMakeLists.txt|\\.cmake)",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{
