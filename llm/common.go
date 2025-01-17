@@ -30,8 +30,10 @@ func getMarkdownCodeBlockType(filesToMdLangMappings [][]string, fileName string)
 		return "java"
 	case ".bat", ".cmd":
 		return "bat"
-	case ".c", ".cpp", ".h", ".hpp":
+	case ".c", ".h":
 		return "c"
+	case ".cpp", ".hpp":
+		return "cpp"
 	case ".rb":
 		return "ruby"
 	case ".php":
