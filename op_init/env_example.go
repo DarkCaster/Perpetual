@@ -53,7 +53,7 @@ ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
 ANTHROPIC_MODEL_OP_ANNOTATE_POST="claude-3-haiku-20240307" # used to process multiple response-variants if any
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-5-haiku-latest"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-5-sonnet-latest"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-latest"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-3-5-sonnet-latest"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-3-5-sonnet-latest"
@@ -65,11 +65,11 @@ ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: s
 ANTHROPIC_VARIANT_COUNT="1" # will be used as fallback
 ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 
-# Switch to use structured JSON output format for supported operations
-# Supported values: plain, json. Default: plain
-ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
-ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
-ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
+# Switch to use structured JSON output format for supported operations, supported values: plain, json. Default: plain
+# The "plain" method seems to work better here, since it uses XML-style tags, for which anthropic models were initially better trained than for JSON.
+# ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
+# ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
+# ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
 
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="768"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
