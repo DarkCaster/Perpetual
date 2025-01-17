@@ -52,6 +52,11 @@ func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*\\.(h|hpp|hh|tpp|ipp)$",
 		"(?i)^.*\\.s$",
 	}
+	result[config.K_ProjectMdCodeMappings] = [][2]string{
+		{"(?i)^.*\\.ino$", "cpp"},
+		{"(?i)^.*\\.(h|hpp|hh|tpp|ipp)$", "cpp"},
+		{"(?i)^.*\\.s$", "asm"},
+	}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^(data\\\\|data\\/)",
 	}

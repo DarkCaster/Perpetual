@@ -54,6 +54,12 @@ func (p *cppPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*\\.(s|asm)$",
 		"(?i)^.*(CMakeLists.txt|\\.cmake)",
 	}
+	result[config.K_ProjectMdCodeMappings] = [][2]string{
+		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", "cpp"},
+		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", "cpp"},
+		{"(?i)^.*\\.(s|asm)$", "asm"},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", "cmake"},
+	}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^(CMakeFiles\\\\|build\\\\|\\.deps\\\\|\\.libs\\\\|CMakeFiles\\/|build\\/|\\.deps\\/|\\.libs\\/)",
 	}
