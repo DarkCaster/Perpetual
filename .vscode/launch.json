@@ -10,7 +10,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["annotate"],
+			"args": ["annotate","-vv"],
 		},
 		{
 			"name": "Launch Package: brief report",
@@ -18,7 +18,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["report","-t","brief"],
+			"args": ["report","-t","brief","-vv"],
 		},
 		{
 			"name": "Launch Package: implement -pr",
@@ -26,7 +26,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["implement","-pr"],
+			"args": ["implement","-pr","-vv"],
 		},
 		{
 			"name": "Launch Package: implement -n -u -pr",
@@ -34,7 +34,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["implement","-n","-u","-pr"],
+			"args": ["implement","-n","-u","-pr","-vv"],
 		},
 		{
 			"name": "Launch Package: implement",
@@ -42,7 +42,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["implement"],
+			"args": ["implement","-vv"],
 		},
 		{
 			"name": "Launch Package: stash",
@@ -50,7 +50,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["stash"],
+			"args": ["stash","-vv"],
 		},
 		{
 			"name": "Launch Package: doc draft",
@@ -58,7 +58,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["doc","-a","draft","-r","test.md"],
+			"args": ["doc","-a","draft","-r","test.md","-vv"],
 		},
 		{
 			"name": "Launch Package: doc write",
@@ -66,7 +66,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["doc","-a","write","-r","test.md"],
+			"args": ["doc","-a","write","-r","test.md","-vv"],
 		},
 		{
 			"name": "Launch Package: report",
@@ -74,7 +74,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["report"],
+			"args": ["report","-vv"],
 		}
 	]
 }
