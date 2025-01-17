@@ -107,24 +107,8 @@ func NewAnthropicLLMConnectorFromEnv(
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 	}
 
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTopK(topK))
-	}
-
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
-	}
-
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
-	}
-
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
-	}
-
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
 	}
 
 	variants := 1
@@ -297,7 +281,7 @@ func (p *AnthropicLLMConnector) GetOptionsString() string {
 	for _, option := range p.Options {
 		option(&callOptions)
 	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopP: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopP)
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
