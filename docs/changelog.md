@@ -9,7 +9,7 @@
 
 ### Bug Fixes
 
-- Remove "seed" parameter support for anthropic models - it seem to be unsupoported, `.env` example config updated
+- Remove unsupported advanced parameters for anthropic models: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library, `.env` example config updated
 
 ## v2.0.0
 
