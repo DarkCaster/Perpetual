@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -29,14 +28,13 @@ type AnthropicLLMConnector struct {
 	OutputFormat          OutputFormat
 	MaxTokensSegments     int
 	OnFailRetries         int
-	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -48,7 +46,6 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
-		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options,
 		Variants:              variants,
@@ -118,11 +115,6 @@ func NewAnthropicLLMConnectorFromEnv(
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 	}
 
-	seed := math.MaxInt
-	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
-		seed = customSeed
-	}
-
 	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
 	}
@@ -167,7 +159,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		outputFormat = OutputPlain
 	}
 
-	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -224,17 +216,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
-		// Generate new seed for this response if using custom seed
-		finalOptions := utils.NewSlice(p.Options...)
-		if p.Seed != math.MaxInt {
-			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
-		}
-
 		// Perform LLM query
 		response, err := model.GenerateContent(
 			context.Background(),
 			llmMessages,
-			finalOptions...,
+			p.Options...,
 		)
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
@@ -311,7 +297,7 @@ func (p *AnthropicLLMConnector) GetOptionsString() string {
 	for _, option := range p.Options {
 		option(&callOptions)
 	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, p.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
+	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
