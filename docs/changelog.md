@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.1.0
+
+### Improvements
+
+- Added base support for C and C++ languages with CMake build. Due to the huge number of different project formats and file types, you will probably have to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before really using it.
+- Added initial support for Arduino C\C++ projects (sketches). `Perpetual` would not have access to 3-rd party modules' sources if initialized from sketch dir. It might be a good idea to run `Perpetual init -l arduino` from the parent sketch-dir and extract the module sources there to allow `perpetual` to access them.
+
+### Bug Fixes
+
+- Remove "seed" parameter support for anthropic models - it seem to be unsupoported, `.env` example config updated
+
 ## v2.0.0
 
 This major release aims to make the `implement` operation more usable with smaller models (sub-15B models run with Ollama).
