@@ -41,6 +41,7 @@ type GenericLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	Debug                 llmDebug
 }
 
 func NewGenericLLMConnectorFromEnv(
@@ -51,15 +52,20 @@ func NewGenericLLMConnectorFromEnv(
 	llmRawMessageLogger func(v ...any)) (*GenericLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
+	var debug llmDebug
+	debug.Add("provider", "generic")
+
 	prefix := "GENERIC"
 	if subprofile != "" {
 		prefix = fmt.Sprintf("GENERIC%s", strings.ToUpper(subprofile))
+		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
 	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
-
-	if err != nil {
-		return nil, err
+	if err == nil {
+		debug.Add("token", "set")
+	} else {
+		token = ""
 	}
 
 	maxTokensFormat := MaxTokensOld
@@ -72,10 +78,13 @@ func NewGenericLLMConnectorFromEnv(
 		default:
 			return nil, fmt.Errorf("invalid max tokens format provided for %s provider: %s", prefix, format)
 		}
+		debug.Add("max-tokens format", format)
 	}
 
 	streaming, err := utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
-	if err != nil {
+	if err == nil {
+		debug.Add("streaming", streaming > 0)
+	} else {
 		streaming = 0
 	}
 
@@ -83,52 +92,63 @@ func NewGenericLLMConnectorFromEnv(
 	if err != nil {
 		return nil, err
 	}
+	debug.Add("model", model)
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
+	debug.Add("segments", maxTokensSegments)
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
+	debug.Add("retries", onFailRetries)
 
-	baseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
-	if len(baseURL) < 1 {
+	baseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	if err != nil || len(baseURL) < 1 {
 		return nil, fmt.Errorf("%s_BASE_URL env var missing or invalid", prefix)
 	}
+	debug.Add("base url", baseURL)
 
 	var extraOptions []llms.CallOption
 
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+		debug.Add("temperature", temperature)
 	}
 
 	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+		debug.Add("max tokens", maxTokens)
 	}
 
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
+		debug.Add("top k", topK)
 	}
 
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		debug.Add("top p", topP)
 	}
 
 	seed := math.MaxInt
 	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		seed = customSeed
+		debug.Add("seed", seed)
 	}
 
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
+		debug.Add("variants", variants)
 	}
 
 	variantStrategy := Short
 	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+		debug.Add("strategy", curStrategy)
 		switch curStrategy {
 		case "SHORT":
 			variantStrategy = Short
@@ -159,6 +179,7 @@ func NewGenericLLMConnectorFromEnv(
 		Options:               extraOptions,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
+		Debug:                 debug,
 	}, nil
 }
 
@@ -302,21 +323,8 @@ func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
 	return OutputPlain
 }
 
-func (p *GenericLLMConnector) GetOptionsString() string {
-	var callOptions llms.CallOptions
-	for _, option := range p.Options {
-		option(&callOptions)
-	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, p.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
-}
-
 func (p *GenericLLMConnector) GetDebugString() string {
-	if p.Subprofile != "" {
-		return fmt.Sprintf("Provider: Generic (%s), Subprofile: %s, Model: %s, OnFailureRetries: %d, %s",
-			p.BaseURL, p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
-	}
-	return fmt.Sprintf("Provider: Generic (%s), Model: %s, OnFailureRetries: %d, %s",
-		p.BaseURL, p.Model, p.OnFailRetries, p.GetOptionsString())
+	return p.Debug.Format()
 }
 
 func (p *GenericLLMConnector) GetVariantCount() int {
