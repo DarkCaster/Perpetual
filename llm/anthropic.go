@@ -102,6 +102,8 @@ func NewAnthropicLLMConnectorFromEnv(
 	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
 	if err == nil {
 		debug.Add("base url", customBaseURL)
+	} else {
+		customBaseURL = ""
 	}
 
 	var extraOptions []llms.CallOption

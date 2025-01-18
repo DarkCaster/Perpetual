@@ -88,6 +88,8 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
 	if err == nil {
 		debug.Add("base url", customBaseURL)
+	} else {
+		customBaseURL = ""
 	}
 
 	var extraOptions []llms.CallOption
