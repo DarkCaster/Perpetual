@@ -35,9 +35,10 @@ type OpenAILLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	Debug                 llmDebug
 }
 
-func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OpenAILLMConnector {
+func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -52,7 +53,9 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options,
 		Variants:              variants,
-		VariantStrategy:       variantStrategy}
+		VariantStrategy:       variantStrategy,
+		Debug:                 debug,
+	}
 }
 
 func NewOpenAILLMConnectorFromEnv(
@@ -67,9 +70,13 @@ func NewOpenAILLMConnectorFromEnv(
 	llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
+	var debug llmDebug
+	debug.Add("provider", "openai")
+
 	prefix := "OPENAI"
 	if subprofile != "" {
 		prefix = fmt.Sprintf("OPENAI%s", strings.ToUpper(subprofile))
+		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
 	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
@@ -81,18 +88,24 @@ func NewOpenAILLMConnectorFromEnv(
 	if err != nil {
 		return nil, err
 	}
+	debug.Add("model", model)
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
+	debug.Add("segments", maxTokensSegments)
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
+	debug.Add("retries", onFailRetries)
 
-	customBaseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	if err == nil {
+		debug.Add("base url", customBaseURL)
+	}
 
 	var extraOptions []llms.CallOption
 
@@ -101,6 +114,7 @@ func NewOpenAILLMConnectorFromEnv(
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+		debug.Add("temperature", temperature)
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -108,39 +122,48 @@ func NewOpenAILLMConnectorFromEnv(
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+		debug.Add("max tokens", maxTokens)
 	}
 
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
+		debug.Add("top k", topK)
 	}
 
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		debug.Add("top p", topP)
 	}
 
 	if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithSeed(seed))
+		debug.Add("seed", seed)
 	}
 
 	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
+		debug.Add("repeat penalty", repeatPenalty)
 	}
 
 	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+		debug.Add("freq penalty", freqPenalty)
 	}
 
 	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+		debug.Add("presence penalty", presencePenalty)
 	}
 
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
+		debug.Add("variants", variants)
 	}
 
 	variantStrategy := Short
 	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+		debug.Add("strategy", curStrategy)
 		if curStrategy == "SHORT" {
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {
@@ -158,6 +181,7 @@ func NewOpenAILLMConnectorFromEnv(
 	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
 	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
+		debug.Add("format", "json")
 		jsonSchema := map[string]interface{}{"type": "json_schema"}
 		innerSchema := map[string]interface{}{"strict": true, "name": outputSchemaName, "description": outputSchemaDesc}
 		jsonSchema["json_schema"] = innerSchema
@@ -165,10 +189,11 @@ func NewOpenAILLMConnectorFromEnv(
 		innerSchema["schema"] = outputSchema
 		processOpenAISchema(outputSchema)
 	} else {
+		debug.Add("format", "plain")
 		outputFormat = OutputPlain
 	}
 
-	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
 }
 
 func processOpenAISchema(target map[string]interface{}) {
@@ -313,20 +338,8 @@ func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OpenAILLMConnector) GetOptionsString() string {
-	var callOptions llms.CallOptions
-	for _, option := range p.Options {
-		option(&callOptions)
-	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, callOptions.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
-}
-
 func (p *OpenAILLMConnector) GetDebugString() string {
-	if p.Subprofile != "" {
-		return fmt.Sprintf("Provider: OpenAI, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
-	} else {
-		return fmt.Sprintf("Provider: OpenAI, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
-	}
+	return p.Debug.Format()
 }
 
 func (p *OpenAILLMConnector) GetVariantCount() int {
