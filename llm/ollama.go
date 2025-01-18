@@ -33,9 +33,10 @@ type OllamaLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	Debug                 llmDebug
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -50,33 +51,44 @@ func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options,
 		Variants:              variants,
-		VariantStrategy:       variantStrategy}
+		VariantStrategy:       variantStrategy,
+		Debug:                 debug}
 }
 
 func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
+	var debug llmDebug
+	debug.Add("provider", "ollama")
+
 	prefix := "OLLAMA"
 	if subprofile != "" {
 		prefix = fmt.Sprintf("OLLAMA%s", strings.ToUpper(subprofile))
+		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
 	if err != nil {
 		return nil, err
 	}
+	debug.Add("model", model)
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
+	debug.Add("segments", maxTokensSegments)
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
+	debug.Add("retries", onFailRetries)
 
-	customBaseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	if err == nil {
+		debug.Add("base url", customBaseURL)
+	}
 
 	var extraOptions []llms.CallOption
 
@@ -85,6 +97,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+		debug.Add("temperature", temperature)
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -92,40 +105,49 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+		debug.Add("max tokens", maxTokens)
 	}
 
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopK(topK))
+		debug.Add("top k", topK)
 	}
 
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		debug.Add("top p", topP)
 	}
 
 	seed := math.MaxInt
 	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		seed = customSeed
+		debug.Add("seed", seed)
 	}
 
 	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
+		debug.Add("repeat penalty", repeatPenalty)
 	}
 
 	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+		debug.Add("freq penalty", freqPenalty)
 	}
 
 	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+		debug.Add("presence penalty", presencePenalty)
 	}
 
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
+		debug.Add("variants", variants)
 	}
 
 	variantStrategy := Short
 	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+		debug.Add("strategy", curStrategy)
 		if curStrategy == "SHORT" {
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {
@@ -141,12 +163,14 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 
 	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
+		debug.Add("format", "json")
 		fieldsToInject["format"] = outputSchema
 	} else {
+		debug.Add("format", "plain")
 		outputFormat = OutputPlain
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -283,20 +307,8 @@ func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OllamaLLMConnector) GetOptionsString() string {
-	var callOptions llms.CallOptions
-	for _, option := range p.Options {
-		option(&callOptions)
-	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopK: %d, TopP: %5.3f, Seed: %d, RepeatPenalty: %5.3f, FreqPenalty: %5.3f, PresencePenalty: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopK, callOptions.TopP, p.Seed, callOptions.RepetitionPenalty, callOptions.FrequencyPenalty, callOptions.PresencePenalty)
-}
-
 func (p *OllamaLLMConnector) GetDebugString() string {
-	if p.Subprofile != "" {
-		return fmt.Sprintf("Provider: Ollama, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
-	} else {
-		return fmt.Sprintf("Provider: Ollama, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
-	}
+	return p.Debug.Format()
 }
 
 func (p *OllamaLLMConnector) GetVariantCount() int {
