@@ -11,6 +11,26 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
+type llmDebug struct {
+	Values [][2]any
+}
+
+func (p *llmDebug) Add(key, value any) {
+	kv := [...]any{key, value}
+	p.Values = append(p.Values, kv)
+}
+
+func (p *llmDebug) Format() string {
+	var sb strings.Builder
+	for i, kv := range p.Values {
+		if i > 0 {
+			sb.WriteString(" ") // Add space between pairs
+		}
+		sb.WriteString(fmt.Sprint("[", kv[0], ":", kv[1], "]"))
+	}
+	return sb.String()
+}
+
 func getMarkdownCodeBlockType(filesToMdLangMappings [][]string, fileName string) string {
 	for _, mapping := range filesToMdLangMappings {
 		matched, err := regexp.MatchString(mapping[0], fileName)

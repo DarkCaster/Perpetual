@@ -32,9 +32,10 @@ type AnthropicLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	Debug                 llmDebug
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -49,7 +50,9 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               options,
 		Variants:              variants,
-		VariantStrategy:       variantStrategy}
+		VariantStrategy:       variantStrategy,
+		Debug:                 debug,
+	}
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -64,9 +67,13 @@ func NewAnthropicLLMConnectorFromEnv(
 	llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
+	var debug llmDebug
+	debug.Add("provider", "anthropic")
+
 	prefix := "ANTHROPIC"
 	if subprofile != "" {
 		prefix = fmt.Sprintf("ANTHROPIC%s", strings.ToUpper(subprofile))
+		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
 	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
@@ -78,18 +85,24 @@ func NewAnthropicLLMConnectorFromEnv(
 	if err != nil {
 		return nil, err
 	}
+	debug.Add("model", model)
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
 		maxTokensSegments = 3
 	}
+	debug.Add("segments", maxTokensSegments)
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
 		onFailRetries = 3
 	}
+	debug.Add("retries", onFailRetries)
 
-	customBaseURL, _ := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
+	if err == nil {
+		debug.Add("base url", customBaseURL)
+	}
 
 	var extraOptions []llms.CallOption
 
@@ -98,26 +111,30 @@ func NewAnthropicLLMConnectorFromEnv(
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+		debug.Add("temperature", temperature)
 	}
 
-	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
-	if err != nil {
+	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err != nil {
 		return nil, err
 	} else {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+		debug.Add("max tokens", maxTokens)
 	}
 
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		debug.Add("top p", topP)
 	}
 
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
+		debug.Add("variants", variants)
 	}
 
 	variantStrategy := Short
 	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+		debug.Add("strategy", curStrategy)
 		if curStrategy == "SHORT" {
 			variantStrategy = Short
 		} else if curStrategy == "LONG" {
@@ -135,15 +152,17 @@ func NewAnthropicLLMConnectorFromEnv(
 	// https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
+		debug.Add("output format", "json")
 		fieldsToInject["tool_choice"] = map[string]string{"type": "tool", "name": outputSchemaName}
 		toolSchema := map[string]interface{}{"name": outputSchemaName, "description": outputSchemaDesc}
 		toolSchema["input_schema"] = outputSchema
 		fieldsToInject["tools"] = []map[string]interface{}{toolSchema}
 	} else {
+		debug.Add("format", "plain")
 		outputFormat = OutputPlain
 	}
 
-	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy), nil
+	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -276,20 +295,8 @@ func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *AnthropicLLMConnector) GetOptionsString() string {
-	var callOptions llms.CallOptions
-	for _, option := range p.Options {
-		option(&callOptions)
-	}
-	return fmt.Sprintf("Temperature: %5.3f, MaxTokens: %d, TopP: %5.3f", callOptions.Temperature, callOptions.MaxTokens, callOptions.TopP)
-}
-
 func (p *AnthropicLLMConnector) GetDebugString() string {
-	if p.Subprofile != "" {
-		return fmt.Sprintf("Provider: Anthropic, Subprofile: %s, Model: %s, OnFailureRetries: %d, %s", p.Subprofile, p.Model, p.OnFailRetries, p.GetOptionsString())
-	} else {
-		return fmt.Sprintf("Provider: Anthropic, Model: %s, OnFailureRetries: %d, %s", p.Model, p.OnFailRetries, p.GetOptionsString())
-	}
+	return p.Debug.Format()
 }
 
 func (p *AnthropicLLMConnector) GetVariantCount() int {
