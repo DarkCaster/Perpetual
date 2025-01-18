@@ -6,10 +6,14 @@
 
 - Added base support for C and C++ languages with CMake build. Due to the huge number of different project formats and file types, you will probably have to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before really using it.
 - Added initial support for Arduino C\C++ projects (sketches). `Perpetual` would not have access to 3-rd party modules' sources if initialized from sketch dir. It might be a good idea to run `Perpetual init -l arduino` from the parent sketch-dir and extract the module sources there to allow `perpetual` to access them.
+- Improved debug string generation for all LLM providers - show only parameters and it's values that will be used at LLM request.
 
 ### Bug Fixes
 
-- Remove unsupported advanced parameters for anthropic models: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library, `.env` example config updated
+- Remove unsupported advanced parameters for anthropic provider: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library.
+- Updated some default values for anthropic provider.
+- Add missing advanced parameters for generic provider, allow to unset api key or temperature, allow any combinations of parameters.
+- `.env` example config updated to reflect changes in supported parameters.
 
 ## v2.0.0
 
