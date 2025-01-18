@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -350,4 +351,9 @@ func (p *maxTokensModelTransformer) ProcessBody(body map[string]interface{}) map
 	}
 
 	return body
+}
+
+func (p *maxTokensModelTransformer) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
 }

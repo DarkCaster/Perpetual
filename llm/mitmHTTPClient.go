@@ -11,6 +11,7 @@ import (
 
 type requestTransformer interface {
 	ProcessBody(body map[string]interface{}) map[string]interface{}
+	ProcessHeader(header http.Header) http.Header
 }
 
 type bodyValuesInjector struct {
@@ -29,6 +30,11 @@ func (p *bodyValuesInjector) ProcessBody(body map[string]interface{}) map[string
 		body[name] = value
 	}
 	return body
+}
+
+func (p *bodyValuesInjector) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
 }
 
 func newMitmHTTPClient(transformers ...requestTransformer) *http.Client {
@@ -73,6 +79,7 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// apply request transformations
 	for _, transformer := range t.Transformers {
 		bodyObj = transformer.ProcessBody(bodyObj)
+		req.Header = transformer.ProcessHeader(req.Header)
 	}
 	// convert modified body back into JSON
 	newBody, err := json.Marshal(bodyObj)

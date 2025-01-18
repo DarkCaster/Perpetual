@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"slices"
 	"strings"
@@ -417,4 +418,9 @@ func (p *o1ModelTransformer) ProcessBody(body map[string]interface{}) map[string
 	//set new messages object to body
 	body["messages"] = messages
 	return body
+}
+
+func (p *o1ModelTransformer) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
 }
