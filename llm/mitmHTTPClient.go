@@ -2,6 +2,7 @@ package llm
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -34,6 +35,57 @@ func (p *bodyValuesInjector) ProcessBody(body map[string]interface{}) map[string
 
 func (p *bodyValuesInjector) ProcessHeader(header http.Header) http.Header {
 	// No header modifications for this transformer
+	return header
+}
+
+type basicAuthTransformer struct {
+	Auth string
+}
+
+func newBasicAuthTransformer(auth string) requestTransformer {
+	return &basicAuthTransformer{
+		Auth: auth,
+	}
+}
+
+func (p *basicAuthTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	// No body modifications for this transformer
+	return body
+}
+
+func (p *basicAuthTransformer) ProcessHeader(header http.Header) http.Header {
+	// Remove existing Authorization header
+	header.Del("Authorization")
+	// Add new Authorization header if Auth is not empty
+	if len(p.Auth) > 0 {
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(p.Auth))
+		header.Set("Authorization", "Basic "+encodedAuth)
+	}
+	return header
+}
+
+type tokenAuthTransformer struct {
+	Token string
+}
+
+func newTokenAuthTransformer(token string) requestTransformer {
+	return &tokenAuthTransformer{
+		Token: token,
+	}
+}
+
+func (p *tokenAuthTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	// No body modifications for this transformer
+	return body
+}
+
+func (p *tokenAuthTransformer) ProcessHeader(header http.Header) http.Header {
+	// Remove existing Authorization header
+	header.Del("Authorization")
+	// Add new Authorization header if Token present
+	if len(p.Token) > 0 {
+		header.Set("Authorization", "Bearer "+p.Token)
+	}
 	return header
 }
 
