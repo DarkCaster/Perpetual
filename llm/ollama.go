@@ -35,10 +35,11 @@ type OllamaLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	OptionsToRemove       []string
 	Debug                 llmDebug
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, authType providerAuthType, auth string) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, authType providerAuthType, auth string, optionsToRemove []string) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -56,6 +57,7 @@ func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string,
 		Options:               options,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
+		OptionsToRemove:       optionsToRemove,
 		Debug:                 debug}
 }
 
@@ -116,10 +118,12 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 	}
 
 	var extraOptions []llms.CallOption
-
+	var optionsToRemove []string
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
+	} else {
+		optionsToRemove = append(optionsToRemove, "temperature")
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -192,7 +196,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		outputFormat = OutputPlain
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, authType, auth), nil
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, authType, auth, optionsToRemove), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -213,6 +217,10 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		transformers = append(transformers, newTokenAuthTransformer(p.Auth))
 	} else {
 		transformers = append(transformers, newBasicAuthTransformer(p.Auth))
+	}
+
+	if len(p.OptionsToRemove) > 0 {
+		transformers = append(transformers, newInnerBodyValuesRemover([]string{"options"}, p.OptionsToRemove))
 	}
 
 	if p.OutputFormat == OutputJson {

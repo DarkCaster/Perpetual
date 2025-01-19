@@ -16,18 +16,38 @@ type requestTransformer interface {
 }
 
 type bodyValuesRemover struct {
+	Path           []string
 	ValuesToRemove []string
 }
 
 func newTopLevelBodyValuesRemover(valuesToRemove []string) requestTransformer {
 	return &bodyValuesRemover{
+		Path:           []string{},
+		ValuesToRemove: valuesToRemove,
+	}
+}
+
+func newInnerBodyValuesRemover(path, valuesToRemove []string) requestTransformer {
+	return &bodyValuesRemover{
+		Path:           path,
 		ValuesToRemove: valuesToRemove,
 	}
 }
 
 func (p *bodyValuesRemover) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	current := body
+	// Navigate down the path
+	for i, key := range p.Path {
+		if val, ok := current[key].(map[string]interface{}); ok {
+			current = val
+		} else if i < len(p.Path)-1 {
+			// Path doesn't exist, return original
+			return body
+		}
+	}
+	// Remove specified values at current level
 	for _, key := range p.ValuesToRemove {
-		delete(body, key)
+		delete(current, key)
 	}
 	return body
 }

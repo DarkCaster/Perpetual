@@ -36,10 +36,11 @@ type OpenAILLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	ReqValuesToRemove     []string
 	Debug                 llmDebug
 }
 
-func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *OpenAILLMConnector {
+func NewOpenAILLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, reqValuesToRemove []string) *OpenAILLMConnector {
 	return &OpenAILLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -55,6 +56,7 @@ func NewOpenAILLMConnector(subprofile string, token string, model string, system
 		Options:               options,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
+		ReqValuesToRemove:     reqValuesToRemove,
 		Debug:                 debug,
 	}
 }
@@ -111,10 +113,12 @@ func NewOpenAILLMConnectorFromEnv(
 	}
 
 	var extraOptions []llms.CallOption
-
+	var valuesToRemove []string
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
+	} else {
+		valuesToRemove = append(valuesToRemove, "temperature")
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -193,7 +197,7 @@ func NewOpenAILLMConnectorFromEnv(
 		outputFormat = OutputPlain
 	}
 
-	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
+	return NewOpenAILLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, valuesToRemove), nil
 }
 
 func processOpenAISchema(target map[string]interface{}) {
@@ -231,8 +235,13 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	if p.OutputFormat == OutputJson {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
-	mitmClient := newMitmHTTPClient(transformers...)
-	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
+	if len(p.ReqValuesToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.ReqValuesToRemove))
+	}
+	if len(transformers) > 0 {
+		mitmClient := newMitmHTTPClient(transformers...)
+		openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
+	}
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")

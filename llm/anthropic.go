@@ -32,10 +32,11 @@ type AnthropicLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	ReqValuesToRemove     []string
 	Debug                 llmDebug
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *AnthropicLLMConnector {
+func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, reqValuesToRemove []string) *AnthropicLLMConnector {
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -51,6 +52,7 @@ func NewAnthropicLLMConnector(subprofile string, token string, model string, sys
 		Options:               options,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
+		ReqValuesToRemove:     reqValuesToRemove,
 		Debug:                 debug,
 	}
 }
@@ -107,10 +109,12 @@ func NewAnthropicLLMConnectorFromEnv(
 	}
 
 	var extraOptions []llms.CallOption
-
+	var valuesToRemove []string
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
+	} else {
+		valuesToRemove = append(valuesToRemove, "temperature")
 	}
 
 	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err != nil {
@@ -161,7 +165,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		outputFormat = OutputPlain
 	}
 
-	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
+	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, valuesToRemove), nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -178,8 +182,17 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		anthropicOptions = append(anthropicOptions, anthropic.WithBaseURL(p.BaseURL))
 	}
 
+	transformers := []requestTransformer{}
 	if p.OutputFormat == OutputJson {
-		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
+	}
+
+	if len(p.ReqValuesToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.ReqValuesToRemove))
+	}
+
+	if len(transformers) > 0 {
+		mitmClient := newMitmHTTPClient(transformers...)
 		anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 	}
 

@@ -43,6 +43,7 @@ type GenericLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
+	ReqValuesToRemove     []string
 	Debug                 llmDebug
 }
 
@@ -126,10 +127,12 @@ func NewGenericLLMConnectorFromEnv(
 	debug.Add("base url", baseURL)
 
 	var extraOptions []llms.CallOption
-
+	var valuesToRemove []string
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
+	} else {
+		valuesToRemove = append(valuesToRemove, "temperature")
 	}
 
 	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
@@ -194,6 +197,7 @@ func NewGenericLLMConnectorFromEnv(
 		Options:               extraOptions,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
+		ReqValuesToRemove:     valuesToRemove,
 		Debug:                 debug,
 	}, nil
 }
@@ -220,6 +224,9 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	}
 	if p.MaxTokensFormat == MaxTokensOld {
 		transformers = append(transformers, newMaxTokensModelTransformer())
+	}
+	if len(p.ReqValuesToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.ReqValuesToRemove))
 	}
 	if len(transformers) > 0 {
 		mitmClient := newMitmHTTPClient(transformers...)
