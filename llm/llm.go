@@ -37,6 +37,13 @@ const (
 	Best
 )
 
+type providerAuthType int
+
+const (
+	Bearer providerAuthType = iota
+	Basic
+)
+
 type LLMConnector interface {
 	// Main interaction point with LLM
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
