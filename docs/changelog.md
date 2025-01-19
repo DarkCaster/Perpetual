@@ -10,10 +10,13 @@
 
 ### Bug Fixes
 
-- Remove unsupported advanced parameters for anthropic provider: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library.
-- Updated some default values for anthropic provider.
-- Added missing advanced parameters for generic provider, allow to unset api key or temperature, allow any combinations of parameters.
-- `.env` example config updated to reflect changes in supported parameters.
+- Removed unsupported advanced parameters for anthropic provider: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library. Updated default values for anthropic provider.
+- Removed unsupported advanced parameters for openai provider.
+- Fixed some of the advanced parameters for generic provider, allow any combinations of parameters.
+- Added optional basic-auth support for generic provider, allow to disable auth completely.
+- Added optional basic- and bearer- auth support for ollama provider (useful for public instances wrapped with https proxy).
+- Added ability to unset temperature for all providers.
+- `.env` example config updated to reflect changes. Rerun init to install new `.env` example file
 
 ## v2.0.0
 
