@@ -21,6 +21,8 @@ import (
 type OllamaLLMConnector struct {
 	Subprofile            string
 	BaseURL               string
+	AuthType              providerAuthType
+	Auth                  string
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings [][]string
@@ -36,10 +38,12 @@ type OllamaLLMConnector struct {
 	Debug                 llmDebug
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug) *OllamaLLMConnector {
+func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, authType providerAuthType, auth string) *OllamaLLMConnector {
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
+		AuthType:              authType,
+		Auth:                  auth,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
@@ -65,6 +69,25 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 	if subprofile != "" {
 		prefix = fmt.Sprintf("OLLAMA%s", strings.ToUpper(subprofile))
 		debug.Add("subprofile", strings.ToUpper(subprofile))
+	}
+
+	authType := Bearer
+	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix)); err == nil {
+		debug.Add("auth type", curAuthType)
+		if curAuthType == "BASIC" {
+			authType = Basic
+		} else if curAuthType == "BEARER" {
+			authType = Bearer
+		} else {
+			return nil, fmt.Errorf("invalid auth type provided for %s profile", prefix)
+		}
+	}
+
+	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
+	if err != nil || len(auth) < 1 {
+		auth = ""
+	} else {
+		debug.Add("auth", "set")
 	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
@@ -172,7 +195,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		outputFormat = OutputPlain
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug), nil
+	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, authType, auth), nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -188,8 +211,19 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
 
+	transformers := []requestTransformer{}
+	if len(p.Auth) > 0 && p.AuthType == Bearer {
+		transformers = append(transformers, newTokenAuthTransformer(p.Auth))
+	} else {
+		transformers = append(transformers, newBasicAuthTransformer(p.Auth))
+	}
+
 	if p.OutputFormat == OutputJson {
-		mitmClient := newMitmHTTPClient(newTopLevelBodyValuesInjector(p.FieldsToInject))
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
+	}
+
+	if len(transformers) > 0 {
+		mitmClient := newMitmHTTPClient(transformers...)
 		ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 	}
 
