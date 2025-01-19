@@ -15,6 +15,28 @@ type requestTransformer interface {
 	ProcessHeader(header http.Header) http.Header
 }
 
+type bodyValuesRemover struct {
+	ValuesToRemove []string
+}
+
+func newTopLevelBodyValuesRemover(valuesToRemove []string) requestTransformer {
+	return &bodyValuesRemover{
+		ValuesToRemove: valuesToRemove,
+	}
+}
+
+func (p *bodyValuesRemover) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	for _, key := range p.ValuesToRemove {
+		delete(body, key)
+	}
+	return body
+}
+
+func (p *bodyValuesRemover) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
+}
+
 type bodyValuesInjector struct {
 	ValuesToInject map[string]interface{}
 }
