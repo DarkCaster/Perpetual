@@ -221,7 +221,13 @@ OPENAI_TEMPERATURE="0.5"
 
 # Options for Ollama integration, running locally. Ollama support is experimental and WILL NOT WORK RELIABLE WITH DEFAULT SETUP, see docs/ollama.md for more info
 
-OLLAMA_BASE_URL="http://127.0.0.1:11434"
+# OLLAMA_BASE_URL="http://127.0.0.1:11434"
+
+# Optional authentication, for use with external https proxy
+# OLLAMA_AUTH_TYPE="Bearer" # Type of the authentication used, "Bearer" - api key or token (default), "Basic" - web auth with login and password.
+# OLLAMA_AUTH="<your api or token key goes here>" # When using bearer auth type, put your api key or auth token here
+# OLLAMA_AUTH="<login>:<password>" # Web auth requres login and password separated by a colon
+
 OLLAMA_MODEL_OP_ANNOTATE="qwen2.5-coder:7b-instruct-q5_K_M"
 OLLAMA_MODEL_OP_ANNOTATE_POST="qwen2.5-coder:7b-instruct-q5_K_M" # used to process multiple response-variants if any
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:7b-instruct-q5_K_M"
