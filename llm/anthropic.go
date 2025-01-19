@@ -36,27 +36,6 @@ type AnthropicLLMConnector struct {
 	Debug                 llmDebug
 }
 
-func NewAnthropicLLMConnector(subprofile string, token string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, reqValuesToRemove []string) *AnthropicLLMConnector {
-	return &AnthropicLLMConnector{
-		Subprofile:            subprofile,
-		BaseURL:               customBaseURL,
-		Token:                 token,
-		Model:                 model,
-		SystemPrompt:          systemPrompt,
-		FilesToMdLangMappings: filesToMdLangMappings,
-		FieldsToInject:        fieldsToInject,
-		OutputFormat:          outputFormat,
-		MaxTokensSegments:     maxTokensSegments,
-		OnFailRetries:         onFailRetries,
-		RawMessageLogger:      llmRawMessageLogger,
-		Options:               options,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
-		ReqValuesToRemove:     reqValuesToRemove,
-		Debug:                 debug,
-	}
-}
-
 func NewAnthropicLLMConnectorFromEnv(
 	subprofile string,
 	operation string,
@@ -165,7 +144,24 @@ func NewAnthropicLLMConnectorFromEnv(
 		outputFormat = OutputPlain
 	}
 
-	return NewAnthropicLLMConnector(subprofile, token, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, valuesToRemove), nil
+	return &AnthropicLLMConnector{
+		Subprofile:            subprofile,
+		BaseURL:               customBaseURL,
+		Token:                 token,
+		Model:                 model,
+		SystemPrompt:          systemPrompt,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
+		OutputFormat:          outputFormat,
+		MaxTokensSegments:     maxTokensSegments,
+		OnFailRetries:         onFailRetries,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               extraOptions,
+		Variants:              variants,
+		VariantStrategy:       variantStrategy,
+		ReqValuesToRemove:     valuesToRemove,
+		Debug:                 debug,
+	}, nil
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {

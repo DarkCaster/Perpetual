@@ -39,28 +39,6 @@ type OllamaLLMConnector struct {
 	Debug                 llmDebug
 }
 
-func NewOllamaLLMConnector(subprofile string, model string, systemPrompt string, filesToMdLangMappings [][]string, fieldsToInject map[string]interface{}, outputFormat OutputFormat, customBaseURL string, maxTokensSegments int, onFailRetries int, seed int, llmRawMessageLogger func(v ...any), options []llms.CallOption, variants int, variantStrategy VariantSelectionStrategy, debug llmDebug, authType providerAuthType, auth string, optionsToRemove []string) *OllamaLLMConnector {
-	return &OllamaLLMConnector{
-		Subprofile:            subprofile,
-		BaseURL:               customBaseURL,
-		AuthType:              authType,
-		Auth:                  auth,
-		Model:                 model,
-		SystemPrompt:          systemPrompt,
-		FilesToMdLangMappings: filesToMdLangMappings,
-		FieldsToInject:        fieldsToInject,
-		OutputFormat:          outputFormat,
-		MaxTokensSegments:     maxTokensSegments,
-		OnFailRetries:         onFailRetries,
-		Seed:                  seed,
-		RawMessageLogger:      llmRawMessageLogger,
-		Options:               options,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
-		OptionsToRemove:       optionsToRemove,
-		Debug:                 debug}
-}
-
 func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
@@ -196,7 +174,26 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		outputFormat = OutputPlain
 	}
 
-	return NewOllamaLLMConnector(subprofile, model, systemPrompt, filesToMdLangMappings, fieldsToInject, outputFormat, customBaseURL, maxTokensSegments, onFailRetries, seed, llmRawMessageLogger, extraOptions, variants, variantStrategy, debug, authType, auth, optionsToRemove), nil
+	return &OllamaLLMConnector{
+		Subprofile:            subprofile,
+		BaseURL:               customBaseURL,
+		AuthType:              authType,
+		Auth:                  auth,
+		Model:                 model,
+		SystemPrompt:          systemPrompt,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
+		OutputFormat:          outputFormat,
+		MaxTokensSegments:     maxTokensSegments,
+		OnFailRetries:         onFailRetries,
+		Seed:                  seed,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               extraOptions,
+		Variants:              variants,
+		VariantStrategy:       variantStrategy,
+		OptionsToRemove:       optionsToRemove,
+		Debug:                 debug,
+	}, nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
