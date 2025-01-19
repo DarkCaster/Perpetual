@@ -117,10 +117,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 
 	var extraOptions []llms.CallOption
 
-	temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix))
-	if err != nil {
-		return nil, err
-	} else {
+	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
 	}
