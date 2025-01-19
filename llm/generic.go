@@ -138,6 +138,8 @@ func NewGenericLLMConnectorFromEnv(
 	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 		debug.Add("max tokens", maxTokens)
+	} else {
+		valuesToRemove = append(valuesToRemove, "max_tokens", "max_completion_tokens")
 	}
 
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
