@@ -64,7 +64,7 @@ func NewGenericLLMConnectorFromEnv(
 	}
 
 	authType := Bearer
-	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix)); err == nil {
+	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix), fmt.Sprintf("%s_API_KEY", prefix)); err == nil {
 		debug.Add("auth type", curAuthType)
 		if curAuthType == "BASIC" {
 			authType = Basic
@@ -210,6 +210,7 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	if p.BaseURL != "" {
 		providerOptions = append(providerOptions, openai.WithBaseURL(p.BaseURL))
 	}
+
 	transformers := []requestTransformer{}
 	if len(p.Auth) > 0 && p.AuthType == Bearer {
 		providerOptions = append(providerOptions, openai.WithToken(p.Auth))

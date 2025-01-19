@@ -339,7 +339,7 @@ OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.1"
 
 GENERIC_BASE_URL="https://api.deepseek.com/v1" # Required parameter for generic provider
 
-# Authentication, optional, but most likely required by your provider
+# Authentication, optional, but most likely required by your provider, GENERIC_API_KEY="<token>" is now deprecated, will work same as GENERIC_AUTH
 # GENERIC_AUTH_TYPE="Bearer" # Type of the authentication used, "Bearer" - api key or token (default), "Basic" - web auth with login and password.
 # GENERIC_AUTH="<your api or token key goes here>" # When using bearer auth type, put your api key or auth token here
 # GENERIC_AUTH="<login>:<password>" # Web auth requres login and password separated by a colon
