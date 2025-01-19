@@ -29,7 +29,8 @@ const (
 type GenericLLMConnector struct {
 	Subprofile            string
 	BaseURL               string
-	Token                 string
+	AuthType              providerAuthType
+	Auth                  string
 	Model                 string
 	SystemPrompt          string
 	MaxTokensFormat       maxTokensFormat
@@ -62,11 +63,22 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
-	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
-	if err == nil {
-		debug.Add("token", "set")
-	} else {
-		token = ""
+	authType := Bearer
+	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix)); err == nil {
+		debug.Add("auth type", curAuthType)
+		if curAuthType == "BASIC" {
+			authType = Basic
+		} else if curAuthType == "BEARER" {
+			authType = Bearer
+		} else {
+			return nil, fmt.Errorf("invalid auth type provided for %s profile", prefix)
+		}
+	}
+
+	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
+	if err != nil || len(auth) < 1 {
+		auth = ""
+		debug.Add("auth", "not set")
 	}
 
 	maxTokensFormat := MaxTokensOld
@@ -141,6 +153,7 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("seed", seed)
 	}
 
+
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
@@ -167,7 +180,8 @@ func NewGenericLLMConnectorFromEnv(
 	return &GenericLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               baseURL,
-		Token:                 token,
+		AuthType:              authType,
+		Auth:                  auth,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		MaxTokensFormat:       maxTokensFormat,
@@ -196,11 +210,18 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	if p.BaseURL != "" {
 		providerOptions = append(providerOptions, openai.WithBaseURL(p.BaseURL))
 	}
-	if p.Token != "" {
-		providerOptions = append(providerOptions, openai.WithToken(p.Token))
+	transformers := []requestTransformer{}
+	if len(p.Auth) > 0 && p.AuthType == Bearer {
+		providerOptions = append(providerOptions, openai.WithToken(p.Auth))
+	} else {
+		providerOptions = append(providerOptions, openai.WithToken("dummy"))
+		transformers = append(transformers, newBasicAuthTransformer(p.Auth))
 	}
 	if p.MaxTokensFormat == MaxTokensOld {
-		mitmClient := newMitmHTTPClient(newMaxTokensModelTransformer())
+		transformers = append(transformers, newMaxTokensModelTransformer())
+	}
+	if len(transformers) > 0 {
+		mitmClient := newMitmHTTPClient(transformers...)
 		providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
 	}
 
