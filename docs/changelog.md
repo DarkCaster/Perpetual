@@ -7,15 +7,17 @@
 - Added base support for C and C++ languages with CMake build. Due to the huge number of different project formats and file types, you will probably have to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before really using it.
 - Added initial support for Arduino C\C++ projects (sketches). `Perpetual` would not have access to 3-rd party modules' sources if initialized from sketch dir. It might be a good idea to run `Perpetual init -l arduino` from the parent sketch-dir and extract the module sources there to allow `perpetual` to access them.
 - Improved debug string generation for all LLM providers - show only parameters and its values that will be used at LLM request.
+- Added optional basic-auth support for Generic provider, also allow to disable auth completely.
+- Added optional basic- and bearer- auth support for Ollama provider (useful for public instances wrapped with https proxy).
+- Made temperature parameter optional for all currently implemented providers (none of them enforcing temperature to be set)
+- Made max tokens parameter optional for Generic and OpenAI providers (it still recommended to set them)
+- Added "reasoning effort" advanced parameter support for OpenAI, works only with reasoning models like o1 (full version, not -preview or -mini)
 
 ### Bug Fixes
 
-- Removed unsupported advanced parameters for anthropic provider: `seed`, `top_k`, `repeat_penalty`, `freq_penalty`, `presence_penalty`. It seem to be unsupoported either by anthropic or langchaingo library. Updated default values for anthropic provider.
-- Removed unsupported advanced parameters for openai provider.
-- Fixed some of the advanced parameters for generic provider, allow any combinations of parameters.
-- Added optional basic-auth support for generic provider, allow to disable auth completely.
-- Added optional basic- and bearer- auth support for ollama provider (useful for public instances wrapped with https proxy).
-- Added ability to unset temperature for all providers.
+- Removed unsupported advanced parameters from Anthropic provider.
+- Removed unsupported advanced parameters from OpenAI provider.
+- Fixed advanced parameters support for Generic provider, allow any combinations of parameters.
 - `.env` example config updated to reflect changes. Rerun init to install new `.env` example file
 
 ## v2.0.0
