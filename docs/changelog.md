@@ -4,21 +4,22 @@
 
 ### Improvements
 
-- Added base support for C and C++ languages with CMake build. Due to the huge number of different project formats and file types, you will probably have to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before really using it.
-- Added initial support for Arduino C\C++ projects (sketches). `Perpetual` would not have access to 3-rd party modules' sources if initialized from sketch dir. It might be a good idea to run `Perpetual init -l arduino` from the parent sketch-dir and extract the module sources there to allow `perpetual` to access them.
-- Improved debug string generation for all LLM providers - show only parameters and its values that will be used at LLM request.
-- Added optional basic-auth support for Generic provider, also allow to disable auth completely.
-- Added optional basic- and bearer- auth support for Ollama provider (useful for public instances wrapped with https proxy).
-- Made temperature parameter optional for all currently implemented providers (none of them enforcing temperature to be set)
-- Made max tokens parameter optional for Generic and OpenAI providers (it still recommended to set them)
-- Added "reasoning effort" advanced parameter support for OpenAI, works only with reasoning models like o1 (full version, not -preview or -mini)
+- Added base support for C and C++ languages with CMake build. Due to the vast number of different project formats and file types, you will likely need to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before fully utilizing it.
+- Added initial support for Arduino C/C++ projects (sketches). `Perpetual` will not have access to third-party modules' sources if initialized from the sketch directory. It is recommended to run `Perpetual init -l arduino` from the parent sketch directory and extract the module sources there to allow `Perpetual` to access them.
+- Improved debug string generation for all LLM providers (displayed when running `perpetual` operations with `-v` flag).
+- Added optional basic-auth support for the Generic provider and the ability to disable authentication completely.
+- Added optional basic and bearer authentication support for the Ollama provider (useful for public instances wrapped with an HTTPS proxy).
+- Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
+- Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
+- Added "reasoning effort" advanced parameter support for OpenAI, which works only with reasoning models like o1 (full version, not -preview or -mini).
 
 ### Bug Fixes
 
-- Removed unsupported advanced parameters from Anthropic provider.
-- Removed unsupported advanced parameters from OpenAI provider.
-- Fixed advanced parameters support for Generic provider, allow any combinations of parameters.
-- `.env` example config updated to reflect changes. Rerun init to install new `.env` example file
+- Removed unsupported advanced parameters from the Anthropic provider.
+- Removed unsupported advanced parameters from the OpenAI provider.
+- Fixed advanced parameter support for the Generic provider, allowing any combination of parameters.
+
+**NOTE**: You may want to reinitialize your project by running `Perpetual init -l <lang>` to install new example `.env` file, and manually update your production `.env` file accordingly. This is optional, old configuration should continue to work.
 
 ## v2.0.0
 
