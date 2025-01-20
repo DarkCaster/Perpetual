@@ -103,6 +103,12 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("max tokens", maxTokens)
 	}
 
+	fieldsToInject := map[string]interface{}{}
+	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
+		fieldsToInject["top_k"] = topK
+		debug.Add("top k", topK)
+	}
+
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTopP(topP))
 		debug.Add("top p", topP)
@@ -132,7 +138,6 @@ func NewAnthropicLLMConnectorFromEnv(
 
 	// make some additional tweaks to the schema according to
 	// https://docs.anthropic.com/en/docs/build-with-claude/tool-use
-	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
 		debug.Add("output format", "json")
 		fieldsToInject["tool_choice"] = map[string]string{"type": "tool", "name": outputSchemaName}
@@ -179,7 +184,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	transformers := []requestTransformer{}
-	if p.OutputFormat == OutputJson {
+	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
 
