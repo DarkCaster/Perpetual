@@ -107,13 +107,9 @@ func NewOpenAILLMConnectorFromEnv(
 		valuesToRemove = append(valuesToRemove, "max_tokens", "max_completion_tokens")
 	}
 
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTopK(topK))
-		debug.Add("top k", topK)
-	}
-
+	fieldsToInject := map[string]interface{}{}
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		fieldsToInject["top_p"] = topP
 		debug.Add("top p", topP)
 	}
 
@@ -161,7 +157,6 @@ func NewOpenAILLMConnectorFromEnv(
 
 	// make some additional tweaks to the schema according to
 	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
-	fieldsToInject := map[string]interface{}{}
 	if outputFormat == OutputJson {
 		debug.Add("format", "json")
 		jsonSchema := map[string]interface{}{"type": "json_schema"}
@@ -227,7 +222,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	transformers := utils.NewSlice(newO1ModelTransformer())
-	if p.OutputFormat == OutputJson {
+	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
 	if len(p.ReqValuesToRemove) > 0 {
