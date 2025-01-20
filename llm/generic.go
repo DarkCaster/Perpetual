@@ -36,6 +36,7 @@ type GenericLLMConnector struct {
 	MaxTokensFormat       maxTokensFormat
 	Streaming             bool
 	FilesToMdLangMappings [][]string
+	FieldsToInject        map[string]interface{}
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -142,13 +143,14 @@ func NewGenericLLMConnectorFromEnv(
 		valuesToRemove = append(valuesToRemove, "max_tokens", "max_completion_tokens")
 	}
 
+	fieldsToInject := map[string]interface{}{}
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTopK(topK))
+		fieldsToInject["top_k"] = topK
 		debug.Add("top k", topK)
 	}
 
 	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTopP(topP))
+		fieldsToInject["top_p"] = topP
 		debug.Add("top p", topP)
 	}
 
@@ -158,6 +160,20 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("seed", seed)
 	}
 
+	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
+		fieldsToInject["repeat_penalty"] = repeatPenalty
+		debug.Add("repeat penalty", repeatPenalty)
+	}
+
+	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
+		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+		debug.Add("freq penalty", freqPenalty)
+	}
+
+	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
+		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+		debug.Add("presence penalty", presencePenalty)
+	}
 
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
@@ -192,6 +208,7 @@ func NewGenericLLMConnectorFromEnv(
 		MaxTokensFormat:       maxTokensFormat,
 		Streaming:             streaming > 0,
 		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -226,6 +243,9 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	}
 	if p.MaxTokensFormat == MaxTokensOld {
 		transformers = append(transformers, newMaxTokensModelTransformer())
+	}
+	if len(p.FieldsToInject) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
 	if len(p.ReqValuesToRemove) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.ReqValuesToRemove))
