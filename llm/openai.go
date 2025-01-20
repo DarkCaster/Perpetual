@@ -118,11 +118,6 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("seed", seed)
 	}
 
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithRepetitionPenalty(repeatPenalty))
-		debug.Add("repeat penalty", repeatPenalty)
-	}
-
 	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
 		debug.Add("freq penalty", freqPenalty)
