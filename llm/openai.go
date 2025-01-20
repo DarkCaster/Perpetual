@@ -113,6 +113,19 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("top p", topP)
 	}
 
+	if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+		debug.Add("reasoning effort", reasoning)
+		if reasoning == "LOW" {
+			fieldsToInject["reasoning_effort"] = "low"
+		} else if reasoning == "MEDIUM" {
+			fieldsToInject["reasoning_effort"] = "medium"
+		} else if reasoning == "HIGH" {
+			fieldsToInject["reasoning_effort"] = "high"
+		} else {
+			return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
+		}
+	}
+
 	if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithSeed(seed))
 		debug.Add("seed", seed)
