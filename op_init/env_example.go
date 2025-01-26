@@ -140,9 +140,9 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
 # Switch to use structured JSON output format for supported operations
 # Supported values: plain, json. Default: plain
-# OPENAI_FORMAT_OP_IMPLEMENT_STAGE1="json"
-# OPENAI_FORMAT_OP_IMPLEMENT_STAGE3="json"
-# OPENAI_FORMAT_OP_DOC_STAGE1="json"
+OPENAI_FORMAT_OP_IMPLEMENT_STAGE1="json"
+OPENAI_FORMAT_OP_IMPLEMENT_STAGE3="json"
+OPENAI_FORMAT_OP_DOC_STAGE1="json"
 
 OPENAI_MAX_TOKENS_OP_ANNOTATE="768"
 OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="768"
