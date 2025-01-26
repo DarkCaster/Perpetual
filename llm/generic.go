@@ -44,7 +44,7 @@ type GenericLLMConnector struct {
 	Options               []llms.CallOption
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
-	ReqValuesToRemove     []string
+	FieldsToRemove        []string
 	Debug                 llmDebug
 }
 
@@ -128,19 +128,19 @@ func NewGenericLLMConnectorFromEnv(
 	debug.Add("base url", baseURL)
 
 	var extraOptions []llms.CallOption
-	var valuesToRemove []string
+	var fieldsToRemove []string
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
 	} else {
-		valuesToRemove = append(valuesToRemove, "temperature")
+		fieldsToRemove = append(fieldsToRemove, "temperature")
 	}
 
 	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
 		debug.Add("max tokens", maxTokens)
 	} else {
-		valuesToRemove = append(valuesToRemove, "max_tokens", "max_completion_tokens")
+		fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
 	}
 
 	fieldsToInject := map[string]interface{}{}
@@ -216,7 +216,7 @@ func NewGenericLLMConnectorFromEnv(
 		Options:               extraOptions,
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
-		ReqValuesToRemove:     valuesToRemove,
+		FieldsToRemove:        fieldsToRemove,
 		Debug:                 debug,
 	}, nil
 }
@@ -247,8 +247,8 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
-	if len(p.ReqValuesToRemove) > 0 {
-		transformers = append(transformers, newTopLevelBodyValuesRemover(p.ReqValuesToRemove))
+	if len(p.FieldsToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 	if len(transformers) > 0 {
 		mitmClient := newMitmHTTPClient(transformers...)
