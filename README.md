@@ -20,7 +20,7 @@ It focuses on direct interaction with the project's codebase, eliminating the ne
 
 While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it attempts to change and creates a `stash` that can be (re)applied or reverted on command.
 
-Since the LLM almost never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run the `Perpetual`'s `implement` operation multiple times to achieve a satisfactory result ([see below how to use it](#writing-code-with-perpetual)).
+Since the LLM almost never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run `Perpetual`'s `implement` operation multiple times to achieve a satisfactory result ([see below how to use it](#writing-code-with-perpetual)).
 
 It's important to remain vigilant and carefully review the changes made by `Perpetual` before integrating them into your codebase.
 
@@ -47,6 +47,10 @@ To get started with `Perpetual`, you need to obtain the necessary API keys to ac
 ### Download or Compile Perpetual
 
 Download the latest `Perpetual` executable from GitHub Releases or GitHub Actions, or compile it yourself. You can extract the executable anywhere you like, but it is required to run the executable from your project root directory for which you want to use it.
+
+### Configuration
+
+In order to use `Perpetual`, you need to configure it first, see [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual -init` (see below), you will need to add your API keys and select LLM provider to use as minimum.
 
 ### Command Line Usage
 
