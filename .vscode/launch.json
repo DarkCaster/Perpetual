@@ -69,14 +69,6 @@
 			"args": ["doc","-a","write","-r","test.md","-vv"],
 		},
 		{
-			"name": "Launch Package: doc write docs/configuration.md",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}",
-			"args": ["doc","-a","write","-f","-r","docs/configuration.md","-vv"],
-		},
-		{
 			"name": "Launch Package: report",
 			"type": "go",
 			"request": "launch",
