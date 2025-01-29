@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"slices"
 
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -128,6 +129,53 @@ func (p *tokenAuthTransformer) ProcessHeader(header http.Header) http.Header {
 	if len(p.Token) > 0 {
 		header.Set("Authorization", "Bearer "+p.Token)
 	}
+	return header
+}
+
+type systemMessageTransformer struct {
+	ChangeTo string
+	ExtraAck string
+}
+
+func newSystemMessageTransformer(newSystemMessageRole, extraAcknowledge string) requestTransformer {
+	return &systemMessageTransformer{
+		ChangeTo: newSystemMessageRole,
+		ExtraAck: extraAcknowledge,
+	}
+}
+
+func (p *systemMessageTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	// find messages array to mess with
+	iMessages, exist := body["messages"].([]interface{})
+	if !exist {
+		return body
+	}
+	// deserialze each message and find system prompt position
+	var messages []map[string]interface{}
+	sysMsgIdx := -1
+	for i, imsg := range iMessages {
+		msg := imsg.(map[string]interface{})
+		if msg["role"] == "system" {
+			sysMsgIdx = i
+		}
+		messages = append(messages, msg)
+	}
+	if sysMsgIdx < 0 {
+		return body
+	}
+	// convert system message into the provided message type
+	messages[sysMsgIdx]["role"] = p.ChangeTo
+	// insert extra acknowledge message as "assistant" message if needed
+	if len(p.ExtraAck) > 0 {
+		messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": p.ExtraAck})
+	}
+	//set new messages object to body
+	body["messages"] = messages
+	return body
+}
+
+func (p *systemMessageTransformer) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
 	return header
 }
 
