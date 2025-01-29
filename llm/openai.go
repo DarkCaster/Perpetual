@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
@@ -216,6 +214,8 @@ func processOpenAISchema(target map[string]interface{}) {
 	}
 }
 
+var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
+
 func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
@@ -229,7 +229,48 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
 	}
 
-	transformers := utils.NewSlice(newO1ModelTransformer())
+	transformers := []requestTransformer{}
+	systemPrompt := p.SystemPrompt
+
+	//"o*" reasoning models requires some extra setup
+	modelStr := strings.ToLower(p.Model)
+	if strings.HasPrefix(modelStr, "o") {
+		//Parse model date
+		date := time.Now().UTC()
+		if matches := openAIModelDateRegexp.FindStringSubmatch(modelStr); len(matches) > 0 {
+			//parse model date
+			var err error
+			date, err = time.Parse("2006-01-02", matches[1])
+			if err == nil {
+				date = date.Add(time.Hour)
+			} else {
+				return []string{}, QueryInitFailed, errors.New("failed to parse date from model name string")
+			}
+		}
+		newFormatMark, _ := time.Parse("2006-01-02", "2024-12-17")
+		//Currently o1-mini and o1-preview points to older models that does not support "developer" system message
+		//TODO: update the check when models got updated, see https://platform.openai.com/docs/models#o1 for more info
+		if modelStr != "o1-mini" && modelStr != "o1-preview" && date.After(newFormatMark) {
+			//Add "Formatting re-enabled" string into the first line of the system message as instructed at https://platform.openai.com/docs/guides/reasoning
+			systemPrompt = "Formatting re-enabled\n" + systemPrompt
+			//Convert "system" message role into "developer" message role, as "system" now unsupported
+			transformers = append(transformers, newSystemMessageTransformer("developer", ""))
+		} else {
+			//convert "system" message role into normal "user" message role with extra acknowledge
+			transformers = append(transformers, newSystemMessageTransformer("user", "Understood. I will follow these instructions in my subsequent answers."))
+		}
+		//Remove unsupported parameters from top level: temperature, top_p, presence_penalty, frequency_penalty, logprobs, top_logprobs, logit_bias
+		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
+			"temperature",
+			"top_p",
+			"presence_penalty",
+			"frequency_penalty",
+			"logprobs",
+			"top_logprobs",
+			"logit_bias",
+		}))
+	}
+
 	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
@@ -254,7 +295,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	llmMessages := utils.NewSlice(
-		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: systemPrompt}}})
 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages)
@@ -355,76 +396,4 @@ func (p *OpenAILLMConnector) GetVariantCount() int {
 
 func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
-}
-
-type o1ModelTransformer struct{}
-
-func newO1ModelTransformer() requestTransformer {
-	return &o1ModelTransformer{}
-}
-
-func (p *o1ModelTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
-	model, exist := body["model"].(string)
-	if !exist {
-		return body
-	}
-	model = strings.ToLower(model)
-	// Do nothing for any non o1/o3 models
-	if !strings.HasPrefix(model, "o") {
-		return body
-	}
-	iMessages, exist := body["messages"].([]interface{})
-	if !exist {
-		return body
-	}
-
-	var messages []map[string]interface{}
-	sysMsgIdx := -1
-	for i, imsg := range iMessages {
-		msg := imsg.(map[string]interface{})
-		if msg["role"] == "system" {
-			sysMsgIdx = i
-		}
-		messages = append(messages, msg)
-	}
-
-	// Transform request to match requirements according to doc: //https://platform.openai.com/docs/guides/reasoning
-	date := time.Now().UTC()
-	if matches := regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`).FindStringSubmatch(model); len(matches) > 0 {
-		//parse model date
-		var err error
-		date, err = time.Parse("2006-01-02", matches[1])
-		if err == nil {
-			date = date.Add(time.Hour)
-		} else {
-			date = time.Now().UTC()
-		}
-	}
-	//Add "Formatting re-enabled" string into the first line of the system message for models that require it
-	if mark, _ := time.Parse("2006-01-02", "2024-12-17"); model != "o1-mini" && model != "o1-preview" && date.After(mark) && sysMsgIdx > -1 {
-		messages[sysMsgIdx]["content"] = "Formatting re-enabled\n" + messages[sysMsgIdx]["content"].(string)
-		//convert "system" message role into "developer" message role, as "system" now unsupported
-		messages[sysMsgIdx]["role"] = "developer"
-	} else {
-		//convert system message into the "user" message
-		messages[sysMsgIdx]["role"] = "user"
-		//insert acknowledge as "assistant" message
-		messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": "Understood. I will follow these instructions in my subsequent answers."})
-	}
-	//remove unsupported parameters from top level: temperature, top_p, presence_penalty, frequency_penalty, logprobs, top_logprobs, logit_bias
-	delete(body, "temperature")
-	delete(body, "top_p")
-	delete(body, "presence_penalty")
-	delete(body, "frequency_penalty")
-	delete(body, "logprobs")
-	delete(body, "top_logprobs")
-	delete(body, "logit_bias")
-	//set new messages object to body
-	body["messages"] = messages
-	return body
-}
-
-func (p *o1ModelTransformer) ProcessHeader(header http.Header) http.Header {
-	// No header modifications for this transformer
-	return header
 }
