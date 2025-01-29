@@ -70,7 +70,7 @@ Controls which files are included or excluded during processing using regular ex
 - `project_files_whitelist`: An array of regex patterns specifying files to include.
 - `project_files_blacklist`: An array of regex patterns specifying files to exclude.
 - `project_test_files_blacklist`: An array of regex patterns to exclude test files.
-- `files_to_md_code_mappings`: A two-dimensional array representing mappings from file types to Markdown code block languages. Each sub-array contains two elements: the first is a regex pattern matching the file type, and the second is the corresponding Markdown language identifier. You can skip filling up this field and provide an empty array - most popular source-file types will be detected automatically by it extension, this field particularry useful when using non-standard file types.
+- `files_to_md_code_mappings`: A two-dimensional array representing mappings from file types to Markdown code block languages. Each sub-array contains two elements: the first is a regex pattern matching the file type, and the second is the corresponding Markdown language identifier. You can skip filling up this field and provide an empty array - most popular source-file types will be detected automatically by their extension, this field is particularly useful when using non-standard file types.
 
 **Example**:
 
