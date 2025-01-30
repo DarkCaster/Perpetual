@@ -81,7 +81,8 @@ func ReplaceTagRx(text string, searchRegex *regexp.Regexp, replacement string) (
 func GetTextBeforeFirstMatchRx(text string, searchRegexp *regexp.Regexp) string {
 	match := searchRegexp.FindStringIndex(text)
 	if match == nil {
-		return text
+		//we need to return empty string here, so GetTextBeforeFirstMatchRx + GetTextAfterFirstMatchRx will complement each other
+		return ""
 	}
 	return text[:match[0]]
 }
@@ -104,7 +105,8 @@ func GetTextAfterFirstMatchesRx(text string, searchRegexps []*regexp.Regexp) str
 func GetTextAfterLastMatchRx(text string, searchRegexp *regexp.Regexp) string {
 	matches := searchRegexp.FindAllStringIndex(text, -1)
 	if len(matches) == 0 {
-		return text
+		//we need to return empty string here, so GetTextBeforeLastMatchRx + GetTextAfterLastMatchRx will complement each other
+		return ""
 	}
 	lastMatch := matches[len(matches)-1]
 	return text[lastMatch[1]:]
