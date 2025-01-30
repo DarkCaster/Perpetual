@@ -181,6 +181,19 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("presence penalty", presencePenalty)
 	}
 
+	if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+		debug.Add("reasoning effort", reasoning)
+		if reasoning == "LOW" {
+			fieldsToInject["reasoning_effort"] = "low"
+		} else if reasoning == "MEDIUM" {
+			fieldsToInject["reasoning_effort"] = "medium"
+		} else if reasoning == "HIGH" {
+			fieldsToInject["reasoning_effort"] = "high"
+		} else {
+			return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
+		}
+	}
+
 	variants := 1
 	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
 		variants = curVariants
