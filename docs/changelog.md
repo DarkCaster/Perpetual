@@ -12,6 +12,7 @@
 - Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
 - Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
 - Added "reasoning effort" advanced parameter support for OpenAI, which works only with reasoning models like o1 (full version, not -preview or -mini).
+- Added various quirks to better support working with reasoning models for Ollama and Generic provider
 
 ### Bug Fixes
 
@@ -19,7 +20,7 @@
 - Removed unsupported advanced parameters from the OpenAI provider.
 - Fixed advanced parameter support for the Generic provider, allowing any combination of parameters.
 
-**NOTE**: You may want to reinitialize your project by running `Perpetual init -l <lang>` to install new example `.env` file, and manually update your production `.env` file accordingly. This is optional, old configuration should continue to work.
+**NOTE**: You will need to reinitialize your project config by running `Perpetual init -l <lang>`. Also, you may want to manually update your production `.env` file from new `env.example` (this is optional, old `.env` file should continue to work).
 
 ## v2.0.0
 
@@ -31,7 +32,7 @@ This major release aims to make the `implement` operation more usable with small
 - Split the extra reasoning mode for the `implement` operation into a dedicated stage, so the implement operation now has 4 stages instead of 3. This allows for separating reasonings and change-detection prompts, producing smaller and simpler instructions. May improve results with Ollama when using smaller models.
 - Added support for structured JSON output mode for the `implement` operation (stages 1 and 3) and for the `doc` operation (stage 1). This may provide better results with Ollama when using smaller models and potentially reduce costs for OpenAI or Anthropic. For Ollama, the minimum supported version is 0.5.1, and results may vary depending on the model used. For OpenAI, the minimum requirement is `gpt-4o` and newer. For Anthropic, it should work with `Claude 3` models and newer.
 
-**NOTE**: You will need to reinitialize your project by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2, 3, and 4 configurations if not using defaults.
+**NOTE**: You will need to reinitialize your project config by running `Perpetual init -l <lang>` to regenerate prompts. You should also update your `.env` file(s) for `implement` stages 2, 3, and 4 configurations if not using defaults.
 
 ### Improvements
 
