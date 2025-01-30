@@ -28,6 +28,7 @@ func Stage2(projectRootDir string,
 	connector, err := llm.NewLLMConnector(
 		OpName+"_stage2",
 		cfg.String(config.K_SystemPrompt),
+		cfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
 		map[string]interface{}{},
 		"", "",

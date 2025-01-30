@@ -136,6 +136,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
+		annotateConfig.String(config.K_SystemPromptAck),
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		"", "",
@@ -148,6 +149,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Create new connector for "annotate_post" operation (stage2)
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
 		annotateConfig.String(config.K_SystemPrompt),
+		annotateConfig.String(config.K_SystemPromptAck),
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		"", "",

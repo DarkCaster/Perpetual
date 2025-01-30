@@ -59,6 +59,7 @@ type LLMConnector interface {
 
 func NewLLMConnector(operation string,
 	systemPrompt string,
+	systemPromptAck string,
 	filesToMdLangMappings [][]string,
 	outputSchema map[string]interface{},
 	outputSchemaName string,
