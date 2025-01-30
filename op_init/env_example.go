@@ -279,7 +279,7 @@ OLLAMA_TEMPERATURE_OP_DOC_STAGE2="0.7"
 OLLAMA_TEMPERATURE="0.5"
 
 # System prompt role for model, can be configured per operation. Useful if model not supporting system prompt
-# Valid values: system, developer, user. default: system.
+# Valid values: system, user. default: system.
 # When using "user" role, system prompt will be converted to user-query + ai-acknowledge message sequence
 # OLLAMA_SYSPROMPT_ROLE_OP_ANNOTATE="system"
 # OLLAMA_SYSPROMPT_ROLE_OP_ANNOTATE_POST="system"

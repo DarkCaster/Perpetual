@@ -193,8 +193,6 @@ func NewOllamaLLMConnectorFromEnv(
 		switch curSystemPromptRole {
 		case "SYSTEM":
 			systemPromptRole = SystemRole
-		case "DEVELOPER":
-			systemPromptRole = DeveloperRole
 		case "USER":
 			systemPromptRole = UserRole
 		default:
@@ -294,10 +292,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	if p.OutputFormat == OutputJson {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
-	}
-
-	if p.SystemPromptRole == DeveloperRole {
-		transformers = append(transformers, newSystemMessageTransformer("developer", ""))
 	}
 
 	if p.SystemPromptRole == UserRole {
