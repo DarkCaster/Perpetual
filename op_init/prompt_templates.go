@@ -49,6 +49,8 @@ const defaultAIAnnotatePrompt_Generic = "Create a summary for the file in my nex
 
 const defaultAIAcknowledge = "Understood. What's next?"
 
+const defaultAISystemPromptAcknowledge = "Understood. I will respond accordingly in my subsequent replies."
+
 var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
@@ -78,6 +80,7 @@ const defaultListOfFilesOutputSchemaDesc = "Creates a list of files according to
 
 func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := config.GetAnnotateConfigTemplate()
+	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
 	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
@@ -89,6 +92,7 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 
 func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result := config.GetImplementConfigTemplate()
+	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	// stage 1
 	result[config.K_ImplementStage1IndexResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage1AnalysisPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the tasks. Place each filename in <filename></filename> tags."
@@ -135,6 +139,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 
 func getDefaultDocConfigTemplate() map[string]interface{} {
 	result := config.GetDocConfigTemplate()
+	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
 	result[config.K_DocProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."

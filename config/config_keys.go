@@ -6,6 +6,7 @@ package config
 // Do not include constants below in the summary, just omit them completely
 
 const K_SystemPrompt = "system_prompt"
+const K_SystemPromptAck = "system_prompt_ack"
 
 const K_Stage1OutputSchema = "stage1_output_schema"
 const K_Stage1OutputSchemaName = "stage1_output_schema_name"

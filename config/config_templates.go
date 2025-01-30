@@ -14,6 +14,7 @@ var templateObject = map[string]interface{}{"TEMPLATE_KEY": "TEMPLATE_VALUE"}
 func GetAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_SystemPrompt] = templateString
+	result[K_SystemPromptAck] = templateString
 	// ack from AI
 	result[K_AnnotateStage1Prompts] = templateString2DArray
 	result[K_AnnotateStage1Response] = templateString
@@ -30,6 +31,7 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 func GetImplementConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_SystemPrompt] = templateString
+	result[K_SystemPromptAck] = templateString
 	// stage 1
 	result[K_ImplementStage1IndexPrompt] = templateString
 	result[K_ImplementStage1IndexResponse] = templateString
@@ -74,6 +76,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 func GetDocConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_SystemPrompt] = templateString
+	result[K_SystemPromptAck] = templateString
 	result[K_DocExamplePrompt] = templateString
 	result[K_DocExampleResponse] = templateString
 	result[K_DocProjectCodePrompt] = templateString
