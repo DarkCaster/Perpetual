@@ -1,6 +1,6 @@
 # Configuration
 
-Perpetual employs a flexible and robust configuration system that allows you to tailor the application's behavior to suit your project's needs. The configuration is divided into two main types:
+Perpetual employs configuration system that allows you to tailor the application's behavior to suit your project's needs. The configuration is divided into two main types:
 
 1. **Environment Configuration**: This includes machine-specific settings such as LLM provider details, API keys, and model configurations. These settings can be injected directly into the environment before running Perpetual or specified in `.env` files. They are specific to the machine or instance and should not be added to version control systems (VCS).
 
