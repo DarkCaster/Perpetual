@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -36,6 +37,8 @@ type OllamaLLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	OptionsToRemove       []string
+	ThinkRemoveRx         []*regexp.Regexp
+	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
 }
 
@@ -174,6 +177,46 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		outputFormat = OutputPlain
 	}
 
+	thinkRx := []*regexp.Regexp{}
+	outRx := []*regexp.Regexp{}
+
+	// output extracting for reasoning-models will only work with plain output mode
+	if outputFormat == OutputPlain {
+		thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
+		thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
+		thinkLRx, errLC := regexp.Compile(thinkLRxStr)
+		thinkRRx, errRC := regexp.Compile(thinkRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			thinkRx = append(thinkRx, thinkLRx)
+			thinkRx = append(thinkRx, thinkRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
+		}
+
+		outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
+		outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
+		outLRx, errLC := regexp.Compile(outLRxStr)
+		outRRx, errRC := regexp.Compile(outRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			outRx = append(outRx, outLRx)
+			outRx = append(outRx, outRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
+		}
+	}
+
 	return &OllamaLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -192,6 +235,8 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		OptionsToRemove:       optionsToRemove,
+		ThinkRemoveRx:         thinkRx,
+		OutputExtractRx:       outRx,
 		Debug:                 debug,
 	}, nil
 }
@@ -318,8 +363,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//and compare
 		if responseTokens >= maxTokens {
 			if lastResort {
-				if p.OutputFormat == OutputJson {
+				if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
 					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
+					//also, return error if extra answer filtering is required
 					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
 				}
 				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
@@ -327,6 +373,22 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			continue
 		}
 		finalContent = append(finalContent, response.Choices[0].Content)
+	}
+
+	for i := 0; i < len(finalContent); i++ {
+		//remove reasoning, if we have setup corresponding regexps
+		if len(p.ThinkRemoveRx) > 1 {
+			filteredText := utils.GetTextBeforeFirstMatchRx(finalContent[i], p.ThinkRemoveRx[0]) +
+				utils.GetTextAfterLastMatchRx(finalContent[i], p.ThinkRemoveRx[1])
+			if filteredText != "" {
+				finalContent[i] = filteredText
+			}
+		}
+		//cut output, if we have setup corresponding regexps
+		if len(p.OutputExtractRx) > 1 {
+			finalContent[i] = utils.GetTextAfterFirstMatchRx(finalContent[i], p.OutputExtractRx[0])
+			finalContent[i] = utils.GetTextBeforeLastMatchRx(finalContent[i], p.OutputExtractRx[1])
+		}
 	}
 
 	//return finalContent
