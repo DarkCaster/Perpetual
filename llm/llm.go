@@ -44,6 +44,14 @@ const (
 	Basic
 )
 
+type systemPromptRole int
+
+const (
+	SystemRole systemPromptRole = iota
+	DeveloperRole
+	UserRole
+)
+
 type LLMConnector interface {
 	// Main interaction point with LLM
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)

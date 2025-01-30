@@ -27,6 +27,7 @@ type OllamaLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	SystemPromptAck       string
+	SystemPromptRole      systemPromptRole
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
@@ -186,6 +187,21 @@ func NewOllamaLLMConnectorFromEnv(
 		outputFormat = OutputPlain
 	}
 
+	systemPromptRole := SystemRole
+	if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
+		debug.Add("system prompt role", systemPromptRole)
+		switch curSystemPromptRole {
+		case "SYSTEM":
+			systemPromptRole = SystemRole
+		case "DEVELOPER":
+			systemPromptRole = DeveloperRole
+		case "USER":
+			systemPromptRole = UserRole
+		default:
+			return nil, fmt.Errorf("invalid system prompt role provided for %s operation: %s", operation, curSystemPromptRole)
+		}
+	}
+
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
 
@@ -234,6 +250,7 @@ func NewOllamaLLMConnectorFromEnv(
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
+		SystemPromptRole:      systemPromptRole,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
@@ -277,6 +294,14 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	if p.OutputFormat == OutputJson {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
+	}
+
+	if p.SystemPromptRole == DeveloperRole {
+		transformers = append(transformers, newSystemMessageTransformer("developer", ""))
+	}
+
+	if p.SystemPromptRole == UserRole {
+		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 	}
 
 	if len(transformers) > 0 {
