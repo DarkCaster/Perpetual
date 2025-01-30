@@ -34,6 +34,7 @@ type GenericLLMConnector struct {
 	Auth                  string
 	Model                 string
 	SystemPrompt          string
+	SystemPromptAck       string
 	MaxTokensFormat       maxTokensFormat
 	Streaming             bool
 	FilesToMdLangMappings [][]string
@@ -55,6 +56,7 @@ func NewGenericLLMConnectorFromEnv(
 	subprofile string,
 	operation string,
 	systemPrompt string,
+	systemPromptAck string,
 	filesToMdLangMappings [][]string,
 	llmRawMessageLogger func(v ...any)) (*GenericLLMConnector, error) {
 	operation = strings.ToUpper(operation)
@@ -245,6 +247,7 @@ func NewGenericLLMConnectorFromEnv(
 		Auth:                  auth,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
+		SystemPromptAck:       systemPromptAck,
 		MaxTokensFormat:       maxTokensFormat,
 		Streaming:             streaming > 0,
 		FilesToMdLangMappings: filesToMdLangMappings,

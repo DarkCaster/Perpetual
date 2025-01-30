@@ -25,6 +25,7 @@ type OpenAILLMConnector struct {
 	Token                 string
 	Model                 string
 	SystemPrompt          string
+	SystemPromptAck       string
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
@@ -42,6 +43,7 @@ func NewOpenAILLMConnectorFromEnv(
 	subprofile string,
 	operation string,
 	systemPrompt string,
+	systemPromptAck string,
 	filesToMdLangMappings [][]string,
 	outputSchema map[string]interface{},
 	outputSchemaName string,
@@ -182,6 +184,7 @@ func NewOpenAILLMConnectorFromEnv(
 		Token:                 token,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
+		SystemPromptAck:       systemPromptAck,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
@@ -257,7 +260,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			transformers = append(transformers, newSystemMessageTransformer("developer", ""))
 		} else {
 			//convert "system" message role into normal "user" message role with extra acknowledge
-			transformers = append(transformers, newSystemMessageTransformer("user", "Understood. I will follow these instructions in my subsequent answers."))
+			transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 		}
 		//Remove unsupported parameters from top level: temperature, top_p, presence_penalty, frequency_penalty, logprobs, top_logprobs, logit_bias
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{

@@ -70,7 +70,10 @@ func NewLLMConnector(operation string,
 		return nil, errors.New("operation name is empty")
 	}
 	if systemPrompt == "" {
-		return nil, errors.New("system prompt name is empty")
+		return nil, errors.New("system prompt is empty")
+	}
+	if systemPromptAck == "" {
+		return nil, errors.New("system prompt acknowledge is empty")
 	}
 
 	operation = strings.ToUpper(operation)
@@ -138,6 +141,7 @@ func NewLLMConnector(operation string,
 			subProfile,
 			operation,
 			systemPrompt,
+			systemPromptAck,
 			filesToMdLangMappings,
 			outputSchema,
 			outputSchemaName,
@@ -149,6 +153,7 @@ func NewLLMConnector(operation string,
 			subProfile,
 			operation,
 			systemPrompt,
+			systemPromptAck,
 			filesToMdLangMappings,
 			outputSchema,
 			outputFormat,
@@ -158,6 +163,7 @@ func NewLLMConnector(operation string,
 			subProfile,
 			operation,
 			systemPrompt,
+			systemPromptAck,
 			filesToMdLangMappings,
 			llmRawMessageLogger)
 	default:

@@ -26,6 +26,7 @@ type OllamaLLMConnector struct {
 	Auth                  string
 	Model                 string
 	SystemPrompt          string
+	SystemPromptAck       string
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
@@ -42,7 +43,15 @@ type OllamaLLMConnector struct {
 	Debug                 llmDebug
 }
 
-func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPrompt string, filesToMdLangMappings [][]string, outputSchema map[string]interface{}, outputFormat OutputFormat, llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
+func NewOllamaLLMConnectorFromEnv(
+	subprofile string,
+	operation string,
+	systemPrompt string,
+	systemPromptAck string,
+	filesToMdLangMappings [][]string,
+	outputSchema map[string]interface{},
+	outputFormat OutputFormat,
+	llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
 	var debug llmDebug
@@ -224,6 +233,7 @@ func NewOllamaLLMConnectorFromEnv(subprofile string, operation string, systemPro
 		Auth:                  auth,
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
+		SystemPromptAck:       systemPromptAck,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
