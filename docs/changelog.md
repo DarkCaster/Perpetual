@@ -11,7 +11,7 @@
 - Added optional basic and bearer authentication support for the Ollama provider (useful for public instances wrapped with an HTTPS proxy).
 - Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
 - Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
-- Added "reasoning effort" advanced parameter support for OpenAI, which works only with reasoning models like o1 (full version, not -preview or -mini).
+- Added "reasoning effort" advanced parameter support for OpenAI and Generic providers, only works with reasoning models like o1 (full version, not -preview or -mini).
 - Added various quirks to better support working with reasoning models for Ollama and Generic provider
 
 ### Bug Fixes
