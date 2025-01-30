@@ -152,12 +152,7 @@ func Stage4(projectRootDir string,
 			// Remove extra output tag from the start from non first response-fragments
 			for i := range responses {
 				if i > 0 {
-					responses[i], err = utils.GetTextAfterFirstMatchesRx(
-						responses[i],
-						utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
-					if err != nil {
-						logger.Panicln("Error while parsing output response fragment:", err)
-					}
+					responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
 				}
 			}
 
@@ -176,12 +171,7 @@ func Stage4(projectRootDir string,
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody, err := utils.GetTextAfterFirstMatchesRx(
-					combinedResponse,
-					utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
-				if err != nil {
-					logger.Panicln("Error while parsing body from combined fragments:", err)
-				}
+				fileBody := utils.GetTextAfterFirstMatchesRx(combinedResponse, utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
 				fileBodies = []string{fileBody}
 			}
 

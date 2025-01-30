@@ -78,43 +78,52 @@ func ReplaceTagRx(text string, searchRegex *regexp.Regexp, replacement string) (
 	return strings.Join(parts, ""), nil
 }
 
-func GetTextAfterFirstMatchRx(text string, searchRegexp *regexp.Regexp) (string, error) {
+func GetTextBeforeFirstMatchRx(text string, searchRegexp *regexp.Regexp) string {
 	match := searchRegexp.FindStringIndex(text)
 	if match == nil {
-		return text, nil
+		return text
 	}
-	return text[match[1]:], nil
+	return text[:match[0]]
 }
 
-func GetTextAfterFirstMatchesRx(text string, searchRegexps []*regexp.Regexp) (string, error) {
+func GetTextAfterFirstMatchRx(text string, searchRegexp *regexp.Regexp) string {
+	match := searchRegexp.FindStringIndex(text)
+	if match == nil {
+		return text
+	}
+	return text[match[1]:]
+}
+
+func GetTextAfterFirstMatchesRx(text string, searchRegexps []*regexp.Regexp) string {
 	for _, element := range searchRegexps {
-		var err error
-		text, err = GetTextAfterFirstMatchRx(text, element)
-		if err != nil {
-			return text, err
-		}
+		text = GetTextAfterFirstMatchRx(text, element)
 	}
-	return text, nil
+	return text
 }
 
-func GetTextBeforeLastMatchRx(text string, searchRegexp *regexp.Regexp) (string, error) {
+func GetTextAfterLastMatchRx(text string, searchRegexp *regexp.Regexp) string {
 	matches := searchRegexp.FindAllStringIndex(text, -1)
 	if len(matches) == 0 {
-		return text, nil
+		return text
 	}
 	lastMatch := matches[len(matches)-1]
-	return text[:lastMatch[0]], nil
+	return text[lastMatch[1]:]
 }
 
-func GetTextBeforeLastMatchesRx(text string, searchRegexps []*regexp.Regexp) (string, error) {
-	for _, element := range searchRegexps {
-		var err error
-		text, err = GetTextBeforeLastMatchRx(text, element)
-		if err != nil {
-			return text, err
-		}
+func GetTextBeforeLastMatchRx(text string, searchRegexp *regexp.Regexp) string {
+	matches := searchRegexp.FindAllStringIndex(text, -1)
+	if len(matches) == 0 {
+		return text
 	}
-	return text, nil
+	lastMatch := matches[len(matches)-1]
+	return text[:lastMatch[0]]
+}
+
+func GetTextBeforeLastMatchesRx(text string, searchRegexps []*regexp.Regexp) string {
+	for _, element := range searchRegexps {
+		text = GetTextBeforeLastMatchRx(text, element)
+	}
+	return text
 }
 
 func GetEvenRegexps(arr []*regexp.Regexp) []*regexp.Regexp {
