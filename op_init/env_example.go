@@ -412,6 +412,7 @@ GENERIC_BASE_URL="https://api.deepseek.com/v1" # Required parameter for generic 
 # GENERIC_MODEL_OP_DOC_STAGE1="deepseek-chat"
 # GENERIC_MODEL_OP_DOC_STAGE2="deepseek-chat"
 GENERIC_MODEL="deepseek-chat"
+# GENERIC_MODEL="deepseek-reasoner" # do not forget to set system prompt role to "user" below
 GENERIC_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 GENERIC_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
 GENERIC_VARIANT_COUNT="1" # will be used as fallback
@@ -447,7 +448,7 @@ GENERIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
 GENERIC_TEMPERATURE_OP_DOC_STAGE2="0.7" # more creative when writing documentation
 GENERIC_TEMPERATURE="0.5"
 
-# System prompt role for model, can be configured per operation. Useful if model not supporting system prompt
+# System prompt role for model, can be configured per operation. Useful for reasoning models without system prompt, like deepseek-reasoner
 # Valid values: system, developer, user. default: system.
 # When using "user" role, system prompt will be converted to user-query + ai-acknowledge message sequence
 # GENERIC_SYSPROMPT_ROLE_OP_ANNOTATE="system"
