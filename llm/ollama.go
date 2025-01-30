@@ -366,32 +366,33 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
 					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
 					//also, return error if extra answer filtering is required
-					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+					return []string{}, QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
 				}
 				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
 			}
 			continue
 		}
-		finalContent = append(finalContent, response.Choices[0].Content)
-	}
 
-	for i := 0; i < len(finalContent); i++ {
+		content := response.Choices[0].Content
+
 		//remove reasoning, if we have setup corresponding regexps
 		if len(p.ThinkRemoveRx) > 1 {
-			filteredText := utils.GetTextBeforeFirstMatchRx(finalContent[i], p.ThinkRemoveRx[0]) +
-				utils.GetTextAfterLastMatchRx(finalContent[i], p.ThinkRemoveRx[1])
+			filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
+				utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
 			if filteredText != "" {
-				finalContent[i] = filteredText
+				content = filteredText
 			}
 		}
+
 		//cut output, if we have setup corresponding regexps
 		if len(p.OutputExtractRx) > 1 {
-			finalContent[i] = utils.GetTextAfterFirstMatchRx(finalContent[i], p.OutputExtractRx[0])
-			finalContent[i] = utils.GetTextBeforeLastMatchRx(finalContent[i], p.OutputExtractRx[1])
+			content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
+			content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
 		}
+
+		finalContent = append(finalContent, content)
 	}
 
-	//return finalContent
 	return finalContent, QueryOk, nil
 }
 
