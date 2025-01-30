@@ -357,8 +357,10 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.RawMessageLogger("\n\n\n")
 		}
 
+		lastResort := len(finalContent) < 1 && i >= len(response.Choices)-1
+
 		if choice.StopReason == "length" {
-			if len(finalContent) < 1 && i >= len(response.Choices)-1 {
+			if lastResort {
 				if p.OutputFormat == OutputJson {
 					//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
 					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
@@ -367,6 +369,14 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			}
 			continue
 		}
+
+		if choice.StopReason != "stop" && choice.StopReason != "tool_calls" && choice.StopReason != "function_call" {
+			if lastResort {
+				return []string{}, QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
+			}
+			continue
+		}
+
 		finalContent = append(finalContent, choice.Content)
 	}
 
