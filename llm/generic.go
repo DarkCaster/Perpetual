@@ -219,7 +219,7 @@ func NewGenericLLMConnectorFromEnv(
 
 	systemPromptRole := SystemRole
 	if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
-		debug.Add("system prompt role", systemPromptRole)
+		debug.Add("system prompt role", curSystemPromptRole)
 		switch curSystemPromptRole {
 		case "SYSTEM":
 			systemPromptRole = SystemRole
