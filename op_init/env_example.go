@@ -280,7 +280,7 @@ OLLAMA_TEMPERATURE="0.5"
 
 # Optional regexps for filtering out responses from reasoning models, like deepseek r1
 # THINK-regexps will be used to remove reasoning part from response L - is for opening tag, R - is for closing tag
-# OUT-regexps will be used to extract output part from response after it being filered out with THINK-regexps
+# OUT-regexps will be used to extract output part from response after it was filered out with THINK-regexps
 # OLLAMA_THINK_RX_L_OP_ANNOTATE="(?mi)^\\s*<think>\\s*\$"
 # OLLAMA_THINK_RX_R_OP_ANNOTATE="(?mi)^\\s*</think>\\s*\$"
 # OLLAMA_OUT_RX_L_OP_ANNOTATE="(?mi)^\\s*<output>\\s*\$"
