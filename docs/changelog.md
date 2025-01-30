@@ -12,7 +12,7 @@
 - Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
 - Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
 - Added "reasoning effort" advanced parameter support for OpenAI and Generic providers, only works with reasoning models like o1 (full version, not -preview or -mini).
-- Added various quirks to better support working with reasoning models for Ollama and Generic provider
+- Added various quirks to better support working with reasoning models for Ollama and Generic providers
 
 ### Bug Fixes
 
