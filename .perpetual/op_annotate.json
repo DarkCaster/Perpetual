@@ -25,5 +25,6 @@
   "stage2_prompt_best": "Evaluate the summaries you have created and choose summary variant that better matches the original instructions. Output the text of the selected summary variant in the response, nothing more.",
   "stage2_prompt_combine": "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more.",
   "stage2_prompt_variant": "Create another summary variant",
-  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
+  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.",
+  "system_prompt_ack": "Understood. I will respond accordingly in my subsequent replies."
 }

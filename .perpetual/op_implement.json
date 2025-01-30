@@ -72,5 +72,6 @@
   "stage4_changes_done_response": "Understood. What's next?",
   "stage4_continue_prompt": "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response.",
   "stage4_process_prompt": "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else.",
-  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
+  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.",
+  "system_prompt_ack": "Understood. I will respond accordingly in my subsequent replies."
 }
