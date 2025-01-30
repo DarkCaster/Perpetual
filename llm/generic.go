@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/utils"
@@ -45,6 +46,8 @@ type GenericLLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
+	ThinkRemoveRx         []*regexp.Regexp
+	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
 }
 
@@ -198,6 +201,43 @@ func NewGenericLLMConnectorFromEnv(
 		}
 	}
 
+	thinkRx := []*regexp.Regexp{}
+	outRx := []*regexp.Regexp{}
+
+	thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
+	thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
+	thinkLRx, errLC := regexp.Compile(thinkLRxStr)
+	thinkRRx, errRC := regexp.Compile(thinkRRxStr)
+	if errL == nil && errR == nil && errLC == nil && errRC == nil {
+		thinkRx = append(thinkRx, thinkLRx)
+		thinkRx = append(thinkRx, thinkRRx)
+	} else if errL != nil && errR == nil {
+		return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
+	} else if errL == nil && errR != nil {
+		return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
+	} else if errL == nil && errR == nil && errLC != nil {
+		return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
+	} else if errL == nil && errR == nil && errRC != nil {
+		return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
+	}
+
+	outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
+	outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
+	outLRx, errLC := regexp.Compile(outLRxStr)
+	outRRx, errRC := regexp.Compile(outRRxStr)
+	if errL == nil && errR == nil && errLC == nil && errRC == nil {
+		outRx = append(outRx, outLRx)
+		outRx = append(outRx, outRRx)
+	} else if errL != nil && errR == nil {
+		return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
+	} else if errL == nil && errR != nil {
+		return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
+	} else if errL == nil && errR == nil && errLC != nil {
+		return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
+	} else if errL == nil && errR == nil && errRC != nil {
+		return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
+	}
+
 	return &GenericLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               baseURL,
@@ -217,6 +257,8 @@ func NewGenericLLMConnectorFromEnv(
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
+		ThinkRemoveRx:         thinkRx,
+		OutputExtractRx:       outRx,
 		Debug:                 debug,
 	}, nil
 }
@@ -352,14 +394,34 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		//and compare
 		if responseTokens >= maxTokens || response.Choices[0].StopReason == "length" {
 			if lastResort {
+				if len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
+					return []string{}, QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
+				}
 				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
 			}
 			continue
 		}
-		finalContent = append(finalContent, response.Choices[0].Content)
+
+		content := response.Choices[0].Content
+
+		//remove reasoning, if we have setup corresponding regexps
+		if len(p.ThinkRemoveRx) > 1 {
+			filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
+				utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
+			if filteredText != "" {
+				content = filteredText
+			}
+		}
+
+		//cut output, if we have setup corresponding regexps
+		if len(p.OutputExtractRx) > 1 {
+			content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
+			content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
+		}
+
+		finalContent = append(finalContent, content)
 	}
 
-	//return finalContent
 	return finalContent, QueryOk, nil
 }
 
