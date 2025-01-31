@@ -221,7 +221,7 @@ OPENAI_TEMPERATURE="0.5"
 
 
 # Options for Ollama integration, running locally.
-# It may produce decent results for some operations when using model big enough. See docs/ollama.md for more info
+# When using a large enough model it can produce good results for some operations. See docs/ollama.md for more info
 
 # OLLAMA_BASE_URL="http://127.0.0.1:11434"
 
@@ -244,7 +244,7 @@ OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: shor
 OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
-# Context sizes for different operations, provided sizes are minimum for reliable operation
+# Context window sizes for different operations, provided sizes are minimum for reliable operation
 OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="12288"
 OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="12288"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE1="24576"
