@@ -46,7 +46,6 @@ LLM_PROVIDER="anthropic"
 # GENERIC1_MODEL=...
 
 
-
 # Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
 
 ANTHROPIC_API_KEY="<your api key goes here>"
@@ -120,7 +119,7 @@ ANTHROPIC_TEMPERATURE="0.5"
 # ANTHROPIC_TOP_P="0.9"
 
 
-# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Oct 2024)
+# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
 
 OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
@@ -220,7 +219,9 @@ OPENAI_TEMPERATURE="0.5"
 # OPENAI_PRESENCE_PENALTY_OP_DOC_STAGE2="1.0"
 # OPENAI_PRESENCE_PENALTY="1.0"
 
-# Options for Ollama integration, running locally. Ollama support is experimental and WILL NOT WORK RELIABLE WITH DEFAULT SETUP, see docs/ollama.md for more info
+
+# Options for Ollama integration, running locally.
+# It may produce decent results for some operations when using model big enough. See docs/ollama.md for more info
 
 # OLLAMA_BASE_URL="http://127.0.0.1:11434"
 
@@ -231,17 +232,28 @@ OPENAI_TEMPERATURE="0.5"
 
 OLLAMA_MODEL_OP_ANNOTATE="qwen2.5-coder:7b-instruct-q5_K_M"
 OLLAMA_MODEL_OP_ANNOTATE_POST="qwen2.5-coder:7b-instruct-q5_K_M" # used to process multiple response-variants if any
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:7b-instruct-q5_K_M"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="qwen2.5-coder:7b-instruct-q5_K_M"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="qwen2.5-coder:7b-instruct-q5_K_M"
-# OLLAMA_MODEL_OP_IMPLEMENT_STAGE4="qwen2.5-coder:7b-instruct-q5_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:14b-instruct-q4_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="qwen2.5-coder:14b-instruct-q4_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="qwen2.5-coder:14b-instruct-q4_K_M"
+# OLLAMA_MODEL_OP_IMPLEMENT_STAGE4="qwen2.5-coder:14b-instruct-q4_K_M"
 # OLLAMA_MODEL_OP_DOC_STAGE1="llama3.1:70b-instruct-q4_K_S"
 # OLLAMA_MODEL_OP_DOC_STAGE2="llama3.1:70b-instruct-q4_K_S"
-OLLAMA_MODEL="qwen2.5-coder:7b-instruct-q5_K_M"
+OLLAMA_MODEL="qwen2.5-coder:14b-instruct-q4_K_M"
 OLLAMA_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
 OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
+
+# Context sizes for different operations, provided sizes are minimum for reliable operation
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="12288"
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="12288"
+OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE1="24576"
+OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE2="24576"
+OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE3="24576"
+OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE4="24576"
+OLLAMA_CONTEXT_SIZE_OP_DOC_STAGE1="49152"
+OLLAMA_CONTEXT_SIZE_OP_DOC_STAGE2="49152"
+OLLAMA_CONTEXT_SIZE="24576"
 
 # Switch to use structured JSON output format for some operations, may work better with some models (or not work at all)
 # Supported values: plain, json. Default: plain
