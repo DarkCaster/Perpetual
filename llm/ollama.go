@@ -25,6 +25,7 @@ type OllamaLLMConnector struct {
 	AuthType              providerAuthType
 	Auth                  string
 	Model                 string
+	ContextSize           int
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
@@ -115,6 +116,13 @@ func NewOllamaLLMConnectorFromEnv(
 		debug.Add("temperature", temperature)
 	} else {
 		optionsToRemove = append(optionsToRemove, "temperature")
+	}
+
+	numCtx, err := utils.GetEnvInt(fmt.Sprintf("%s_CONTEXT_SIZE_OP_%s", prefix, operation), fmt.Sprintf("%s_CONTEXT_SIZE", prefix))
+	if err != nil || numCtx < 1 {
+		numCtx = 0
+	} else {
+		debug.Add("context size", numCtx)
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -246,6 +254,7 @@ func NewOllamaLLMConnectorFromEnv(
 		AuthType:              authType,
 		Auth:                  auth,
 		Model:                 model,
+		ContextSize:           numCtx,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
 		SystemPromptRole:      systemPromptRole,
@@ -277,6 +286,10 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	ollamaOptions := utils.NewSlice(ollama.WithModel(p.Model))
 	if p.BaseURL != "" {
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
+	}
+
+	if p.ContextSize != 0 {
+		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(p.ContextSize))
 	}
 
 	transformers := []requestTransformer{}
