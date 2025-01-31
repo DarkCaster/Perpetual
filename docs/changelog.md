@@ -9,6 +9,7 @@
 - Improved debug string generation for all LLM providers (displayed when running `perpetual` operations with `-v` flag).
 - Added optional basic-auth support for the Generic provider and the ability to disable authentication completely.
 - Added optional basic and bearer authentication support for the Ollama provider (useful for public instances wrapped with an HTTPS proxy).
+- Added parameter to set context window size for Ollama provider models.
 - Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
 - Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
 - Added "reasoning effort" advanced parameter support for OpenAI and Generic providers, only works with reasoning models like o1 (full version, not -preview or -mini).
