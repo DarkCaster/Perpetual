@@ -34,6 +34,7 @@ const DotEnvExample = `# The following example contains all currently supported 
 LLM_PROVIDER="anthropic"
 # LLM_PROVIDER="openai"
 # LLM_PROVIDER="ollama"
+# LLM_PROVIDER="generic"
 
 # NOTE: you can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
 # examples:
