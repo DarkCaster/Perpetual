@@ -20,7 +20,7 @@ func initFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, logger logging.ILogger) {
+func Run(version string, args []string, logger logging.ILogger) {
 	lang := ""
 	var help, verbose, trace, clean bool
 	// Parse flags for the "init" operation
@@ -103,7 +103,11 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	logger.Traceln("Creating env example file")
-	err = utils.SaveTextFile(filepath.Join(perpetualDir, DotEnvExampleFileName), DotEnvExample)
+	dotEnvExample := DotEnvExample
+	if version != "" {
+		dotEnvExample = "# Example .env config, version: " + version + "\n\n" + DotEnvExample
+	}
+	err = utils.SaveTextFile(filepath.Join(perpetualDir, DotEnvExampleFileName), dotEnvExample)
 	if err != nil {
 		logger.Panicln("Error creating env example file:", err)
 	}

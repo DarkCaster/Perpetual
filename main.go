@@ -52,7 +52,7 @@ func main() {
 
 	switch strings.ToLower(operation) {
 	case op_init.OpName:
-		op_init.Run(args, logger)
+		op_init.Run(Version, args, logger)
 	case op_annotate.OpName:
 		op_annotate.Run(args, logger)
 	case op_implement.OpName:
