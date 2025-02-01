@@ -1,19 +1,26 @@
 # Changelog
 
+## v2.1.1
+
+### Improvements
+
+- Minor parameter updates and spelling fixes in `.env.example`.
+- Added the inclusion of the `Perpetual` version number to the generated `.env.example` config.
+
 ## v2.1.0
 
 ### Improvements
 
 - Added base support for C and C++ languages with CMake build. Due to the vast number of different project formats and file types, you will likely need to modify the default configuration provided by `Perpetual init -l <c|cpp>` to suit your needs before fully utilizing it.
 - Added initial support for Arduino C/C++ projects (sketches). `Perpetual` will not have access to third-party modules' sources if initialized from the sketch directory. It is recommended to run `Perpetual init -l arduino` from the parent sketch directory and extract the module sources there to allow `Perpetual` to access them.
-- Improved debug string generation for all LLM providers (displayed when running `perpetual` operations with `-v` flag).
+- Improved debug string generation for all LLM providers (displayed when running `perpetual` operations with the `-v` flag).
 - Added optional basic-auth support for the Generic provider and the ability to disable authentication completely.
 - Added optional basic and bearer authentication support for the Ollama provider (useful for public instances wrapped with an HTTPS proxy).
 - Added parameters to set context window sizes for Ollama provider models (per operation).
 - Made the temperature parameter optional for all currently implemented providers (none of them enforce setting the temperature).
 - Made the max tokens parameter optional for the Generic and OpenAI providers (it is still recommended to set them).
-- Added "reasoning effort" advanced parameter support for OpenAI and Generic providers, only works with reasoning models like o1 (full version, not -preview or -mini).
-- Added various quirks to better support working with reasoning models for Ollama and Generic providers
+- Added "reasoning effort" advanced parameter support for OpenAI and Generic providers, which only works with reasoning models like o1 (full version, not -preview or -mini).
+- Added various quirks to better support working with reasoning models for Ollama and Generic providers.
 
 ### Bug Fixes
 
