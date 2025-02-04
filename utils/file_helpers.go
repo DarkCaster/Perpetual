@@ -140,6 +140,18 @@ func SaveTextFile(filePath string, text string) error {
 	return nil
 }
 
+func WriteTextStdout(text string) error {
+	//TODO: use better method to convert windows line-endings
+	if runtime.GOOS == "windows" {
+		text = strings.ReplaceAll(text, "\n", "\r\n")
+	}
+	_, err := fmt.Print(text)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func AppendToTextFile(filePath string, text string) error {
 	//TODO: use better method to convert windows line-endings
 	if runtime.GOOS == "windows" {

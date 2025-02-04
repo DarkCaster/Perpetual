@@ -50,6 +50,11 @@ func main() {
 		panic(err)
 	}
 
+	stdErrLogger, err := logging.NewStdErrSimpleLogger(logging.InfoLevel)
+	if err != nil {
+		panic(err)
+	}
+
 	switch strings.ToLower(operation) {
 	case op_init.OpName:
 		op_init.Run(Version, args, logger)
@@ -60,7 +65,7 @@ func main() {
 	case op_stash.OpName:
 		op_stash.Run(args, logger)
 	case op_report.OpName:
-		op_report.Run(args, logger)
+		op_report.Run(args, logger, stdErrLogger)
 	case op_doc.OpName:
 		op_doc.Run(args, logger)
 	}

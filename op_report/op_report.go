@@ -2,8 +2,6 @@ package op_report
 
 import (
 	"flag"
-	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -20,7 +18,7 @@ const (
 	OpDesc = "Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis"
 )
 
-func Run(args []string, logger logging.ILogger) {
+func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
 	var reportType, outputFile, userFilterFile string
 
@@ -28,13 +26,17 @@ func Run(args []string, logger logging.ILogger) {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
-	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stderr if not provided or empty)")
+	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stdout if not provided or empty)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from report")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 
 	flags.Parse(args)
+
+	if outputFile == "" {
+		logger = stdErrLogger
+	}
 
 	if verbose {
 		logger.SetLevel(logging.DebugLevel)
@@ -142,6 +144,9 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("Error writing report to file:", err)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, strings.Join(reportStrings, "\n"))
+		err = utils.WriteTextStdout(strings.Join(reportStrings, "\n"))
+		if err != nil {
+			logger.Panicln("Error writing report to stdout:", err)
+		}
 	}
 }
