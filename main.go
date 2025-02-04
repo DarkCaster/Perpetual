@@ -9,6 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_doc"
+	"github.com/DarkCaster/Perpetual/op_explain"
 	"github.com/DarkCaster/Perpetual/op_implement"
 	"github.com/DarkCaster/Perpetual/op_init"
 	"github.com/DarkCaster/Perpetual/op_report"
@@ -24,6 +25,7 @@ func getOperations() map[string]string {
 		op_stash.OpName:     op_stash.OpDesc,
 		op_report.OpName:    op_report.OpDesc,
 		op_doc.OpName:       op_doc.OpDesc,
+		op_explain.OpName:   op_explain.OpDesc,
 	}
 }
 
@@ -66,6 +68,8 @@ func main() {
 		op_stash.Run(args, logger)
 	case op_report.OpName:
 		op_report.Run(args, logger, stdErrLogger)
+	case op_explain.OpName:
+		op_explain.Run(args, logger, stdErrLogger)
 	case op_doc.OpName:
 		op_doc.Run(args, logger)
 	}
