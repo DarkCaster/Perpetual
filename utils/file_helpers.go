@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -86,12 +87,24 @@ func CheckUTF8(data []byte) error {
 	return nil
 }
 
+func LoadTextStdin() (string, error) {
+	bytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", err
+	}
+	return LoadTextData(bytes)
+}
+
 func LoadTextFile(filePath string) (string, error) {
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
-	bytes, err = convertToBOMLessUTF8(bytes)
+	return LoadTextData(bytes)
+}
+
+func LoadTextData(bytes []byte) (string, error) {
+	bytes, err := convertToBOMLessUTF8(bytes)
 	if err != nil {
 		return "", err
 	}
