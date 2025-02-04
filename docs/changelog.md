@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.0.0
+
+### New Features
+
+- Added `explain` operation - answering arbitrary questions about the project or source code, context-aware by automatic selection of relevant code based on project annotations and the question asked.
+
+**NOTE**: You will need to reinitialize your project configs by running `Perpetual init -l <lang>` in order to install the `explain` operation config file and make it work.
+
+### Breaking Changes
+
+- Report operation now writes its output to stdout instead of stderr if no output file is provided, and all program logs for this operation are redirected to stderr.
+
 ## v2.1.1
 
 ### Improvements
