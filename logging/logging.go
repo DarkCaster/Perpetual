@@ -27,7 +27,3 @@ type ILogger interface {
 
 	SetLevel(newLevel LogLevel)
 }
-
-func NewSimpleLogger(initialLevel LogLevel) (ILogger, error) {
-	return newSimpleLogger(initialLevel)
-}
