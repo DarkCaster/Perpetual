@@ -41,6 +41,15 @@ func (p *bashPrompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
+func (p *bashPrompts) GetExplainConfig() map[string]interface{} {
+	result := getDefaultExplainConfigTemplate()
+	result[config.K_SystemPrompt] = bashSystemPrompt
+	// redefine language-dependent prompt
+	result[config.K_ExplainProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
+	return result
+}
+
 func (p *bashPrompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(sh|bash|in)$"}

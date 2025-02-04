@@ -132,6 +132,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	saveConfig(config.OpImplementConfigFile, promptsObj.GetImplementConfig())
 	saveConfig(config.OpDocConfigFile, promptsObj.GetDocConfig())
 	saveConfig(config.OpReportConfigFile, promptsObj.GetReportConfig())
+	saveConfig(config.OpExplainConfigFile, promptsObj.GetExplainConfig())
 
 	// Save project-config file
 	saveConfig(config.ProjectConfigFile, promptsObj.GetProjectConfig())

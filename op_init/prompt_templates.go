@@ -164,6 +164,28 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
+func getDefaultExplainConfigTemplate() map[string]interface{} {
+	result := config.GetExplainConfigTemplate()
+	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
+	result[config.K_ExplainProjectIndexResponse] = defaultAIAcknowledge
+	// stage 1
+	result[config.K_ExplainStage1QuestionPrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of filenames from the project description that you will need to answer this question. Place each filename in <filename></filename> tags. The question is:"
+	result[config.K_ExplainStage1QuestionJsonModePrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of files from the project description that you will need to answer this question. The question is:"
+	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
+	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
+	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
+	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
+	// stage 2
+	result[config.K_ExplainStage2FilesPrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
+	result[config.K_ExplainStage2FilesResponse] = defaultAIAcknowledge
+	result[config.K_ExplainStage2QuestionPrompt] = "Now, please answer the following question about the project's codebase using the information from the files I provided:"
+	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
+	result[config.K_FilenameTags] = defaultFileNameTags
+	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
+	result[config.K_NoUploadCommentsRx] = defaultOutputTagsRegexps
+	return result
+}
+
 func getDefaultReportConfigTemplate() map[string]interface{} {
 	result := config.GetReportConfigTemplate()
 	result[config.K_ReportCodePrompt] = "This document contains the project's source code files."

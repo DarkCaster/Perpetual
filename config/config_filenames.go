@@ -6,7 +6,8 @@ package config
 // Do not include constants below in the summary, just omit them completely
 
 const OpAnnotateConfigFile = "op_annotate.json"
-const OpImplementConfigFile = "op_implement.json"
 const OpDocConfigFile = "op_doc.json"
+const OpExplainConfigFile = "op_explain.json"
+const OpImplementConfigFile = "op_implement.json"
 const OpReportConfigFile = "op_report.json"
 const ProjectConfigFile = "project.json"

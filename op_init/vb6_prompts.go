@@ -45,6 +45,15 @@ func (p *vb6Prompts) GetDocConfig() map[string]interface{} {
 	return result
 }
 
+func (p *vb6Prompts) GetExplainConfig() map[string]interface{} {
+	result := getDefaultExplainConfigTemplate()
+	result[config.K_SystemPrompt] = vb6SystemPrompt
+	// redefine language-dependent prompt
+	result[config.K_ExplainProjectIndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_NoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
+	return result
+}
+
 func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(frm|cls|bas)$"}

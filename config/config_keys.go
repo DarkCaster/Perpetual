@@ -70,6 +70,16 @@ const K_DocStage2RefinePrompt = "stage2_refine_prompt"
 const K_DocStage2WritePrompt = "stage2_write_prompt"
 const K_DocStage2ContinuePrompt = "stage2_continue_prompt"
 
+const K_ExplainProjectIndexPrompt = "project_index_prompt"
+const K_ExplainProjectIndexResponse = "project_index_response"
+
+const K_ExplainStage1QuestionPrompt = "stage1_question_prompt"
+const K_ExplainStage1QuestionJsonModePrompt = "stage1_question_json_mode_prompt"
+
+const K_ExplainStage2FilesPrompt = "stage2_files_prompt"
+const K_ExplainStage2FilesResponse = "stage2_files_response"
+const K_ExplainStage2QuestionPrompt = "stage2_question_prompt"
+
 const K_ReportBriefPrompt = "brief_prompt"
 const K_ReportCodePrompt = "code_prompt"
 

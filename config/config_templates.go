@@ -102,6 +102,30 @@ func GetDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
+func GetExplainConfigTemplate() map[string]interface{} {
+	result := map[string]interface{}{}
+	result[K_SystemPrompt] = templateString
+	result[K_SystemPromptAck] = templateString
+	result[K_ExplainProjectIndexPrompt] = templateString
+	result[K_ExplainProjectIndexResponse] = templateString
+	// stage 1
+	result[K_ExplainStage1QuestionPrompt] = templateString
+	result[K_ExplainStage1QuestionJsonModePrompt] = templateString
+	result[K_Stage1OutputSchema] = templateObject
+	result[K_Stage1OutputKey] = templateString
+	result[K_Stage1OutputSchemaName] = templateString
+	result[K_Stage1OutputSchemaDesc] = templateString
+	// stage 2
+	result[K_ExplainStage2FilesPrompt] = templateString
+	result[K_ExplainStage2FilesResponse] = templateString
+	result[K_ExplainStage2QuestionPrompt] = templateString
+	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
+	result[K_FilenameTags] = templateStringArray
+	result[K_FilenameTagsRx] = templateStringArray
+	result[K_NoUploadCommentsRx] = templateStringArray
+	return result
+}
+
 func GetReportConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_ReportBriefPrompt] = templateString

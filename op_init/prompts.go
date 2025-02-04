@@ -13,6 +13,7 @@ type prompts interface {
 	GetImplementConfig() map[string]interface{}
 	GetDocConfig() map[string]interface{}
 	GetReportConfig() map[string]interface{}
+	GetExplainConfig() map[string]interface{}
 }
 
 // Create particular Prompts implementation depending on requested language
