@@ -3,7 +3,9 @@ package op_explain
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/usage"
@@ -54,14 +56,68 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Find project root and perpetual directories
 	//projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
-	_, _, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
+	}
+
+	logger.Infoln("Project root directory:", projectRootDir)
+	logger.Debugln("Perpetual directory:", perpetualDir)
+
+	//explainConfig
+	_, err = config.LoadOpExplainConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading op_implement config: %s", err)
+	}
+
+	projectConfig, err := config.LoadProjectConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading project config: %s", err)
+	}
+
+	projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
+
+	if userFilterFile != "" {
+		projectFilesBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, projectFilesBlacklist)
+		if err != nil {
+			logger.Panicln("Error appending user blacklist-filter:", err)
+		}
+	}
+
+	if !includeTests {
+		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
+	}
+
+	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
+	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+		projectRootDir,
+		perpetualDir,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectFilesBlacklist)
+
+	if err != nil {
+		logger.Panicln("Error getting project file-list:", err)
+	}
+
+	// Check fileNames array for case collisions
+	if !utils.CheckFilenameCaseCollisions(fileNames) {
+		logger.Panicln("Filename case collisions detected in project files")
+	}
+	// File names and dir-names must not contain path separators characters
+	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
+		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, logger)
+	}
+
+	// Load annotations
+	//annotations
+	_, err = utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+	if err != nil {
+		logger.Panicln("Error loading annotations:", err)
 	}
 
 	// Read input from file or stdin
