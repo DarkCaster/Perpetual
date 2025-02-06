@@ -63,7 +63,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	reportConfig, err := config.LoadOpReportConfig(perpetualDir)
 	if err != nil {
-		logger.Panicf("Error loading op_implement config: %s", err)
+		logger.Panicf("Error loading op_report config: %s", err)
 	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
