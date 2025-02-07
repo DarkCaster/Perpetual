@@ -32,6 +32,7 @@
   "stage1_output_schema_name": "get_files",
   "stage1_question_json_mode_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of files from the project description that you will need to see to answer this question. The question is:",
   "stage1_question_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of filenames from the project description that you will need to see to answer the question. Place each filename in <filename></filename> tags. The question is:",
+  "stage2_continue_prompt": "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response.",
   "stage2_files_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
   "stage2_files_response": "Understood. What's next?",
   "stage2_question_prompt": "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:",
