@@ -118,7 +118,7 @@ func Stage2(projectRootDir string,
 				}
 				// Add partial response to stage2 messages, with request to continue
 				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
-				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocStage2ContinuePrompt)))
+				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ExplainStage2ContinuePrompt)))
 			}
 			// Append response fragment
 			responses = append(responses, aiResponses[0])

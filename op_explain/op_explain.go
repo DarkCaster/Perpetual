@@ -179,9 +179,17 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 	}
 
-	// TODO: Implement the core explain functionality here
-	logger.Panicln("stopped here")
-	answer := fmt.Sprintf("Question received: %s\nThis feature is not yet implemented.", question)
+	// Run stage2 to generate answer to requested question
+	answer := Stage2(projectRootDir,
+		perpetualDir,
+		explainConfig,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		fileNames,
+		filteredRequestedFiles,
+		annotations,
+		question,
+		addAnnotations,
+		logger)
 
 	// Write output to file or stdout
 	if outputFile != "" {
