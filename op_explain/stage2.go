@@ -53,6 +53,8 @@ func Stage2(projectRootDir string,
 		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ExplainProjectIndexResponse))
 		messages = append(messages, indexResponse)
 		logger.Debugln("Created project-index simulated response message")
+	} else {
+		logger.Infoln("Not adding project-annotations")
 	}
 
 	// Add files requested by LLM
