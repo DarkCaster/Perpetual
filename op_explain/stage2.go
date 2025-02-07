@@ -39,20 +39,21 @@ func Stage2(projectRootDir string,
 
 	var messages []llm.Message
 
-	// Create project-index request message
-	indexRequest := llm.ComposeMessageWithAnnotations(
-		cfg.String(config.K_ExplainProjectIndexPrompt),
-		projectFiles,
-		cfg.StringArray(config.K_FilenameTags),
-		annotations,
-		logger)
-	messages = append(messages, indexRequest)
-	logger.Debugln("Created project-index request message")
-
-	// Create project-index simulated response
-	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ExplainProjectIndexResponse))
-	messages = append(messages, indexResponse)
-	logger.Debugln("Created project-index simulated response message")
+	if addAnnotations {
+		// Create project-index request message
+		indexRequest := llm.ComposeMessageWithAnnotations(
+			cfg.String(config.K_ExplainProjectIndexPrompt),
+			projectFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			annotations,
+			logger)
+		messages = append(messages, indexRequest)
+		logger.Debugln("Created project-index request message")
+		// Create project-index simulated response
+		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ExplainProjectIndexResponse))
+		messages = append(messages, indexResponse)
+		logger.Debugln("Created project-index simulated response message")
+	}
 
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
