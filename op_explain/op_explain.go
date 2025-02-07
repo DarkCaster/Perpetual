@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -64,8 +65,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	//explainConfig
-	_, err = config.LoadOpExplainConfig(perpetualDir)
+	explainConfig, err := config.LoadOpExplainConfig(perpetualDir)
 	if err != nil {
 		logger.Panicf("Error loading op_implement config: %s", err)
 	}
@@ -108,18 +108,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	if !noAnnotate {
-		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, logger)
-	}
-
-	// Load annotations
-	//annotations
-	_, err = utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
-	if err != nil {
-		logger.Panicln("Error loading annotations:", err)
-	}
-
 	// Read input from file or stdin
 	var question string
 	if inputFile != "" {
@@ -129,6 +117,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 		question = data
 	} else {
+		logger.Infoln("Reading question from stdin")
 		data, err := utils.LoadTextStdin()
 		if err != nil {
 			logger.Panicln("Error reading from stdin:", err)
@@ -136,7 +125,53 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question = string(data)
 	}
 
+	// Trim excess line breaks at both sides of question, and stop on empty input
+	question = strings.Trim(question, "\n")
+	if len(question) < 1 {
+		logger.Panicln("Question is empty, cannot continue")
+	}
+
+	if !noAnnotate {
+		logger.Debugln("Running 'annotate' operation to update file annotations")
+		op_annotate.Run(nil, logger)
+	}
+
+	// Load annotations
+	annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+	if err != nil {
+		logger.Panicln("Error loading annotations:", err)
+	}
+
+	// Run stage 1
+	requestedFiles := Stage1(projectRootDir,
+		perpetualDir,
+		explainConfig,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		fileNames,
+		annotations,
+		question,
+		logger)
+
+	var filteredRequestedFiles []string
+	if forceUpload {
+		filteredRequestedFiles = requestedFiles
+	} else {
+		for _, file := range requestedFiles {
+			if found, err := utils.FindInRelativeFile(
+				projectRootDir,
+				file,
+				explainConfig.RegexpArray(config.K_NoUploadCommentsRx)); err == nil && !found {
+				filteredRequestedFiles = append(filteredRequestedFiles, file)
+			} else if found {
+				logger.Warnln("Skipping file marked with 'no-upload' comment:", file)
+			} else {
+				logger.Errorln("Error searching for 'no-upload' comment in file:", file, err)
+			}
+		}
+	}
+
 	// TODO: Implement the core explain functionality here
+	logger.Panicln("stopped here")
 	answer := fmt.Sprintf("Question received: %s\nThis feature is not yet implemented.", question)
 
 	// Write output to file or stdout
