@@ -22,11 +22,13 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
-	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var outputFile, inputFile, userFilterFile string
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.BoolVar(&addAnnotations, "a", false, "Add project annotation in addition to files requested by LLM to improve the quality of the answer")
+	flags.BoolVar(&listFilesOnly, "l", false, "Only list files related to answer based on project annotation, instead of generating the full answer")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&outputFile, "r", "", "Target file for writing answer (stdout if not supplied)")
 	flags.StringVar(&inputFile, "i", "", "Read question from file (stdin if not supplied)")
@@ -151,6 +153,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		annotations,
 		question,
 		logger)
+
+	if listFilesOnly {
+		for _, filename := range requestedFiles {
+			fmt.Println(filename)
+		}
+		return
+	}
 
 	var filteredRequestedFiles []string
 	if forceUpload {
