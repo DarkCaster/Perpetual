@@ -179,6 +179,7 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_ExplainStage2FilesPrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
 	result[config.K_ExplainStage2FilesResponse] = defaultAIAcknowledge
 	result[config.K_ExplainStage2QuestionPrompt] = "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:"
+	result[config.K_ExplainStage2ContinuePrompt] = "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps

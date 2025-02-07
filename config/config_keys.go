@@ -79,6 +79,7 @@ const K_ExplainStage1QuestionJsonModePrompt = "stage1_question_json_mode_prompt"
 const K_ExplainStage2FilesPrompt = "stage2_files_prompt"
 const K_ExplainStage2FilesResponse = "stage2_files_response"
 const K_ExplainStage2QuestionPrompt = "stage2_question_prompt"
+const K_ExplainStage2ContinuePrompt = "stage2_continue_prompt"
 
 const K_ReportBriefPrompt = "brief_prompt"
 const K_ReportCodePrompt = "code_prompt"

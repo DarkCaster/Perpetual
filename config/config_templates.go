@@ -119,6 +119,7 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_ExplainStage2FilesPrompt] = templateString
 	result[K_ExplainStage2FilesResponse] = templateString
 	result[K_ExplainStage2QuestionPrompt] = templateString
+	result[K_ExplainStage2ContinuePrompt] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[K_FilenameTags] = templateStringArray
 	result[K_FilenameTagsRx] = templateStringArray
