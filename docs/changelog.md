@@ -6,7 +6,7 @@
 
 - Added `explain` operation - answering arbitrary questions about the project or source code, context-aware by automatic selection of relevant code based on project annotations and the question asked.
 
-**NOTE**: You will need to reinitialize your project configs by running `Perpetual init -l <lang>` in order to install the `explain` operation config file and make it work. Additionally, you may want to manually update your production `.env` file from the new `env.example` to add new environment options to fine-tune the LLM for the `explain` operation.
+**NOTE**: You will need to reinitialize your project configs by running `Perpetual init -l <lang>` in order to install the `explain` operation config file and make it work. Additionally, you may want to manually update your production `.env` file from the new `.env.example` to add new environment options to fine-tune the LLM for the `explain` operation.
 
 ### Breaking Changes
 
@@ -40,7 +40,7 @@
 - Removed unsupported advanced parameters from the OpenAI provider.
 - Fixed advanced parameter support for the Generic provider, allowing any combination of parameters.
 
-**NOTE**: You will need to reinitialize your project config by running `Perpetual init -l <lang>`. Also, you may want to manually update your production `.env` file from new `env.example` (this is optional, old `.env` file should continue to work).
+**NOTE**: You will need to reinitialize your project config by running `Perpetual init -l <lang>`. Also, you may want to manually update your production `.env` file from new `.env.example` (this is optional, old `.env` file should continue to work).
 
 ## v2.0.0
 
