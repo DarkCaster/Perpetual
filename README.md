@@ -50,7 +50,7 @@ Download the latest `Perpetual` executable from GitHub Releases or GitHub Action
 
 ### Configuration
 
-In order to use `Perpetual`, you need to configure it first, see [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual -init` (see below), you will need to add your API keys and select LLM provider to use as minimum.
+In order to use `Perpetual`, you need to configure it first. See [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual init` (see below), and you will need to add your API keys and select the LLM provider to use as a minimum.
 
 ### Command Line Usage
 
@@ -64,6 +64,7 @@ Supported operations:
 - [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
 - [`report`: Create a report from project source code that can be manually uploaded into the LLM for use as a knowledge base or for manual analysis](docs/op_report.md)
 - [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
+- [`explain`: Answer questions about your project based on thorough source code analysis](docs/op_explain.md)
 
 ### Initialize a New Project
 
@@ -134,9 +135,15 @@ The `report` operation allows you to generate a report from your project's sourc
 
 ### Creating Project Documentation
 
-The `doc` operation in `Perpetual` is designed to assist in creating and refining project documentation. For now, it can only work with plain-text or markdown-formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is a highly experimental feature, and it will provide good results only with large and sufficiently advanced models. It will also consume more tokens to generate or refine a document than writing code with the `implement` operation.
+The `doc` operation in `Perpetual` is designed to assist in creating and refining project documentation. Currently, it can only work with plain-text or markdown-formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is a highly experimental feature, and it will provide good results only with large and sufficiently advanced models. It will also consume more tokens to generate or refine a document than writing code with the `implement` operation.
 
 [See this documentation for more info](docs/op_doc.md)
+
+### Explaining Project Code
+
+The `explain` operation allows you to ask questions about your project based on thorough source code analysis. `Perpetual` analyzes the relevant parts of your codebase to provide accurate and insightful answers to your queries.
+
+[See this documentation for more info](docs/op_explain.md)
 
 ## Disclaimer
 
