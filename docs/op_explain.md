@@ -16,9 +16,9 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.
 
-- `-a`: Enable the addition of project annotations in the response. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. Disabled by default to save tokens and lower the context window size requirement.
+- `-a`: Enable the addition of full project annotations in the request along with files requested by the LLM for analysis. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. Disabled by default to save tokens and lower the context window size requirement.
 
-- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). May be useful when performing simple semantic file-search queries. This task is included at stage 1 of the operation in full mode (default).
+- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). May be useful when performing simple semantic file-search queries. This task is always included at stage 1 of the operation in full mode.
 
 - `-n`: Enable "No Annotate" mode, which skips the re-annotation of changed files and utilizes existing annotations if available. This can reduce API calls but may lower the quality of the answers.
 
@@ -83,13 +83,13 @@ The `explain` operation's effectiveness relies on the configuration of the under
    - `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2`: Define the Anthropic models used in each stage (e.g., "claude-3-sonnet-20240229" for stage 1 and "claude-3-opus-20240229" for stage 2).
    - `OPENAI_MODEL_OP_EXPLAIN_STAGE1`, `OPENAI_MODEL_OP_EXPLAIN_STAGE2`: Specify the OpenAI models for each stage.
    - `OLLAMA_MODEL_OP_EXPLAIN_STAGE1`, `OLLAMA_MODEL_OP_EXPLAIN_STAGE2`: Specify the Ollama models for each stage.
-   - `GENERIC_MODEL_OP_EXPLAIN_STAGE1`, `GENERIC_MODEL_OP_EXPLAIN_STAGE2`: Specify the models for Generic (OpenAI compatible) provider.
+   - `GENERIC_MODEL_OP_EXPLAIN_STAGE1`, `GENERIC_MODEL_OP_EXPLAIN_STAGE2`: Specify the models for the Generic (OpenAI compatible) provider.
 
 3. **Token Limits:**
    - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of tokens for each stage when using Anthropic.
    - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with OpenAI.
    - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with Ollama.
-   - `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with Generic (OpenAI compatible) provider.
+   - `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with the Generic (OpenAI compatible) provider.
    - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`, `GENERIC_MAX_TOKENS_SEGMENTS`: Limit the number of continuation segments if token limits are reached, preventing excessive API calls.
 
 4. **JSON Structured Output Mode:**
@@ -107,13 +107,13 @@ The `explain` operation's effectiveness relies on the configuration of the under
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Anthropic.
    - `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with OpenAI.
    - `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Ollama.
-   - `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Generic provider.
+   - `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with the Generic provider.
 
 6. **Temperature:**
    - `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Anthropic.
    - `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using OpenAI.
    - `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Ollama.
-   - `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Generic provider.
+   - `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using the Generic provider.
 
    Lower values (e.g., 0.3-0.5) yield more focused and consistent explanations, while higher values (0.5-0.9) can produce more creative and varied outputs.
 
