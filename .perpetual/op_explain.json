@@ -1,5 +1,4 @@
 {
-  "answer_header": "# Answer",
   "filename_tags": [
     "<filename>",
     "</filename>"
@@ -8,10 +7,15 @@
     "(?m)\\s*<filename>\\n?",
     "(?m)<\\/filename>\\s*$?"
   ],
-  "files_header": "# Files",
   "noupload_comments_rx": [
     "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
   ],
+  "output_answer_header": "# Answer",
+  "output_filename_tags": [
+    "```",
+    "```  "
+  ],
+  "output_files_header": "# Files",
   "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
   "project_index_response": "Understood. What's next?",
   "stage1_output_key": "list_of_files",
