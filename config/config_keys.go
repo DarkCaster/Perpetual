@@ -70,8 +70,9 @@ const K_DocStage2RefinePrompt = "stage2_refine_prompt"
 const K_DocStage2WritePrompt = "stage2_write_prompt"
 const K_DocStage2ContinuePrompt = "stage2_continue_prompt"
 
-const K_ExplainFilesHeader = "files_header"
-const K_ExplainAnswerHeader = "answer_header"
+const K_ExplainOutFilesHeader = "output_files_header"
+const K_ExplainOutFilenameTags = "output_filename_tags"
+const K_ExplainOutAnswerHeader = "output_answer_header"
 const K_ExplainProjectIndexPrompt = "project_index_prompt"
 const K_ExplainProjectIndexResponse = "project_index_response"
 
