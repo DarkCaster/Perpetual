@@ -1,4 +1,5 @@
 {
+  "answer_header": "# Answer",
   "filename_tags": [
     "<filename>",
     "</filename>"
@@ -7,6 +8,7 @@
     "(?m)\\s*<filename>\\n?",
     "(?m)<\\/filename>\\s*$?"
   ],
+  "files_header": "# Files",
   "noupload_comments_rx": [
     "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
   ],
