@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/usage"
@@ -28,7 +29,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&addAnnotations, "a", false, "Add project annotation in addition to files requested by LLM to improve the quality of the answer")
-	flags.BoolVar(&listFilesOnly, "l", false, "Only list files related to answer based on project annotation, instead of generating the full answer")
+	flags.BoolVar(&listFilesOnly, "l", false, "Only list files related to answer based on project annotation (one file per line), instead of generating the full answer")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&outputFile, "r", "", "Target file for writing answer (stdout if not supplied)")
 	flags.StringVar(&inputFile, "i", "", "Read question from file (stdin if not supplied)")
@@ -155,6 +156,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger)
 
 	if listFilesOnly {
+		// for this mode, just list files one file per line for easier parsing with 3-rd party tool
 		if outputFile != "" {
 			err := utils.SaveTextFile(outputFile, strings.Join(requestedFiles, "\n"))
 			if err != nil {
@@ -198,14 +200,49 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		addAnnotations,
 		logger)
 
+	// Here we proposing that LLM returned markdown-formatted content, so format file-list and the rest of the answer accordingly
+	var outputMessage llm.Message
+	outputMessage = llm.NewMessage(llm.UserRequest)
+
+	// Add header for file list
+	outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutFilesHeader))
+
+	// Add files with status indicators
+	for _, file := range requestedFiles {
+		var isFiltered bool = true
+		for _, filteredFile := range filteredRequestedFiles {
+			if file == filteredFile {
+				isFiltered = false
+				break
+			}
+		}
+		if isFiltered {
+			outputMessage = llm.AddTaggedFragment(outputMessage, file+" (filtered out)", explainConfig.StringArray(config.K_ExplainOutFilenameTags))
+		} else {
+			outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilenameTags))
+		}
+	}
+
+	// Add header and answer text
+	outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutAnswerHeader))
+	outputMessage = llm.AddPlainTextFragment(outputMessage, answer)
+
+	outputStrings, err := llm.RenderMessagesToAIStrings(projectConfig.StringArray2D(config.K_ProjectMdCodeMappings), []llm.Message{outputMessage})
+	if err != nil {
+		logger.Panicln("Error rendering report messages:", err)
+	}
+
 	// Write output to file or stdout
 	if outputFile != "" {
 		logger.Infoln("Writing answer to file:", outputFile)
-		err := utils.SaveTextFile(outputFile, answer)
+		err := utils.SaveTextFile(outputFile, strings.Join(outputStrings, "\n"))
 		if err != nil {
 			logger.Panicln("Error writing to output file:", err)
 		}
 	} else {
-		fmt.Print(answer)
+		err := utils.WriteTextStdout(strings.Join(outputStrings, "\n"))
+		if err != nil {
+			logger.Panicln("Error writing answer to stdout:", err)
+		}
 	}
 }
