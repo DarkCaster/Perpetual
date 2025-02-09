@@ -168,6 +168,8 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result := config.GetExplainConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_ExplainProjectIndexResponse] = defaultAIAcknowledge
+	result[config.K_ExplainFilesHeader] = "# Files"
+	result[config.K_ExplainAnswerHeader] = "# Answer"
 	// stage 1
 	result[config.K_ExplainStage1QuestionPrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of filenames from the project description that you will need to see to answer the question. Place each filename in <filename></filename> tags. The question is:"
 	result[config.K_ExplainStage1QuestionJsonModePrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of files from the project description that you will need to see to answer this question. The question is:"
