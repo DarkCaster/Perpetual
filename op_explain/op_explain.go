@@ -155,8 +155,15 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger)
 
 	if listFilesOnly {
-		for _, filename := range requestedFiles {
-			fmt.Println(filename)
+		if outputFile != "" {
+			err := utils.SaveTextFile(outputFile, strings.Join(requestedFiles, "\n"))
+			if err != nil {
+				logger.Panicln("Error writing to output file:", err)
+			}
+		} else {
+			for _, filename := range requestedFiles {
+				fmt.Println(filename)
+			}
 		}
 		return
 	}
