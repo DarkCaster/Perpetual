@@ -108,6 +108,7 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_SystemPromptAck] = templateString
 	result[K_ExplainOutFilesHeader] = templateString
 	result[K_ExplainOutFilenameTags] = templateStringArray
+	result[K_ExplainOutFilteredFilenameTags] = templateStringArray
 	result[K_ExplainOutAnswerHeader] = templateString
 	result[K_ExplainProjectIndexPrompt] = templateString
 	result[K_ExplainProjectIndexResponse] = templateString
