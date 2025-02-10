@@ -217,7 +217,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 		if isFiltered {
-			outputMessage = llm.AddTaggedFragment(outputMessage, file+" (filtered out)", explainConfig.StringArray(config.K_ExplainOutFilenameTags))
+			outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilteredFilenameTags))
 		} else {
 			outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilenameTags))
 		}
