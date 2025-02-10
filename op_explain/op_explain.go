@@ -205,7 +205,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	outputMessage = llm.NewMessage(llm.UserRequest)
 
 	// Add header for file list
-	outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutFilesHeader))
+	if len(requestedFiles) > 0 {
+		outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutFilesHeader))
+	}
 
 	// Add files with status indicators
 	for _, file := range requestedFiles {
