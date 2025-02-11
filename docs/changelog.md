@@ -5,6 +5,7 @@
 ### New Features
 
 - Added `explain` operation - answering arbitrary questions about the project or source code, context-aware by automatic selection of relevant code based on project annotations and the question asked.
+- Added `-s` flag to `doc`, `implement`, and `explain` operations — enables extra logic to salvage incorrect file names when the LLM requests files for further analysis in stage 1. Intended for use with large projects containing a vast number of source code files (e.g., 500+), where the LLM tends to make more mistakes when generating lists of files for processing.
 
 **NOTE**: You will need to reinitialize your project configs by running `Perpetual init -l <lang>` in order to install the `explain` operation config file and make it work. Additionally, you may want to manually update your production `.env` file from the new `.env.example` to add new environment options to fine-tune the LLM for the `explain` operation.
 
