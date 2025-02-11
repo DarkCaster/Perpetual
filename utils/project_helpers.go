@@ -197,7 +197,25 @@ func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noU
 }
 
 func recoverFilename(projectFiles []string, fileToRecover string, logger logging.ILogger) (string, bool) {
-	return fileToRecover, true
+	filename := strings.ToLower(filepath.Base(fileToRecover))
+	var matches []string
+
+	// Find all files that end with the same filename
+	for _, projectFile := range projectFiles {
+		if strings.ToLower(filepath.Base(projectFile)) == filename {
+			matches = append(matches, projectFile)
+		}
+	}
+
+	if len(matches) == 1 {
+		logger.Infoln("Recovered filename:", matches[0], "from:", fileToRecover)
+		return matches[0], true
+	} else if len(matches) > 1 {
+		logger.Warnln("Multiple matches found while recovering filename:", fileToRecover)
+	} else {
+		logger.Warnln("No matches found while recovering filename:", fileToRecover)
+	}
+	return "", false
 }
 
 func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, tryRecover bool, logger logging.ILogger) []string {
