@@ -70,17 +70,22 @@ The `annotate` operation can be configured using environment variables defined i
    - `ANTHROPIC_MODEL_OP_ANNOTATE`: Specifies the Anthropic model to use for annotation (e.g., "claude-3-haiku-20240307").
    - `OPENAI_MODEL_OP_ANNOTATE`: Specifies the OpenAI model to use for annotation.
    - `OLLAMA_MODEL_OP_ANNOTATE`: Specifies the Ollama model to use for annotation.
+   - `GENERIC_MODEL_OP_ANNOTATE`: Specifies the Generic provider (OpenAI compatible) model to use for annotation.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting the token limit, this indicates that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
+   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`, `GENERIC_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting the token limit, this indicates that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
 
 4. **Retry Settings:**
-   - `ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE`, `OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE`, `OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE`: Specify the number of retries on failure for the `annotate` operation.
+   - `ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE`, `OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE`, `OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE`, `GENERIC_ON_FAIL_RETRIES_OP_ANNOTATE`: Specify the number of retries on failure for the `annotate` operation.
 
 5. **Temperature:**
-   - `ANTHROPIC_TEMPERATURE_OP_ANNOTATE`, `OPENAI_TEMPERATURE_OP_ANNOTATE`, `OLLAMA_TEMPERATURE_OP_ANNOTATE`: Set the temperature for the LLM during annotation. This affects the randomness of the output.
+   - `ANTHROPIC_TEMPERATURE_OP_ANNOTATE`, `OPENAI_TEMPERATURE_OP_ANNOTATE`, `OLLAMA_TEMPERATURE_OP_ANNOTATE`, `GENERIC_TEMPERATURE_OP_ANNOTATE`: Set the temperature for the LLM during annotation. This affects the randomness of the output.
 
-6. **Other LLM Parameters:**
+6. **Variant Generation and Selection:**
+   - `ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE`, `OPENAI_VARIANT_COUNT_OP_ANNOTATE`, `OLLAMA_VARIANT_COUNT_OP_ANNOTATE`, `GENERIC_VARIANT_COUNT_OP_ANNOTATE`: Number of annotation variants to generate.
+   - `ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE`, `OPENAI_VARIANT_SELECTION_OP_ANNOTATE`, `OLLAMA_VARIANT_SELECTION_OP_ANNOTATE`, `GENERIC_VARIANT_SELECTION_OP_ANNOTATE`: Strategy for selecting or combining variants ("SHORT", "LONG", "COMBINE", "BEST").
+
+7. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for the `annotate` operation by appending `_OP_ANNOTATE` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_ANNOTATE`). They are mostly useful for the local Ollama provider and are not needed for OpenAI or Anthropic models.
 
 ### Example Configuration in `.env` File:
@@ -95,12 +100,13 @@ ANTHROPIC_MODEL_OP_ANNOTATE_POST="claude-3-haiku-20240307"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="512"
 ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
 ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="3"
+ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE="3"
+ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE="COMBINE"
 ANTHROPIC_TOP_K_OP_ANNOTATE="40"
 ANTHROPIC_TOP_P_OP_ANNOTATE="0.9"
-ANTHROPIC_TOP_K="20"
 ```
 
-This configuration uses the Anthropic provider with the Claude 3 Haiku model, sets a maximum of 512 tokens for annotations, uses a temperature of 0.5, and allows up to 3 retries on failure. Additionally, it sets `TOP_K` to 40 and `TOP_P` to 0.9 specifically for the `annotate` operation.
+This configuration uses the Anthropic provider with the Claude 3 Haiku model, sets a maximum of 512 tokens for annotations, uses a temperature of 0.5, and allows up to 3 retries on failure. It also generates 3 annotation variants and combines them for the best result.
 
 Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are not set, the `annotate` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for the `annotate` operation if needed.
 
@@ -110,32 +116,36 @@ Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are n
 
 Customization of LLM prompts for the `annotate` operation is handled through the `.perpetual/op_annotate.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
 
-- **`stage1_prompts`**: Prompts used during the initial stage of annotation. Each entry in this array contains a regular expression `pattern` to match against a file's name and a corresponding `prompt` to generate an annotation for that file type. This allows the LLM to tailor annotations based on the specific type of source code file being processed, ensuring that the summaries are concise and relevant to each file's contents and purpose.
+- **`stage1_prompts`**: An array of file patterns and corresponding prompts for generating annotations. Each entry contains a regular expression to match file names and a prompt template for that file type.
 
-Other important parameters:
+- **`stage1_response`**: The acknowledgment message used by the LLM after receiving the file to annotate.
 
-- **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations. This ensures that code snippets are properly formatted and tagged for better results with the configured LLM provider and model.
+- **`stage2_prompt_variant`**: Prompt used to request additional annotation variants.
 
-- **`filename_tags`**: Tagging conventions used to identify filenames within the annotations. This allows the LLM to recognize and process filenames accurately, facilitating better integration with the project's file structure.
+- **`stage2_prompt_combine`**: Prompt used to combine multiple annotation variants into a final version.
 
-When using OpenAI or Anthropic LLMs, you do not need to change the `code_tags_rx` and `filename_tags` parameters, but sometimes you may need to do this for smaller models run with Ollama.
+- **`stage2_prompt_best`**: Prompt used to select the best annotation variant.
 
-### Example `op_annotate.json` Configuration (partial)
+- **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations.
+
+- **`filename_tags`**: Tags used to identify filenames within the annotations.
+
+When using OpenAI or Anthropic LLMs, you typically don't need to modify the `code_tags_rx` and `filename_tags` parameters, but adjustments may be necessary for smaller models run with Ollama.
+
+### Example `op_annotate.json` Configuration (partial, simplified)
 
 ```json
 {
   "stage1_prompts": [
-    {
-      "pattern": "(?i)^.*\\.go$",
-      "prompt": "Create a summary for the GO source file that explains its purpose and functionality."
-    },
-    {
-      "pattern": "(?i)^.*\\.py$",
-      "prompt": "Generate an annotation summarizing the Python script's main components and their roles."
-    }
+    ["(?i)^.*\\.go$", "Create a summary for the GO source file in my next message..."],
+    ["(?i)^.*_test\\.go$", "Create a summary for the GO unit-tests source file in my next message..."]
   ],
+  "stage1_response": "Waiting for file contents",
+  "stage2_prompt_variant": "Create another summary variant",
+  "stage2_prompt_combine": "Evaluate the summaries you have created and rework them into a final summary...",
+  "stage2_prompt_best": "Evaluate the summaries you have created and choose summary variant that better matches...",
   "filename_tags": ["<filename>", "</filename>"],
-  "code_tags_rx": ["(?m)```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"]
+  "code_tags_rx": ["(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"]
 }
 ```
 
@@ -156,9 +166,11 @@ When using OpenAI or Anthropic LLMs, you do not need to change the `code_tags_rx
    - In dry-run mode (`-d`), it lists the files that would be annotated without making any changes.
 
 4. **Annotation Generation:**
-   - For each selected file, the operation selects an appropriate prompt from `stage1_prompts` based on the file type.
-   - It sends these prompts to the configured LLM provider to generate annotations.
-   - If multiple annotation variants are returned, the operation may combine or select the best variant based on the configured strategy.
+   - For each selected file, the operation:
+     - Selects an appropriate prompt from `stage1_prompts` based on the file type
+     - Sends the prompt and file content to the LLM
+     - Optionally generates multiple variants if configured
+     - Processes variants according to the selected strategy (combine, select best, etc.)
 
 5. **Annotation Storage:**
    - Generated annotations are saved to the `annotations.json` file in the `.perpetual` directory.
