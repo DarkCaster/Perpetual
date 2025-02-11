@@ -26,7 +26,7 @@ The `annotate` operation supports several command-line flags to customize its be
 
 - `-vv`: Enable both debug and trace logging. This flag provides the highest level of verbosity, useful for troubleshooting or understanding the internal workings of the annotation process.
 
-### Examples:
+### Examples
 
 1. **Annotate only new or changed files:**
 
@@ -88,7 +88,7 @@ The `annotate` operation can be configured using environment variables defined i
 7. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for the `annotate` operation by appending `_OP_ANNOTATE` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_ANNOTATE`). They are mostly useful for the local Ollama provider and are not needed for OpenAI or Anthropic models.
 
-### Example Configuration in `.env` File:
+### Example Configuration in `.env` File
 
 ```sh
 LLM_PROVIDER="anthropic"
