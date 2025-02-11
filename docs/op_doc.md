@@ -87,17 +87,16 @@ The `doc` operation can be configured using environment variables defined in the
    - `ANTHROPIC_MODEL_OP_DOC_STAGE1`, `ANTHROPIC_MODEL_OP_DOC_STAGE2`: Specify the Anthropic models to use for each stage of documentation (e.g., "claude-3-sonnet-20240229" for stage 1 and "claude-3-opus-20240229" for stage 2).
    - `OPENAI_MODEL_OP_DOC_STAGE1`, `OPENAI_MODEL_OP_DOC_STAGE2`: Specify the OpenAI models to use for each stage of documentation.
    - `OLLAMA_MODEL_OP_DOC_STAGE1`, `OLLAMA_MODEL_OP_DOC_STAGE2`: Specify the Ollama models to use for each stage of documentation.
+   - `GENERIC_MODEL_OP_DOC_STAGE1`, `GENERIC_MODEL_OP_DOC_STAGE2`: Specify the models to use for each stage when using the Generic provider (OpenAI compatible) provider.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response.
-   - `OPENAI_MAX_TOKENS_OP_DOC_STAGE1`, `OPENAI_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using OpenAI.
-   - `OLLAMA_MAX_TOKENS_OP_DOC_STAGE1`, `OLLAMA_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage when using Ollama.
-   - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached. This parameter limits how many times the LLM will attempt to continue generating content when it reaches the token limit. It helps prevent excessive API calls and ensures the document generation process doesn't run indefinitely.
+   - `*_MAX_TOKENS_OP_DOC_STAGE1`, `*_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response (replace * with provider name).
+   - `*_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached.
 
    For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if possible by model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If needed to generate a small document, it is generally better to set a larger token limit and limit document size with embedded instructions (`Notes on implementation:`) inside the document.
 
 4. **JSON Structured Output Mode:**
-   To enable JSON-structured output mode for the `doc` operation, set the appropriate environment variables in your `.env` file. This mode can be enabled for Stage 1 for OpenAI, Anthropic, and Ollama providers, providing faster responses and slightly lower costs. Note that not all models may support or work reliably with JSON-structured output.
+   To enable JSON-structured output mode for the `doc` operation, set the appropriate environment variables in your `.env` file. This mode can be enabled for Stage 1 for all providers except Generic, providing faster responses and slightly lower costs. Note that not all models may support or work reliably with JSON-structured output.
 
    **Enable JSON-structured output mode:**
 
@@ -107,44 +106,55 @@ The `doc` operation can be configured using environment variables defined in the
    OLLAMA_FORMAT_OP_DOC_STAGE1="json"
    ```
 
-   Refer to the `.env.example` file for more detailed configurations and ensure that the selected models are compatible with JSON-structured output mode.
+   Replace * with the provider name (ANTHROPIC, OPENAI, OLLAMA, or GENERIC).
 
-5. **Retry Settings:**
-   - `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Anthropic.
-   - `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using OpenAI.
-   - `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Specify the number of retries on failure for each stage when using Ollama.
+5. **Authentication and API Settings:**
+   - For Generic provider:
+     - `GENERIC_BASE_URL`: Required. Base URL for the API endpoint.
+     - `GENERIC_AUTH_TYPE`: Authentication type ("basic" or "bearer").
+     - `GENERIC_AUTH`: Authentication credentials.
+     - `GENERIC_MAXTOKENS_FORMAT`: Format for max tokens parameter ("old" or "new").
+     - `GENERIC_ENABLE_STREAMING`: Enable streaming mode (0 or 1).
+     - `GENERIC_SYSPROMPT_ROLE`: System prompt role ("system", "developer", or "user").
 
-6. **Temperature:**
-   - `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for the LLM during each stage of documentation generation when using Anthropic.
-   - `OPENAI_TEMPERATURE_OP_DOC_STAGE1`, `OPENAI_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using OpenAI.
-   - `OLLAMA_TEMPERATURE_OP_DOC_STAGE1`, `OLLAMA_TEMPERATURE_OP_DOC_STAGE2`: Set the temperature for each stage when using Ollama.
+   Similar authentication options exists for Ollama provider, for use with public instances wrapped with HTTPS reverse proxy
 
-   Lower values (e.g., 0.3-0.5) are recommended for more focused and consistent output, while higher values (0.5-0.9) can be used for producing more creative documentation.
+6. **Common Parameters for all Providers:**
+   - `*_ON_FAIL_RETRIES_OP_DOC_STAGE*`: Number of retries on failure.
+   - `*_TEMPERATURE_OP_DOC_STAGE*`: Temperature setting (0.0-1.0).
+   - `*_TOP_K_OP_DOC_STAGE*`: Top-K sampling parameter.
+   - `*_TOP_P_OP_DOC_STAGE*`: Top-P sampling parameter.
+   - `*_SEED_OP_DOC_STAGE*`: Random seed for reproducibility.
+   - `*_REPEAT_PENALTY_OP_DOC_STAGE*`: Penalty for repeated tokens.
+   - `*_FREQ_PENALTY_OP_DOC_STAGE*`: Frequency penalty.
+   - `*_PRESENCE_PENALTY_OP_DOC_STAGE*`: Presence penalty.
+   - `*_REASONING_EFFORT_OP_DOC_STAGE*`: Reasoning effort ("low", "medium", "high").
 
-7. **Other LLM Parameters:**
-   - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for each stage of the `doc` operation by appending `_OP_DOC_STAGE1` or `_OP_DOC_STAGE2` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_DOC_STAGE1`). These are particularly useful for fine-tuning the output of smaller local Ollama models.
+   Replace * with the provider name. Not all parameters are supported by all providers.
 
 ### Example Configuration in `.env` File
 
 ```sh
-LLM_PROVIDER="anthropic"
-ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-3-sonnet-20240229"
-ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-opus-20240229"
-ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1="1024"
-ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="4096"
-ANTHROPIC_MAX_TOKENS_SEGMENTS="3"
-ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.5"
-ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="0.7"
-ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
-ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="2"
-
-# Enable JSON-structured output mode for doc operation stages
-ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
-OPENAI_FORMAT_OP_DOC_STAGE1="json"
-OLLAMA_FORMAT_OP_DOC_STAGE1="json"
+LLM_PROVIDER="generic"
+GENERIC_BASE_URL="https://api.deepseek.com/v1"
+GENERIC_AUTH_TYPE="Bearer"
+GENERIC_AUTH="<deep seek api key>"
+GENERIC_MODEL_OP_DOC_STAGE1="deepseek-chat"
+GENERIC_MODEL_OP_DOC_STAGE2="deepseek-chat"
+GENERIC_MAX_TOKENS_OP_DOC_STAGE1="1024"
+GENERIC_MAX_TOKENS_OP_DOC_STAGE2="4096"
+GENERIC_MAX_TOKENS_SEGMENTS="3"
+GENERIC_TEMPERATURE_OP_DOC_STAGE1="0.5"
+GENERIC_TEMPERATURE_OP_DOC_STAGE2="0.7"
+GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
+GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="2"
+GENERIC_FORMAT_OP_DOC_STAGE1="json"
+GENERIC_MAXTOKENS_FORMAT="old"
+GENERIC_ENABLE_STREAMING="1"
+GENERIC_SYSPROMPT_ROLE="system"
 ```
 
-This configuration uses the Anthropic provider with different models for each stage, sets appropriate token limits and continuation segments, uses slightly different temperatures, enables JSON-structured output mode for Stage 1, and allows for retries on failure.
+This configuration uses the Generic provider configured for DeepSeek LLM, sets appropriate token limits and continuation segments, uses slightly different temperatures, and allows for retries on failure.
 
 Note that if stage-specific variables are not set, the `doc` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for each stage of the `doc` operation if needed.
 
