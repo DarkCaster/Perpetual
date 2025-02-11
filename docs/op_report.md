@@ -20,7 +20,7 @@ The `report` operation supports several command-line flags to customize its beha
   - `code` (default): Generates a detailed report containing the full source code of the project files.
   - `brief`: Generates a concise report from generated source code annotations, providing a summary of each file's contents and purpose.
 
-- `-r <file>`: Specify the file path to write the report to. If not provided or empty, the report will be written to stderr.
+- `-r <file>`: Specify the file path to write the report to. If not provided or empty, the report will be written to stdout and all logging will be written to stderr.
 
 - `-u`: Include unit test source files in the report. By default, unit test sources are excluded.
 
