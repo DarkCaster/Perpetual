@@ -22,6 +22,8 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-n`: Enable "No Annotate" mode, which skips the re-annotation of changed files and utilizes existing annotations if available. This can reduce API calls but may lower the quality of the answers.
 
+- `-s`: Try to salvage incorrect filenames on stage 1. Experimental feature, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze.
+
 - `-f`: Override the 'no-upload' file filter to include files marked as 'no-upload' for review. As a result, it may upload sensitive files to the LLM when generating the final answer.
 
 - `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded to focus on primary source code.
