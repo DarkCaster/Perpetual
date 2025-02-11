@@ -49,8 +49,8 @@ This behavior is similar to Git's `core.autocrlf = true` setting.
 `Perpetual` has specific limitations regarding symlinks:
 
 - Files inside the project that contain symlinks within their relative path are ignored
-- The base project directory cannot be a symlink
-- Any parent directory of the project directory **can be a symlink**
+- The project root directory cannot be a symlink
+- Parent directories of the project root can be symlinks
 
 These limitations are in place to enhance security and simplify implementation using Go. Future versions may improve symlink handling.
 
@@ -62,7 +62,10 @@ These limitations are in place to enhance security and simplify implementation u
   - This is particularly important for case-sensitive file systems (e.g., Linux)
   - Not applicable for Windows due to its case-insensitive file system
 
-`Perpetual` checks for filename case collisions to align with existing project paths when necessary. This ensures consistency across different operating systems and prevents potential conflicts.
+When handling filenames, `Perpetual` attempts to:
+
+- Match the case of existing project files
+- Create necessary directories with correct casing when applying changes
 
 ## Project Root Detection
 
@@ -70,6 +73,6 @@ These limitations are in place to enhance security and simplify implementation u
 
 - Searches for a `.perpetual` directory starting from the current working directory
 - Moves up the directory tree until it finds the `.perpetual` directory or reaches the file system root
-- The project root cannot be a symlink
+- The project root directory cannot be a symlink
 
 This approach ensures that `Perpetual` operates within the intended project scope.
