@@ -1,6 +1,8 @@
 # Document Operation
 
-The `doc` operation is an essential component of the `Perpetual` tool, designed to create or rework documentation files in markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation, leveraging the power of Large Language Models (LLMs) to produce high-quality, context-aware documentation based on your project's source code and existing documentation.
+The `doc` operation is designed to create or rework documentation files in markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation to produce high-quality, context-aware documentation based on your project's source code and existing documentation.
+
+**NOTE**: Currently this operation is experimental: it is hard to provide clear and universal LLM prompts and get reproducible results with all docs. For now, it is mostly useful with the `write` action (see below) for creating initial versions of documentation from hand-created drafts with desirable document structure. The `refine` action currently produces unstable results.
 
 ## Usage
 
@@ -17,7 +19,7 @@ The `doc` operation supports several command-line flags to customize its behavio
 - `-e <file>`: Optionally specify a documentation file to use as an example or reference for style, structure, and format (but not for content). This helps maintain consistency across your project's documentation.
 
 - `-a <action>`: Select the action to perform. Valid values are:
-  - `draft`: Create an initial draft of the document.
+  - `draft`: Create an initial draft of the document with template content.
   - `write`: Write or complete an existing document (default).
   - `refine`: Refine and update an existing document.
 
@@ -71,8 +73,8 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
 
-1. **Stage 1:** Analyzes the project and determines which files are relevant for the documentation task.
-2. **Stage 2:** Generates or refines the document content based on the analyzed information and the specified action.
+1. **Stage 1:** Analyzes the project and determines which files are relevant for the documentation task based on the target document's content and notes.
+2. **Stage 2:** Generates or refines the document content based on the analyzed information, the specified action, and any provided example document.
 
 ## LLM Configuration
 
@@ -87,7 +89,7 @@ The `doc` operation can be configured using environment variables defined in the
    - `ANTHROPIC_MODEL_OP_DOC_STAGE1`, `ANTHROPIC_MODEL_OP_DOC_STAGE2`: Specify the Anthropic models to use for each stage of documentation (e.g., "claude-3-sonnet-20240229" for stage 1 and "claude-3-opus-20240229" for stage 2).
    - `OPENAI_MODEL_OP_DOC_STAGE1`, `OPENAI_MODEL_OP_DOC_STAGE2`: Specify the OpenAI models to use for each stage of documentation.
    - `OLLAMA_MODEL_OP_DOC_STAGE1`, `OLLAMA_MODEL_OP_DOC_STAGE2`: Specify the Ollama models to use for each stage of documentation.
-   - `GENERIC_MODEL_OP_DOC_STAGE1`, `GENERIC_MODEL_OP_DOC_STAGE2`: Specify the models to use for each stage when using the Generic provider (OpenAI compatible) provider.
+   - `GENERIC_MODEL_OP_DOC_STAGE1`, `GENERIC_MODEL_OP_DOC_STAGE2`: Specify the models to use for each stage when using the Generic provider (OpenAI compatible).
 
 3. **Token Limits:**
    - `*_MAX_TOKENS_OP_DOC_STAGE1`, `*_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response (replace * with provider name).
@@ -117,7 +119,7 @@ The `doc` operation can be configured using environment variables defined in the
      - `GENERIC_ENABLE_STREAMING`: Enable streaming mode (0 or 1).
      - `GENERIC_SYSPROMPT_ROLE`: System prompt role ("system", "developer", or "user").
 
-   Similar authentication options exists for Ollama provider, for use with public instances wrapped with HTTPS reverse proxy
+   Similar authentication options exist for the Ollama provider, for use with public instances wrapped with HTTPS reverse proxy.
 
 6. **Common Parameters for all Providers:**
    - `*_ON_FAIL_RETRIES_OP_DOC_STAGE*`: Number of retries on failure.
@@ -180,15 +182,15 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
    - The `doc` operation begins by parsing command-line flags to determine its behavior.
    - It locates the project's root directory and the `.perpetual` configuration directory.
    - Environment variables are loaded from `.env` files to configure the core LLM parameters.
-   - Prompts are loaded from the `.perpetual/op_doc.json` file.
+   - Prompts and configuration are loaded from the `.perpetual/op_doc.json` file.
 
 2. **File Discovery:**
    - The operation scans the project directory to locate project source code files, applying whitelist and blacklist regex patterns.
    - It automatically reannotates changed files unless the `-n` flag is used to skip this step.
 
 3. **Documentation Generation or Refinement:**
-   - **Stage 1:** Analyzes the project-index and determines which files are relevant for the documentation task.
-   - **Stage 2:** Generates or refines the document content based on the provided source files and analyzed information.
+   - **Stage 1:** Analyzes the project-index, target document content, and determines which files are relevant for the documentation task.
+   - **Stage 2:** Generates or refines the document content based on the provided source files, analyzed information, and any example document provided.
 
 ## Best Practices
 
