@@ -86,8 +86,10 @@ Supported flags:
 - `-p`: Enable extended planning stage. Useful for larger modifications that may create new files. Disabled by default to save tokens.
 - `-pr`: Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.
 - `-r <file>`: Manually request a specific file for the operation. If not specified, files are selected automatically.
+- `-s`: Try to salvage incorrect filenames on Stage 1. Experimental; use in projects with a large number of files where the LLM tends to make more mistakes when generating lists of files to analyze.
 - `-u`: Do not exclude unit-tests source files from processing.
 - `-x <file>`: Path to user-supplied regex filter-file for filtering out certain files from processing. (Use `project.json` inside the `<project_root>/.perpetual` directory as a reference)
+- `-z`: When using `-p` or `-pr` flags, do not enforce initial sources to file lists produced by planning.
 - `-v`: Enable debug logging for more detailed output.
 - `-vv`: Enable both debug and trace logging for maximum verbosity.
 
