@@ -196,7 +196,11 @@ func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noU
 	return results
 }
 
-func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {
+func recoverFilename(projectFiles []string, fileToRecover string, logger logging.ILogger) (string, bool) {
+	return fileToRecover, true
+}
+
+func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, tryRecover bool, logger logging.ILogger) []string {
 	var filteredResult []string
 	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
 	logger.Infoln("Files requested by LLM:")
@@ -230,8 +234,16 @@ func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []stri
 				if found {
 					filteredResult = append(filteredResult, file)
 					logger.Infoln(file)
-				} else {
+				} else if !tryRecover {
 					logger.Warnln("Filtering-out file, it is not found among project file-list:", file)
+				} else if file, found = recoverFilename(projectFiles, file, logger); found {
+					_, found1 := CaseInsensitiveFileSearch(file, userRequestedFiles)
+					_, found2 := CaseInsensitiveFileSearch(file, filteredResult)
+					if found1 || found2 {
+						logger.Warnln("Filtering-out recovered file, because it is already in filtered or user files", file)
+					} else {
+						filteredResult = append(filteredResult, file)
+					}
 				}
 			}
 		}

@@ -140,5 +140,5 @@ func Stage1(projectRootDir string,
 	}
 
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{targetDocument}, projectFiles, logger)
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{targetDocument}, projectFiles, false, logger)
 }
