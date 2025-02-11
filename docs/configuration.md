@@ -35,6 +35,8 @@ The following environment variables are commonly used for LLM configuration:
 
 - **Authentication**:
   - `<PROFILE_NAME>_API_KEY`: Provider-specific API key for the LLM provider, such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. This is typically required for authentication.
+  - `<PROFILE_NAME>_AUTH_TYPE`: Type of authentication used. Values: "Bearer" (default) for API key/token, or "Basic" for web authentication.
+  - `<PROFILE_NAME>_AUTH`: Authentication credentials. For Bearer auth, specify the API key/token. For Basic auth, specify `<login>:<password>`.
 
 Use `.env.example` as a reference; it contains sane defaults for different providers. Not all options are strictly required for each operation. Refer to the comments within the `.env.example` file for more detailed information. You can also remove provider-specific sections if not using a particular LLM provider.
 
@@ -56,10 +58,11 @@ The primary configuration files include:
   - `project.json`
 
 - **Operation-Specific Configurations**: Customize behavior for specific operations.
-  - `op_annotate.json`
-  - `op_implement.json`
-  - `op_doc.json`
-  - `op_report.json`
+  - `op_annotate.json`: Configuration for generating file annotations
+  - `op_implement.json`: Configuration for implementing marked code sections
+  - `op_doc.json`: Configuration for document generation and refinement
+  - `op_explain.json`: Configuration for explaining project aspects
+  - `op_report.json`: Configuration for report generation
 
 ### Configurable Parameters
 
@@ -100,6 +103,7 @@ Customize the prompts sent to the LLM for different operations and stages:
 
 - **System Prompt**: A general prompt that sets the context for LLM interactions.
   - `system_prompt`
+  - `system_prompt_ack`: Acknowledgment message for system prompt
 
 - **Operation-Specific Prompts**: Different stages of an operation can have unique prompts.
   - Examples include `stage1_prompts`, `stage2_prompt_variant`, `stage2_prompt_combine`, etc.
@@ -116,7 +120,7 @@ Define how files are represented and parsed within LLM interactions:
 - **Regular Expressions for Parsing LLM Responses**:
   - `filename_tags_rx`: Regex patterns to recognize tagged filenames in LLM responses.
   - `code_tags_rx`: Regex patterns to identify code blocks in responses.
-  - `no_upload_comments_rx`: Regex patterns to detect comments indicating files should not be uploaded to LLM on implement and doc operations if requested by LLM.
+  - `noupload_comments_rx`: Regex patterns to detect comments indicating files should not be uploaded to LLM on implement and doc operations if requested by LLM.
   - Additional regex-based configurations as needed.
 
 ### Important Notes
