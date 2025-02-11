@@ -25,6 +25,8 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-n`: Enable "No annotate" mode, which skips re-annotating changed files and uses current annotations if available. This can save time and API calls if you're confident your annotations are up-to-date.
 
+- `-s`: Try to salvage incorrect filenames on stage 1. Experimental feature, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze.
+
 - `-u`: Do not exclude unit-test source files from processing. By default, unit-test sources are excluded.
 
 - `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing.
