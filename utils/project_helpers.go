@@ -196,7 +196,7 @@ func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noU
 	return results
 }
 
-func recoverFilename(projectFiles []string, fileToRecover string, logger logging.ILogger) (string, bool) {
+func tryToSalvageFilename(projectFiles []string, fileToRecover string, logger logging.ILogger) (string, bool) {
 	filename := strings.ToLower(filepath.Base(fileToRecover))
 	var matches []string
 
@@ -208,17 +208,17 @@ func recoverFilename(projectFiles []string, fileToRecover string, logger logging
 	}
 
 	if len(matches) == 1 {
-		logger.Infoln("Recovered filename:", matches[0], "from:", fileToRecover)
+		logger.Infoln("Salvaged filename:", matches[0], "from:", fileToRecover)
 		return matches[0], true
 	} else if len(matches) > 1 {
-		logger.Warnln("Multiple matches found while recovering filename:", fileToRecover)
+		logger.Warnln("Multiple matches found while salvaging filename:", fileToRecover)
 	} else {
-		logger.Warnln("No matches found while recovering filename:", fileToRecover)
+		logger.Warnln("No matches found while salvaging filename:", fileToRecover)
 	}
 	return "", false
 }
 
-func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, tryRecover bool, logger logging.ILogger) []string {
+func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, trySalvageFiles bool, logger logging.ILogger) []string {
 	var filteredResult []string
 	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
 	logger.Infoln("Files requested by LLM:")
@@ -252,13 +252,13 @@ func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []stri
 				if found {
 					filteredResult = append(filteredResult, file)
 					logger.Infoln(file)
-				} else if !tryRecover {
+				} else if !trySalvageFiles {
 					logger.Warnln("Filtering-out file, it is not found among project file-list:", file)
-				} else if file, found = recoverFilename(projectFiles, file, logger); found {
+				} else if file, found = tryToSalvageFilename(projectFiles, file, logger); found {
 					_, found1 := CaseInsensitiveFileSearch(file, userRequestedFiles)
 					_, found2 := CaseInsensitiveFileSearch(file, filteredResult)
 					if found1 || found2 {
-						logger.Warnln("Filtering-out recovered file, because it is already in filtered or user files", file)
+						logger.Warnln("Filtering-out salvaged file, because it is already in filtered or user files", file)
 					} else {
 						filteredResult = append(filteredResult, file)
 					}

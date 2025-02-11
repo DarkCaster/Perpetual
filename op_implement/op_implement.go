@@ -22,7 +22,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, salvageFiles, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var help, trySalvageFiles, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var manualFilePath, userFilterFile string
 
 	// Parse flags for the "implement" operation
@@ -32,7 +32,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
-	flags.BoolVar(&salvageFiles, "s", false, "Try to salvage incorrect filenames on stage 1. Experimental, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze")
+	flags.BoolVar(&trySalvageFiles, "s", false, "Try to salvage incorrect filenames on stage 1. Experimental, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
@@ -212,7 +212,7 @@ func Run(args []string, logger logging.ILogger) {
 				fileNames,
 				annotations,
 				targetFiles,
-				salvageFiles,
+				trySalvageFiles,
 				logger)
 		} else {
 			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
