@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.1
+
+### Improvements
+
+- Updated `annotate` operation to skip files that cannot be read instead of stopping the process.
+
 ## v3.0.0
 
 ### New Features
