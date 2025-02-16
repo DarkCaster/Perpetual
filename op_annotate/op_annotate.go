@@ -181,7 +181,8 @@ func Run(args []string, logger logging.ILogger) {
 		// Read file contents and generate annotation
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
-			logger.Panicln("failed to read file:", err)
+			logger.Errorf("Failed to read file %s: %s", filePath, err)
+			continue
 		}
 		fileContents := string(fileBytes)
 
