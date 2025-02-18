@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -34,6 +35,7 @@ type AnthropicLLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
 	Debug                 llmDebug
+	RateLimitDelayS       int
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -166,6 +168,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
 		Debug:                 debug,
+		RateLimitDelayS:       0,
 	}, nil
 }
 
@@ -192,7 +195,8 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
-	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	statusCodeCollector := newStatusCodeCollector()
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -231,6 +235,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 
 		}
 
+		//make a pause, if we need to wait to recover from previous error
+		if p.RateLimitDelayS > 0 {
+			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+		}
+
 		// Perform LLM query
 		response, err := model.GenerateContent(
 			context.Background(),
@@ -239,12 +248,50 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		)
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
+
+		// Process status codes
+		rateLimitPauseAddValue := 0
+		switch statusCodeCollector.StatusCode {
+		case 401: //auth failure
+			if err == nil {
+				err = fmt.Errorf("auth failure, status code: %d", statusCodeCollector.StatusCode)
+			}
+			return []string{}, QueryFailed, err //return immediately
+		case 403: //permission issue
+			if err == nil {
+				err = fmt.Errorf("permission failure, status code: %d", statusCodeCollector.StatusCode)
+			}
+			return []string{}, QueryFailed, err //return immediately
+		case 429: //rate limit hit
+			rateLimitPauseAddValue = 60
+			p.RateLimitDelayS += rateLimitPauseAddValue
+			if err == nil {
+				err = errors.New("ratelimit hit")
+			}
+			fallthrough
+		case 529: //server overload
+			if rateLimitPauseAddValue == 0 {
+				rateLimitPauseAddValue = 30
+				p.RateLimitDelayS += rateLimitPauseAddValue
+			}
+			if err == nil {
+				err = errors.New("server overload")
+			}
+			if lastResort {
+				return []string{}, QueryFailed, err
+			}
+			continue
+		}
+
 		if err != nil {
 			if lastResort {
 				return []string{}, QueryFailed, err
 			}
 			continue
 		}
+
+		//reset rate limit delay
+		p.RateLimitDelayS = 0
 
 		if len(response.Choices) < 1 {
 			if lastResort {
