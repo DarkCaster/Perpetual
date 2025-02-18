@@ -252,16 +252,6 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		// Process status codes
 		rateLimitPauseAddValue := 0
 		switch statusCodeCollector.StatusCode {
-		case 401: //auth failure
-			if err == nil {
-				err = fmt.Errorf("auth failure, status code: %d", statusCodeCollector.StatusCode)
-			}
-			return []string{}, QueryFailed, err //return immediately
-		case 403: //permission issue
-			if err == nil {
-				err = fmt.Errorf("permission failure, status code: %d", statusCodeCollector.StatusCode)
-			}
-			return []string{}, QueryFailed, err //return immediately
 		case 429: //rate limit hit
 			rateLimitPauseAddValue = 60
 			p.RateLimitDelayS += rateLimitPauseAddValue
