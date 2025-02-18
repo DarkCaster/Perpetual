@@ -311,10 +311,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 	}
 
-	if len(transformers) > 0 {
-		mitmClient := newMitmHTTPClient(transformers...)
-		ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
-	}
+	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 
 	model, err := ollama.New(ollamaOptions...)
 	if err != nil {

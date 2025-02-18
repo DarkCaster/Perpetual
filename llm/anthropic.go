@@ -192,10 +192,8 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
-	if len(transformers) > 0 {
-		mitmClient := newMitmHTTPClient(transformers...)
-		anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
-	}
+	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("ANTHROPIC_API_KEY")
@@ -230,6 +228,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	for i := 0; i < maxCandidates; i++ {
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
+
 		}
 
 		// Perform LLM query

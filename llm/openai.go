@@ -280,10 +280,9 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	if len(p.FieldsToRemove) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
-	if len(transformers) > 0 {
-		mitmClient := newMitmHTTPClient(transformers...)
-		openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
-	}
+
+	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")

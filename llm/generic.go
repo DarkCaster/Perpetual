@@ -337,10 +337,8 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 	}
 
-	if len(transformers) > 0 {
-		mitmClient := newMitmHTTPClient(transformers...)
-		providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
-	}
+	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "OPENAI_API_BASE", "OPENAI_ORGANIZATION")

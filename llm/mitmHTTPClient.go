@@ -179,11 +179,30 @@ func (p *systemMessageTransformer) ProcessHeader(header http.Header) http.Header
 	return header
 }
 
-func newMitmHTTPClient(transformers ...requestTransformer) *http.Client {
+type responseCollector interface {
+	CollectResponse(response *http.Response)
+}
+
+type statusCodeCollector struct {
+	StatusCode int
+}
+
+func newStatusCodeCollector() responseCollector {
+	return &statusCodeCollector{
+		StatusCode: 0,
+	}
+}
+
+func (p *statusCodeCollector) CollectResponse(response *http.Response) {
+	p.StatusCode = response.StatusCode
+}
+
+func newMitmHTTPClient(collectors []responseCollector, transformers []requestTransformer) *http.Client {
 	return &http.Client{
 		Transport: &mitmTransport{
 			Transport:    http.DefaultTransport,
 			Transformers: transformers,
+			Collectors:   collectors,
 		},
 	}
 }
@@ -191,6 +210,7 @@ func newMitmHTTPClient(transformers ...requestTransformer) *http.Client {
 type mitmTransport struct {
 	Transport    http.RoundTripper
 	Transformers []requestTransformer
+	Collectors   []responseCollector
 }
 
 func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -232,5 +252,11 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Body = io.NopCloser(bytes.NewReader(newBody))
 	req.ContentLength = int64(len(newBody))
 	// Perform actual http request with new body
-	return t.Transport.RoundTrip(req)
+	response, err := t.Transport.RoundTrip(req)
+	if err != nil && response != nil {
+		for _, collector := range t.Collectors {
+			collector.CollectResponse(response)
+		}
+	}
+	return response, err
 }
