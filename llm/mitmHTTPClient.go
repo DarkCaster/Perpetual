@@ -187,13 +187,17 @@ type statusCodeCollector struct {
 	StatusCode int
 }
 
-func newStatusCodeCollector() responseCollector {
+func newStatusCodeCollector() *statusCodeCollector {
 	return &statusCodeCollector{
 		StatusCode: 0,
 	}
 }
 
 func (p *statusCodeCollector) CollectResponse(response *http.Response) {
+	if response == nil {
+		p.StatusCode = 0
+		return
+	}
 	p.StatusCode = response.StatusCode
 }
 
@@ -253,10 +257,8 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.ContentLength = int64(len(newBody))
 	// Perform actual http request with new body
 	response, err := t.Transport.RoundTrip(req)
-	if err != nil && response != nil {
-		for _, collector := range t.Collectors {
-			collector.CollectResponse(response)
-		}
+	for _, collector := range t.Collectors {
+		collector.CollectResponse(response)
 	}
 	return response, err
 }
