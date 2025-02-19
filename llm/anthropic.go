@@ -250,20 +250,18 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
 		// Process status codes
-		rateLimitPauseAddValue := 0
 		switch statusCodeCollector.StatusCode {
 		case 429: //rate limit hit
-			rateLimitPauseAddValue = 60
-			p.RateLimitDelayS += rateLimitPauseAddValue
+			p.RateLimitDelayS += 60
 			if err == nil {
 				err = errors.New("ratelimit hit")
 			}
-			fallthrough
-		case 529: //server overload
-			if rateLimitPauseAddValue == 0 {
-				rateLimitPauseAddValue = 30
-				p.RateLimitDelayS += rateLimitPauseAddValue
+			if lastResort {
+				return []string{}, QueryFailed, err
 			}
+			continue
+		case 529: //server overload
+			p.RateLimitDelayS += 30
 			if err == nil {
 				err = errors.New("server overload")
 			}
