@@ -144,7 +144,6 @@ func Run(args []string, logger logging.ILogger) {
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
-	logger.Debugln(connector.GetDebugString())
 
 	// Create new connector for "annotate_post" operation (stage2)
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
@@ -157,10 +156,21 @@ func Run(args []string, logger logging.ILogger) {
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
-	logger.Debugln(connectorPost.GetDebugString())
 
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
+
+	if len(filesToAnnotate) > 0 && connector.GetVariantCount() <= 1 {
+		logger.Infoln(connector.GetDebugString())
+	}
+
+	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
+		logger.Infoln("Annotate LLM config for generating summary variants:")
+		logger.Infoln(connector.GetDebugString())
+		logger.Infoln("Annotate LLM config for post-processing:")
+		logger.Infoln(connectorPost.GetDebugString())
+	}
+
 	errorFlag := false
 	newAnnotations := make(map[string]string)
 	for _, filePath := range filesToAnnotate {

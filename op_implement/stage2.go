@@ -31,7 +31,6 @@ func Stage2(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
-	logger.Debugln(stage2Connector.GetDebugString())
 
 	// This will store message history to re-use on this and next stages
 	var messages []llm.Message
@@ -80,7 +79,6 @@ func Stage2(projectRootDir string,
 	// When planning mode set to extended mode, create list of files with request
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
-		logger.Infoln("Running stage2: generating work plan")
 		// Generate actual request message that will me used with LLM
 		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
@@ -90,6 +88,10 @@ func Stage2(projectRootDir string,
 			logger)
 		// realMessages message-history will be used for actual LLM prompt
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
+
+		logger.Infoln("Running stage2: generating work plan")
+		logger.Infoln(stage2Connector.GetDebugString())
+
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {

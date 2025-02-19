@@ -35,7 +35,6 @@ func Stage2(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
-	logger.Debugln(connector.GetDebugString())
 
 	var messages []llm.Message
 
@@ -84,6 +83,9 @@ func Stage2(projectRootDir string,
 	logger.Debugln("Created question processing request message")
 
 	//Make LLM request, process response
+	logger.Infoln("Running stage2: processing question")
+	logger.Infoln(connector.GetDebugString())
+
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
@@ -99,7 +101,6 @@ func Stage2(projectRootDir string,
 		for continueGeneration && !fileRetry {
 			// Run query
 			continueGeneration = false
-			logger.Infoln("Running stage2: processing question")
 			aiResponses, status, err := connector.Query(1, messagesTry...)
 			if err != nil {
 				// Retry file on LLM error

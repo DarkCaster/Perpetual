@@ -34,10 +34,12 @@ func Stage4(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage4 LLM connector:", err)
 	}
-	logger.Debugln(stage4Connector.GetDebugString())
 
 	processedFileContents := make(map[string]string)
 	var processedFiles []string
+
+	logger.Infoln("Running stage4: implementing code")
+	logger.Infoln(stage4Connector.GetDebugString())
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
@@ -82,7 +84,7 @@ func Stage4(projectRootDir string,
 			break
 		}
 
-		logger.Debugln("Processing file:", pendingFile) // Add debug logging
+		logger.Infoln("Processing file:", pendingFile) // Add debug logging
 		// Create prompt from stage4ProcessFilePromptTemplate
 		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
 			cfg.String(config.K_ImplementStage4ProcessPrompt),
@@ -114,7 +116,6 @@ func Stage4(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				logger.Infoln("Running stage4: implementing code for:", pendingFile)
 				aiResponses, status, err := stage4Connector.Query(1, stage4MessagesTry...)
 				if err != nil {
 					// Retry file on LLM error

@@ -34,7 +34,6 @@ func Stage1(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
-	logger.Debugln(connector.GetDebugString())
 
 	// Create project-index request message
 	projectIndexRequest := llm.ComposeMessageWithAnnotations(
@@ -57,13 +56,15 @@ func Stage1(projectRootDir string,
 	analysisRequest := llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
 	logger.Debugln("Created target files analysis request message")
 
+	logger.Infoln("Running stage1: find project files for review")
+	logger.Infoln(connector.GetDebugString())
+
 	var filesForReviewRaw []string
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		logger.Infoln("Running stage1: find project files for review")
 		var status llm.QueryStatus
 		aiResponses, status, err := connector.Query(1, projectIndexRequest, projectIndexResponse, analysisRequest)
 		// Handle LLM query errors

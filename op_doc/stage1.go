@@ -36,7 +36,6 @@ func Stage1(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
-	logger.Debugln(connector.GetDebugString())
 
 	var messages []llm.Message
 	// Create project-index request message
@@ -85,6 +84,9 @@ func Stage1(projectRootDir string,
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
+	logger.Infoln("Running stage1: find project files for review")
+	logger.Infoln(connector.GetDebugString())
+
 	// Perform LLM query
 	var filesForReviewRaw []string
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
@@ -92,7 +94,6 @@ func Stage1(projectRootDir string,
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		logger.Infoln("Running stage1: find project files for review")
 		aiResponses, status, err := connector.Query(1, messages...)
 		if err != nil {
 			if onFailRetriesLeft < 1 {

@@ -36,7 +36,6 @@ func Stage3(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
-	logger.Debugln(connector.GetDebugString())
 
 	// Resulted filenames
 	var targetFilesToModify []string
@@ -90,6 +89,9 @@ func Stage3(projectRootDir string,
 
 	// Send request
 	if planningMode > 0 {
+		logger.Infoln("Running stage3: generating list of files for processing")
+		logger.Infoln(connector.GetDebugString())
+
 		var filesToProcessRaw []string
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
@@ -98,7 +100,6 @@ func Stage3(projectRootDir string,
 		// Make request and retry on errors
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Request LLM to provide file list that will be modified (or created) while implementing code
-			logger.Infoln("Running stage3: generating list of files for processing")
 			var status llm.QueryStatus
 			// Select messages to send, depending on mode
 			targetMessages := messages
