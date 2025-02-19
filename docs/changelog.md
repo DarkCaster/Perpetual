@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.0
+
+### Improvements
+
+- Added handling for rate-limit HTTP error codes: 429 and 529 for Anthropic provider, 429 and 503 for OpenAI. Now adds a dynamic pause before retrying the next request instead of instant retrying and failing again.
+- Improved logging for all operations: shows LLM configuration when performing requests without invoking `Perpetual` with the `-v` or `-vv` flags. Minor refactor of logging for all operations to make some messages cleaner.
+
 ## v3.0.1
 
 ### Improvements
