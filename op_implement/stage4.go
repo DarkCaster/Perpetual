@@ -84,7 +84,7 @@ func Stage4(projectRootDir string,
 			break
 		}
 
-		logger.Infoln("Processing file:", pendingFile) // Add debug logging
+		logger.Infoln(pendingFile)
 		// Create prompt from stage4ProcessFilePromptTemplate
 		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
 			cfg.String(config.K_ImplementStage4ProcessPrompt),
