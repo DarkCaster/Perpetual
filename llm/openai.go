@@ -37,6 +37,7 @@ type OpenAILLMConnector struct {
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
 	Debug                 llmDebug
+	RateLimitDelayS       int
 }
 
 func NewOpenAILLMConnectorFromEnv(
@@ -196,6 +197,7 @@ func NewOpenAILLMConnectorFromEnv(
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
 		Debug:                 debug,
+		RateLimitDelayS:       0,
 	}, nil
 }
 
@@ -281,7 +283,8 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
-	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	statusCodeCollector := newStatusCodeCollector()
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -331,14 +334,40 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		streamingEnabled = true
 	}
 
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+	}
+
 	response, err := model.GenerateContent(
 		context.Background(),
 		llmMessages,
 		finalOptions...,
 	)
+
+	// Process status codes for rate limiting
+	switch statusCodeCollector.StatusCode {
+	case 429: // rate limit hit
+		p.RateLimitDelayS += 60
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return []string{}, QueryFailed, err
+	case 503: // server overload
+		p.RateLimitDelayS += 30
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return []string{}, QueryFailed, err
+	}
+
 	if err != nil {
 		return []string{}, QueryFailed, err
 	}
+
+	//reset rate limit delay
+	p.RateLimitDelayS = 0
+
 	if len(response.Choices) < 1 {
 		return []string{}, QueryFailed, errors.New("received empty response from model")
 	}
