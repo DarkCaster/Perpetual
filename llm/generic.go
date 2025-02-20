@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -51,6 +52,7 @@ type GenericLLMConnector struct {
 	ThinkRemoveRx         []*regexp.Regexp
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
+	RateLimitDelayS       int
 }
 
 func NewGenericLLMConnectorFromEnv(
@@ -293,6 +295,7 @@ func NewGenericLLMConnectorFromEnv(
 		ThinkRemoveRx:         thinkRx,
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
+		RateLimitDelayS:       0,
 	}, nil
 }
 
@@ -337,7 +340,8 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 	}
 
-	mitmClient := newMitmHTTPClient([]responseCollector{}, transformers)
+	statusCodeCollector := newStatusCodeCollector()
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -377,6 +381,11 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 
 	finalContent := []string{}
 	for i := 0; i < maxCandidates; i++ {
+		//make a pause, if we need to wait to recover from previous error
+		if p.RateLimitDelayS > 0 {
+			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+		}
+
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
@@ -393,12 +402,62 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		// Perform LLM query
 		response, err := model.GenerateContent(context.Background(), llmMessages, finalOptions...)
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
+
+		// Process status codes
+		switch statusCodeCollector.StatusCode {
+		case 429:
+			// rate limit hit, calculate the next sleep time before next attempt
+			if p.RateLimitDelayS < 65 {
+				p.RateLimitDelayS = 65
+			} else {
+				p.RateLimitDelayS *= 2
+			}
+			// limit the upper limit, so it will not wait forever
+			if p.RateLimitDelayS > 300 {
+				p.RateLimitDelayS = 300
+			}
+			if err == nil {
+				err = errors.New("ratelimit hit")
+			}
+			if lastResort {
+				return []string{}, QueryFailed, err
+			}
+			continue
+		case 500:
+			fallthrough
+		case 501:
+			fallthrough
+		case 502:
+			fallthrough
+		case 503:
+			// server overload, calculate the next sleep time before next attempt
+			if p.RateLimitDelayS < 15 {
+				p.RateLimitDelayS = 15
+			} else {
+				p.RateLimitDelayS *= 2
+			}
+			// limit the upper limit, so it will not wait forever
+			if p.RateLimitDelayS > 300 {
+				p.RateLimitDelayS = 300
+			}
+			if err == nil {
+				err = errors.New("server overload")
+			}
+			if lastResort {
+				return []string{}, QueryFailed, err
+			}
+			continue
+		}
+
 		if err != nil {
 			if lastResort {
 				return []string{}, QueryFailed, err
 			}
 			continue
 		}
+
+		//reset rate limit delay
+		p.RateLimitDelayS = 0
 
 		if len(response.Choices) < 1 {
 			if lastResort {
