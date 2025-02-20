@@ -350,13 +350,13 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	finalContent := []string{}
 
 	for i := 0; i < maxCandidates; i++ {
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-		}
-
 		//make a pause, if we need to wait to recover from previous error
 		if p.RateLimitDelayS > 0 {
 			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+		}
+
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
 		finalOptions := utils.NewSlice(p.Options...)
@@ -434,7 +434,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			continue
 		}
 
-		// There was a message written into the log, so add separator
+		// Add separator to the log after message content logged with streamFunc
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger("\n\n\n")
 		}
