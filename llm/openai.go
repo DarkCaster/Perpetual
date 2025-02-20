@@ -347,14 +347,32 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	// Process status codes for rate limiting
 	switch statusCodeCollector.StatusCode {
-	case 429: // rate limit hit
-		p.RateLimitDelayS += 60
+	case 429:
+		// rate limit hit, calculate the next sleep time interval
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
 		if err == nil {
 			err = errors.New("ratelimit hit")
 		}
 		return []string{}, QueryFailed, err
-	case 503: // server overload
-		p.RateLimitDelayS += 30
+	case 503:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
 		if err == nil {
 			err = errors.New("server overload")
 		}
