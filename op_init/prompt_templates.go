@@ -169,8 +169,8 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_ExplainProjectIndexResponse] = defaultAIAcknowledge
 	result[config.K_ExplainOutFilesHeader] = "# Files"
-	result[config.K_ExplainOutFilenameTags] = []string{"```", "```"}
-	result[config.K_ExplainOutFilteredFilenameTags] = []string{"~~```", "```~~"}
+	result[config.K_ExplainOutFilenameTags] = []string{"`", "`"}
+	result[config.K_ExplainOutFilteredFilenameTags] = []string{"~~`", "`~~"}
 	result[config.K_ExplainOutAnswerHeader] = "# Answer"
 	// stage 1
 	result[config.K_ExplainStage1QuestionPrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of filenames from the project description that you will need to see to answer the question. Place each filename in <filename></filename> tags. The question is:"
