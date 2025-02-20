@@ -362,6 +362,12 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			err = errors.New("ratelimit hit")
 		}
 		return []string{}, QueryFailed, err
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
 	case 503:
 		// server overload, calculate the next sleep time before next attempt
 		if p.RateLimitDelayS < 15 {
