@@ -37,7 +37,7 @@ func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
 
 func (p *arduinoPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
-	result[config.K_SystemPrompt] = arduinoSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
 	result[config.K_DocProjectIndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}

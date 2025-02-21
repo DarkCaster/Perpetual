@@ -37,7 +37,7 @@ func (p *cPrompts) GetImplementConfig() map[string]interface{} {
 
 func (p *cPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
-	result[config.K_SystemPrompt] = cSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled C programming language software developer. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
 	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in the C programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}

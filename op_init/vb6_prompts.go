@@ -38,7 +38,7 @@ func (p *vb6Prompts) GetImplementConfig() map[string]interface{} {
 
 func (p *vb6Prompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
-	result[config.K_SystemPrompt] = vb6SystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
 	result[config.K_DocProjectIndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
