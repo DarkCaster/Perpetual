@@ -12,13 +12,13 @@
   ],
   "output_answer_header": "# Answer",
   "output_filename_tags": [
-    "```",
-    "```"
+    "`",
+    "`"
   ],
   "output_files_header": "# Files",
   "output_filtered_filename_tags": [
-    "~~```",
-    "```~~"
+    "~~`",
+    "`~~"
   ],
   "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
   "project_index_response": "Understood. What's next?",
@@ -46,6 +46,6 @@
   "stage2_files_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
   "stage2_files_response": "Understood. What's next?",
   "stage2_question_prompt": "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:",
-  "system_prompt": "You are a highly skilled Go programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead.",
+  "system_prompt": "You are a highly skilled Go programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent.",
   "system_prompt_ack": "Understood. I will respond accordingly in my subsequent replies."
 }
