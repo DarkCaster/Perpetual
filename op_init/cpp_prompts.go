@@ -47,7 +47,7 @@ func (p *cppPrompts) GetDocConfig() map[string]interface{} {
 
 func (p *cppPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
-	result[config.K_SystemPrompt] = cppSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled C++ programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	// redefine language-dependent prompt
 	result[config.K_ExplainProjectIndexPrompt] = "Here is a description of the project in the C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}

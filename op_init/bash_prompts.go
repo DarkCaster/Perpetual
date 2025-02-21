@@ -43,7 +43,7 @@ func (p *bashPrompts) GetDocConfig() map[string]interface{} {
 
 func (p *bashPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
-	result[config.K_SystemPrompt] = bashSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. You are an expert in studying bash scripts and finding solutions to questions related to writing scripts in Linux. Your answers are detailed and consistent."
 	// redefine language-dependent prompt
 	result[config.K_ExplainProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
