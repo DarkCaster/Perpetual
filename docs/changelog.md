@@ -25,8 +25,11 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Improvements
 
-- Added handling for rate-limit and server-error HTTP error-codes for all providers. Now adds a dynamic pause before retrying the next request instead of instant retrying and failing again.
+- Added handling for rate-limit and server-error HTTP error codes for all providers. Now adds a dynamic pause before retrying the next request instead of instant retrying and failing again.
 - Improved logging for all operations: shows LLM configuration when performing requests without invoking `Perpetual` with the `-v` or `-vv` flags. Minor refactor of logging for all operations to make some messages cleaner.
+- Improved and simplified default system prompts for all operations when initializing project configs, making prompts more direct and specialized for the particular operation.
+
+**NOTE**: To install and use new system prompts, you need to reinitialize your project config by running `Perpetual init -l <lang>`. Current prompts should continue to work.
 
 ## v3.0.1
 
