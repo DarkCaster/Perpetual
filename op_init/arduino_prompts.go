@@ -13,7 +13,7 @@ const arduinoSystemPrompt = "You are a highly skilled Arduino C++ programming la
 
 func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
-	result[config.K_SystemPrompt] = arduinoSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.(cpp|ino)$", defaultAIAnnotatePrompt_CPP},

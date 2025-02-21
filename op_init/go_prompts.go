@@ -13,7 +13,7 @@ const goSystemPrompt = "You are a highly skilled Go programming language softwar
 
 func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
-	result[config.K_SystemPrompt] = goSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests},

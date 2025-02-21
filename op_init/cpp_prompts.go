@@ -13,7 +13,7 @@ const cppSystemPrompt = "You are a highly skilled C++ programming language softw
 
 func (p *cppPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
-	result[config.K_SystemPrompt] = cppSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled C++ programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP},

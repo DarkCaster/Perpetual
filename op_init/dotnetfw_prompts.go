@@ -13,7 +13,7 @@ const dotNetSystemPrompt = "You are a highly skilled .NET Framework software dev
 
 func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
-	result[config.K_SystemPrompt] = dotNetSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][2]string{
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS},
