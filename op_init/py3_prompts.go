@@ -9,8 +9,6 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type py3Prompts struct{}
 
-const py3SystemPrompt = "You are a highly skilled Python 3 programming language software developer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
-
 func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
@@ -28,7 +26,7 @@ func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *py3Prompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = py3SystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers

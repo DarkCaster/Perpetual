@@ -9,8 +9,6 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type arduinoPrompts struct{}
 
-const arduinoSystemPrompt = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
-
 func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
@@ -27,7 +25,7 @@ func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = arduinoSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}

@@ -9,8 +9,6 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type vb6Prompts struct{}
 
-const vb6SystemPrompt = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
-
 func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
@@ -27,7 +25,7 @@ func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *vb6Prompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = vb6SystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers

@@ -9,8 +9,6 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type dotNetFWPrompts struct{}
 
-const dotNetSystemPrompt = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You always write concise and readable code. You answer only the question asked. You are not adding separate explanations after code-blocks, you adding comments within your code instead."
-
 func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
@@ -26,7 +24,7 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = dotNetSystemPrompt
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
 	result[config.K_ImplementStage1IndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
