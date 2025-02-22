@@ -1,6 +1,6 @@
 # User Supplied Exclude Filter
 
-The User Supplied Exclude Filter allows users to specify optional custom regular expression (regex) patterns to exclude certain files from being processed by the program's operations. The exclude filter is utilized in the following operations: `doc`, `explain`, `implement`, and `report`.
+This filter allows users to specify optional custom regular expression (regex) patterns to exclude certain files from being processed by the program's operations. The exclude filter is utilized in the following operations: `doc`, `explain`, `implement`, and `report`.
 
 ## Filter Structure
 

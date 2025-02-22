@@ -31,7 +31,7 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-u`: Do not exclude unit-test source files from processing. By default, unit-test sources are excluded.
 
-- `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing.
+- `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).
 
 - `-h`: Display the help message, showing all available flags and their descriptions.
 

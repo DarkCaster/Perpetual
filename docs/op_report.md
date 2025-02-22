@@ -24,7 +24,7 @@ The `report` operation supports several command-line flags to customize its beha
 
 - `-u`: Include unit test source files in the report. By default, unit test sources are excluded.
 
-- `-x <file>`: Specify a path to a user-supplied regex filter file for excluding certain files from the report.
+- `-x <file>`: Specify a path to a user-supplied regex filter file for excluding certain files from the report. See more info about using the filter [here](user_filter.md).
 
 - `-v`: Enable debug logging. This flag increases the verbosity of the operation's output, providing more detailed information about the report generation process.
 

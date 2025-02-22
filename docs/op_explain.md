@@ -28,7 +28,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded to focus on primary source code.
 
-- `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria.
+- `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).
 
 - `-h`: Display the help message, detailing all available flags and their descriptions.
 
