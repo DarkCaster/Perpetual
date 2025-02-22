@@ -1,5 +1,11 @@
 package logging
 
+import (
+	"log"
+	"os"
+	"time"
+)
+
 type LogLevel int
 
 const (
@@ -26,4 +32,16 @@ type ILogger interface {
 	Panicln(args ...any)
 
 	SetLevel(newLevel LogLevel)
+}
+
+func NewSimpleLogger(initialLevel LogLevel) (*SimpleLogger, error) {
+	return &SimpleLogger{CurLevel: initialLevel, NormalLogger: log.New(os.Stdout, "", 0), ErrorLogger: log.New(os.Stderr, "", 0), Start: time.Now()}, nil
+}
+
+func NewStdErrSimpleLogger(initialLevel LogLevel) (*SimpleLogger, error) {
+	return &SimpleLogger{CurLevel: initialLevel, NormalLogger: log.New(os.Stderr, "", 0), ErrorLogger: log.New(os.Stderr, "", 0), Start: time.Now()}, nil
+}
+
+func NewQuietLogger(initialLevel LogLevel) (*QuietLogger, error) {
+	return &QuietLogger{CurLevel: initialLevel}, nil
 }
