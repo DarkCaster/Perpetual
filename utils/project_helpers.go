@@ -84,9 +84,9 @@ func GetAnnotations(filePath string, filenames []string) (map[string]string, err
 	return result, nil
 }
 
-func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string, error) {
+func GetChangedFiles(annotationsFilePath string, fileChecksums map[string]string) ([]string, error) {
 	var annotations annotationEntries
-	err := LoadJsonFile(filePath, &annotations)
+	err := LoadJsonFile(annotationsFilePath, &annotations)
 	if err != nil {
 		annotations = nil
 	}
@@ -106,6 +106,24 @@ func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string
 
 	sort.Strings(changedFiles)
 	return changedFiles, nil
+}
+
+func GetChecksumsFromAnnotations(annotationsFilePath string, files []string) map[string]string {
+	var annotations annotationEntries
+	err := LoadJsonFile(annotationsFilePath, &annotations)
+	if err != nil {
+		annotations = nil
+	}
+
+	annotationChecksums := make(map[string]string)
+	for _, file := range files {
+		annotationChecksums[file] = "error"
+	}
+	for _, entry := range annotations {
+		annotationChecksums[entry.Filename] = entry.Checksum
+	}
+
+	return annotationChecksums
 }
 
 // Recursively get project files, starting from projectRootDir
