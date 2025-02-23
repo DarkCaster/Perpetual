@@ -59,8 +59,15 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error finding project root directory:", err)
 	}
 
+	globalConfigDir, err := utils.FindConfigDir()
+	if err != nil {
+		logger.Panicln("Error finding perpetual config directory:", err)
+	}
+
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
+
+	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
 	reportConfig, err := config.LoadOpReportConfig(perpetualDir)
 	if err != nil {
