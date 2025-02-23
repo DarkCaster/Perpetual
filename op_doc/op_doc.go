@@ -148,6 +148,15 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("Error getting project file-list:", err)
 		}
 
+		// Check fileNames array for case collisions
+		if !utils.CheckFilenameCaseCollisions(fileNames) {
+			logger.Panicln("Filename case collisions detected in project files")
+		}
+		// File names and dir-names must not contain path separators characters
+		if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
+			logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+		}
+
 		// Load annotations needed for stage1
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
 		if err != nil {
