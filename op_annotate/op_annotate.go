@@ -23,11 +23,12 @@ func annotateFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger logging.ILogger) {
-	flags := annotateFlags()
 
+	// Setup
 	var help, force, dryRun, verbose, trace bool
 	var requestedFile, userFilterFile string
 
+	flags := annotateFlags()
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.BoolVar(&help, "h", false, "This help message")
@@ -140,12 +141,18 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 			}
 			filesToAnnotate = utils.NewSlice(requestedFile)
 		} else {
-			filesToAnnotate = make([]string, 0, len(fileChecksums))
-			for file := range fileChecksums {
-				filesToAnnotate = append(filesToAnnotate, file)
-			}
+			filesToAnnotate = utils.NewSlice(fileNames...)
 			sort.Strings(filesToAnnotate)
 		}
+	}
+
+	oldChecksums := utils.GetChecksumsFromAnnotations(annotationsFilePath, fileNames)
+
+	//filter filesToAnnotate with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
+	filesToAnnotate, droppedFiles := utils.FilterFilesWithBlacklist(filesToAnnotate, userBlacklist)
+	for _, file := range droppedFiles {
+		fileChecksums[file] = oldChecksums[file]
+		logger.Warnln("File was filtered-out with user blacklist:", file)
 	}
 
 	if dryRun {
@@ -252,7 +259,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = "error"
+					fileChecksums[filePath] = oldChecksums[filePath]
 					errorFlag = true
 				}
 				continue
@@ -262,7 +269,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 				logger.Errorln("LLM response(s) reached max tokens, consider increasing the limit")
 				//TODO: find out do we have seed parameter set, because regenerating with same seed will fail again, so if true -> make onFailRetriesLeft = 0
 				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = "error"
+					fileChecksums[filePath] = oldChecksums[filePath]
 					errorFlag = true
 				}
 				continue
@@ -273,7 +280,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 			if len(finalVariants) < 1 {
 				logger.Errorln("No LLM responses available")
 				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = "error"
+					fileChecksums[filePath] = oldChecksums[filePath]
 					errorFlag = true
 				}
 				continue
