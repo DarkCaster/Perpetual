@@ -8,7 +8,6 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
-	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -39,6 +38,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
+	if docFile == "" {
+		logger = stdErrLogger
+	}
+
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}
@@ -52,10 +55,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
-	}
-
-	if docFile == "" {
-		logger.Panicln("Markdown file not specified. Use -r flag to specify the file.")
 	}
 
 	action = strings.ToUpper(action)
@@ -79,45 +78,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
 
-	// Make main documentation file relative to the project root
-	docFile, err = utils.MakePathRelative(projectRootDir, docFile, false)
-	if err != nil {
-		logger.Panicln("Requested file is not inside project root", docFile)
-	}
-
-	if docExample != "" {
-		// Make example relative to the project root
-		docExample, err = utils.MakePathRelative(projectRootDir, docExample, false)
-		if err != nil {
-			logger.Panicln("Example file is not inside project root", docExample)
-		}
-		// Try reading example to ensure it presence and it is a correct text file with valid encoding
-		if _, err = utils.LoadTextFile(filepath.Join(projectRootDir, docExample)); err != nil {
-			logger.Panicln("Failed to load example document:", err)
-		}
-	}
-
-	// Try reading document to ensure it presence and it is a correct text file with valid encoding
-	var docFiles []string
-	if _, err = utils.LoadTextFile(filepath.Join(projectRootDir, docFile)); err == nil {
-		docFiles = append(docFiles, docFile)
-	} else if action != "DRAFT" {
-		logger.Panicln("Failed to load target document:", err)
-	}
-
+	var docExampleContent string
 	var docContent string
+
 	if action == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
-		if !noAnnotate {
-			logger.Debugln("Running 'annotate' operation to update file annotations")
-			op_annotate_params := []string{}
-			if userFilterFile != "" {
-				op_annotate_params = []string{"-x", userFilterFile}
-			}
-			op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
-		}
-
 		docConfig, err := config.LoadOpDocConfig(perpetualDir)
 		if err != nil {
 			logger.Panicf("Error loading op_doc config: %s", err)
@@ -161,6 +127,42 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 		}
 
+		//Load example if provided
+		if docExample != "" {
+			logger.Infoln("Loading example document:", docExample)
+			docExampleContent, err = utils.LoadTextFile(docExample)
+			if err != nil {
+				logger.Panicln("Error reading example document:", err)
+			}
+		}
+
+		//Load main document
+		if docFile != "" {
+			docContent, err = utils.LoadTextFile(docFile)
+			if err != nil {
+				logger.Panicln("Error reading target document:", err)
+			}
+		} else {
+			logger.Infoln("Reading document from stdin")
+			docContent, err = utils.LoadTextStdin()
+			if err != nil {
+				logger.Panicln("Error reading from stdin:", err)
+			}
+		}
+
+		if docContent == "" {
+			logger.Panicln("Document content is empty, please provide at least a minimal draft to proceed")
+		}
+
+		if !noAnnotate {
+			logger.Debugln("Running 'annotate' operation to update file annotations")
+			op_annotate_params := []string{}
+			if userFilterFile != "" {
+				op_annotate_params = []string{"-x", userFilterFile}
+			}
+			op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
+		}
+
 		// Load annotations needed for stage1
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {
@@ -174,8 +176,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 			fileNames,
 			annotations,
-			docFile,
-			docExample,
+			docContent,
+			docExampleContent,
 			action,
 			trySalvageFiles,
 			logger)
@@ -207,8 +209,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			fileNames,
 			filteredRequestedFiles,
 			annotations,
-			docFile,
-			docExample,
+			docContent,
+			docExampleContent,
 			action,
 			logger)
 	}
@@ -218,10 +220,17 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		docContent += "\n"
 	}
 
-	docResults := make(map[string]string)
-	docResults[docFile] = docContent
-
-	// Create and apply stash from generated results
-	newStashFileName := op_stash.CreateStash(docResults, docFiles, logger)
-	op_stash.Run([]string{"-a", "-n", newStashFileName}, true, logger)
+	// Write output to file or stdout
+	if docFile != "" {
+		logger.Infoln("Writing document:", docFile)
+		err := utils.SaveTextFile(docFile, docContent)
+		if err != nil {
+			logger.Panicln("Error writing to output file:", err)
+		}
+	} else {
+		err := utils.WriteTextStdout(docContent)
+		if err != nil {
+			logger.Panicln("Error writing document to stdout:", err)
+		}
+	}
 }

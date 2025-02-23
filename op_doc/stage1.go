@@ -13,8 +13,8 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
-	targetDocument string,
-	exampleDocuemnt string,
+	docContent string,
+	docExampleContent string,
 	action string,
 	trySalvageFiles bool,
 	logger logging.ILogger) []string {
@@ -53,9 +53,11 @@ func Stage1(projectRootDir string,
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
-	if exampleDocuemnt != "" {
+	if docExampleContent != "" {
 		// Create document-example request message
-		exampleDocRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, cfg.String(config.K_DocExamplePrompt), exampleDocuemnt, logger)
+		exampleDocRequest := llm.AddPlainTextFragment(
+			llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocExamplePrompt)),
+			docExampleContent)
 		messages = append(messages, exampleDocRequest)
 		logger.Debugln("Created document-example request message")
 		// Create document-example simulated response
@@ -80,7 +82,7 @@ func Stage1(projectRootDir string,
 		logger.Panicln("Invalid action:", action)
 	}
 
-	analysisRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetDocument, logger)
+	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), docContent)
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
@@ -142,5 +144,5 @@ func Stage1(projectRootDir string,
 	}
 
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{targetDocument}, projectFiles, trySalvageFiles, logger)
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{}, projectFiles, trySalvageFiles, logger)
 }

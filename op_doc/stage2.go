@@ -16,8 +16,8 @@ func Stage2(projectRootDir string,
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,
-	targetDocument string,
-	exampleDocuemnt string,
+	docContent string,
+	docExampleContent string,
 	action string,
 	logger logging.ILogger) string {
 
@@ -73,9 +73,11 @@ func Stage2(projectRootDir string,
 		logger.Infoln("Not creating extra source-code review")
 	}
 
-	if exampleDocuemnt != "" {
+	if docExampleContent != "" {
 		// Create document-example request message
-		requestMessage := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, cfg.String(config.K_DocExamplePrompt), exampleDocuemnt, logger)
+		requestMessage := llm.AddPlainTextFragment(
+			llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocExamplePrompt)),
+			docExampleContent)
 		messages = append(messages, requestMessage)
 		logger.Debugln("Created document-example request message")
 		// Create document-example simulated response
@@ -89,7 +91,7 @@ func Stage2(projectRootDir string,
 	if action == "REFINE" {
 		prompt = cfg.String(config.K_DocStage2RefinePrompt)
 	}
-	documentRequest := llm.ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetDocument, logger)
+	documentRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), docContent)
 	messages = append(messages, documentRequest)
 	logger.Debugln("Created document processing request message")
 
