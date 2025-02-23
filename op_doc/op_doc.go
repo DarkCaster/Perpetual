@@ -111,7 +111,11 @@ func Run(args []string, logger logging.ILogger) {
 	} else {
 		if !noAnnotate {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
-			op_annotate.Run(nil, true, logger, logger)
+			op_annotate_params := []string{}
+			if userFilterFile != "" {
+				op_annotate_params = []string{"-x", userFilterFile}
+			}
+			op_annotate.Run(op_annotate_params, true, logger, logger)
 		}
 
 		docConfig, err := config.LoadOpDocConfig(perpetualDir)

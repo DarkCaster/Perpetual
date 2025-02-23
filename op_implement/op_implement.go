@@ -177,7 +177,11 @@ func Run(args []string, logger logging.ILogger) {
 		skipStage1 = true
 	} else if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, true, logger, logger)
+		op_annotate_params := []string{}
+		if userFilterFile != "" {
+			op_annotate_params = []string{"-x", userFilterFile}
+		}
+		op_annotate.Run(op_annotate_params, true, logger, logger)
 	} else {
 		logger.Warnln("File-annotations update disabled, this may worsen the final result")
 	}

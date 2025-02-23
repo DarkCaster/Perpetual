@@ -144,7 +144,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, true, logger, stdErrLogger)
+		op_annotate_params := []string{}
+		if userFilterFile != "" {
+			op_annotate_params = []string{"-x", userFilterFile}
+		}
+		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 	}
 
 	// Load annotations
