@@ -138,7 +138,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-		_, fileNames, _, err := utils.GetProjectFileList(
+		fileNames, _, err := utils.GetProjectFileList(
 			projectRootDir,
 			perpetualDir,
 			projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),

@@ -95,7 +95,8 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 		}
 	}
 
-	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+	// Preparation of project files
+	fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
@@ -112,6 +113,11 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	// File names and dir-names must not contain path separators characters
 	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+	}
+
+	fileChecksums, err := utils.CalculateFilesChecksums(projectRootDir, fileNames)
+	if err != nil {
+		logger.Panicln("Error getting project-files checksums:", err)
 	}
 
 	annotationsFilePath := filepath.Join(perpetualDir, utils.AnnotationsFileName)

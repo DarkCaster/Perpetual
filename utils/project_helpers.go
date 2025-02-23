@@ -110,11 +110,10 @@ func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string
 
 // Recursively get project files, starting from projectRootDir
 // Return values:
-// - map with checksums of files filtered with whitelist and blacklist
 // - filenames filtered with whitelist and blacklist (relative to projectRootDir)
 // - all filenames processed (relative to projectRootDir)
 // - error, if any
-func GetProjectFileList(projectRootDir string, perpetualDir string, projectFilesWhitelist []*regexp.Regexp, projectFilesBlacklist []*regexp.Regexp) (map[string]string, []string, []string, error) {
+func GetProjectFileList(projectRootDir string, perpetualDir string, projectFilesWhitelist []*regexp.Regexp, projectFilesBlacklist []*regexp.Regexp) ([]string, []string, error) {
 	var allFiles []string
 
 	// Recursively get all files at projectRootDir and make it names relative to projectRootDir
@@ -135,7 +134,7 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 		return nil
 	})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	sort.Strings(allFiles)
 
@@ -143,17 +142,20 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	files, _ := FilterFilesWithWhitelist(allFiles, projectFilesWhitelist)
 	files, _ = FilterFilesWithBlacklist(files, projectFilesBlacklist)
 
+	return files, allFiles, nil
+}
+
+func CalculateFilesChecksums(projectRootDir string, files []string) (map[string]string, error) {
 	fileChecksums := make(map[string]string)
 	for _, file := range files {
 		filePath := filepath.Join(projectRootDir, file)
 		checksum, err := CalculateSHA256(filePath)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("error calculating checksum for file %s: %s", file, err)
+			return nil, fmt.Errorf("error calculating checksum for file %s: %s", file, err)
 		}
 		fileChecksums[file] = checksum
 	}
-
-	return fileChecksums, files, allFiles, nil
+	return fileChecksums, nil
 }
 
 func FilterFilesWithWhitelist(sourceFiles []string, whitelist []*regexp.Regexp) ([]string, []string) {
