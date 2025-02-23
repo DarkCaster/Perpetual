@@ -31,7 +31,7 @@ func stashFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, logger logging.ILogger) {
+func Run(args []string, innerCall bool, logger logging.ILogger) {
 	var help, list, verbose, apply, rollback, trace, listFiles bool
 	var name, fileName, targetFile string
 
@@ -69,10 +69,20 @@ func Run(args []string, logger logging.ILogger) {
 		return
 	}
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	outerCallLogger := logger.Clone()
+	if innerCall {
+		outerCallLogger.DisableLevel(logging.ErrorLevel)
+		outerCallLogger.DisableLevel(logging.WarnLevel)
+		outerCallLogger.DisableLevel(logging.InfoLevel)
+	}
+
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}
+
+	outerCallLogger.Infoln("Project root directory:", projectRootDir)
+	outerCallLogger.Debugln("Perpetual directory:", perpetualDir)
 
 	stashDir := filepath.Join(perpetualDir, utils.StashesDirName)
 
@@ -178,10 +188,10 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	if apply {
-		logger.Infoln("Applying changes:", name)
+		logger.Infoln("Applying changes")
 		writeFiles(stash.ModifiedFiles)
 	} else if rollback {
-		logger.Infoln("Rolling back changes:", name)
+		logger.Infoln("Rolling back changes")
 		writeFiles(stash.OriginalFiles)
 	}
 }

@@ -65,7 +65,7 @@ func main() {
 	case op_implement.OpName:
 		op_implement.Run(args, logger)
 	case op_stash.OpName:
-		op_stash.Run(args, logger)
+		op_stash.Run(args, false, logger)
 	case op_report.OpName:
 		op_report.Run(args, logger, stdErrLogger)
 	case op_explain.OpName:

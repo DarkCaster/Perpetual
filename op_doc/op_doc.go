@@ -210,5 +210,5 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create and apply stash from generated results
 	newStashFileName := op_stash.CreateStash(docResults, docFiles, logger)
-	op_stash.Run([]string{"-a", "-n", newStashFileName}, logger)
+	op_stash.Run([]string{"-a", "-n", newStashFileName}, true, logger)
 }
