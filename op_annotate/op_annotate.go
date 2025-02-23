@@ -26,11 +26,13 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	flags := annotateFlags()
 
 	var help, force, dryRun, verbose, trace bool
-	var requestedFile string
+	var requestedFile, userFilterFile string
+
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.BoolVar(&help, "h", false, "This help message")
 	flags.StringVar(&requestedFile, "r", "", "Only annotate single file provided with this flag, even if its annotation is already up to date (implies -f flag)")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -83,6 +85,14 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
 		logger.Panicf("Error loading project config: %s", err)
+	}
+
+	var userBlacklist []*regexp.Regexp
+	if userFilterFile != "" {
+		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
+		if err != nil {
+			logger.Panicln("Error processing user blacklist-filter:", err)
+		}
 	}
 
 	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
