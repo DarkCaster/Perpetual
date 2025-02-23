@@ -41,7 +41,3 @@ func NewSimpleLogger(initialLevel LogLevel) (*SimpleLogger, error) {
 func NewStdErrSimpleLogger(initialLevel LogLevel) (*SimpleLogger, error) {
 	return &SimpleLogger{CurLevel: initialLevel, NormalLogger: log.New(os.Stderr, "", 0), ErrorLogger: log.New(os.Stderr, "", 0), Start: time.Now()}, nil
 }
-
-func NewQuietLogger(initialLevel LogLevel) (*QuietLogger, error) {
-	return &QuietLogger{CurLevel: initialLevel}, nil
-}
