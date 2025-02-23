@@ -61,7 +61,7 @@ func main() {
 	case op_init.OpName:
 		op_init.Run(Version, args, logger)
 	case op_annotate.OpName:
-		op_annotate.Run(args, logger)
+		op_annotate.Run(args, false, logger)
 	case op_implement.OpName:
 		op_implement.Run(args, logger)
 	case op_stash.OpName:

@@ -138,7 +138,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, logger)
+		op_annotate.Run(nil, true, logger)
 	}
 
 	// Load annotations

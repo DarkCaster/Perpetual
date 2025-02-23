@@ -22,7 +22,7 @@ func annotateFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, logger logging.ILogger) {
+func Run(args []string, innerCall bool, logger logging.ILogger) {
 	flags := annotateFlags()
 
 	var help, force, dryRun, verbose, trace bool
@@ -54,7 +54,14 @@ func Run(args []string, logger logging.ILogger) {
 		force = true
 	}
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	outerCallLogger := logger.Clone()
+	if innerCall {
+		outerCallLogger.DisableLevel(logging.ErrorLevel)
+		outerCallLogger.DisableLevel(logging.WarnLevel)
+		outerCallLogger.DisableLevel(logging.InfoLevel)
+	}
+
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
 	if err != nil {
 		logger.Panicln("error finding project root directory:", err)
 	}
@@ -64,10 +71,14 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error finding perpetual config directory:", err)
 	}
 
-	logger.Infoln("Project root directory:", projectRootDir)
-	logger.Debugln("Perpetual directory:", perpetualDir)
+	outerCallLogger.Infoln("Project root directory:", projectRootDir)
+	outerCallLogger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
+	if innerCall {
+		logger.Debugln("Not re-loading env files for inner call of annotate operation")
+	} else {
+		utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
+	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
