@@ -22,6 +22,8 @@ The `annotate` operation supports several command-line flags to customize its be
 
 - `-r <file>`: Only annotate a single specified file, even if its annotation is already up to date. This flag implies the `-f` flag. Use this when you want to update the annotation for a specific file. It may be useful if annotating all changed project files in a batch hits LLM API limits.
 
+- `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).
+
 - `-v`: Enable debug logging. This flag increases the verbosity of the operation's output, providing more detailed information about the annotation process.
 
 - `-vv`: Enable both debug and trace logging. This flag provides the highest level of verbosity, useful for troubleshooting or understanding the internal workings of the annotation process.
