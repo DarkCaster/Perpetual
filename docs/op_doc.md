@@ -71,10 +71,16 @@ The `doc` operation supports several command-line flags to customize its behavio
    Perpetual doc -r docs/troubleshooting.md -v
    ```
 
-4. **Create a document by reading from standard input and writing to standard output:**
+4. **Create a document by reading from standard input and writing to standard output, using an example for style:**
 
    ```sh
-   cat draft.md | Perpetual doc -a write > final_document.md
+   cat draft.md | Perpetual doc -a write -e docs/user_guide.md > final_document.md
+   ```
+
+5. **Use a custom regex filter file to exclude specific files:**
+
+   ```sh
+   Perpetual doc -r docs/overview.md -a refine -x ../exclude_regexes.json
    ```
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
