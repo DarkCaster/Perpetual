@@ -114,3 +114,7 @@ func (l *SimpleLogger) EnableLevel(level LogLevel) {
 func (l *SimpleLogger) DisableLevel(level LogLevel) {
 	l.CurLevel &= ^level
 }
+
+func (l *SimpleLogger) Clone() ILogger {
+	return &SimpleLogger{CurLevel: l.CurLevel, NormalLogger: l.NormalLogger, ErrorLogger: l.ErrorLogger, Start: l.Start}
+}
