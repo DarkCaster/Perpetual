@@ -355,7 +355,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	}
 
 	// Get annotations for files listed in fileChecksums
-	annotations, err := utils.GetAnnotations(annotationsFilePath, fileChecksums)
+	annotations, err := utils.GetAnnotations(annotationsFilePath, fileNames)
 	if err != nil {
 		logger.Panicln("Failed to read old annotations:", err)
 	}

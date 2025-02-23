@@ -53,7 +53,7 @@ func SaveAnnotations(filePath string, checksums map[string]string, annotations m
 	return nil
 }
 
-func GetAnnotations(filePath string, fileChecksums map[string]string) (map[string]string, error) {
+func GetAnnotations(filePath string, filenames []string) (map[string]string, error) {
 	var annotations annotationEntries
 	err := LoadJsonFile(filePath, &annotations)
 	if err != nil {
@@ -62,7 +62,7 @@ func GetAnnotations(filePath string, fileChecksums map[string]string) (map[strin
 
 	result := make(map[string]string)
 
-	for filename := range fileChecksums {
+	for _, filename := range filenames {
 		var annotation string
 		found := false
 

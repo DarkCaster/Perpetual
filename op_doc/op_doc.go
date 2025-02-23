@@ -138,7 +138,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-		fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+		_, fileNames, _, err := utils.GetProjectFileList(
 			projectRootDir,
 			perpetualDir,
 			projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
@@ -158,7 +158,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Load annotations needed for stage1
-		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {
 			logger.Panicln("Error reading annotations:", err)
 		}

@@ -93,7 +93,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-	fileChecksums, fileNames, _, err := utils.GetProjectFileList(
+	_, fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
@@ -117,7 +117,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate.Run(nil, true, logger)
 		// Load annotations
-		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileChecksums)
+		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {
 			logger.Panicln("Error loading annotations:", err)
 		}
