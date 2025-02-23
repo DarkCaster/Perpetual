@@ -33,10 +33,11 @@ func Run(version string, args []string, logger logging.ILogger) {
 	initFlags.Parse(args)
 
 	if verbose {
-		logger.SetLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.DebugLevel)
 	}
 	if trace {
-		logger.SetLevel(logging.TraceLevel)
+		logger.EnableLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.TraceLevel)
 	}
 
 	logger.Debugln("Starting 'init' operation")

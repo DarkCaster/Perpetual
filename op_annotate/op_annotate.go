@@ -36,10 +36,11 @@ func Run(args []string, logger logging.ILogger) {
 	flags.Parse(args)
 
 	if verbose {
-		logger.SetLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.DebugLevel)
 	}
 	if trace {
-		logger.SetLevel(logging.TraceLevel)
+		logger.EnableLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.TraceLevel)
 	}
 
 	logger.Debugln("Starting 'annotate' operation")

@@ -46,10 +46,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	if verbose {
-		logger.SetLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.DebugLevel)
 	}
 	if trace {
-		logger.SetLevel(logging.TraceLevel)
+		logger.EnableLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.TraceLevel)
 	}
 
 	logger.Debugln("Starting 'explain' operation")
