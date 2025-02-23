@@ -11,34 +11,34 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 )
 
-type AnnotationEntry struct {
+type annotationEntry struct {
 	Filename   string `json:"filename"`
 	Checksum   string `json:"checksum"`
 	Annotation string `json:"annotation"`
 }
 
-type AnnotationEntries []AnnotationEntry
+type annotationEntries []annotationEntry
 
-func (entries AnnotationEntries) Len() int {
+func (entries annotationEntries) Len() int {
 	return len(entries)
 }
 
-func (entries AnnotationEntries) Less(i, j int) bool {
+func (entries annotationEntries) Less(i, j int) bool {
 	return entries[i].Filename < entries[j].Filename
 }
 
-func (entries AnnotationEntries) Swap(i, j int) {
+func (entries annotationEntries) Swap(i, j int) {
 	entries[i], entries[j] = entries[j], entries[i]
 }
 
 func SaveAnnotations(filePath string, checksums map[string]string, annotations map[string]string) error {
-	var entries AnnotationEntries
+	var entries annotationEntries
 	for filename, checksum := range checksums {
 		annotation, ok := annotations[filename]
 		if !ok {
 			continue
 		}
-		entry := AnnotationEntry{
+		entry := annotationEntry{
 			Filename:   filename,
 			Checksum:   checksum,
 			Annotation: annotation,
@@ -54,7 +54,7 @@ func SaveAnnotations(filePath string, checksums map[string]string, annotations m
 }
 
 func GetAnnotations(filePath string, fileChecksums map[string]string) (map[string]string, error) {
-	var annotations AnnotationEntries
+	var annotations annotationEntries
 	err := LoadJsonFile(filePath, &annotations)
 	if err != nil {
 		annotations = nil
@@ -85,7 +85,7 @@ func GetAnnotations(filePath string, fileChecksums map[string]string) (map[strin
 }
 
 func GetChangedFiles(filePath string, fileChecksums map[string]string) ([]string, error) {
-	var annotations AnnotationEntries
+	var annotations annotationEntries
 	err := LoadJsonFile(filePath, &annotations)
 	if err != nil {
 		annotations = nil
