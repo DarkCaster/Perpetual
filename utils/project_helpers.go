@@ -140,7 +140,8 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	sort.Strings(allFiles)
 
 	// Generate filtered list of files
-	files, _ := FilterFilesWithWBLists(allFiles, projectFilesWhitelist, projectFilesBlacklist)
+	files, _ := FilterFilesWithWhitelist(allFiles, projectFilesWhitelist)
+	files, _ = FilterFilesWithBlacklist(files, projectFilesBlacklist)
 
 	fileChecksums := make(map[string]string)
 	for _, file := range files {
@@ -155,31 +156,44 @@ func GetProjectFileList(projectRootDir string, perpetualDir string, projectFiles
 	return fileChecksums, files, allFiles, nil
 }
 
-func FilterFilesWithWBLists(sourceFiles []string, projectFilesWhitelist []*regexp.Regexp, projectFilesBlacklist []*regexp.Regexp) ([]string, map[string]bool) {
+func FilterFilesWithWhitelist(sourceFiles []string, whitelist []*regexp.Regexp) ([]string, []string) {
 	filteredFiles := make([]string, 0, len(sourceFiles))
-	status := make(map[string]bool)
-	for _, searchRx := range projectFilesWhitelist {
-		for _, file := range sourceFiles {
+	droppedFiles := make([]string, 0, len(sourceFiles))
+	for _, file := range sourceFiles {
+		dropFile := true
+		for _, searchRx := range whitelist {
 			if searchRx.MatchString(file) {
-				dropFile := false
-				for _, dropRx := range projectFilesBlacklist {
-					if dropRx.MatchString(file) {
-						dropFile = true
-						break
-					}
-				}
-				if dropFile {
-					status[file] = false
-				} else {
-					status[file] = true
-					filteredFiles = append(filteredFiles, file)
-				}
-			} else {
-				status[file] = false
+				dropFile = false
+				break
 			}
 		}
+		if dropFile {
+			droppedFiles = append(droppedFiles, file)
+		} else {
+			filteredFiles = append(filteredFiles, file)
+		}
 	}
-	return filteredFiles, status
+	return filteredFiles, droppedFiles
+}
+
+func FilterFilesWithBlacklist(sourceFiles []string, blacklist []*regexp.Regexp) ([]string, []string) {
+	filteredFiles := make([]string, 0, len(sourceFiles))
+	droppedFiles := make([]string, 0, len(sourceFiles))
+	for _, file := range sourceFiles {
+		dropFile := false
+		for _, searchRx := range blacklist {
+			if searchRx.MatchString(file) {
+				dropFile = true
+				break
+			}
+		}
+		if dropFile {
+			droppedFiles = append(droppedFiles, file)
+		} else {
+			filteredFiles = append(filteredFiles, file)
+		}
+	}
+	return filteredFiles, droppedFiles
 }
 
 func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noUploadRegexps []*regexp.Regexp, allowMissingFiles bool, logger logging.ILogger) []string {
