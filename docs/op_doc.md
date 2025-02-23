@@ -86,6 +86,7 @@ The `doc` operation supports several command-line flags to customize its behavio
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
 
 1. **Stage 1:** Analyzes the project and determines which files are relevant for the documentation task based on the target document's content and notes.
+
 2. **Stage 2:** Generates or refines the document content based on the analyzed information, the specified action, and any provided example document.
 
 ## LLM Configuration
