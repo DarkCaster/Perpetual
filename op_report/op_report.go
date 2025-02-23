@@ -115,7 +115,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate.Run(nil, true, logger)
+		op_annotate.Run(nil, true, logger, stdErrLogger)
 		// Load annotations
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {

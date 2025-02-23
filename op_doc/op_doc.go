@@ -111,7 +111,7 @@ func Run(args []string, logger logging.ILogger) {
 	} else {
 		if !noAnnotate {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
-			op_annotate.Run(nil, true, logger)
+			op_annotate.Run(nil, true, logger, logger)
 		}
 
 		docConfig, err := config.LoadOpDocConfig(perpetualDir)

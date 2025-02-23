@@ -2,6 +2,7 @@ package op_annotate
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -22,7 +23,7 @@ func annotateFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, innerCall bool, logger logging.ILogger) {
+func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Setup
 	var help, force, dryRun, verbose, trace bool
@@ -38,6 +39,9 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
+	if dryRun {
+		logger = stdErrLogger
+	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}
@@ -158,7 +162,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	if dryRun {
 		logger.Infoln("Files to annotate:")
 		for _, file := range filesToAnnotate {
-			logger.Infoln(file)
+			fmt.Println(file)
 		}
 		os.Exit(0)
 	}
