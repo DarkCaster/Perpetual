@@ -21,14 +21,14 @@ func docFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, logger logging.ILogger) {
+func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, trySalvageFiles, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var docFile, docExample, action, userFilterFile string
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
-	flags.StringVar(&docFile, "r", "", "Target documentation file for processing")
+	flags.StringVar(&docFile, "r", "", "Target documentation file for processing (if omited, read from stdin and write result to stdout)")
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
@@ -115,7 +115,7 @@ func Run(args []string, logger logging.ILogger) {
 			if userFilterFile != "" {
 				op_annotate_params = []string{"-x", userFilterFile}
 			}
-			op_annotate.Run(op_annotate_params, true, logger, logger)
+			op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 		}
 
 		docConfig, err := config.LoadOpDocConfig(perpetualDir)

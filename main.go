@@ -71,6 +71,6 @@ func main() {
 	case op_explain.OpName:
 		op_explain.Run(args, logger, stdErrLogger)
 	case op_doc.OpName:
-		op_doc.Run(args, logger)
+		op_doc.Run(args, logger, stdErrLogger)
 	}
 }
