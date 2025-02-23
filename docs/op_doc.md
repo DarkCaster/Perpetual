@@ -1,8 +1,8 @@
 # Document Operation
 
-The `doc` operation is designed to create or rework documentation files in markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation to produce high-quality, context-aware documentation based on your project's source code and existing documentation.
+The `doc` operation is designed to create or rework documentation files in markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation by producing high-quality, context-aware documentation based on your project's source code and existing documentation.
 
-**NOTE**: Currently this operation is experimental: it is hard to provide clear and universal LLM prompts and get reproducible results with all docs. For now, it is mostly useful with the `write` action (see below) for creating initial versions of documentation from hand-created drafts with desirable document structure. The `refine` action currently produces unstable results.
+**NOTE**: This operation may provide unstable results. It is challenging to create clear and universal LLM prompts that yield reproducible results across all documentation types. For optimal results, use large and intelligent models. Be aware that the `doc` operation requires significantly more tokens and a larger context size than the `implement` operation. The effectiveness of using reasoning models is uncertain; they may produce less consistent results, but the writing style is typically better. Additionally, the cost of using reasoning models can be extremely high.
 
 ## Usage
 
@@ -14,7 +14,7 @@ Perpetual doc [flags]
 
 The `doc` operation supports several command-line flags to customize its behavior:
 
-- `-r <file>`: Specify the target documentation file for processing. This flag is required and must point to the file you want to create or modify.
+- `-r <file>`: Specify the target documentation file for processing. This flag is optional. If omitted, the operation will read from standard input and write the result to standard output.
 
 - `-e <file>`: Optionally specify a documentation file to use as an example or reference for style, structure, and format (but not for content). This helps maintain consistency across your project's documentation.
 
@@ -27,7 +27,7 @@ The `doc` operation supports several command-line flags to customize its behavio
 
 - `-n`: Enable "No annotate" mode, which skips re-annotating changed files and uses current annotations if available. This can save time and API calls if you're confident your annotations are up-to-date.
 
-- `-s`: Try to salvage incorrect filenames on stage 1. Experimental feature, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze.
+- `-s`: Try to salvage incorrect filenames on stage 1. Experimental feature; use in projects with a large number of files where the LLM tends to make more mistakes when generating the list of files to analyze.
 
 - `-u`: Do not exclude unit-test source files from processing. By default, unit-test sources are excluded.
 
@@ -47,7 +47,7 @@ The `doc` operation supports several command-line flags to customize its behavio
    Perpetual doc -r docs/new_feature.md -a draft
    ```
 
-   Edit `docs/new_feature.md` draft, add the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`. After editing the draft and adding basic notes, section drafts, and the basic document structure, run:
+   Edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`. After editing the draft and adding basic notes, section drafts, and the basic document structure, run:
 
    ```sh
    Perpetual doc -r docs/new_feature.md -a write
@@ -69,6 +69,12 @@ The `doc` operation supports several command-line flags to customize its behavio
 
    ```sh
    Perpetual doc -r docs/troubleshooting.md -v
+   ```
+
+4. **Create a document by reading from standard input and writing to standard output:**
+
+   ```sh
+   cat draft.md | Perpetual doc -a write > final_document.md
    ```
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
@@ -119,7 +125,7 @@ The `doc` operation can be configured using environment variables defined in the
      - `GENERIC_ENABLE_STREAMING`: Enable streaming mode (0 or 1).
      - `GENERIC_SYSPROMPT_ROLE`: System prompt role ("system", "developer", or "user").
 
-   Similar authentication options exist for the Ollama provider, for use with public instances wrapped with HTTPS reverse proxy.
+   Similar authentication options exist for the Ollama provider, for use with public instances wrapped with an HTTPS reverse proxy.
 
 6. **Common Parameters for all Providers:**
    - `*_ON_FAIL_RETRIES_OP_DOC_STAGE*`: Number of retries on failure.
