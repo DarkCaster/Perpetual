@@ -261,11 +261,11 @@ func Run(args []string, logger logging.ILogger) {
 		logger)
 
 	otherFilesToModify, droppedFiles := utils.FilterFilesWithWhitelist(otherFilesToModify, projectConfig.RegexpArray(config.K_ProjectFilesWhitelist))
-	for file := range droppedFiles {
+	for _, file := range droppedFiles {
 		logger.Warnln("File was filtered-out with project whitelist:", file)
 	}
 	otherFilesToModify, droppedFiles = utils.FilterFilesWithBlacklist(otherFilesToModify, projectFilesBlacklist)
-	for file := range droppedFiles {
+	for _, file := range droppedFiles {
 		logger.Warnln("File was filtered-out with project or user blacklist:", file)
 	}
 
