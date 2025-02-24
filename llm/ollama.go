@@ -1,10 +1,14 @@
 package llm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -315,7 +319,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
-	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, newOllamaResponseCompleteValidator()}, transformers)
 	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 
 	model, err := ollama.New(ollamaOptions...)
@@ -518,4 +522,58 @@ func (p *OllamaLLMConnector) GetVariantCount() int {
 
 func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
+}
+
+// Post-processor for Ollama HTTP response to check response is valid and complete.
+// This is workaround for this bug https://github.com/tmc/langchaingo/issues/774
+type ollamaResponseCompleteValidator struct {
+}
+
+func newOllamaResponseCompleteValidator() responseCollector {
+	return &ollamaResponseCompleteValidator{}
+}
+
+func (p *ollamaResponseCompleteValidator) CollectResponse(response *http.Response) error {
+	// Not processing null response at all
+	if response == nil {
+		return nil
+	}
+	// Basic check
+	if response.Body == nil {
+		return errors.New("null response body received")
+	}
+	// Read response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) < 1 {
+		return errors.New("empty response body received")
+	}
+	// Split response into lines
+	lines := strings.Split(string(body), "\n")
+	// Check each line for valid JSON object with streaming data-chunk, we need to ensure response is properly terminated
+	// According to ollama api https://github.com/ollama/ollama/blob/main/docs/api.md
+	done := false
+	for _, line := range lines {
+		if len(strings.TrimSpace(line)) == 0 {
+			continue
+		}
+		var jsonObj map[string]interface{}
+		if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
+			return fmt.Errorf("invalid JSON in response: %v", err)
+		}
+		// Check for "done" boolean object inside jsonObj
+		if doneVal, exists := jsonObj["done"].(bool); exists {
+			done = doneVal
+		} else {
+			return errors.New("missing 'done' field in response JSON-chunk")
+		}
+	}
+	if !done {
+		return errors.New("incomplete response body received ")
+	}
+	// Repack body object before return, this is required or else downstream logic will fail reading it again
+	response.Body = io.NopCloser(bytes.NewReader(body))
+	return nil
 }
