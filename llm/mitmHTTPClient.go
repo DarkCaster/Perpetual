@@ -180,7 +180,7 @@ func (p *systemMessageTransformer) ProcessHeader(header http.Header) http.Header
 }
 
 type responseCollector interface {
-	CollectResponse(response *http.Response)
+	CollectResponse(response *http.Response) error
 }
 
 type statusCodeCollector struct {
@@ -193,12 +193,13 @@ func newStatusCodeCollector() *statusCodeCollector {
 	}
 }
 
-func (p *statusCodeCollector) CollectResponse(response *http.Response) {
+func (p *statusCodeCollector) CollectResponse(response *http.Response) error {
 	if response == nil {
 		p.StatusCode = 0
-		return
+		return nil
 	}
 	p.StatusCode = response.StatusCode
+	return nil
 }
 
 func newMitmHTTPClient(collectors []responseCollector, transformers []requestTransformer) *http.Client {
@@ -258,7 +259,8 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Perform actual http request with new body
 	response, err := t.Transport.RoundTrip(req)
 	for _, collector := range t.Collectors {
-		collector.CollectResponse(response)
+		err := collector.CollectResponse(response)
 	}
+
 	return response, err
 }
