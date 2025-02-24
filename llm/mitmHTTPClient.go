@@ -258,9 +258,14 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.ContentLength = int64(len(newBody))
 	// Perform actual http request with new body
 	response, err := t.Transport.RoundTrip(req)
+	cerrs := []error{}
 	for _, collector := range t.Collectors {
-		err := collector.CollectResponse(response)
+		cerrs = append(cerrs, collector.CollectResponse(response))
 	}
-
+	for _, cerr := range cerrs {
+		if cerr != nil {
+			return nil, cerr
+		}
+	}
 	return response, err
 }
