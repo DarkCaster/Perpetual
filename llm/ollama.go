@@ -537,11 +537,7 @@ type ollamaResponseBodyReader struct {
 }
 
 func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
-	//if done - read from buffered data
-	if o.done {
-		//read final data
-		return o.final.Read(p)
-	} else {
+	if !o.done {
 		defer o.inner.Close()
 		//prepare temporary buffers to store, process and validate incoming data
 		readBuf := make([]byte, 4096)
@@ -570,29 +566,36 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						// try decoding data and test for "done" value that marks response as completed
 						var jsonObj map[string]interface{}
 						if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
-							return 0, fmt.Errorf("invalid streaming JSON chunk detected: %v", err)
+							readerr = errors.New("")
+							break
 						}
 						// Check for "done" boolean object inside jsonObj
 						if doneVal, exists := jsonObj["done"].(bool); exists {
 							o.done = doneVal
 						} else {
-							return 0, errors.New("missing 'done' field in response JSON-chunk")
+							readerr = errors.New("")
+							break
 						}
 						//TODO Try reading object, get data chunk and actually stream it with streaming func
 						o.streamingFunc([]byte("pok "))
-						//add line to final buffer
+						//append valid line to final buffer
 						finalBuf = append(finalBuf, []byte(line)...)
 						lineBuilder.Reset()
 					}
 				}
 			}
 		}
+		// depending on capturing final JSON chunk earlier, we either return the full response or valid empty response
 		if o.done {
 			o.final = io.NopCloser(bytes.NewReader(finalBuf))
-			return 0, nil
+		} else {
+			o.final = io.NopCloser(bytes.NewReader([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}")))
 		}
-		return 0, readerr
+		o.done = true
 	}
+
+	//read final post-processed response
+	return o.final.Read(p)
 }
 
 func (o *ollamaResponseBodyReader) Close() error {
