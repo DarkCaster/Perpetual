@@ -599,7 +599,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 				}
 			}
 		}
-		// depending on capturing final JSON chunk earlier, we either return the full response or valid empty response
+		// depending on capturing final JSON chunk earlier, we either return the full response or empty response
 		if o.done {
 			o.final = io.NopCloser(bytes.NewReader(finalBuf))
 		} else {
@@ -666,7 +666,7 @@ func (p *ollamaResponseStreamer) GetCompletionError() error {
 		return errors.New("response reading cancelled")
 	}
 	isDone, err := p.completionErrFunc()
-	if !isDone {
+	if !isDone && err == nil {
 		return errors.New("response reading incomplete")
 	}
 	return err
