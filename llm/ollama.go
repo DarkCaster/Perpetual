@@ -599,14 +599,13 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 				}
 			}
 		}
-		if readerr != io.EOF {
-			o.err = readerr
-		}
 		// depending on capturing final JSON chunk earlier, we either return the full response or valid empty response
 		if o.done {
 			o.final = io.NopCloser(bytes.NewReader(finalBuf))
 		} else {
 			o.final = io.NopCloser(bytes.NewReader([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}")))
+			// also set error for incomplete responses
+			o.err = readerr
 		}
 		o.done = true
 	}
