@@ -10,7 +10,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["annotate","-vv"],
+			"args": ["annotate","-vv","-f"],
 		},
 		{
 			"name": "Launch Package: brief report",
