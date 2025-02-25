@@ -322,13 +322,13 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	statusCodeCollector := newStatusCodeCollector()
 
 	// This is workaround for this bug https://github.com/tmc/langchaingo/issues/774
-	ollamaResponseCollector := newOllamaResponseCompleteValidator(func(chunk []byte) {
+	responseStreamer := newOllamaResponseStreamer(func(chunk []byte) {
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger(string(chunk))
 		}
 	})
 
-	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, ollamaResponseCollector}, transformers)
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, responseStreamer}, transformers)
 	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 
 	model, err := ollama.New(ollamaOptions...)
@@ -528,14 +528,15 @@ func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrat
 	return p.VariantStrategy
 }
 
-type ollamaHTTPBodyReader struct {
+// This is workaround for the following bug https://github.com/tmc/langchaingo/issues/774
+type ollamaResponseBodyReader struct {
 	inner         io.ReadCloser
 	final         io.ReadCloser
 	done          bool
 	streamingFunc func(chunk []byte)
 }
 
-func (o *ollamaHTTPBodyReader) Read(p []byte) (int, error) {
+func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 	//if done - read from buffered data
 	if o.done {
 		//read final data
@@ -594,15 +595,15 @@ func (o *ollamaHTTPBodyReader) Read(p []byte) (int, error) {
 	}
 }
 
-func (o *ollamaHTTPBodyReader) Close() error {
+func (o *ollamaResponseBodyReader) Close() error {
 	if o.final != nil {
 		return o.final.Close()
 	}
 	return nil
 }
 
-func newOllamaHTTPBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) io.ReadCloser {
-	return &ollamaHTTPBodyReader{
+func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) io.ReadCloser {
+	return &ollamaResponseBodyReader{
 		inner:         inner,
 		done:          false,
 		final:         nil,
@@ -610,19 +611,17 @@ func newOllamaHTTPBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byt
 	}
 }
 
-// Post-processor for Ollama HTTP response to check response is valid and complete.
-// This is workaround for this bug https://github.com/tmc/langchaingo/issues/774
-type ollamaResponseCompleteValidator struct {
+type ollamaResponseStreamer struct {
 	streamingFunc func(chunk []byte)
 }
 
-func newOllamaResponseCompleteValidator(streamingFunc func(chunk []byte)) responseCollector {
-	return &ollamaResponseCompleteValidator{
+func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) responseCollector {
+	return &ollamaResponseStreamer{
 		streamingFunc: streamingFunc,
 	}
 }
 
-func (p *ollamaResponseCompleteValidator) CollectResponse(response *http.Response) error {
+func (p *ollamaResponseStreamer) CollectResponse(response *http.Response) error {
 	// Not processing null response at all
 	if response == nil {
 		return nil
@@ -631,7 +630,7 @@ func (p *ollamaResponseCompleteValidator) CollectResponse(response *http.Respons
 	if response.Body == nil {
 		return errors.New("null response body received")
 	}
-	// Custom reader, that will attempt to fix partial messages as workaround to the bug
-	response.Body = newOllamaHTTPBodyReader(response.Body, p.streamingFunc)
+	// Custom reader, that will attempt to fix partial messages as workaround to the bug and stream received tokens in process
+	response.Body = newOllamaResponseBodyReader(response.Body, p.streamingFunc)
 	return nil
 }
