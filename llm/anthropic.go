@@ -92,6 +92,8 @@ func NewAnthropicLLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
+	fieldsToInject := map[string]interface{}{}
+
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 		debug.Add("temperature", temperature)
@@ -106,7 +108,17 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("max tokens", maxTokens)
 	}
 
-	fieldsToInject := map[string]interface{}{}
+	thinkTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_THINK_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_TOKENS", prefix))
+	if err == nil {
+		if thinkTokens < 1 {
+			fieldsToRemove = append(fieldsToRemove, "thinking")
+			debug.Add("think", "disabled")
+		} else {
+			fieldsToInject["thinking"] = map[string]interface{}{"budget_tokens": thinkTokens, "type": "enabled"}
+			debug.Add("think tokens", thinkTokens)
+		}
+	}
+
 	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 		fieldsToInject["top_k"] = topK
 		debug.Add("top k", topK)
