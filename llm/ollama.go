@@ -439,6 +439,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			continue
 		}
 
+		// At this point we most probably have some or all streaming chunks logged, so add separator to the log-file
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("\n\n\n")
+		}
+
 		//handle errors detected while reading response stream with our custom reader
 		if respErr := responseStreamer.GetCompletionError(); respErr != nil {
 			if lastResort {
@@ -455,11 +460,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				return []string{}, QueryFailed, errors.New("received empty response from model")
 			}
 			continue
-		}
-
-		// Add separator to the log after message content logged with streamFunc
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("\n\n\n")
 		}
 
 		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
