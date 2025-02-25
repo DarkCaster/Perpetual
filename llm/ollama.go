@@ -576,8 +576,12 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 							readerr = errors.New("")
 							break
 						}
-						//TODO Try reading object, get data chunk and actually stream it with streaming func
-						o.streamingFunc([]byte("pok "))
+						//Try reading message object and its content and actually stream it with streaming func
+						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
+							if contentVal, exists := msgObj["content"].(string); exists {
+								o.streamingFunc([]byte(contentVal))
+							}
+						}
 						//append valid line to final buffer
 						finalBuf = append(finalBuf, []byte(line)...)
 						lineBuilder.Reset()
