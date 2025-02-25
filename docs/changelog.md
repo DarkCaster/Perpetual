@@ -26,6 +26,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 ### Improvements
 
 - Added handling for rate-limit and server-error HTTP error codes for all providers. Now adds a dynamic pause before retrying the next request instead of instant retrying and failing again.
+- Added workaround for some Ollama connection issues that previously caused crashes.
 - Improved logging for all operations: shows LLM configuration when performing requests without invoking `Perpetual` with the `-v` or `-vv` flags. Minor refactor of logging for all operations to make some messages cleaner.
 - Fixed loading of `.env` files for `explain` and `report` operations when using `-n` (no-annotate) flag.
 - Improved and simplified default system prompts for all operations when initializing project configs, making prompts more direct and focused on the particular operation.
