@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -319,7 +320,15 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
-	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, newOllamaResponseCompleteValidator()}, transformers)
+
+	// This is workaround for this bug https://github.com/tmc/langchaingo/issues/774
+	ollamaResponseCollector := newOllamaResponseCompleteValidator(func(chunk []byte) {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+	})
+
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, ollamaResponseCollector}, transformers)
 	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 
 	model, err := ollama.New(ollamaOptions...)
@@ -344,13 +353,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 	}
 
-	streamFunc := func(ctx context.Context, chunk []byte) error {
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger(string(chunk))
-		}
-		return nil
-	}
-
 	finalContent := []string{}
 
 	for i := 0; i < maxCandidates; i++ {
@@ -364,7 +366,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 
 		finalOptions := utils.NewSlice(p.Options...)
-		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+
+		//fake streaming func to enable streaming
+		finalOptions = append(finalOptions, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error { return nil }))
 
 		// Generate new seed for each response if seed is set
 		if p.Seed != math.MaxInt {
@@ -524,13 +528,98 @@ func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrat
 	return p.VariantStrategy
 }
 
+type ollamaHTTPBodyReader struct {
+	inner         io.ReadCloser
+	final         io.ReadCloser
+	done          bool
+	streamingFunc func(chunk []byte)
+}
+
+func (o *ollamaHTTPBodyReader) Read(p []byte) (int, error) {
+	//if done - read from buffered data
+	if o.done {
+		//read final data
+		return o.final.Read(p)
+	} else {
+		defer o.inner.Close()
+		//prepare temporary buffers to store, process and validate incoming data
+		readBuf := make([]byte, 4096)
+		tmpBuf := make([]byte, 0, 65536)
+		finalBuf := make([]byte, 0)
+		var lineBuilder strings.Builder
+		// read all data from inner reader until we stop
+		var readerr error = nil
+		numRead := 0
+		for readerr == nil {
+			numRead, readerr = o.inner.Read(readBuf)
+			// append read data to data collection buffer
+			tmpBuf = append(tmpBuf, readBuf[:numRead]...)
+			for len(tmpBuf) > 0 {
+				r, rsz := utf8.DecodeRune(tmpBuf)
+				if r == utf8.RuneError {
+					//leave partial data as is, we'll try to read the rune next time
+					break
+				} else {
+					//trim data collection buffer from left side
+					tmpBuf = tmpBuf[rsz:]
+					lineBuilder.WriteRune(r)
+					//process line when EOL detected
+					if r == '\n' {
+						line := lineBuilder.String()
+						// try decoding data and test for "done" value that marks response as completed
+						var jsonObj map[string]interface{}
+						if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
+							return 0, fmt.Errorf("invalid streaming JSON chunk detected: %v", err)
+						}
+						// Check for "done" boolean object inside jsonObj
+						if doneVal, exists := jsonObj["done"].(bool); exists {
+							o.done = doneVal
+						} else {
+							return 0, errors.New("missing 'done' field in response JSON-chunk")
+						}
+						//TODO Try reading object, get data chunk and actually stream it with streaming func
+						o.streamingFunc([]byte("pok "))
+						//add line to final buffer
+						finalBuf = append(finalBuf, []byte(line)...)
+						lineBuilder.Reset()
+					}
+				}
+			}
+		}
+		if o.done {
+			o.final = io.NopCloser(bytes.NewReader(finalBuf))
+			return 0, nil
+		}
+		return 0, readerr
+	}
+}
+
+func (o *ollamaHTTPBodyReader) Close() error {
+	if o.final != nil {
+		return o.final.Close()
+	}
+	return nil
+}
+
+func newOllamaHTTPBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) io.ReadCloser {
+	return &ollamaHTTPBodyReader{
+		inner:         inner,
+		done:          false,
+		final:         nil,
+		streamingFunc: streamingFunc,
+	}
+}
+
 // Post-processor for Ollama HTTP response to check response is valid and complete.
 // This is workaround for this bug https://github.com/tmc/langchaingo/issues/774
 type ollamaResponseCompleteValidator struct {
+	streamingFunc func(chunk []byte)
 }
 
-func newOllamaResponseCompleteValidator() responseCollector {
-	return &ollamaResponseCompleteValidator{}
+func newOllamaResponseCompleteValidator(streamingFunc func(chunk []byte)) responseCollector {
+	return &ollamaResponseCompleteValidator{
+		streamingFunc: streamingFunc,
+	}
 }
 
 func (p *ollamaResponseCompleteValidator) CollectResponse(response *http.Response) error {
@@ -542,38 +631,7 @@ func (p *ollamaResponseCompleteValidator) CollectResponse(response *http.Respons
 	if response.Body == nil {
 		return errors.New("null response body received")
 	}
-	// Read response body
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return err
-	}
-	if len(body) < 1 {
-		return errors.New("empty response body received")
-	}
-	// Split response into lines
-	lines := strings.Split(string(body), "\n")
-	// Check each line for valid JSON object with streaming data-chunk, we need to ensure response is properly terminated
-	// According to ollama api https://github.com/ollama/ollama/blob/main/docs/api.md
-	done := false
-	for _, line := range lines {
-		if len(strings.TrimSpace(line)) == 0 {
-			continue
-		}
-		var jsonObj map[string]interface{}
-		if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
-			return fmt.Errorf("invalid JSON in response: %v", err)
-		}
-		// Check for "done" boolean object inside jsonObj
-		if doneVal, exists := jsonObj["done"].(bool); exists {
-			done = doneVal
-		} else {
-			return errors.New("missing 'done' field in response JSON-chunk")
-		}
-	}
-	if !done {
-		return errors.New("incomplete response body received ")
-	}
-	// Repack body object before return, this is required or else downstream logic will fail reading it again
-	response.Body = io.NopCloser(bytes.NewReader(body))
+	// Custom reader, that will attempt to fix partial messages as workaround to the bug
+	response.Body = newOllamaHTTPBodyReader(response.Body, p.streamingFunc)
 	return nil
 }
