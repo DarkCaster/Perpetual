@@ -431,9 +431,18 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			continue
 		}
 
+		//handle regular errors
 		if err != nil {
 			if lastResort {
 				return []string{}, QueryFailed, err
+			}
+			continue
+		}
+
+		//handle errors detected while reading response stream with our custom reader
+		if respErr := responseStreamer.GetCompletionError(); respErr != nil {
+			if lastResort {
+				return []string{}, QueryFailed, respErr
 			}
 			continue
 		}
@@ -533,6 +542,7 @@ type ollamaResponseBodyReader struct {
 	inner         io.ReadCloser
 	final         io.ReadCloser
 	done          bool
+	err           error
 	streamingFunc func(chunk []byte)
 }
 
@@ -566,14 +576,14 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						// try decoding data and test for "done" value that marks response as completed
 						var jsonObj map[string]interface{}
 						if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
-							readerr = errors.New("")
+							readerr = errors.New("response data-chunk JSON object is malformed")
 							break
 						}
 						// Check for "done" boolean object inside jsonObj
 						if doneVal, exists := jsonObj["done"].(bool); exists {
 							o.done = doneVal
 						} else {
-							readerr = errors.New("")
+							readerr = errors.New("response data-chunk JSON is invalid format")
 							break
 						}
 						//Try reading message object and its content and actually stream it with streaming func
@@ -588,6 +598,9 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 					}
 				}
 			}
+		}
+		if readerr != io.EOF {
+			o.err = readerr
 		}
 		// depending on capturing final JSON chunk earlier, we either return the full response or valid empty response
 		if o.done {
@@ -609,22 +622,25 @@ func (o *ollamaResponseBodyReader) Close() error {
 	return nil
 }
 
-func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) io.ReadCloser {
+func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *ollamaResponseBodyReader {
 	return &ollamaResponseBodyReader{
 		inner:         inner,
 		done:          false,
 		final:         nil,
 		streamingFunc: streamingFunc,
+		err:           nil,
 	}
 }
 
 type ollamaResponseStreamer struct {
-	streamingFunc func(chunk []byte)
+	streamingFunc     func(chunk []byte)
+	completionErrFunc func() (bool, error)
 }
 
-func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) responseCollector {
+func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) *ollamaResponseStreamer {
 	return &ollamaResponseStreamer{
-		streamingFunc: streamingFunc,
+		streamingFunc:     streamingFunc,
+		completionErrFunc: nil,
 	}
 }
 
@@ -638,6 +654,21 @@ func (p *ollamaResponseStreamer) CollectResponse(response *http.Response) error 
 		return errors.New("null response body received")
 	}
 	// Custom reader, that will attempt to fix partial messages as workaround to the bug and stream received tokens in process
-	response.Body = newOllamaResponseBodyReader(response.Body, p.streamingFunc)
+	reader := newOllamaResponseBodyReader(response.Body, p.streamingFunc)
+	p.completionErrFunc = func() (bool, error) {
+		return reader.done, reader.err
+	}
+	response.Body = reader
 	return nil
+}
+
+func (p *ollamaResponseStreamer) GetCompletionError() error {
+	if p.completionErrFunc == nil {
+		return errors.New("response reading cancelled")
+	}
+	isDone, err := p.completionErrFunc()
+	if !isDone {
+		return errors.New("response reading incomplete")
+	}
+	return err
 }
