@@ -1,9 +1,13 @@
 package llm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -209,7 +213,8 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
-	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
+	thinkingCollector := newAnthropicThinkingCollector()
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, thinkingCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -391,4 +396,131 @@ func (p *AnthropicLLMConnector) GetVariantCount() int {
 
 func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
+}
+
+// This is a temporary workaround for handling thinking responses,
+// until support for it is not added to upstream langchaingo library
+type anthropicResponseBodyReader struct {
+	inner    io.ReadCloser
+	outer    io.ReadCloser
+	thinking string
+	done     bool
+	err      error
+}
+
+func (o *anthropicResponseBodyReader) Read(p []byte) (int, error) {
+	if !o.done {
+		defer o.inner.Close()
+		//prepare temporary buffers to store, process and validate incoming data
+		readBuf := make([]byte, 4096)
+		tmpBuf := make([]byte, 0, 65536)
+		// Read from o.inner to readBuf, appending data to tmpBuf until hitting an error
+		for o.err == nil {
+			n, err := o.inner.Read(readBuf)
+			if n > 0 {
+				tmpBuf = append(tmpBuf, readBuf[:n]...)
+			}
+			if err != nil {
+				o.err = err
+			}
+		}
+		// If error is EOF, try deserializing data as JSON
+		if o.err == io.EOF {
+			var jsonMap map[string]interface{}
+			if err := json.Unmarshal(tmpBuf, &jsonMap); err != nil {
+				o.err = fmt.Errorf("failed to parse JSON response: %v", err)
+			} else if contentObjArr, exists := jsonMap["content"].([]interface{}); exists {
+				repackedContentObjArr := []interface{}{}
+				for _, elementObj := range contentObjArr {
+					skipElement := false
+					if elementMap, elementMapExist := elementObj.(map[string]interface{}); elementMapExist {
+						if typeStr, typeExist := elementMap["type"].(string); typeExist && typeStr == "thinking" {
+							if thinkingStr, thinkingExist := elementMap["thinking"].(string); thinkingExist {
+								o.thinking += thinkingStr
+								skipElement = true
+							}
+						}
+					}
+					//Do not add thinking blocks into repacked response
+					if !skipElement {
+						repackedContentObjArr = append(repackedContentObjArr, elementObj)
+					}
+				}
+				//Set repacked content
+				jsonMap["content"] = repackedContentObjArr
+				//Convert updated response to JSON
+				var writer bytes.Buffer
+				encoder := json.NewEncoder(&writer)
+				encoder.SetIndent("", "  ")
+				encoder.SetEscapeHTML(false)
+				o.err = encoder.Encode(jsonMap)
+				if o.err == nil {
+					o.outer = io.NopCloser(bytes.NewReader(writer.Bytes()))
+				} else {
+					o.outer = io.NopCloser(bytes.NewReader(tmpBuf))
+				}
+			} else {
+				o.outer = io.NopCloser(bytes.NewReader(tmpBuf))
+			}
+		}
+		o.done = true
+	}
+	//only attempt to read final repacked result stream if we not encountered an error
+	if o.err != nil && o.err != io.EOF {
+		return 0, o.err
+	}
+	if o.outer == nil {
+		return 0, errors.New("no valid response available to read")
+	}
+	//read final post-processed response
+	return o.outer.Read(p)
+}
+
+func (o *anthropicResponseBodyReader) Close() error {
+	if o.outer != nil {
+		return o.outer.Close()
+	}
+	return nil
+}
+
+func newAnthropicResponseBodyReader(inner io.ReadCloser) *anthropicResponseBodyReader {
+	return &anthropicResponseBodyReader{
+		inner:    inner,
+		done:     false,
+		thinking: "",
+		outer:    nil,
+		err:      nil,
+	}
+}
+
+type anthropicThinkingCollector struct {
+	reader *anthropicResponseBodyReader
+}
+
+func newAnthropicThinkingCollector() *anthropicThinkingCollector {
+	return &anthropicThinkingCollector{
+		reader: nil,
+	}
+}
+
+func (p *anthropicThinkingCollector) CollectResponse(response *http.Response) error {
+	// Not processing null response at all
+	if response == nil {
+		return nil
+	}
+	// Basic check
+	if response.Body == nil {
+		return errors.New("null response body received")
+	}
+	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
+	p.reader = newAnthropicResponseBodyReader(response.Body)
+	response.Body = p.reader
+	return nil
+}
+
+func (p *anthropicThinkingCollector) GetThinkingContent() string {
+	if p.reader == nil {
+		return ""
+	}
+	return p.reader.thinking
 }
