@@ -1,6 +1,6 @@
 # Configuration
 
-Perpetual employs configuration system that allows you to tailor the application's behavior to suit your project's needs. The configuration is divided into two main types:
+Perpetual employs a configuration system that allows you to tailor the application's behavior to suit your project's needs. The configuration is divided into two main types:
 
 1. **Environment Configuration**: This includes machine-specific settings such as LLM provider details, API keys, and model configurations. These settings can be injected directly into the environment before running Perpetual or specified in `.env` files. They are specific to the machine or instance and should not be added to version control systems (VCS).
 
@@ -32,11 +32,21 @@ The following environment variables are commonly used for LLM configuration:
 
 - **LLM Provider Settings**:
   - `LLM_PROVIDER`: Specifies the LLM provider profile to use. Supported values include `openai`, `anthropic`, `ollama`, or `generic`. It can also include a profile number in formats like `openai1`, `openai2`, `generic3`, etc., allowing multiple distinct profiles for a single provider and enabling different configurations for different operations.
+  - `LLM_PROVIDER_OP_*`: Operation-specific provider selection, such as `LLM_PROVIDER_OP_ANNOTATE` or `LLM_PROVIDER_OP_DOC_STAGE2`. These take precedence over the default `LLM_PROVIDER` setting.
 
 - **Authentication**:
   - `<PROFILE_NAME>_API_KEY`: Provider-specific API key for the LLM provider, such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. This is typically required for authentication.
   - `<PROFILE_NAME>_AUTH_TYPE`: Type of authentication used. Values: "Bearer" (default) for API key/token, or "Basic" for web authentication.
   - `<PROFILE_NAME>_AUTH`: Authentication credentials. For Bearer auth, specify the API key/token. For Basic auth, specify `<login>:<password>`.
+
+- **Model and Operation Settings**:
+  - `<PROFILE_NAME>_MODEL`: Default model to use, like `ANTHROPIC_MODEL="claude-3-7-sonnet-latest"`.
+  - `<PROFILE_NAME>_MODEL_OP_*`: Operation-specific model selection, such as `ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-7-sonnet-latest"`.
+  - `<PROFILE_NAME>_TEMPERATURE`: Controls randomness in responses (0-1 typically).
+  - `<PROFILE_NAME>_MAX_TOKENS`: Maximum tokens in the generated response.
+  - `<PROFILE_NAME>_FORMAT_OP_*`: Response format for specific operations, values: "plain" or "json".
+  - `<PROFILE_NAME>_VARIANT_COUNT`: Number of response variants to generate.
+  - `<PROFILE_NAME>_VARIANT_SELECTION`: How to select the final variant: "short", "long", "combine", or "best".
 
 Use `.env.example` as a reference; it contains sane defaults for different providers. Not all options are strictly required for each operation. Refer to the comments within the `.env.example` file for more detailed information. You can also remove provider-specific sections if not using a particular LLM provider.
 
