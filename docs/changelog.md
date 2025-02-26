@@ -27,13 +27,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Added handling for rate-limit and server-error HTTP error codes for all providers. Now adds a dynamic pause before retrying the next request instead of instant retrying and failing again.
 - Added workaround for some Ollama connection issues that previously caused crashes.
+- Added support for Anthropic Claude 3.7 model with extended thinking support, `.env.example` updated with new options, by default thinking is disabled.
 - Improved logging for all operations: shows LLM configuration when performing requests without invoking `Perpetual` with the `-v` or `-vv` flags. Minor refactor of logging for all operations to make some messages cleaner.
 - Fixed loading of `.env` files for `explain` and `report` operations when using `-n` (no-annotate) flag.
 - Improved and simplified default system prompts for all operations when initializing project configs, making prompts more direct and focused on the particular operation.
 - Improved `annotate` operation - added support for user-supplied exclusion filter, skip annotating files matching that filter (and, thus, sending it to LLM) but do not completely erase annotations from disk if already present. Also, support this exclusion filter when `annotate` run internally from other operations, previously that files ignored by main operation may still be re-annotated in process. In dry-run mode, write file-list to annotate to stdout - 1 file per line, and redirect all logging to stderr.
 - Improved `doc` operation - allow processing document from stdin and writing it to stdout, in a way similar to `explain` operation. Allow source, resulted and example documents to be anywhere in the filesystem. Do not apply document changes via stash operation. When writing document to stdout redirect all logging to stderr. Added extra file-name and file-case collision checks, same as in other operations
 
-**NOTE**: To install and use new system prompts, you need to reinitialize your project config by running `Perpetual init -l <lang>`. Current prompts should continue to work.
+**NOTE**: To install and use new system prompts and `.env.example` you need to reinitialize your project config by running `Perpetual init -l <lang>`. Current prompts and `.env` config should continue to work.
 
 ## v3.0.1
 
