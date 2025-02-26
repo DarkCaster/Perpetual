@@ -10,7 +10,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - **Versions 3.x.0 (Minor Releases):**
   - Significant improvements and substantial bug fixes that may slightly alter internal behavior.
   - May include new optional command-line flags and minor configuration changes that are optional.
-  - Fully compatible with previous 3.x.0 and 3.0.x builds, but manual checks are advised.
+  - Backward compatible with previous 3.x.0 and 3.0.x builds, but manual checks are advised.
   - Refer to additional notes for more information on such releases.
 
 - **Versions x.0.0 (Major Releases):**
