@@ -320,8 +320,6 @@ OLLAMA_CONTEXT_SIZE_OP_EXPLAIN_STAGE1="24576"
 OLLAMA_CONTEXT_SIZE_OP_EXPLAIN_STAGE2="24576"
 OLLAMA_CONTEXT_SIZE="24576"
 
-
-
 # Switch to use structured JSON output format for some operations, may work better with some models (or not work at all)
 # Supported values: plain, json. Default: plain
 OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
