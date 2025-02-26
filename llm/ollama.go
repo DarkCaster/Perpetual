@@ -33,6 +33,9 @@ type OllamaLLMConnector struct {
 	Auth                  string
 	Model                 string
 	ContextSize           int
+	ContextSizeLimit      int
+	ContextSizeMult       float64
+	ContextSizeOverride   int
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
@@ -126,10 +129,30 @@ func NewOllamaLLMConnectorFromEnv(
 		optionsToRemove = append(optionsToRemove, "temperature")
 	}
 
+	numCtxLimit, err := utils.GetEnvInt(fmt.Sprintf("%s_CONTEXT_SIZE_LIMIT", prefix))
+	if err != nil || numCtxLimit < 1 {
+		numCtxLimit = 0
+	} else {
+		debug.Add("context size limit", numCtxLimit)
+	}
+
+	numCtxMult, err := utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_MULT", prefix))
+	if err != nil || numCtxMult < 1 {
+		numCtxMult = 1
+	} else {
+		debug.Add("context size multiplier", numCtxMult)
+	}
+
 	numCtx, err := utils.GetEnvInt(fmt.Sprintf("%s_CONTEXT_SIZE_OP_%s", prefix, operation), fmt.Sprintf("%s_CONTEXT_SIZE", prefix))
 	if err != nil || numCtx < 1 {
 		numCtx = 0
+		numCtxLimit = 0
+		numCtxMult = 1
+		debug.Add("context overflow detection", "disabled")
 	} else {
+		if numCtxLimit > 0 && numCtx > numCtxLimit {
+			numCtx = numCtxLimit
+		}
 		debug.Add("context size", numCtx)
 	}
 
@@ -263,6 +286,9 @@ func NewOllamaLLMConnectorFromEnv(
 		Auth:                  auth,
 		Model:                 model,
 		ContextSize:           numCtx,
+		ContextSizeLimit:      numCtxLimit,
+		ContextSizeMult:       numCtxMult,
+		ContextSizeOverride:   0,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
 		SystemPromptRole:      systemPromptRole,
@@ -297,8 +323,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
 
-	if p.ContextSize != 0 {
-		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(p.ContextSize))
+	if p.ContextSize > 0 {
+		ctxSz := p.ContextSize
+		if p.ContextSizeOverride > 0 {
+			ctxSz = p.ContextSizeOverride
+		}
+		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
 	}
 
 	transformers := []requestTransformer{}
@@ -461,6 +491,31 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				return []string{}, QueryFailed, errors.New("received empty response from model")
 			}
 			continue
+		}
+
+		//check for context overflow
+		if p.ContextSize > 0 {
+			ctxSz := p.ContextSize
+			if p.ContextSizeOverride > 0 {
+				ctxSz = p.ContextSizeOverride
+			}
+			if totalTokens, exist := response.Choices[0].GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
+				//overflow, increase context size and return error
+				if p.ContextSizeMult > 1 {
+					if p.ContextSizeOverride < 1 {
+						p.ContextSizeOverride = p.ContextSize
+					}
+					p.ContextSizeOverride = int(float64(p.ContextSizeOverride) * p.ContextSizeMult)
+					if p.ContextSizeLimit > 0 && p.ContextSizeOverride > p.ContextSizeLimit {
+						p.ContextSizeOverride = p.ContextSizeLimit
+					}
+					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+				}
+				return []string{}, QueryFailed, errors.New("context overflow detected")
+			} else if !exist || totalTokens < p.ContextSize {
+				//not overflow, reset context size
+				p.ContextSizeOverride = 0
+			}
 		}
 
 		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
