@@ -305,8 +305,9 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to normal over time.
 # These params may be removed in future when Ollama implement API calls for tokenizer
 OLLAMA_CONTEXT_MULT="2.5"
-OLLAMA_CONTEXT_SIZE_LIMIT="131072"
-OLLAMA_CONTEXT_ESTIMATE_MULT="0.3"
+# OLLAMA_CONTEXT_SIZE_LIMIT="131072" # value this large may require a huge amount of extra RAM/VRAM (more than 32G in some cases)
+OLLAMA_CONTEXT_SIZE_LIMIT="65536" # more reasonable limit for systems with only 32G of RAM, when Ollama run on CPU only
+OLLAMA_CONTEXT_ESTIMATE_MULT="0.2"
 
 # Context window sizes for different operations, provided sizes are minimum for reliable operation
 # If not set - use default for ollama model, and also disable context overflow detection above
@@ -341,7 +342,7 @@ OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 OLLAMA_MAX_TOKENS="4096"
 OLLAMA_MAX_TOKENS_SEGMENTS="3"
-OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="1"
+OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="2" # this number include errors caused by context overflow
 # OLLAMA_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
