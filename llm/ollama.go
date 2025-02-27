@@ -35,6 +35,7 @@ type OllamaLLMConnector struct {
 	ContextSize           int
 	ContextSizeLimit      int
 	ContextSizeMult       float64
+	ContextSizeEstMult    float64
 	ContextSizeOverride   int
 	SystemPrompt          string
 	SystemPromptAck       string
@@ -42,6 +43,7 @@ type OllamaLLMConnector struct {
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
+	MaxTokens             int
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -154,6 +156,14 @@ func NewOllamaLLMConnectorFromEnv(
 			numCtx = numCtxLimit
 		}
 		debug.Add("context size", numCtx)
+	}
+
+	numCtxEstMult, err := utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_ESTIMATE_MULT", prefix))
+	if err != nil || numCtxEstMult < 0 {
+		numCtxEstMult = 0.3
+	}
+	if numCtx > 0 {
+		debug.Add("context size estimate multiplier", numCtxEstMult)
 	}
 
 	maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -288,6 +298,7 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSize:           numCtx,
 		ContextSizeLimit:      numCtxLimit,
 		ContextSizeMult:       numCtxMult,
+		ContextSizeEstMult:    numCtxEstMult,
 		ContextSizeOverride:   0,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
@@ -296,6 +307,7 @@ func NewOllamaLLMConnectorFromEnv(
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
 		MaxTokensSegments:     maxTokensSegments,
+		MaxTokens:             maxTokens,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -323,12 +335,23 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
 
+	contextOverflowExpected := false
 	if p.ContextSize > 0 {
+		//set the context size
 		ctxSz := p.ContextSize
 		if p.ContextSizeOverride > 0 {
 			ctxSz = p.ContextSizeOverride
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
+		//do rough context size estimation
+		if msgStrings, err := RenderMessagesToAIStrings([][]string{}, messages); err == nil {
+			total := 0
+			for _, str := range msgStrings {
+				total += len(str)
+			}
+			totalTokens := int(float64(total) * p.ContextSizeEstMult)
+			contextOverflowExpected = totalTokens > ctxSz+p.MaxTokens
+		}
 	}
 
 	transformers := []requestTransformer{}
@@ -475,12 +498,17 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.RawMessageLogger("\n\n\n")
 		}
 
-		//handle errors detected while reading response stream with our custom reader
+		//handle errors detected while reading response stream with custom stream-reader
+		contextOverflow := false
 		if respErr := responseStreamer.GetCompletionError(); respErr != nil {
-			if lastResort {
-				return []string{}, QueryFailed, respErr
+			if contextOverflowExpected {
+				contextOverflow = true
+			} else {
+				if lastResort {
+					return []string{}, QueryFailed, respErr
+				}
+				continue
 			}
-			continue
 		}
 
 		//reset rate limit delay
@@ -495,12 +523,23 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 		//check for context overflow
 		if p.ContextSize > 0 {
+			//get context size
 			ctxSz := p.ContextSize
 			if p.ContextSizeOverride > 0 {
 				ctxSz = p.ContextSizeOverride
 			}
-			if totalTokens, exist := response.Choices[0].GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
-				//overflow, increase context size and return error
+			//get total tokens
+			totalTokens := 0
+			if contextOverflow {
+				totalTokens = math.MaxInt
+			} else {
+				var exist bool
+				if totalTokens, exist = response.Choices[0].GenerationInfo["TotalTokens"].(int); !exist {
+					totalTokens = 0
+				}
+			}
+			//handle overflow
+			if totalTokens >= ctxSz { //overflow for both initial and current context size
 				if p.ContextSizeMult > 1 {
 					if p.ContextSizeOverride < 1 {
 						p.ContextSizeOverride = p.ContextSize
@@ -512,29 +551,19 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 				}
 				return []string{}, QueryFailed, errors.New("context overflow detected")
-			} else if !exist || totalTokens < p.ContextSize {
-				//not overflow, reset context size
+			} else if totalTokens < p.ContextSize { //not overflow, and less than initial context size
 				p.ContextSizeOverride = 0
 			}
 		}
 
 		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
-		//so, instead we compare actual returned message length in tokens with limit defined in options
-		callOpts := llms.CallOptions{}
-		for _, opt := range finalOptions {
-			opt(&callOpts)
-		}
-		maxTokens := callOpts.MaxTokens
-		if maxTokens < 1 {
-			maxTokens = math.MaxInt
-		}
-		//get generates message size in tokens
+		//so, instead we compare actual returned message length in tokens with currently defined token limit
 		responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int)
 		if !ok {
-			responseTokens = maxTokens
+			responseTokens = p.MaxTokens
 		}
 		//and compare
-		if responseTokens >= maxTokens {
+		if responseTokens >= p.MaxTokens {
 			if lastResort {
 				if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
 					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
