@@ -638,6 +638,9 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						// Check for "done" boolean object inside jsonObj
 						if doneVal, exists := jsonObj["done"].(bool); exists {
 							o.done = doneVal
+						} else if errorVal, exists := jsonObj["error"].(string); exists {
+							readerr = errors.New(errorVal)
+							break
 						} else {
 							readerr = errors.New("response data-chunk JSON is invalid format")
 							break
