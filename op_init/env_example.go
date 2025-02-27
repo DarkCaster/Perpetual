@@ -303,11 +303,11 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # Context overflow detection and management options: multiplier to increase context size, upper limit, and estimation multiplier.
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to normal over time.
-# These params may be removed in future when Ollama implement API calls for tokenizer
+# These params may be removed in future when Ollama implement API calls for tokenizer or prompt size statistics
 OLLAMA_CONTEXT_MULT="2.5"
 # OLLAMA_CONTEXT_SIZE_LIMIT="131072" # value this large may require a huge amount of extra RAM/VRAM (more than 32G in some cases)
 OLLAMA_CONTEXT_SIZE_LIMIT="65536" # more reasonable limit for systems with only 32G of RAM, when Ollama run on CPU only
-OLLAMA_CONTEXT_ESTIMATE_MULT="0.2"
+OLLAMA_CONTEXT_ESTIMATE_MULT="0.3"
 
 # Context window sizes for different operations, provided sizes are minimum for reliable operation
 # If not set - use default for ollama model, and also disable context overflow detection above
