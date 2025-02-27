@@ -21,13 +21,22 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v3.3.0
+
+### Improvements
+
+- Added logic for Ollama context size estimation, used to detect Ollama crashes caused by context overflow.
+- Updated `.env.example` template with new defaults for context size estimation for Ollama provider.
+
+**NOTE**: New context size estimation logic for Ollama does not require any configuration changes. However, the updated `.env.example` includes new optional parameters and updated defaults for Ollama. You may install the new `.env.example` by running `Perpetual init -l <lang>`.
+
 ## v3.2.0
 
 ### Improvements
 
 - Added context overflow detection logic for Ollama provider, added optional context size auto increase/decrease on overflow.
 
-**NOTE**: Context overflow detection logic does not require any configuration change. However, to use context size auto increase/decrease you need to update your `.env` config. You can install new `.env.example` by running `Perpetual init -l <lang>` to get new config options from it.
+**NOTE**: Context overflow detection logic does not require any configuration changes. However, to use context size auto-increase/decrease, you need to update your `.env` configuration. You can install the new `.env.example` by running `Perpetual init -l <lang>` to get new configuration options from it.
 
 ## v3.1.0
 
