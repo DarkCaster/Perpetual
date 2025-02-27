@@ -301,15 +301,17 @@ OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: shor
 OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
-# Context overflow multiplier, increase context size when context overflow was detected
-# Context size resets itself back to normal on next successfull call
+# Context overflow detection and management options: multiplier to increase context size, upper limit, and estimation multiplier.
+# Used to detect overflow and increase context size on errors if needed. Context size will reset back to normal over time.
+# These params may be removed in future when Ollama implement API calls for tokenizer
 OLLAMA_CONTEXT_MULT="2.5"
 OLLAMA_CONTEXT_SIZE_LIMIT="131072"
+OLLAMA_CONTEXT_ESTIMATE_MULT="0.3"
 
 # Context window sizes for different operations, provided sizes are minimum for reliable operation
 # If not set - use default for ollama model, and also disable context overflow detection above
-OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="12288"
-OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="12288"
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="8192"
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="8192"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE1="24576"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE2="24576"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE3="24576"
