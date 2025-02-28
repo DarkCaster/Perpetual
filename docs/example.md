@@ -659,9 +659,9 @@ This ensures both coordinates are properly scaled according to the aspect ratio,
 
 ![image](example2.png)
 
-In a same way we will try to fix fractal initial position / centering (not posting logs for convenience)
+In a same way we can fix fractal initial position / center / zoom (not posting logs for convenience)
 
-## Screenshot, after applying another fix
+## Final screenshot, after applying all the fixes
 
 ![image](example3.png)
 
@@ -942,6 +942,6 @@ func main() {
 
 ## Screenshot
 
-Note: some initial parameters was manually altered (zoom, cx, cy)
+Note: some fractal settings have been manually changed (scale, cx, cy) for better image
 
 ![image](example4.png)
