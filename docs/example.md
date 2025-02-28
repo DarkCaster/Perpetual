@@ -108,7 +108,8 @@ go mod tidy
 
 Note: some very minor modification was done manually - unused imports was removed.
 
-### main.go
+<details>
+<summary>main.go</summary>
 
 ```go
 package main
@@ -184,7 +185,10 @@ func main() {
 }
 ```
 
-### fractal.go
+</details>
+
+<details>
+<summary>fractal.go</summary>
 
 ```go
 package main
@@ -235,7 +239,10 @@ type Fractal interface {
 }
 ```
 
-### mandelbrot.go
+</details>
+
+<details>
+<summary>mandelbrot.go</summary>
 
 ```go
 package main
@@ -352,7 +359,10 @@ func (m *Mandelbrot) GetName() string {
 }
 ```
 
-### input.go
+</details>
+
+<details>
+<summary>input.go</summary>
 
 ```go
 package main
@@ -422,7 +432,10 @@ func (ih *InputHandler) ProcessInput() bool {
 }
 ```
 
-### renderer.go
+</details>
+
+<details>
+<summary>renderer.go</summary>
 
 ```go
 package main
@@ -536,7 +549,10 @@ func generateColorMap(maxIterations int) []sdl.Color {
 }
 ```
 
-### config.go
+</details>
+
+<details>
+<summary>config.go</summary>
 
 ```go
 package main
@@ -562,7 +578,10 @@ func (c *Config) GetAspectRatio() float64 {
 }
 ```
 
-### go.mod (Created by User)
+</details>
+
+<details>
+<summary>go.mod (Created by User)</summary>
 
 ```text
 module fractal
@@ -571,6 +590,8 @@ go 1.23.6
 
 require github.com/veandco/go-sdl2 v0.4.40
 ```
+
+</details>
 
 ## Screenshot
 
@@ -703,7 +724,8 @@ Example output:
 [43.930] [INF] julia.go
 ```
 
-### julia.go
+<details>
+<summary>julia.go</summary>
 
 ```go
 package main
@@ -834,7 +856,10 @@ func (j *Julia) GetJuliaConstant() (float64, float64) {
 }
 ```
 
-### main.go
+</details>
+
+<details>
+<summary>main.go</summary>
 
 ```go
 package main
@@ -913,8 +938,10 @@ func main() {
 }
 ```
 
+</details>
+
 ## Screenshot
 
-Note: I've manually altered some initial parameters (zoom, cx, cy)
+Note: some initial parameters was manually altered (zoom, cx, cy)
 
 ![image](example4.png)
