@@ -96,7 +96,7 @@ Perpetual implement -pr
 
 This process runs generation with the planning stage and extra reasoning. Expect it to take up to a couple of minutes, depending on the LLM model you have set up.
 
-**Note**: Because LLM generation is not deterministic, you may need to run generation multiple times to achieve satisfactory results. In this example, the `explain` operation is used to find solutions to the problems encountered.
+**Note**: Because LLM generation is not deterministic, you may need to run generation multiple times to achieve satisfactory results. Instead of regenerating the code, in this example, the `explain` operation is used to find solutions to the problems encountered.
 
 Next, download missing Go packages:
 
