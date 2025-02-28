@@ -4,7 +4,7 @@ Creating a Simple Mandelbrot Set Fractal Visualizer in Golang Using the SDL2 Lib
 
 **NOTE**: This example does not aim to be fully optimal or mathematically precise. It is intended to demonstrate how to write code from scratch using an LLM with the `Perpetual` utility.
 
-## Create `main.go` Draft
+## Create main.go draft
 
 ```go
 package main
@@ -104,9 +104,11 @@ Next, download missing Go packages:
 go mod tidy
 ```
 
-## Generated Files (With Minor Modifications)
+## Generated Files
 
-### `main.go`
+Note: some very minor modification was done manually - unused imports was removed.
+
+### main.go
 
 ```go
 package main
@@ -182,7 +184,7 @@ func main() {
 }
 ```
 
-### `fractal.go`
+### fractal.go
 
 ```go
 package main
@@ -350,7 +352,7 @@ func (m *Mandelbrot) GetName() string {
 }
 ```
 
-### `input.go`
+### input.go
 
 ```go
 package main
@@ -420,7 +422,7 @@ func (ih *InputHandler) ProcessInput() bool {
 }
 ```
 
-### `renderer.go`
+### renderer.go
 
 ```go
 package main
@@ -534,7 +536,7 @@ func generateColorMap(maxIterations int) []sdl.Color {
 }
 ```
 
-### `config.go`
+### config.go
 
 ```go
 package main
@@ -560,7 +562,7 @@ func (c *Config) GetAspectRatio() float64 {
 }
 ```
 
-### `go.mod` (Created by User)
+### go.mod (Created by User)
 
 ```text
 module fractal
