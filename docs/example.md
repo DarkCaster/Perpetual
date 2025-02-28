@@ -2,7 +2,7 @@
 
 Creating a Simple Mandelbrot Set Fractal Visualizer in Golang Using the SDL2 Library.
 
-**NOTE**: This example does not aim to be fully optimal or mathematically precise. It is intended to demonstrate how to write code from scratch using an LLM with the `Perpetual` utility.
+**NOTE**: This example does not aim to be fully optimal or mathematically precise. It is intended to demonstrate how to write code from scratch using an LLM with the `Perpetual` utility. The quality of code generation directly depends on the selected LLM, your results may vary significantly.
 
 ## Create main.go draft
 
