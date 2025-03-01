@@ -3,6 +3,7 @@ package op_implement
 import (
 	"flag"
 	"path/filepath"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -23,11 +24,12 @@ func implementFlags() *flag.FlagSet {
 
 func Run(args []string, logger logging.ILogger) {
 	var help, trySalvageFiles, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
-	var manualFilePath, userFilterFile string
+	var manualFilePath, userFilterFile, contextSaving string
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
@@ -53,6 +55,11 @@ func Run(args []string, logger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	contextSaving = strings.ToUpper(contextSaving)
+	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 
 	// Set planning mode
@@ -179,7 +186,10 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate_params := []string{}
 		if userFilterFile != "" {
-			op_annotate_params = []string{"-x", userFilterFile}
+			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
+		}
+		if contextSaving != "AUTO" {
+			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
 		}
 		op_annotate.Run(op_annotate_params, true, logger, logger)
 	} else {

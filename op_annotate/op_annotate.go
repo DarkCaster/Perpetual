@@ -27,9 +27,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Setup
 	var help, force, dryRun, verbose, trace bool
-	var requestedFile, userFilterFile string
+	var requestedFile, userFilterFile, contextSaving string
 
 	flags := annotateFlags()
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.BoolVar(&help, "h", false, "This help message")
@@ -55,6 +56,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	contextSaving = strings.ToUpper(contextSaving)
+	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 
 	if requestedFile != "" {

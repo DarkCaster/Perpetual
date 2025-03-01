@@ -24,10 +24,11 @@ func docFlags() *flag.FlagSet {
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, trySalvageFiles, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
-	var outputFile, inputFile, userFilterFile string
+	var outputFile, inputFile, userFilterFile, contextSaving string
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
 	flags.BoolVar(&addAnnotations, "a", false, "Add project annotation in addition to files requested by LLM to improve the quality of the answer")
 	flags.BoolVar(&listFilesOnly, "l", false, "Only list files that LLM thinks are related to the question, do not generate the final answer. One filename per line, no formatting.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
@@ -58,6 +59,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	contextSaving = strings.ToUpper(contextSaving)
+	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 
 	// Find project root and perpetual directories
@@ -146,7 +152,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate_params := []string{}
 		if userFilterFile != "" {
-			op_annotate_params = []string{"-x", userFilterFile}
+			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
+		}
+		if contextSaving != "AUTO" {
+			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
 		}
 		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 	}

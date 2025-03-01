@@ -20,11 +20,12 @@ const (
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
-	var reportType, outputFile, userFilterFile string
+	var reportType, outputFile, userFilterFile, contextSaving string
 
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
 	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stdout if not provided or empty)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
@@ -51,6 +52,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	contextSaving = strings.ToUpper(contextSaving)
+	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
@@ -117,7 +123,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate_params := []string{}
 		if userFilterFile != "" {
-			op_annotate_params = []string{"-x", userFilterFile}
+			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
+		}
+		if contextSaving != "AUTO" {
+			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
 		}
 		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 		// Load annotations
