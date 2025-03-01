@@ -102,3 +102,7 @@ func (o *opImplementConfig) StringArray(key string) []string {
 func (o *opImplementConfig) StringArray2D(key string) [][]string {
 	return interfaceTo2DStringArray(o.cfgValues[key])
 }
+
+func (o *opImplementConfig) Integer(key string) int {
+	return int(o.cfgValues[key].(float64))
+}

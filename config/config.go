@@ -5,6 +5,7 @@ import (
 )
 
 type Config interface {
+	Integer(key string) int
 	String(key string) string
 	Regexp(key string) *regexp.Regexp
 	Object(key string) map[string]interface{}

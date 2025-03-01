@@ -6,6 +6,7 @@ package config
 // Do not include anything below to the summary, just omit it completely
 
 const templateString = "TEMPLATE VALUE, MUST BE REDEFINED"
+const templateInteger = 0
 
 var templateStringArray = [...]string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 var templateString2DArray = [...][]string{{"TEMPLATE VALUE_00", "TEMPLATE VALUE_01"}, {"TEMPLATE VALUE_10", "TEMPLATE VALUE_11"}}
@@ -15,6 +16,7 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
+	result[K_AnnotateContextSavingFiles] = templateInteger
 	// ack from AI
 	result[K_AnnotateStage1Prompts] = templateString2DArray
 	result[K_AnnotateStage1Response] = templateString
