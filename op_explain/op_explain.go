@@ -106,6 +106,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
+	logger.Infoln("Fetching project files")
 	fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,

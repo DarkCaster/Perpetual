@@ -107,6 +107,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Preparation of project files
+	outerCallLogger.Infoln("Fetching project files")
 	fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,
