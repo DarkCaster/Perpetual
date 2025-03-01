@@ -98,6 +98,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicf("Error loading project config: %s", err)
 	}
 
+	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading op_annotate config: %s", err)
+	}
+
 	var userBlacklist []*regexp.Regexp
 	if userFilterFile != "" {
 		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
@@ -116,6 +121,17 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	if err != nil {
 		logger.Panicln("Error getting project file-list:", err)
+	}
+
+	contextSavingActive := false
+	if contextSaving == "AUTO" && len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFiles) {
+		logger.Infoln("Generating short annotations, because project file-count is too large:", len(fileNames))
+		contextSavingActive = true
+	}
+
+	if contextSaving == "ON" {
+		logger.Infoln("Generating short annotations forcefully")
+		contextSavingActive = true
 	}
 
 	// Check fileNames array for case collisions
@@ -174,11 +190,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading op_annotate config: %s", err)
-	}
-
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
@@ -225,7 +236,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for _, mapping := range annotateConfig.StringArray2D(config.K_AnnotateStage1Prompts) {
 			matched, err := regexp.MatchString(mapping[0], filePath)
 			if err == nil && matched {
-				annotatePrompt = mapping[1]
+				if contextSavingActive {
+					annotatePrompt = mapping[2]
+				} else {
+					annotatePrompt = mapping[1]
+				}
 				break
 			}
 		}
