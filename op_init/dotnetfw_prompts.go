@@ -13,11 +13,11 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][2]string{
-		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS},
-		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet},
-		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml},
-		{"^.*$", defaultAIAnnotatePrompt_Generic},
+	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS, defaultAIAnnotatePrompt_CS_Short},
+		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet, defaultAIAnnotatePrompt_VBNet_Short},
+		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml, defaultAIAnnotatePrompt_Xaml_Short},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
 }

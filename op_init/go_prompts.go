@@ -13,10 +13,10 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][2]string{
-		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests},
-		{"(?i)^.*\\.go$", defaultAIAnnotatePrompt_Go},
-		{"^.*$", defaultAIAnnotatePrompt_Generic},
+	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests, defaultAIAnnotatePrompt_Go_Tests_Short},
+		{"(?i)^.*\\.go$", defaultAIAnnotatePrompt_Go, defaultAIAnnotatePrompt_Go_Short},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
 }

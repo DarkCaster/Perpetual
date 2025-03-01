@@ -13,13 +13,13 @@ func (p *cppPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled C++ programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][2]string{
-		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP},
-		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C},
-		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP},
-		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S},
-		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake},
-		{"^.*$", defaultAIAnnotatePrompt_Generic},
+	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP, defaultAIAnnotatePrompt_CPP_Short},
+		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C, defaultAIAnnotatePrompt_C_Short},
+		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP, defaultAIAnnotatePrompt_H_CPP_Short},
+		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake, defaultAIAnnotatePrompt_Cmake_Short},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
 }
