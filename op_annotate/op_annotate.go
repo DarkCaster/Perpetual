@@ -143,6 +143,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
+	logger.Infoln("Calculating checksums for project files")
 	fileChecksums, err := utils.CalculateFilesChecksums(projectRootDir, fileNames)
 	if err != nil {
 		logger.Panicln("Error getting project-files checksums:", err)
