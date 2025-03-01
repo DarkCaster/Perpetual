@@ -15,6 +15,8 @@ const defaultAIAnnotatePrompt_Go_Short = "Create a short summary for the GO sour
 
 const defaultAIAnnotatePrompt_Go_Tests = "Create a summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\nThis file contains unit tests for <list of entities the tests target>"
 
+const defaultAIAnnotatePrompt_Go_Tests_Short = "Create a short summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 3 sentences>"
+
 const defaultAIAnnotatePrompt_Bash = "Create a summary for the Bash script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, declared functions (if any) with one-sentence descriptions, main operations, and dependencies. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Bash_Short = "Create a short summary for the Bash script in my next message. The summary should be up to 3 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
