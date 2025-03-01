@@ -149,8 +149,8 @@ func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 		{
 			name: "valid structure",
 			value: []interface{}{
-				[]interface{}{"prompt1", "response1"},
-				[]interface{}{"prompt2", "response2"},
+				[]interface{}{"prompt1", "response1", "response1alt"},
+				[]interface{}{"prompt2", "response2", "response2alt"},
 			},
 			wantErr: false,
 		},
