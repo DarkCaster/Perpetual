@@ -3,7 +3,8 @@
     "(?m)\\s*```[a-zA-Z]+\\n?",
     "(?m)```\\s*($|\\n)"
   ],
-  "context_saving_files_min": 1200,
+  "context_saving_files_count1": 1000,
+  "context_saving_files_count2": 2000,
   "filename_tags": [
     "<filename>",
     "</filename>"
