@@ -26,7 +26,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|off|med|high)")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&docFile, "r", "", "Target documentation file for processing (if omited, read from stdin and write result to stdout)")
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
@@ -64,8 +64,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MED" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving measures mode value provided")
+	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
+		logger.Panicln("Invalid context saving mode value provided")
 	}
 
 	// Find project root and perpetual directories

@@ -25,7 +25,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|off|med|high)")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
 	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stdout if not provided or empty)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
@@ -55,8 +55,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MED" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving measures mode value provided")
+	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
+		logger.Panicln("Invalid context saving mode value provided")
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
