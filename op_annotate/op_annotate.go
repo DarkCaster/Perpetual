@@ -244,7 +244,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	errorFlag := false
 	newAnnotations := make(map[string]string)
-	for _, filePath := range filesToAnnotate {
+	for i, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
 		for _, mapping := range annotateConfig.StringArray2D(config.K_AnnotateStage1Prompts) {
@@ -281,12 +281,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			fileContents,
 			annotateConfig.StringArray(config.K_FilenameTags))
 
-		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
-		if onFailRetriesLeft < 1 {
-			onFailRetriesLeft = 1
-		}
+		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			logger.Infoln(filePath)
+			logger.Infof("%d: %s", i+1, filePath)
 			// Get max number of variants to generate on query
 			variantCount := connector.GetVariantCount()
 			// Perform actual query
