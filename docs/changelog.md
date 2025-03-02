@@ -27,6 +27,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Added new `-c` command-line flag for all operations interacting with LLM to manage context saving measures. This is essential for large projects containing more than ~1000 source files to reduce context pressure and improve the quality of LLM answers (though it may be detrimental for smaller projects). Specific context saving measures for different operations will be implemented in the future.
 - Implemented context saving measures for the `annotate` operation. When enabled, it generates shorter and less detailed annotations to save tokens when sending project annotations in stage 1 of other operations. The `op_annotate.json` config file has been updated to include prompts for generating shorter annotations.
+- Improved `annotate` operation logic - send files to annotate in order according to file size, which should increase performance for the Ollama provider by allowing the use of smaller initial context sizes and preventing excessive model reloads.
+- Updated `.env.example` template with new defaults for the Ollama provider.
 
 **NOTE**: You need to reinitialize your project configs by running `Perpetual init -l <lang>` to install the new config file for the `annotate` operation. Since the `annotate` operation is implicitly called at the beginning of other operations, updating this config file is crucial.
 
