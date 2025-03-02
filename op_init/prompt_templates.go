@@ -13,77 +13,115 @@ const defaultAIAnnotatePrompt_Go = "Create a summary for the GO source file in m
 
 const defaultAIAnnotatePrompt_Go_Short = "Create a short summary for the GO source file in my next message. The summary should be up to 2 sentences long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_Go_Tiny = "Create a short summary for the GO source file in my next message. The summary should be 1 sentence long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, 1 sentence>"
+
 const defaultAIAnnotatePrompt_Go_Tests = "Create a summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\nThis file contains unit tests for <list of entities the tests target>"
 
 const defaultAIAnnotatePrompt_Go_Tests_Short = "Create a short summary for the GO unit-tests source file in my next message. The summary should be up to 2 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
+
+const defaultAIAnnotatePrompt_Go_Tests_Tiny = "Create a short summary for the GO unit-tests source file in my next message. The summary should be 1 sentence long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, 1 sentence>"
 
 const defaultAIAnnotatePrompt_Bash = "Create a summary for the Bash script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, declared functions (if any) with one-sentence descriptions, main operations, and dependencies. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Bash_Short = "Create a short summary for the Bash script in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
 
+const defaultAIAnnotatePrompt_Bash_Tiny = "Create a short summary for the Bash script in my next message. The summary should be 1 sentence long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
 const defaultAIAnnotatePrompt_Bat = "Create a summary for the Windows Batch script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, defined labels (if any), main operations, and external commands or tools used. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Bat_Short = "Create a short summary for the Windows Batch script in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_Bat_Tiny = "Create a short summary for the Windows Batch script in my next message. The summary should be 1 sentence long. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Cmake = "Create a summary for the CMake script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include a brief general description, the project name (if declared), key targets such as executables and libraries, external dependencies and packages, and any custom scripts or macros (if any) with one-sentence descriptions. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Cmake_Short = "Create a short summary for the CMake script in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
 
+const defaultAIAnnotatePrompt_Cmake_Tiny = "Create a short summary for the CMake script in my next message. The summary should be 1 sentence long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
 const defaultAIAnnotatePrompt_Perl = "Create a summary for the Perl script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, declared subroutines (if any) with one-sentence descriptions, main operations, and dependencies (modules used). List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Perl_Short = "Create a short summary for the Perl script in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_Perl_Tiny = "Create a short summary for the Perl script in my next message. The summary should be 1 sentence long. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_C = "Create a summary for the C source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description and a list of declared functions and global variables. Skip static or private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<function name>`: function, <summary>\n- `<variable name>`: global variable, <summary>"
 
 const defaultAIAnnotatePrompt_C_Short = "Create a short summary for the C source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
+const defaultAIAnnotatePrompt_C_Tiny = "Create a short summary for the C source file in my next message. The summary should be 1 sentence long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
+
 const defaultAIAnnotatePrompt_CPP = "Create a summary for the C++ source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description and a list of declared classes, namespaces, functions, and other publicly accessible entities. Skip private members from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<namespace name>`: namespace\n- `<class name>`: class, <summary>\n- `<function name>`: function, <summary>\n- `<entity name>`: type, <summary>"
 
 const defaultAIAnnotatePrompt_CPP_Short = "Create a short summary for the C++ source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_CPP_Tiny = "Create a short summary for the C++ source file in my next message. The summary should be 1 sentence long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_H_CPP = "Create a summary for the C++ header file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include a list of declared classes, namespaces, functions, templates, and other entities definitions. Skip private members from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis header file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<namespace name>`: namespace\n- `<class name>`: class, <summary>\n- `<template name>`: template, <summary>\n- `<function name>`: function, <summary>\n- `<entity name>`: type, <summary>"
 
 const defaultAIAnnotatePrompt_H_CPP_Short = "Create a short summary for the C++ header file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
+const defaultAIAnnotatePrompt_H_CPP_Tiny = "Create a short summary for the C++ header file in my next message. The summary should be 1 sentence long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
+
 const defaultAIAnnotatePrompt_H = "Create a summary for the C header file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include a list of declared functions, macros, structures and other types.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis header file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<function name>`: function, <summary>\n- `<macro name>`: macro, <summary>\n- `<type name>`: type, <summary>"
 
 const defaultAIAnnotatePrompt_H_Short = "Create a short summary for the C header file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_H_Tiny = "Create a short summary for the C header file in my next message. The summary should be 1 sentence long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_CS = "Create a summary for the C# source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the namespace and a list of declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_CS_Short = "Create a short summary for the C# source file in my next message. The summary should be up to 2 sentences long, and should include the namespace.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_CS_Tiny = "Create a short summary for the C# source file in my next message. The summary should be 1 sentence long, and should include the namespace.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\n<Description of what this file is used for, 1 sentence>"
+
 const defaultAIAnnotatePrompt_S = "Create a summary for the assembly source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, exported symbols (if any), key data sections, main operations performed, and dependencies on external symbols. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_S_Short = "Create a short summary for the assembly source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_S_Tiny = "Create a short summary for the assembly source file in my next message. The summary should be 1 sentence long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_VBNet = "Create a summary for the VB.NET source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the namespace and a list of declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_VBNet_Short = "Create a short summary for the VB.NET source file in my next message. The summary should be up to 2 sentences long, and should include the namespace.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_VBNet_Tiny = "Create a short summary for the VB.NET source file in my next message. The summary should be 1 sentence long, and should include the namespace.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nNamespace: `<namespace>`\n\n<Description of what this file is used for, 1 sentence>"
+
 const defaultAIAnnotatePrompt_Py3 = "Create a summary for the Python 3 source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the module name and a list of declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module_name>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_Py3_Short = "Create a short summary for the Python 3 source file in my next message. The summary should be up to 2 sentences long, and should include the module name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module_name>`\n\n<Description of what this file is used for, up to 2 sentences>"
+
+const defaultAIAnnotatePrompt_Py3_Tiny = "Create a short summary for the Python 3 source file in my next message. The summary should be 1 sentence long, and should include the module name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module_name>`\n\n<Description of what this file is used for, 1 sentence>"
 
 const defaultAIAnnotatePrompt_Xaml = "Create a summary for the XAML ui-markup file in my next message. Describe the main UI elements, their purpose, and their relationships. Indicate what type of user interface (e.g., window, page, dialog box, etc.) this XAML file likely describes. Limit the summary to 3-4 sentences."
 
 const defaultAIAnnotatePrompt_Xaml_Short = "Create a short summary for the XAML ui-markup file in my next message. The summary should be up to 2 sentences long."
 
+const defaultAIAnnotatePrompt_Xaml_Tiny = "Create a short summary for the XAML ui-markup file in my next message. The summary should be 1 sentence long."
+
 const defaultAIAnnotatePrompt_VB6_Class = "Create a summary for the Visual Basic 6 class module in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the class name and a list of declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\nThis class module is used for <description of what this class is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_VB6_Class_Short = "Create a short summary for the Visual Basic 6 class module in my next message. The summary should be up to 2 sentences long, and should include the class name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\n<Description of what this class is used for, up to 2 sentences>"
+
+const defaultAIAnnotatePrompt_VB6_Class_Tiny = "Create a short summary for the Visual Basic 6 class module in my next message. The summary should be 1 sentence long, and should include the class name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\n<Description of what this class is used for, 1 sentence>"
 
 const defaultAIAnnotatePrompt_VB6_Form = "Create a summary for the Visual Basic 6 form in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the form name, a description of the form's purpose, and a list of key elements and declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nForm: `<form name>`\n\nThis form is used for <description of what this form is used for, up to 3 sentences>\n\nKey Elements:\n- `<element name>`: <element type>, <summary>\n\nDeclared Entities:\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_VB6_Form_Short = "Create a short summary for the Visual Basic 6 form in my next message. The summary should be up to 2 sentences long, and should include the form name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nForm: `<form name>`\n\n<Description of what this form is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_VB6_Form_Tiny = "Create a short summary for the Visual Basic 6 form in my next message. The summary should be 1 sentence long, and should include the form name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nForm: `<form name>`\n\n<Description of what this form is used for, 1 sentence>"
+
 const defaultAIAnnotatePrompt_VB6_Module = "Create a summary for the Visual Basic 6 standard module in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the module name and a list of declared procedures, functions, and global variables. Skip entities declared inside functions from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module name>`\n\nThis module provides <description of what this module is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<item name>`: <item type>, <summary>"
 
 const defaultAIAnnotatePrompt_VB6_Module_Short = "Create a short summary for the Visual Basic 6 standard module in my next message. The summary should be up to 2 sentences long, and should include the module name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module name>`\n\n<Description of what this module is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_VB6_Module_Tiny = "Create a short summary for the Visual Basic 6 standard module in my next message. The summary should be 1 sentence long, and should include the module name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module name>`\n\n<Description of what this module is used for, 1 sentence>"
+
 const defaultAIAnnotatePrompt_Generic = "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>"
 
 const defaultAIAnnotatePrompt_Generic_Short = "Create a short summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence>"
+
+const defaultAIAnnotatePrompt_Generic_Tiny = "Create a very brief summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence, as brief as possible>"
 
 const defaultAIAcknowledge = "Understood. What's next?"
 
