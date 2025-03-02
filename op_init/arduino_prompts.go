@@ -13,12 +13,12 @@ func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][3]string{
-		{"(?i)^.*\\.(cpp|ino)$", defaultAIAnnotatePrompt_CPP, defaultAIAnnotatePrompt_CPP_Short},
-		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C, defaultAIAnnotatePrompt_C_Short},
-		{"(?i)^.*\\.(h|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP, defaultAIAnnotatePrompt_H_CPP_Short},
-		{"(?i)^.*\\.s$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short},
-		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
+	result[config.K_AnnotateStage1Prompts] = [][4]string{
+		{"(?i)^.*\\.(cpp|ino)$", defaultAIAnnotatePrompt_CPP, defaultAIAnnotatePrompt_CPP_Short, defaultAIAnnotatePrompt_CPP_Tiny},
+		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C, defaultAIAnnotatePrompt_C_Short, defaultAIAnnotatePrompt_C_Tiny},
+		{"(?i)^.*\\.(h|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP, defaultAIAnnotatePrompt_H_CPP_Short, defaultAIAnnotatePrompt_H_CPP_Tiny},
+		{"(?i)^.*\\.s$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short, defaultAIAnnotatePrompt_S_Tiny},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short, defaultAIAnnotatePrompt_Generic_Tiny},
 	}
 	return result
 }
