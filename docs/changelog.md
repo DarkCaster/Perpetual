@@ -30,7 +30,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Improved `annotate` operation logic - send files to annotate in order according to file size, which should increase performance for the Ollama provider by allowing the use of smaller initial context sizes and preventing excessive model reloads.
 - Updated `.env.example` template with new defaults for the Ollama provider.
 
-**NOTE**: You need to reinitialize your project configs by running `Perpetual init -l <lang>` to install the new config file for the `annotate` operation. Since the `annotate` operation is implicitly called at the beginning of other operations, updating this config file is crucial.
+**NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config file for the `annotate` operation. Since the `annotate` operation is implicitly called at the beginning of other operations, updating this config file is crucial. Additionally, the updated `.env.example` includes new defaults for Ollama that better suit the changes in the `annotate` operation and context management logic.
 
 ## v3.3.0
 
