@@ -539,7 +539,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				}
 			}
 			//handle overflow
-			if totalTokens >= ctxSz { //overflow for both initial and current context size
+			if totalTokens >= ctxSz {
 				if p.ContextSizeMult > 1 {
 					if p.ContextSizeOverride < 1 {
 						p.ContextSizeOverride = p.ContextSize
@@ -551,8 +551,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 				}
 				return []string{}, QueryFailed, errors.New("context overflow detected")
-			} else if totalTokens < p.ContextSize { //not overflow, and less than initial context size
-				p.ContextSizeOverride = 0
 			}
 		}
 
