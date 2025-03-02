@@ -118,7 +118,8 @@ const defaultListOfFilesOutputSchemaDesc = "Creates a list of files according to
 
 func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := config.GetAnnotateConfigTemplate()
-	result[config.K_AnnotateContextSavingFiles] = 1200
+	result[config.K_AnnotateContextSavingFilesCount1] = 1000
+	result[config.K_AnnotateContextSavingFilesCount2] = 2000
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"

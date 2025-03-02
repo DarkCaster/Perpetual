@@ -29,7 +29,7 @@ func Run(args []string, logger logging.ILogger) {
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|off|med|high)")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
@@ -58,7 +58,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MED" && contextSaving != "HIGH" {
 		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 

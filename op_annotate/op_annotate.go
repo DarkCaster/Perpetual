@@ -30,7 +30,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	var requestedFile, userFilterFile, contextSaving string
 
 	flags := annotateFlags()
-	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|on|off)")
+	flags.StringVar(&contextSaving, "c", "auto", "Context saving measures, reduce LLM context use for large projects (valid values: auto|off|med|high)")
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.BoolVar(&help, "h", false, "This help message")
@@ -59,7 +59,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "ON" && contextSaving != "OFF" {
+	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MED" && contextSaving != "HIGH" {
 		logger.Panicln("Invalid context saving measures mode value provided")
 	}
 
@@ -123,15 +123,28 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error getting project file-list:", err)
 	}
 
-	contextSavingActive := false
-	if contextSaving == "AUTO" && len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFiles) {
-		logger.Infoln("Generating short annotations, because project file-count is too large:", len(fileNames))
-		contextSavingActive = true
+	contextSavingMode := 0
+	if contextSaving == "AUTO" &&
+		len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount1) &&
+		len(fileNames) < annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount2) {
+		logger.Infoln("Generating more shorter annotations, project file-count too large:", len(fileNames))
+		contextSavingMode = 1
 	}
 
-	if contextSaving == "ON" {
-		logger.Infoln("Generating short annotations forcefully")
-		contextSavingActive = true
+	if contextSaving == "AUTO" &&
+		len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount2) {
+		logger.Infoln("Generating shortest annotations, project file-count too large:", len(fileNames))
+		contextSavingMode = 2
+	}
+
+	if contextSaving == "MED" {
+		logger.Infoln("Generating more shorter annotations forcefully")
+		contextSavingMode = 1
+	}
+
+	if contextSaving == "HIGH" {
+		logger.Infoln("Generating shortest annotations forcefully")
+		contextSavingMode = 2
 	}
 
 	// Check fileNames array for case collisions
@@ -237,11 +250,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for _, mapping := range annotateConfig.StringArray2D(config.K_AnnotateStage1Prompts) {
 			matched, err := regexp.MatchString(mapping[0], filePath)
 			if err == nil && matched {
-				if contextSavingActive {
-					annotatePrompt = mapping[2]
-				} else {
-					annotatePrompt = mapping[1]
-				}
+				annotatePrompt = mapping[1+contextSavingMode]
 				break
 			}
 		}
