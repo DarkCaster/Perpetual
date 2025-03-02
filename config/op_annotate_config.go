@@ -70,8 +70,8 @@ func validateOpAnnotateStage1Prompts(value interface{}) error {
 			return fmt.Errorf("%s[%d] must be an array", K_AnnotateStage1Prompts, i)
 		}
 
-		if len(innerArr) != 3 {
-			return fmt.Errorf("%s[%d] must contain exactly 3 elements", K_AnnotateStage1Prompts, i)
+		if len(innerArr) != 4 {
+			return fmt.Errorf("%s[%d] must contain exactly 4 elements", K_AnnotateStage1Prompts, i)
 		}
 
 		for j, inner := range innerArr {
