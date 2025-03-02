@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -174,6 +175,20 @@ func CalculateFilesChecksums(projectRootDir string, files []string) (map[string]
 		fileChecksums[file] = checksum
 	}
 	return fileChecksums, nil
+}
+
+func GetFileSizes(projectRootDir string, files []string) map[string]int {
+	fileSizes := make(map[string]int)
+	for _, file := range files {
+		filePath := filepath.Join(projectRootDir, file)
+		text, err := LoadTextFile(filePath)
+		if err == nil {
+			fileSizes[file] = len(text)
+		} else {
+			fileSizes[file] = math.MaxInt
+		}
+	}
+	return fileSizes
 }
 
 func FilterFilesWithWhitelist(sourceFiles []string, whitelist []*regexp.Regexp) ([]string, []string) {
