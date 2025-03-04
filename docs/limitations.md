@@ -76,3 +76,80 @@ When handling filenames, `Perpetual` attempts to:
 - The project root directory cannot be a symlink
 
 This approach ensures that `Perpetual` operates within the intended project scope.
+
+## Project Size Limitations
+
+Perpetual must balance comprehensive code analysis with the context window limitations of modern LLMs. To accomplish this, it uses a strategic approach for handling projects of various sizes.
+
+### How Project Indexing Works
+
+When working with your codebase, Perpetual doesn't attempt to feed all source code into the LLM at once, which would be:
+
+- Impractical for small to medium projects
+- Technically impossible for large projects due to token limits
+- Unnecessarily expensive in terms of API usage
+
+Instead, Perpetual uses a multi-stage approach:
+
+1. **Annotation Phase**: The `annotate` operation generates concise summaries for each source file, capturing their purpose and functionality.
+2. **Project Index**: These annotations form a project index that serves as a map of your codebase.
+3. **Selective Loading**: For each operation, the LLM first reviews this index to identify which files are relevant to the current task.
+4. **Focused Analysis**: Only then does the LLM examine the content of selected files in detail.
+
+This approach allows Perpetual to work with significantly larger projects than would otherwise be possible.
+
+### Practical Limitations
+
+Despite these optimizations, there are still practical constraints:
+
+- **Maximum Recommended Size**: Projects with more than 500 files may experience degraded performance. Beyond this threshold:
+  - The project index itself can approach or exceed the context window size
+  - LLM responses become less reliable as the complexity increases
+  - You may hit rate limits with your LLM provider more frequently
+  - Costs increase substantially
+
+- **Performance Degradation Signs**: When working with larger projects, you might notice:
+  - LLM hallucinations about non-existent files
+  - Incorrect file selection for the tasks
+  - Incomplete or inconsistent responses
+  - Higher error rates during processing
+
+### Mitigating Size Limitations
+
+For larger projects, Perpetual offers several features to improve performance:
+
+#### 1. Filename Salvaging (`-s` flag)
+
+Operations like `implement`, `doc`, and `explain` support the `-s` flag which attempts to salvage incorrect filenames when the LLM hallucinates. This feature:
+
+- Matches filenames by base name when paths are incorrect
+- Helps recover from common LLM errors when listing project files
+- Is particularly useful for projects with deep directory structures
+
+#### 2. Context Saving Modes (`-c` flag)
+
+Most operations support the `-c` flag to control annotation verbosity:
+
+- `auto` (default): Applies context saving automatically based on file count
+- `off`: Uses full annotations regardless of project size
+- `medium`: Generates shorter annotations to save context space
+- `high`: Creates minimal annotations focused only on critical details
+
+For large projects, the system automatically applies:
+
+- Medium context saving for 1000+ files
+- High context saving for 2000+ files
+
+**Important**: After changing the context saving mode, you must reannotate your project with the `-f` flag to regenerate all annotations with the new verbosity level.
+
+#### 3. Selective File Processing
+
+Consider these additional approaches for very large projects:
+
+- Work with logical subsets of your project rather than the entire codebase
+- Use operation-specific flags to exclude test files when appropriate
+- Apply custom filters with the `-x` flag to focus on specific parts of your codebase
+
+### Future Improvements
+
+As LLM technology advances, we expect these limitations to become less restrictive. Future versions of Perpetual will leverage larger context windows and more efficient processing techniques as they become available, gradually improving performance with larger codebases.
