@@ -142,7 +142,33 @@ For large projects, the system automatically applies:
 
 **Important**: After changing the context saving mode, you must reannotate your project with the `-f` flag to regenerate all annotations with the new verbosity level.
 
-#### 3. Selective File Processing
+#### 3. Multi-pass annotation
+
+Perpetual employs a sophisticated multi-pass annotation system to optimize the quality and efficiency of file annotations, particularly valuable for large projects.
+
+**Two-Stage Processing:**
+
+- **First Stage**: Generates multiple annotation variants
+- **Second Stage**: Applies intelligent selection or combination of these variants to create the final annotation
+
+**Variant Selection Strategies:**
+Perpetual supports several strategies for processing annotation variants, controlled by the LLM configuration:
+
+- **Short Strategy**: Selects the most concise annotation variant, prioritizing token efficiency. This is the fallback strategy when other approaches fail and is particularly useful for very large projects where context space is at a premium.
+
+- **Long Strategy**: Chooses the most detailed annotation variant, providing more comprehensive information when context space permits.
+
+- **Combine Strategy**: Uses the LLM to intelligently merge multiple annotation variants, creating a synthesis that captures the most important information from each variant while avoiding redundancy.
+
+- **Best Strategy**: Leverages the LLM's judgment to select the highest-quality annotation among the variants based on factors like informativeness, accuracy, and conciseness.
+
+Multi-pass annotations must be enabled per-LLM basis using your `.env` configuration file or ENV variables.
+
+#### 4. Using local LLM with Ollama to generate annotations
+
+It is now possible to use local LLM and models like `qwen2.5-coder:7b-instruct` to generate annotations. It provides results good enough for use with Perpetual for most of the supported programming languages. This way you can save on costs using commercial LLM with larger projects.
+
+#### 5. Selective File Processing
 
 Consider these additional approaches for very large projects:
 
