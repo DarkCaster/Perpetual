@@ -166,7 +166,7 @@ Multi-pass annotations must be enabled per-LLM basis using your `.env` configura
 
 #### 4. Using local LLM with Ollama to generate annotations
 
-It is now possible to use local LLM and models like `qwen2.5-coder:7b-instruct` to generate annotations. It provides results good enough for use with Perpetual for most of the supported programming languages. This way you can save on costs using commercial LLM with larger projects.
+It is now possible to use local LLM and models like `qwen2.5-coder:7b-instruct` to generate annotations. It provides results good enough to be used with Perpetual for most supported programming languages. So you can save on costs by using local LLM in large projects.
 
 #### 5. Selective File Processing
 
