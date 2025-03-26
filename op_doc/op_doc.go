@@ -21,7 +21,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
-	var help, trySalvageFiles, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, noSalvageFiles, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var docFile, docExample, action, userFilterFile, contextSaving string
 
 	flags := docFlags()
@@ -32,7 +32,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
-	flags.BoolVar(&trySalvageFiles, "s", false, "Try to salvage incorrect filenames on stage 1. Experimental, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze")
+	flags.BoolVar(&noSalvageFiles, "ns", false, "Do not attempt to salvage incorrect filenames on stage 1. Mostly not needed to disable this")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -189,7 +189,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docContent,
 			docExampleContent,
 			action,
-			trySalvageFiles,
+			noSalvageFiles,
 			logger)
 
 		// Check requested files for no-upload mark and filter it out
