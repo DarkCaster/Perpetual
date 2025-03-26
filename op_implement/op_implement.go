@@ -24,7 +24,7 @@ func implementFlags() *flag.FlagSet {
 
 func Run(args []string, logger logging.ILogger) {
 	var help, trySalvageFiles, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
-	var manualFilePath, userFilterFile, contextSaving string
+	var userFilterFile, contextSaving string
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
@@ -33,7 +33,6 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
-	flags.StringVar(&manualFilePath, "r", "", "Manually request a file for the operation, otherwise select files automatically")
 	flags.BoolVar(&trySalvageFiles, "s", false, "Try to salvage incorrect filenames on stage 1. Experimental, use in projects with a large number of files where LLM tends to make more mistakes when generating list of files to analyze")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -133,39 +132,18 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Find files for operation. Select files that contains implement-mark
 	var targetFiles []string
-	if manualFilePath != "" {
-		//check path relative to project root directory, and make it path relative to it
-		targetFile, err := utils.MakePathRelative(projectRootDir, manualFilePath, false)
-		if err != nil {
-			logger.Panicln("Failed to process file path: ", err)
-		}
-		targetFile, found := utils.CaseInsensitiveFileSearch(targetFile, fileNames)
-		if !found {
-			logger.Panicln("Requested file not found in project (make sure it is not excluded from processing by filters):", targetFile)
-		}
-		found, err = utils.FindInFile(
-			filepath.Join(projectRootDir, targetFile),
+	logger.Debugln("Searching project files for implement comment")
+
+	for _, filePath := range fileNames {
+		logger.Traceln(filePath)
+		found, err := utils.FindInFile(
+			filepath.Join(projectRootDir, filePath),
 			implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 		if err != nil {
 			logger.Panicln("Failed to search 'implement' comment in file: ", err)
 		}
-		if !found {
-			logger.Errorln("Cannot find 'implement' comment in manually provided file, expect LLM to provide wrong results for the file", targetFile)
-		}
-		targetFiles = append(targetFiles, targetFile)
-	} else {
-		logger.Debugln("Searching project files for implement comment")
-		for _, filePath := range fileNames {
-			logger.Traceln(filePath)
-			found, err := utils.FindInFile(
-				filepath.Join(projectRootDir, filePath),
-				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
-			if err != nil {
-				logger.Panicln("Failed to search 'implement' comment in file: ", err)
-			}
-			if found {
-				targetFiles = append(targetFiles, filePath)
-			}
+		if found {
+			targetFiles = append(targetFiles, filePath)
 		}
 	}
 
