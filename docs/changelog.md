@@ -21,6 +21,15 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v5.0.0
+
+### Improvements
+
+- Added support for plain task mode for `implement` operation, task can be sourced via stdin or read from text file. So, in this mode there is no need to describe task with `###IMPLEMENT###` comments within project source code. Perpetual can now fully operate under the control of external software (or LLM agent).
+- Removed single-file mode from implement operation (`-r` flag), it was rarely used and could also confuse the llm if it accidently request other files with `###IMPLEMENT###` comments.
+- File-names salvaging logic now enabled by default for `doc`, `implement`, and `explain` operations. It can be disabled with `-ns` flag, old `-s` flag was removed.
+- Changed behavior of showing list of files filtered by user supplied blacklist, only file-count displayed, full file list can be displayed with `-v` flag.
+
 ## v4.0.0
 
 ### Improvements
