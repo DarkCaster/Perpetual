@@ -23,7 +23,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noSalvageFiles, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var help, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var userFilterFile, contextSaving string
 
 	// Parse flags for the "implement" operation
@@ -33,7 +33,6 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
-	flags.BoolVar(&noSalvageFiles, "ns", false, "Do not attempt to salvage incorrect filenames on stage 1. Mostly not needed to disable this")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
@@ -206,7 +205,6 @@ func Run(args []string, logger logging.ILogger) {
 				fileNames,
 				annotations,
 				targetFiles,
-				noSalvageFiles,
 				logger)
 		} else {
 			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")

@@ -14,7 +14,6 @@ func Stage1(projectRootDir string,
 	fileNames []string,
 	annotations map[string]string,
 	targetFiles []string,
-	noSalvageFiles bool,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -114,5 +113,5 @@ func Stage1(projectRootDir string,
 		break
 	}
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, fileNames, noSalvageFiles, logger)
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, fileNames, logger)
 }

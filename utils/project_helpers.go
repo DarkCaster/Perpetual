@@ -267,7 +267,7 @@ func tryToSalvageFilename(projectFiles []string, fileToRecover string, logger lo
 	return "", false
 }
 
-func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, noSalvageFiles bool, logger logging.ILogger) []string {
+func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {
 	var filteredResult []string
 	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
 	logger.Infoln("Files requested by LLM:")
@@ -301,8 +301,6 @@ func FilterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []stri
 				if found {
 					filteredResult = append(filteredResult, file)
 					logger.Infoln(file)
-				} else if noSalvageFiles {
-					logger.Warnln("Filtering-out file, it is not found among project file-list:", file)
 				} else if file, found = tryToSalvageFilename(projectFiles, file, logger); found {
 					_, found1 := CaseInsensitiveFileSearch(file, userRequestedFiles)
 					_, found2 := CaseInsensitiveFileSearch(file, filteredResult)

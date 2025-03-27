@@ -23,7 +23,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
-	var help, noSalvageFiles, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var outputFile, inputFile, userFilterFile, contextSaving string
 
 	flags := docFlags()
@@ -33,7 +33,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&listFilesOnly, "l", false, "Only list files that LLM thinks are related to the question, do not generate the final answer. One filename per line, no formatting.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&outputFile, "r", "", "Target file for writing answer, markdown formatted (stdout if not supplied)")
-	flags.BoolVar(&noSalvageFiles, "ns", false, "Do not attempt to salvage incorrect filenames on stage 1. Mostly not needed to disable this")
 	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (stdin if not supplied)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
@@ -175,7 +174,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		fileNames,
 		annotations,
 		question,
-		noSalvageFiles,
 		logger)
 
 	if listFilesOnly {
