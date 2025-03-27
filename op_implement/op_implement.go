@@ -23,16 +23,18 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, reasonings, verbose, trace, includeTests, notEnforceTargetFiles bool
-	var userFilterFile, contextSaving string
+	var help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var taskFile, userFilterFile, contextSaving string
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
+	flags.StringVar(&taskFile, "i", "", "When using task mode (-t flag), read task instructions from file, plain text or markdown format")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
+	flags.BoolVar(&taskMode, "t", false, "Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the -p flag.")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
@@ -67,6 +69,14 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	if reasonings {
 		planningMode = 2
+	}
+	if taskMode && planningMode < 1 {
+		planningMode = 1
+	}
+
+	// task file checks
+	if taskFile != "" && !taskMode {
+		logger.Panicln("Cannot read task from file without enabling task mode (-t flag)")
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
