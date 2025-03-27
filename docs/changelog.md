@@ -30,6 +30,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - File-names salvaging logic now always enabled for all supported operations (`doc`, `implement`, and `explain`).
 - Changed behavior of listing files to annotate filtered by user supplied blacklist, only file-count displayed, full file-list can be displayed with `-v` flag.
 
+**NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config file for the `implement` operation.
+
 ## v4.0.0
 
 ### Improvements
