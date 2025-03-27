@@ -183,9 +183,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	//filter filesToAnnotate with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
 	filesToAnnotate, droppedFiles := utils.FilterFilesWithBlacklist(filesToAnnotate, userBlacklist)
+	if len(droppedFiles) > 0 {
+		logger.Infoln("Number of files to annotate, filtered by user-provided blacklist:", len(droppedFiles))
+	}
 	for _, file := range droppedFiles {
 		fileChecksums[file] = oldChecksums[file]
-		logger.Warnln("File was filtered-out with user blacklist:", file)
+		logger.Debugln("Filtered-out:", file)
 	}
 
 	if dryRun {
