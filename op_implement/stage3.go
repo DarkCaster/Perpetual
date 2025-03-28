@@ -219,10 +219,14 @@ func Stage3(projectRootDir string,
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
+							// Add extra prompt indicating addition of file content if using task mode
 							if task != "" && !extra_task_prompt_added {
-								//TODO: Add extra prompt
 								extra_task_prompt_added = true
+								messages[msgIndexToAddExtraFiles] = llm.AddPlainTextFragment(
+									messages[msgIndexToAddExtraFiles],
+									cfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
 							}
+							// Add the file contents so that LLM doesn't overwrite it from scratch, thus destroying it.
 							messages[msgIndexToAddExtraFiles] = llm.AppendFileToMessage(
 								messages[msgIndexToAddExtraFiles],
 								projectRootDir,
