@@ -120,7 +120,7 @@ func Stage2(projectRootDir string,
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query reached token limit")
 				} else {
-					logger.Warnln("LLM query failed, retrying: ", err)
+					logger.Warnln("LLM query reached token limit, retrying")
 				}
 				continue
 			}
