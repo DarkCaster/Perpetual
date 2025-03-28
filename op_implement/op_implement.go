@@ -241,9 +241,10 @@ func Run(args []string, logger logging.ILogger) {
 				fileNames,
 				annotations,
 				targetFiles,
+				task,
 				logger)
 		} else {
-			logger.Warnln("No annotaions found for files not in to-implement list, no need to run stage1")
+			logger.Warnln("All source code files already selected for review, no need to run stage1")
 		}
 	}
 

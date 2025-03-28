@@ -14,6 +14,7 @@ func Stage1(projectRootDir string,
 	fileNames []string,
 	annotations map[string]string,
 	targetFiles []string,
+	task string,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -48,12 +49,22 @@ func Stage1(projectRootDir string,
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analysis request message
-	analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
-	if connector.GetOutputFormat() == llm.OutputJson {
-		analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
+	var analysisRequest llm.Message
+	if task == "" {
+		analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
+		if connector.GetOutputFormat() == llm.OutputJson {
+			analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
+		}
+		analysisRequest = llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
+		logger.Debugln("Created target files analysis request message")
+	} else {
+		analysisPrompt := cfg.String(config.K_ImplementTaskStage1AnalysisPrompt)
+		if connector.GetOutputFormat() == llm.OutputJson {
+			analysisPrompt = cfg.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
+		}
+		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), task)
+		logger.Debugln("Created task analysis request message")
 	}
-	analysisRequest := llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
-	logger.Debugln("Created target files analysis request message")
 
 	logger.Infoln("Running stage1: find project files for review")
 	logger.Infoln(connector.GetDebugString())
