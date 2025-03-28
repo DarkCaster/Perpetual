@@ -93,7 +93,7 @@ func Stage2(projectRootDir string,
 			requestMessage = llm.AddPlainTextFragment(
 				llm.AddPlainTextFragment(
 					llm.NewMessage(llm.UserRequest),
-					config.K_ImplementTaskStage2ReasoningsPrompt),
+					cfg.String(config.K_ImplementTaskStage2ReasoningsPrompt)),
 				task)
 		}
 		// realMessages message-history will be used for actual LLM prompt
@@ -154,7 +154,7 @@ func Stage2(projectRootDir string,
 				finalRequestMessage = llm.AddPlainTextFragment(
 					llm.AddPlainTextFragment(
 						llm.NewMessage(llm.UserRequest),
-						config.K_ImplementTaskStage2ReasoningsPromptFinal),
+						cfg.String(config.K_ImplementTaskStage2ReasoningsPromptFinal)),
 					task)
 			}
 

@@ -70,7 +70,7 @@ func Stage3(projectRootDir string,
 			request = llm.AddPlainTextFragment(
 				llm.AddPlainTextFragment(
 					llm.NewMessage(llm.UserRequest),
-					config.K_ImplementTaskStage3PlanningPrompt),
+					cfg.String(config.K_ImplementTaskStage3PlanningPrompt)),
 				task)
 		}
 		messages = append(messages, request)
@@ -89,7 +89,7 @@ func Stage3(projectRootDir string,
 			jsonModeRequest = llm.AddPlainTextFragment(
 				llm.AddPlainTextFragment(
 					llm.NewMessage(llm.UserRequest),
-					config.K_ImplementTaskStage3PlanningJsonModePrompt),
+					cfg.String(config.K_ImplementTaskStage3PlanningJsonModePrompt)),
 				task)
 		}
 		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
