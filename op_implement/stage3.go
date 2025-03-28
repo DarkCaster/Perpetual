@@ -18,6 +18,7 @@ func Stage3(projectRootDir string,
 	notEnforceTargetFiles bool,
 	messages []llm.Message,
 	msgIndexToAddExtraFiles int,
+	task string,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
 	logger.Traceln("Stage3: Starting")
@@ -57,21 +58,40 @@ func Stage3(projectRootDir string,
 	// When using planning without reasoning, create request that will include target files content
 	if planningMode == 1 {
 		// Create normal mode request and add it to history
-		request := llm.ComposeMessageWithFiles(
-			projectRootDir,
-			cfg.String(config.K_ImplementStage3PlanningPrompt),
-			targetFiles,
-			cfg.StringArray(config.K_FilenameTags),
-			logger)
+		var request llm.Message
+		if task == "" {
+			request = llm.ComposeMessageWithFiles(
+				projectRootDir,
+				cfg.String(config.K_ImplementStage3PlanningPrompt),
+				targetFiles,
+				cfg.StringArray(config.K_FilenameTags),
+				logger)
+		} else {
+			request = llm.AddPlainTextFragment(
+				llm.AddPlainTextFragment(
+					llm.NewMessage(llm.UserRequest),
+					config.K_ImplementTaskStage3PlanningPrompt),
+				task)
+		}
 		messages = append(messages, request)
 		msgIndexToAddExtraFiles = len(messages) - 1
+
 		// Create json mode request and add it to json mode history
-		jsonModeRequest := llm.ComposeMessageWithFiles(
-			projectRootDir,
-			cfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
-			targetFiles,
-			cfg.StringArray(config.K_FilenameTags),
-			logger)
+		var jsonModeRequest llm.Message
+		if task == "" {
+			jsonModeRequest = llm.ComposeMessageWithFiles(
+				projectRootDir,
+				cfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
+				targetFiles,
+				cfg.StringArray(config.K_FilenameTags),
+				logger)
+		} else {
+			jsonModeRequest = llm.AddPlainTextFragment(
+				llm.AddPlainTextFragment(
+					llm.NewMessage(llm.UserRequest),
+					config.K_ImplementTaskStage3PlanningJsonModePrompt),
+				task)
+		}
 		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (full)")
 	}
@@ -153,6 +173,7 @@ func Stage3(projectRootDir string,
 			break
 		}
 
+		extra_task_prompt_added := false
 		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
 		logger.Infoln("Files for processing selected by LLM:")
@@ -198,6 +219,10 @@ func Stage3(projectRootDir string,
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
 						if found {
+							if task != "" && !extra_task_prompt_added {
+								//TODO: Add extra prompt
+								extra_task_prompt_added = true
+							}
 							messages[msgIndexToAddExtraFiles] = llm.AppendFileToMessage(
 								messages[msgIndexToAddExtraFiles],
 								projectRootDir,

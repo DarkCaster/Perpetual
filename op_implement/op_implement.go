@@ -280,6 +280,7 @@ func Run(args []string, logger logging.ILogger) {
 		notEnforceTargetFiles,
 		messages,
 		msgIndexToAddExtraFiles,
+		task,
 		logger)
 
 	otherFilesToModify = utils.FilterNoUploadProjectFiles(
