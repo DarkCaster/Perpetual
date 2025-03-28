@@ -139,30 +139,56 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	// Find files for operation. Select files that contains implement-mark
+	// Read input from file or stdin
+	var task string
+	if taskMode {
+		if taskFile != "" {
+			data, err := utils.LoadTextFile(taskFile)
+			if err != nil {
+				logger.Panicln("Error reading task from input file:", err)
+			}
+			task = data
+		} else {
+			logger.Infoln("Reading task from stdin")
+			data, err := utils.LoadTextStdin()
+			if err != nil {
+				logger.Panicln("Error reading from stdin:", err)
+			}
+			task = string(data)
+		}
+		// Trim excess line breaks at both sides of task, and stop on empty input
+		task = strings.Trim(task, "\n")
+		if len(task) < 1 {
+			logger.Panicln("Task is empty, cannot continue")
+		}
+	}
+
 	var targetFiles []string
-	logger.Debugln("Searching project files for implement comment")
-
-	for _, filePath := range fileNames {
-		logger.Traceln(filePath)
-		found, err := utils.FindInFile(
-			filepath.Join(projectRootDir, filePath),
-			implementConfig.RegexpArray(config.K_ImplementCommentsRx))
-		if err != nil {
-			logger.Panicln("Failed to search 'implement' comment in file: ", err)
+	if task != "" {
+		logger.Debugln("Skipping search of source files with implement comment")
+	} else {
+		// Find files for operation. Select files that contains implement-mark
+		logger.Debugln("Searching project files for implement comment")
+		for _, filePath := range fileNames {
+			logger.Traceln(filePath)
+			found, err := utils.FindInFile(
+				filepath.Join(projectRootDir, filePath),
+				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
+			if err != nil {
+				logger.Panicln("Failed to search 'implement' comment in file: ", err)
+			}
+			if found {
+				targetFiles = append(targetFiles, filePath)
+			}
 		}
-		if found {
-			targetFiles = append(targetFiles, filePath)
+		// Log files to process
+		if len(targetFiles) < 1 {
+			logger.Panicln("No files found for processing")
 		}
-	}
-
-	// Log files to process
-	if len(targetFiles) < 1 {
-		logger.Panicln("No files found for processing")
-	}
-	logger.Infoln("Files for processing:")
-	for _, targetFile := range targetFiles {
-		logger.Infoln(targetFile)
+		logger.Infoln("Files for processing:")
+		for _, targetFile := range targetFiles {
+			logger.Infoln(targetFile)
+		}
 	}
 
 	// Check if target files includes all project files, and run annotate if needed
