@@ -58,6 +58,9 @@ const K_ImplementTaskStage3PlanningJsonModePrompt = "stage3_task_planning_json_m
 const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
 const K_ImplementStage3PlanningLiteJsonModePrompt = "stage3_planning_lite_json_mode_prompt"
 
+// Extra prompt when adding unexpected source file to the prompts on late stage 3
+const K_ImplementTaskStage3ExtraFilesPrompt = "stage3_task_extra_files_prompt"
+
 const K_ImplementStage4ChangesDonePrompt = "stage4_changes_done_prompt"
 const K_ImplementStage4ChangesDoneResponse = "stage4_changes_done_response"
 const K_ImplementStage4ProcessPrompt = "stage4_process_prompt"

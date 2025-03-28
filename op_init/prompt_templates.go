@@ -202,6 +202,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementTaskStage3PlanningJsonModePrompt] = "Below are the tasks that need to be implemented. Study all the source code provided to you and create a list of files that will be changed or created by you as a result of implementing the tasks. The tasks are:"
 	result[config.K_ImplementStage3PlanningLitePrompt] = "Now create a list of file names that will be changed or created by you as a result of implementing the tasks according to your work plan. Place each filename in <filename></filename> tags."
 	result[config.K_ImplementStage3PlanningLiteJsonModePrompt] = "Now create a list of files that will be changed or created by you as a result of implementing the tasks according to your work plan."
+	result[config.K_ImplementTaskStage3ExtraFilesPrompt] = "Below are the contents of additional source code files that may be relevant to the tasks."
 
 	result[config.K_Stage3OutputSchema] = getDefaultListOfFilesOutputSchema()
 	result[config.K_Stage3OutputKey] = defaultListOfFilesOutputKey
