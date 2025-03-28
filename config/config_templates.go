@@ -40,6 +40,8 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage1IndexResponse] = templateString
 	result[K_ImplementStage1AnalysisPrompt] = templateString
 	result[K_ImplementStage1AnalysisJsonModePrompt] = templateString
+	result[K_ImplementTaskStage1AnalysisPrompt] = templateString
+	result[K_ImplementTaskStage1AnalysisJsonModePrompt] = templateString
 	result[K_Stage1OutputSchema] = templateObject
 	result[K_Stage1OutputKey] = templateString
 	result[K_Stage1OutputSchemaName] = templateString
@@ -51,9 +53,13 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage2NoPlanningResponse] = templateString
 	result[K_ImplementStage2ReasoningsPrompt] = templateString
 	result[K_ImplementStage2ReasoningsPromptFinal] = templateString
+	result[K_ImplementTaskStage2ReasoningsPrompt] = templateString
+	result[K_ImplementTaskStage2ReasoningsPromptFinal] = templateString
 	// stage 3
 	result[K_ImplementStage3PlanningPrompt] = templateString
 	result[K_ImplementStage3PlanningJsonModePrompt] = templateString
+	result[K_ImplementTaskStage3PlanningPrompt] = templateString
+	result[K_ImplementTaskStage3PlanningJsonModePrompt] = templateString
 	result[K_ImplementStage3PlanningLitePrompt] = templateString
 	result[K_ImplementStage3PlanningLiteJsonModePrompt] = templateString
 	result[K_Stage3OutputSchema] = templateObject

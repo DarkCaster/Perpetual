@@ -36,6 +36,8 @@ const K_ImplementStage1IndexPrompt = "stage1_index_prompt"
 const K_ImplementStage1IndexResponse = "stage1_index_response"
 const K_ImplementStage1AnalysisPrompt = "stage1_analysis_prompt"
 const K_ImplementStage1AnalysisJsonModePrompt = "stage1_analysis_json_mode_prompt"
+const K_ImplementTaskStage1AnalysisPrompt = "stage1_task_analysis_prompt"
+const K_ImplementTaskStage1AnalysisJsonModePrompt = "stage1_task_analysis_json_mode_prompt"
 
 const K_ImplementStage2CodePrompt = "stage2_code_prompt"
 const K_ImplementStage2CodeResponse = "stage2_code_response"
@@ -43,10 +45,14 @@ const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
 const K_ImplementStage2NoPlanningResponse = "stage2_noplanning_response"
 const K_ImplementStage2ReasoningsPrompt = "stage2_reasonings_prompt"
 const K_ImplementStage2ReasoningsPromptFinal = "stage2_reasonings_prompt_final"
+const K_ImplementTaskStage2ReasoningsPrompt = "stage2_task_reasonings_prompt"
+const K_ImplementTaskStage2ReasoningsPromptFinal = "stage2_task_reasonings_prompt_final"
 
 // Prompt to generate list of files that will be changed, with attaching target files. Used when extra reasonings disabled
 const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"
 const K_ImplementStage3PlanningJsonModePrompt = "stage3_planning_json_mode_prompt"
+const K_ImplementTaskStage3PlanningPrompt = "stage3_task_planning_prompt"
+const K_ImplementTaskStage3PlanningJsonModePrompt = "stage3_task_planning_json_mode_prompt"
 
 // Prompt to generate list of files that will be changed, continuation of stage 2 with reasonings - not attaching target files
 const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
