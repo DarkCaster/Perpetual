@@ -264,6 +264,7 @@ func Run(args []string, logger logging.ILogger) {
 		planningMode,
 		filesToReview,
 		targetFiles,
+		task,
 		logger)
 
 	// Run stage 3 - get list of files to modify

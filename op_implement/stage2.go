@@ -14,6 +14,7 @@ func Stage2(projectRootDir string,
 	planningMode int,
 	filesForReview []string,
 	targetFiles []string,
+	task string,
 	logger logging.ILogger) ([]llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
@@ -79,13 +80,22 @@ func Stage2(projectRootDir string,
 	// When planning mode set to extended mode, create list of files with request
 	// to generate a reasonings/work plan of what needs to be done in order to implement the task
 	if planningMode == 2 {
+		var requestMessage llm.Message
 		// Generate actual request message that will me used with LLM
-		requestMessage := llm.ComposeMessageWithFiles(
-			projectRootDir,
-			cfg.String(config.K_ImplementStage2ReasoningsPrompt),
-			targetFiles,
-			cfg.StringArray(config.K_FilenameTags),
-			logger)
+		if task == "" {
+			requestMessage = llm.ComposeMessageWithFiles(
+				projectRootDir,
+				cfg.String(config.K_ImplementStage2ReasoningsPrompt),
+				targetFiles,
+				cfg.StringArray(config.K_FilenameTags),
+				logger)
+		} else {
+			requestMessage = llm.AddPlainTextFragment(
+				llm.AddPlainTextFragment(
+					llm.NewMessage(llm.UserRequest),
+					config.K_ImplementTaskStage2ReasoningsPrompt),
+				task)
+		}
 		// realMessages message-history will be used for actual LLM prompt
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
 
@@ -130,13 +140,24 @@ func Stage2(projectRootDir string,
 				}
 				continue
 			}
+
+			var finalRequestMessage llm.Message
 			// Add final request message to history - it use simplier instructions that will less likely affect next stages
-			finalRequestMessage := llm.ComposeMessageWithFiles(
-				projectRootDir,
-				cfg.String(config.K_ImplementStage2ReasoningsPromptFinal),
-				targetFiles,
-				cfg.StringArray(config.K_FilenameTags),
-				logger)
+			if task == "" {
+				finalRequestMessage = llm.ComposeMessageWithFiles(
+					projectRootDir,
+					cfg.String(config.K_ImplementStage2ReasoningsPromptFinal),
+					targetFiles,
+					cfg.StringArray(config.K_FilenameTags),
+					logger)
+			} else {
+				finalRequestMessage = llm.AddPlainTextFragment(
+					llm.AddPlainTextFragment(
+						llm.NewMessage(llm.UserRequest),
+						config.K_ImplementTaskStage2ReasoningsPromptFinal),
+					task)
+			}
+
 			messages = append(messages, finalRequestMessage)
 			msgIndexToAddExtraFiles = len(messages) - 1
 			logger.Debugln("Planning request message created")
