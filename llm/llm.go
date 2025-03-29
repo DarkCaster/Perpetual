@@ -11,6 +11,7 @@ import (
 )
 
 const LLMRawLogFile = ".message_log.txt"
+const LLMRawLogFileRotationCount = 5
 
 type QueryStatus int
 
@@ -188,4 +189,9 @@ func GetSimpleRawMessageLogger(perpetualDir string) func(v ...any) {
 		utils.AppendToTextFile(filepath.Join(perpetualDir, LLMRawLogFile), str)
 	}
 	return logFunc
+}
+
+func RotateLLMRawLogFile(perpetualDir string) error {
+	logFilePath := filepath.Join(perpetualDir, LLMRawLogFile)
+	return utils.RotateFiles(logFilePath, LLMRawLogFileRotationCount)
 }

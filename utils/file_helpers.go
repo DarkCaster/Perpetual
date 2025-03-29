@@ -169,6 +169,39 @@ func AppendToTextFile(filePath string, text string) error {
 	return nil
 }
 
+func RotateFiles(baseFilePath string, count int) error {
+	// Check if the base file exists
+	if _, err := os.Stat(baseFilePath); os.IsNotExist(err) {
+		// Base file doesn't exist, nothing to rotate
+		return nil
+	}
+
+	// Remove the oldest rotation file if it exists
+	oldestFile := fmt.Sprintf("%s.%d", baseFilePath, count-1)
+	_ = os.Remove(oldestFile) // Ignore error if file doesn't exist
+
+	// Shift all existing rotation files by one position
+	for i := count - 2; i >= 0; i-- {
+		oldFile := fmt.Sprintf("%s.%d", baseFilePath, i)
+		newFile := fmt.Sprintf("%s.%d", baseFilePath, i+1)
+
+		// Check if the old file exists before attempting to rename
+		if _, err := os.Stat(oldFile); err == nil {
+			if err := os.Rename(oldFile, newFile); err != nil {
+				return fmt.Errorf("failed to rename %s to %s: %w", oldFile, newFile, err)
+			}
+		}
+	}
+
+	// Rename the base file to .0
+	newFile := fmt.Sprintf("%s.0", baseFilePath)
+	if err := os.Rename(baseFilePath, newFile); err != nil {
+		return fmt.Errorf("failed to rename %s to %s: %w", baseFilePath, newFile, err)
+	}
+
+	return nil
+}
+
 func SaveJsonFile(filePath string, v any) error {
 	var writer bytes.Buffer
 	encoder := json.NewEncoder(&writer)
