@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_stash"
@@ -208,6 +209,13 @@ func Run(args []string, logger logging.ILogger) {
 		op_annotate.Run(op_annotate_params, true, logger, logger)
 	} else {
 		logger.Warnln("File-annotations update disabled, this may worsen the final result")
+	}
+
+	if skipStage1 || noAnnotate {
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
 	}
 
 	var filesToReview []string
