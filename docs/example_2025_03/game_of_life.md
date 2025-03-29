@@ -1,12 +1,12 @@
 # Example
 
-Creating a [Conway's Game of Life](https://playgameoflife.com/) simulation in python. In this example we will create simple game of life implementation using task mode, introduced in `v5.0.0`.
+Creating a [Conway's Game of Life](https://playgameoflife.com/) simulation in Python. In this example, we will create a simple Game of Life implementation using task mode, introduced in `v5.0.0`.
 
-First, create new empty directory, all generated code, and other files will be placed there. It is assumed that you perform all operations with `Perpetual` from that working directory.
+First, create a new empty directory. All generated code and other files will be placed there. It is assumed that you perform all operations with `Perpetual` from that working directory.
 
 ## Describe the task
 
-Create text file with description of the future game: `task.md`. In this example we will use markdown formatting. It will be uploaded to the LLM as a part of the query in a text format, so plain text or simple markdown formating (without xml tags) is recommended since it can be recognized by almost any LLM.
+Create a text file with a description of the future game: `task.md`. In this example, we use Markdown formatting. It will be uploaded to the LLM as part of the query in text format, so plain text or simple Markdown formatting (without XML tags) is recommended since it can be recognized by almost any LLM.
 
 ```markdown
 # Create Conway's Game of Life program with pygame library
@@ -45,9 +45,9 @@ Please, implement following predefined patterns in a separate classes:
 
 ## Prepare your project
 
-### Create simple launch script
+### Create a simple launch script
 
-This is just for convenience, you can skip this step
+This is just for convenience, and you can skip this step.
 
 <details>
 <summary>run.sh</summary>
@@ -85,7 +85,7 @@ Generate code by running:
 Perpetual implement -pr -t -i task.md
 ```
 
-**Note:** using extended reasoning mode (`-pr` flag) is recommended for complex tasks or empty projects. It will ask LLM to generate work plan with initial task converted to the step-by-step instructions for the final implementation.
+**Note:** Using extended reasoning mode (`-pr` flag) is recommended for complex tasks or empty projects. It will ask the LLM to generate a work plan with the initial task converted into step-by-step instructions for the final implementation.
 
 **Example Output:**
 
@@ -134,7 +134,7 @@ Perpetual implement -pr -t -i task.md
 
 ## Generated Files
 
-**Note**: Because LLM generation is not deterministic, you may need to run generation multiple times to achieve satisfactory results. This example is a relatively complex task for LLM as of time of writing (march 2025), so smaller local models may not work at all or produce very unstable results. Even `Claude 3.7 Sonnet` sometimes failing to produce fully working code from the first time for such a complex tasks involing generating so much code at once.
+**Note**: Because LLM generation is not deterministic, you may need to run generation multiple times to achieve satisfactory results. This example is a relatively complex task for an LLM as of the time of writing (March 2025), so smaller local models may not work well or may produce very unstable results. Even `Claude 3.7 Sonnet` sometimes fails to produce fully working code on the first try for such complex tasks involving generating a large amount of code at once.
 
 <details>
 <summary>game.py</summary>
