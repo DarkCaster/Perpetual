@@ -26,10 +26,10 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 ### Improvements
 
 - Added support for plain task mode for `implement` operation, task can be sourced via stdin or read from text file. So, in this mode there is no need to describe task with `###IMPLEMENT###` comments within project source code. Perpetual itself can now fully operate under the control of external software (or LLM agent).
-- Removed single-file mode from `implement` operation (`-r` flag), it was rarely used and could also confuse the LLM if it accidently request other files with `###IMPLEMENT###` comments.
+- Removed single-file mode from `implement` operation (`-r` flag), it was rarely used and could also confuse the LLM if it accidentally requests other files with `###IMPLEMENT###` comments.
 - File-names salvaging logic now always enabled for all supported operations (`doc`, `implement`, and `explain`).
 - Changed behavior of listing files to annotate filtered by user supplied blacklist, only file-count displayed, full file-list can be displayed with `-v` flag.
-- Implemented log rotation for LLM mesage-log on each session, it will keep up to 5 previous logs for now.
+- Implemented log rotation for LLM message-log on each session, it will keep up to 5 previous logs for now.
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config file for the `implement` operation.
 
