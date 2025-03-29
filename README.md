@@ -10,7 +10,7 @@ It focuses on direct interaction with the project's codebase, eliminating the ne
 
 `Perpetual` operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
 
-**[TL;DR: Go straight to Example](docs/example.md)**
+**[TL;DR: Go straight to Example](docs/example_1/example.md)**
 
 ## Limitations
 
