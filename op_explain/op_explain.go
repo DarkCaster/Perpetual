@@ -166,6 +166,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error loading annotations:", err)
 	}
 
+	if noAnnotate {
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
+	}
+
 	// Run stage 1
 	requestedFiles := Stage1(projectRootDir,
 		perpetualDir,
