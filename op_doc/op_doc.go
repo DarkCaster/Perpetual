@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/usage"
@@ -176,6 +177,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {
 			logger.Panicln("Error reading annotations:", err)
+		}
+
+		if noAnnotate {
+			logger.Debugln("Rotating log file")
+			if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+				logger.Panicln("Failed to rotate log file:", err)
+			}
 		}
 
 		// Run stage1 to find out what project-files contents we need to work on document
