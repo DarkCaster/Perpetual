@@ -132,7 +132,7 @@ Perpetual implement -pr -t -i task.md
 [121.556] [INF] core.py
 ```
 
-## Generated Files
+#### Generated Files
 
 **Note**: Because LLM generation is not deterministic, you may need to run generation multiple times to achieve satisfactory results. This example is a relatively complex task for an LLM as of the time of writing (March 2025), so smaller local models may not work well or may produce very unstable results. Even `Claude 3.7 Sonnet` sometimes fails to produce fully working code on the first try for such complex tasks involving generating a large amount of code at once.
 
@@ -997,3 +997,15 @@ class Glider(Pattern):
 
 </details>
 
+### Launch the game
+
+According to the sources we need to install pygame and numpy packages. So, create `requirements.txt` with the following content:
+
+```text
+pygame
+numpy
+```
+
+Launch the game with `run.sh` (on Linux), or manually with your own python setup.
+
+![image](example1.gif)
