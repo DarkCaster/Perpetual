@@ -28,7 +28,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Added support for plain task mode for `implement` operation, where the task can be sourced via stdin or read from a text file. In this mode, there is no need to describe the task with `###IMPLEMENT###` comments within project source code. This is an alternative to the original approach where the task was described inside the source code files.
 - Removed single-file mode from `implement` operation (`-r` flag), which was rarely used and could also confuse the LLM if it accidentally requests other files with `###IMPLEMENT###` comments.
 - File-name salvaging logic is now always enabled for all supported operations (`doc`, `implement`, and `explain`).
-- Changed the behavior of listing files to annotate when filtered by a user-supplied blacklist: only the file-count is displayed, and the full file list can be shown with the `-v` flag.
+- Disabled listing of filtered-out files on `annotate` operation when using user-supplied blacklist, only the file-count is displayed now. The full file list can be shown with `-v` flag.
 - Implemented log rotation for the LLM message-log on each session, keeping up to 5 previous logs.
 - Minor prompts improvements for steps that generate file-lists for review.
 
