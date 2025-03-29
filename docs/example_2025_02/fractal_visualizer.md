@@ -602,7 +602,7 @@ require github.com/veandco/go-sdl2 v0.4.40
 There appears to be an issue where the fractal is stretched vertically. Let's address this using the `explain` operation.
 
 ``````text
-echo "Fractal image is stretched vertically. How do I fix it ? Answer shortly" | ../Perpetual/Perpetual explain
+echo "Fractal image is stretched vertically. How do I fix it ? Answer shortly" | Perpetual explain
 [00.000] [INF] Project root directory: /mnt/data/Sources/Fractal
 [00.000] [WRN] Not loading missing env file: /mnt/data/Sources/Fractal/.perpetual/.env
 [00.002] [INF] Loaded env file: /home/user/.config/Perpetual/.env
