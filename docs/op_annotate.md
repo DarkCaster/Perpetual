@@ -1,6 +1,6 @@
 # Annotate Operation
 
-The `annotate` operation is a crucial part of `Perpetual`. It generates annotations for a project's source code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within `Perpetual`. The project index is stored in the `.perpetual` directory as `annotations.json` and is only updated when necessary, saving you costs and time on LLM API access.
+The `annotate` operation is a crucial part of `Perpetual`. It generates annotations for a project's source code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within `Perpetual`. The project index is stored in the `.perpetual` directory as `.annotations.json` and is only updated when necessary, saving you costs and time on LLM API access.
 
 While the `annotate` operation is an essential component of the `Perpetual` workflow, it is not typically necessary to run it manually. Other operations, such as the `implement` operation, automatically trigger the `annotate` operation when needed to ensure that the project's annotations are current before proceeding with their tasks.
 
@@ -48,7 +48,7 @@ The `annotate` operation supports several command-line flags to customize its be
    Perpetual annotate -r path/to/file.go
    ```
 
-When run, the `annotate` operation will process the specified files (or all changed files if no specific file is given) and generate or update their annotations. These annotations are then stored in the project's configuration directory (`.perpetual/annotations.json`) for use by other `Perpetual` operations.
+When run, the `annotate` operation will process the specified files (or all changed files if no specific file is given) and generate or update their annotations. These annotations are then stored in the project's configuration directory (`.perpetual/.annotations.json`) for use by other `Perpetual` operations.
 
 ## Tailoring Annotation Generation for Specific Project Files
 
@@ -175,7 +175,7 @@ When using OpenAI or Anthropic LLMs, you typically don't need to modify the `cod
      - Processes variants according to the selected strategy (combine, select best, etc.)
 
 5. **Annotation Storage:**
-   - Generated annotations are saved to the `annotations.json` file in the `.perpetual` directory.
+   - Generated annotations are saved to the `.perpetual/.annotations.json` file in the project directory.
    - Checksums are updated to reflect the latest state of each annotated file.
 
 If any file fails to be annotated after the specified number of retries, the operation will not stop immediately but will exit with an error after all other files are processed, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
