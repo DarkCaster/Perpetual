@@ -100,7 +100,7 @@ To create source code annotations, use the `annotate` command:
 Perpetual annotate
 ```
 
-**Tip**: Use more affordable models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster because it needs to upload **ALL** suitable source code files from your project to the LLM to generate their summaries. Subsequent annotations will run automatically before other operations and **only re-annotate changed files** to minimize costs. You can also try local LLM models like Qwen 2.5 with Ollama - this is somewhat experimental, but it may provide decent quality annotations if usig model large enough.
+**Tip**: Use more affordable models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster because it needs to upload **ALL** suitable source code files from your project to the LLM to generate their summaries. Subsequent annotations will run automatically before other operations and **only re-annotate changed files** to minimize costs. You can also try local LLM models like Qwen 2.5 with Ollama - this is somewhat experimental, but it may provide decent quality annotations if using model large enough.
 
 ### Writing Code with Perpetual
 
