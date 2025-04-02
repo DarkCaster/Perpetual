@@ -8,7 +8,7 @@ LLM-driven software development assistant.
 
 It focuses on direct interaction with the project's codebase, eliminating the need for additional tools, deployment, or server infrastructure (apart from LLM API access keys). This approach results in a simple and easily deployable tool that can be used directly by developers or integrated into larger AI software development ecosystems.
 
-`Perpetual` operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
+Program operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
 
 **TL;DR: Go straight to Examples**:
 
@@ -23,21 +23,17 @@ It focuses on direct interaction with the project's codebase, eliminating the ne
 
 While `Perpetual` tries to minimize the risk of destructive operations on the user's computer, there is still a small risk involved. The main danger lies in the unintentional modification of source files based on the LLM's responses. To reduce this risk, it automatically backs up the files it attempts to change and creates a `stash` that can be (re)applied or reverted on command.
 
-Since the LLM almost never provides a completely deterministic result, and the quality can vary from one run to the next, you may need to run `Perpetual`'s `implement` operation multiple times to achieve a satisfactory result ([see below how to use it](#writing-code-with-perpetual)).
-
-It's important to remain vigilant and carefully review the changes made by `Perpetual` before integrating them into your codebase.
-
-Note that `Perpetual` is a tool designed mainly to assist programmers, with the primary goal of writing routine code. `Perpetual` is not yet capable of designing the overall project architecture for you, unlike some other similar tools. Instead, `Perpetual` is focused on generating code based on your architectural vision. If you have created a poor architecture in which it is very difficult to create new code, `Perpetual` will likely produce a suboptimal result.
+Since the LLM almost never provides a completely deterministic result, and the quality of generated code can vary from one run to the next, you may need to run `implement` operation multiple times to achieve a satisfactory result ([see below how to use it](#writing-code-with-perpetual)).
 
 ## Requirements
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently, `Perpetual` supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some limitations). If using OpenAI, avoid using GPT-3.5-Turbo and other legacy models with small context windows, as they simply cannot fit the content of the request. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used to offload some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
+Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some limitations). For OpenAI, GPT-4/GPT-4-Turbo is the minimum suitable model, GPT-4o or newer is recommended, reasoning o1,o3/o3-mini models should also work, but may be less consistent. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used for some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
 
-The quality of `Perpetual`'s results directly depends on the LLM used. `Perpetual` allows you to offload different tasks to different models and providers to save on costs. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3 Opus, Claude 3.5 Sonnet, or GPT-4o.
+`Perpetual` allows you to offload different tasks to different models and providers to balance on costs/quality. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3.7 Sonnet, or GPT-4o.
 
-`Perpetual` utilizes the LangChain library for Go, which can be found at the following GitHub project:
+Project utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
 <https://github.com/tmc/langchaingo>
 
@@ -45,7 +41,7 @@ The quality of `Perpetual`'s results directly depends on the LLM used. `Perpetua
 
 ### Obtain API Keys
 
-To get started with `Perpetual`, you need to obtain the necessary API keys to access the LLM models that power its core functionality.
+First you need to obtain the necessary API keys to access the LLM models.
 
 ### Download or Compile Perpetual
 
@@ -53,7 +49,7 @@ Download the latest `Perpetual` executable from GitHub Releases or GitHub Action
 
 ### Configuration
 
-In order to use `Perpetual`, you need to configure it first. See [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual init` (see below), and you will need to add your API keys and select the LLM provider to use as a minimum.
+In order to use the program, you need to configure it first. See [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual init` (see below), and you will need to add your API keys and select the LLM provider to use as a minimum.
 
 ### Command Line Usage
 
@@ -71,7 +67,7 @@ Supported operations:
 
 ### Initialize a New Project
 
-To initialize a new `Perpetual` project, navigate to the root directory of your project in the console and run the following command:
+To initialize a new project, navigate to the root directory of your project in the console and run the following command:
 
 ```sh
 Perpetual init -l <language>
@@ -84,10 +80,10 @@ The `init` command creates a `.perpetual` directory in the root of your project,
 - Automatic backups for source code files it changes
 - LLM chat logs
 
-Additional files created when executing `Perpetual` operations. **DO NOT ADD THESE TO YOUR VCS** — these files are platform-dependent:
+Additional files created when executing program operations. **DO NOT ADD THESE TO YOUR VCS** — these files are platform and instance dependent:
 
 - `.annotations.json` — Current annotations generated for your project files.
-- `.message_log.txt` — Raw LLM interaction log (see below).
+- `.message_log.txt`, `.message_log.txt.0`, `.message_log.txt.1`, etc — Raw LLM interaction logs (see below).
 - `.stash` subdirectory — Contains backups of source code files it changes.
 
 You should be cautious when modifying these settings. You can always rewrite them by running the `init` command in the project root directory again.
@@ -104,7 +100,7 @@ To create source code annotations, use the `annotate` command:
 Perpetual annotate
 ```
 
-**Tip**: Use more affordable models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster because it needs to upload **ALL** suitable source code files from your project to the LLM to generate their summaries. Subsequent annotations will run automatically before other operations and **only re-annotate changed files** to minimize costs.
+**Tip**: Use more affordable models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster because it needs to upload **ALL** suitable source code files from your project to the LLM to generate their summaries. Subsequent annotations will run automatically before other operations and **only re-annotate changed files** to minimize costs. You can also try local LLM models like Qwen 2.5 with Ollama - this is somewhat experimental, but it may provide decent quality annotations if usig model large enough.
 
 ### Writing Code with Perpetual
 
@@ -112,7 +108,7 @@ There are two main ways for code generation:
 
 #### Task Mode
 
-Task mode allows you to directly provide instructions to `Perpetual` without adding special comments to your code. This is particularly useful for complex and abstract tasks, when starting a new project - when your project do not have any structure yet. You can pipe your instruction to `Perpetual` with the `-t` (task) flag:
+Task mode allows you to directly provide instructions to `Perpetual` without adding special comments to your code. This is particularly useful for complex and abstract tasks, when starting a new project - when your project do not have any structure yet. You can pipe your instruction to the assistant with the `-t` (task) flag:
 
 ##### Example
 
@@ -125,7 +121,9 @@ You can also write task in a text file and source it with `-i` flag. See [`imple
 
 #### Using Special Comments
 
-Alternatively `Perpetual` can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command-line flags, it may implement code for all files where the `###IMPLEMENT###` comment is found or only for one specific file. It can also create new files to place the code it generates.
+Alternatively, assistant can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command-line flags, it may be allowed only to write code at the files where the `###IMPLEMENT###` comments present, or it can be also allowed to modify related code or even create new files.
+
+This mode can be used both for smaller routine tasks, and for big complex tasks when you want to specify the exact places where code must be written. When you run `implement` operation without parameters - this mode is selected by default and it only allowed to modify files marked with `###IMPLEMENT###` comments. Also by default, unlike task mode, it minimizes the use of the context window, saving you money and time.
 
 ##### Example
 
@@ -153,13 +151,13 @@ The `report` operation allows you to generate a report from your project's sourc
 
 ### Creating Project Documentation
 
-The `doc` operation in `Perpetual` is designed to assist in creating and refining project documentation. Currently, it can only work with plain-text or markdown-formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is a highly experimental feature, and it will provide good results only with large and sufficiently advanced models. It will also consume more tokens to generate or refine a document than writing code with the `implement` operation.
+The `doc` operation is designed to assist in creating and refining project documentation. Currently, it can only work with plain-text or markdown-formatted files. The operation can be particularly useful for maintaining up-to-date documentation that accurately reflects the current state of your project. This is a highly experimental feature, and it will provide good results only with large and sufficiently advanced models. It will also consume more tokens to generate or refine a document than writing code with the `implement` operation. It may work better or worse with some particular model, using reasoning models here can lead to the document being reformatted and rewritten too much each time.
 
 [See this documentation for more info](docs/op_doc.md)
 
 ### Explaining Project Code
 
-The `explain` operation allows you to ask questions about your project based on thorough source code analysis. `Perpetual` analyzes the relevant parts of your codebase to provide accurate and insightful answers to your queries.
+The `explain` operation allows you to ask questions about your project based on thorough source code analysis. The assistant here using LLM to analyze the relevant parts of your codebase to provide accurate and insightful answers to your queries.
 
 [See this documentation for more info](docs/op_explain.md)
 
