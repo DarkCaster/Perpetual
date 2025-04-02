@@ -4,11 +4,11 @@ LLM-driven software development assistant.
 
 ## Description
 
-`Perpetual` is an LLM-driven software development assistant designed to enhance the productivity and efficiency of software developers. Its primary function is to streamline the coding process by automating the generation and modification of code based on textual descriptions provided by programmers. It achieves this by analyzing the project's codebase and interpreting programmer instructions embedded as special comments. `Perpetual` can generate new code or entities in existing or new files, make changes to existing code, and write or refine documentation.
+`Perpetual` is an LLM-driven software development assistant designed to enhance the productivity and efficiency of software developers. Its primary function is to streamline the coding process by automating the generation and modification of code based on textual descriptions provided by programmers. It achieves this by analyzing the project's codebase and interpreting programmer instructions embedded as special comments or by reading tasks directly from text files or standard input. `Perpetual` can generate new code or entities in existing or new files, make changes to existing code, write or refine documentation, explain the code and provide answers according to queries.
 
-It focuses on direct interaction with the project's codebase, eliminating the need for additional tools, deployment, or server infrastructure (apart from LLM API access keys). This approach results in a simple and easily deployable tool that can be used directly by developers or integrated into larger AI software development ecosystems.
+The program works from the command-line and does not require complex installation, frontend/backend or containerization. It focuses on direct interaction with the project's codebase, eliminating the need for additional tools, deployment, or server infrastructure (apart from LLM API access keys). This approach results in a simple and easily deployable tool that can be used directly by developers or integrated into larger AI software development ecosystems. Main operations of the program support reading input from stdin and writing easily-parsable output to stdout (with redirecting logs to stderr). So it can be easily used with multi-agent systems as a main tool for writing code and planning project architecture.
 
-Program operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
+The program operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
 
 **TL;DR: Go straight to Examples**:
 
@@ -29,11 +29,11 @@ Since the LLM almost never provides a completely deterministic result, and the q
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some limitations). For OpenAI, GPT-4/GPT-4-Turbo is the minimum suitable model, GPT-4o or newer is recommended, reasoning o1,o3/o3-mini models should also work, but may be less consistent. For Anthropic, Claude 3 Haiku is the minimum suitable model. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used for some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
+Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some minor limitations). For OpenAI, GPT-4/GPT-4-Turbo is the minimum suitable model, GPT-4o is recommended. For Anthropic, Claude 3 Haiku is the minimum suitable model, with Claude 3.7 Sonnet recommended for more complex tasks. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used for some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
 
-`Perpetual` allows you to offload different tasks to different models and providers to balance on costs/quality. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3.7 Sonnet, or GPT-4o.
+It also allows you to offload different tasks to different models and providers to balance costs and quality. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3.7 Sonnet, or GPT-4o.
 
-Project utilizes the LangChain library for Go, which can be found at the following GitHub project:
+Project internally utilizes the LangChain library for Go, which can be found at the following GitHub project:
 
 <https://github.com/tmc/langchaingo>
 
