@@ -41,7 +41,6 @@ The quality of `Perpetual`'s results directly depends on the LLM used. `Perpetua
 
 <https://github.com/tmc/langchaingo>
 
-
 ## Getting Started
 
 ### Obtain API Keys
@@ -64,7 +63,7 @@ Supported operations:
 
 - [`init`: Initialize a new `.perpetual` directory to store the configuration](docs/op_init.md)
 - [`annotate`: Generate annotations for project files](docs/op_annotate.md)
-- [`implement`: Implement code according to instructions marked with `###IMPLEMENT###` comments](docs/op_implement.md)
+- [`implement`: Implement code according to task or instructions marked with `###IMPLEMENT###` comments](docs/op_implement.md)
 - [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
 - [`report`: Create a report from project source code that can be manually uploaded into the LLM for use as a knowledge base or for manual analysis](docs/op_report.md)
 - [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
@@ -109,9 +108,26 @@ Perpetual annotate
 
 ### Writing Code with Perpetual
 
-The key function of `Perpetual` is to assist you in writing code for your project. `Perpetual` can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command-line flags, it may implement code for all files where the `###IMPLEMENT###` comment is found or only for one specific file. It can also create new files to place the code it generates.
+There are two main ways for code generation:
 
-#### Example
+#### Task Mode
+
+Task mode allows you to directly provide instructions to `Perpetual` without adding special comments to your code. This is particularly useful for complex and abstract tasks, when starting a new project - when your project do not have any structure yet. You can pipe your instruction to `Perpetual` with the `-t` (task) flag:
+
+##### Example
+
+```sh
+Perpetual init -l python3
+echo "write me a simple snake game with pygame" | Perpetual implement -pr -t
+```
+
+You can also write task in a text file and source it with `-i` flag. See [`implement` operation reference for more info](docs/op_implement.md).
+
+#### Using Special Comments
+
+Alternatively `Perpetual` can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command-line flags, it may implement code for all files where the `###IMPLEMENT###` comment is found or only for one specific file. It can also create new files to place the code it generates.
+
+##### Example
 
 ```go
 func ParseCustomer(jsonMessage string) (Customer, error) {
@@ -128,8 +144,6 @@ Then, run `Perpetual` with the `implement` operation:
 ```sh
 Perpetual implement
 ```
-
-[See this documentation for more info](docs/op_implement.md)
 
 ### Generating Project Report for Manual Use with LLM
 
