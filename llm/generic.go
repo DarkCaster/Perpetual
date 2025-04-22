@@ -300,6 +300,14 @@ func NewGenericLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *GenericLLMConnector) GetEmbeddingsEnabled() bool {
+	return false
+}
+
+func (p *GenericLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
+	return QueryInitFailed, errors.New("TODO")
+}
+
 func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")

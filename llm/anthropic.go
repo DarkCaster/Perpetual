@@ -189,6 +189,14 @@ func NewAnthropicLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *AnthropicLLMConnector) GetEmbeddingsEnabled() bool {
+	return false
+}
+
+func (p *AnthropicLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
+	return QueryInitFailed, errors.New("TODO")
+}
+
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")

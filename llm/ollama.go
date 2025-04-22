@@ -322,6 +322,14 @@ func NewOllamaLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *OllamaLLMConnector) GetEmbeddingsEnabled() bool {
+	return false
+}
+
+func (p *OllamaLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
+	return QueryInitFailed, errors.New("TODO")
+}
+
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")

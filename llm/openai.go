@@ -220,6 +220,14 @@ func processOpenAISchema(target map[string]interface{}) {
 	}
 }
 
+func (p *OpenAILLMConnector) GetEmbeddingsEnabled() bool {
+	return false
+}
+
+func (p *OpenAILLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
+	return QueryInitFailed, errors.New("TODO")
+}
+
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
 
 func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
