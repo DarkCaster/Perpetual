@@ -157,7 +157,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	annotationsFilePath := filepath.Join(perpetualDir, utils.AnnotationsFileName)
 	var filesToAnnotate []string
 	if !force {
-		filesToAnnotate, err = utils.GetChangedFiles(annotationsFilePath, fileChecksums)
+		filesToAnnotate, err = utils.GetChangedAnnotations(annotationsFilePath, fileChecksums)
 		if err != nil {
 			logger.Panicln("error getting changed files:", err)
 		}

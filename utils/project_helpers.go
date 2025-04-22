@@ -105,7 +105,7 @@ func GetAnnotations(filePath string, filenames []string) (map[string]string, err
 	return result, nil
 }
 
-func GetChangedFiles(annotationsFilePath string, fileChecksums map[string]string) ([]string, error) {
+func GetChangedAnnotations(annotationsFilePath string, fileChecksums map[string]string) ([]string, error) {
 	var annotations annotationEntries
 	err := LoadJsonFile(annotationsFilePath, &annotations)
 	if err != nil {
