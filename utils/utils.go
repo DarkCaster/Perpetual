@@ -13,6 +13,7 @@ import (
 
 const DotEnvFileName = ".env"
 const AnnotationsFileName = ".annotations.json"
+const EmbeddingsFileName = ".embeddings.json"
 const StashesDirName = ".stash"
 
 func FindProjectRoot(logger logging.ILogger) (string, string, error) {
