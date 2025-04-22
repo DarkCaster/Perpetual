@@ -32,6 +32,26 @@ func (entries annotationEntries) Swap(i, j int) {
 	entries[i], entries[j] = entries[j], entries[i]
 }
 
+type embeddingEntry struct {
+	Filename string      `json:"filename"`
+	Checksum string      `json:"checksum"`
+	Vectors  [][]float64 `json:"vectors"`
+}
+
+type embeddingEntries []embeddingEntry
+
+func (entries embeddingEntries) Len() int {
+	return len(entries)
+}
+
+func (entries embeddingEntries) Less(i, j int) bool {
+	return entries[i].Filename < entries[j].Filename
+}
+
+func (entries embeddingEntries) Swap(i, j int) {
+	entries[i], entries[j] = entries[j], entries[i]
+}
+
 func SaveAnnotations(filePath string, checksums map[string]string, annotations map[string]string) error {
 	var entries annotationEntries
 	for filename, checksum := range checksums {
