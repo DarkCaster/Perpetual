@@ -81,14 +81,16 @@ func NewLLMConnector(operation string,
 	if operation == "" {
 		return nil, errors.New("operation name is empty")
 	}
-	if systemPrompt == "" {
-		return nil, errors.New("system prompt is empty")
-	}
-	if systemPromptAck == "" {
-		return nil, errors.New("system prompt acknowledge is empty")
-	}
-
 	operation = strings.ToUpper(operation)
+
+	if operation != "EMBED" {
+		if systemPrompt == "" {
+			return nil, errors.New("system prompt is empty")
+		}
+		if systemPromptAck == "" {
+			return nil, errors.New("system prompt acknowledge is empty")
+		}
+	}
 
 	provider, err := utils.GetEnvUpperString(
 		fmt.Sprintf("LLM_PROVIDER_OP_%s", operation),
