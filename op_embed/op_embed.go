@@ -2,7 +2,10 @@ package op_embed
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -20,19 +23,22 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-	var help, force, verbose, trace, includeTests bool
+	var help, force, dryRun, verbose, trace bool
 	var requestedFile, userFilterFile string
 
 	flags := embedFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&force, "f", false, "Force regeneration of embeddings for all files, even if they are up to date")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
+	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating embeddings, list of files that will be processed")
 	flags.StringVar(&requestedFile, "r", "", "Only generate embeddings for single file provided with this flag, even if its embedding is already up to date (implies -f flag)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
+	if dryRun {
+		logger = stdErrLogger
+	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}
@@ -48,6 +54,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
+	if requestedFile != "" {
+		force = true
+	}
+
 	outerCallLogger := logger.Clone()
 	if innerCall {
 		outerCallLogger.DisableLevel(logging.ErrorLevel)
@@ -55,8 +65,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		outerCallLogger.DisableLevel(logging.InfoLevel)
 	}
 
-	// Find project root and perpetual directories
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}
@@ -66,36 +75,57 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error finding perpetual config directory:", err)
 	}
 
-	logger.Infoln("Project root directory:", projectRootDir)
-	logger.Debugln("Perpetual directory:", perpetualDir)
+	outerCallLogger.Infoln("Project root directory:", projectRootDir)
+	outerCallLogger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
+	if innerCall {
+		logger.Debugln("Not re-loading env files for inner call of embed operation")
+	} else {
+		utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
+	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {
 		logger.Panicf("Error loading project config: %s", err)
 	}
 
-	projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
-
-	if userFilterFile != "" {
-		projectFilesBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, projectFilesBlacklist)
-		if err != nil {
-			logger.Panicln("Error appending user blacklist-filter:", err)
+	// Create llm connector for generating embeddings early
+	// So we can stop right here if embeddings not supported or disabled
+	connector, err := llm.NewLLMConnector(OpName, "", "",
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		map[string]interface{}{}, "", "",
+		llm.GetSimpleRawMessageLogger(perpetualDir))
+	if err != nil {
+		if innerCall {
+			logger.Debugf("Failed to create LLM connector for embed operation:", err)
+			logger.Infoln("Embeddings not available, LLM is not configured properly")
+			return
+		} else {
+			logger.Panicln("Failed to create LLM connector:", err)
 		}
 	}
 
-	if !includeTests {
-		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
+	if !connector.GetEmbeddingsEnabled() {
+		logger.Infoln(connector.GetDebugString())
+		logger.Infoln("Embeddings generation not enabled or configured properly with selected LLM provider")
+		return
 	}
 
-	// Get project files, which names selected with whitelist regexps and filtered with blacklist regexps
-	logger.Infoln("Fetching project files")
+	var userBlacklist []*regexp.Regexp
+	if userFilterFile != "" {
+		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
+		if err != nil {
+			logger.Panicln("Error processing user blacklist-filter:", err)
+		}
+	}
+
+	// Preparation of project files
+	outerCallLogger.Infoln("Fetching project files")
 	fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
-		projectFilesBlacklist)
+		projectConfig.RegexpArray(config.K_ProjectFilesBlacklist))
 
 	if err != nil {
 		logger.Panicln("Error getting project file-list:", err)
@@ -110,7 +140,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	// Calculate file checksums
 	logger.Infoln("Calculating checksums for project files")
 	fileChecksums, err := utils.CalculateFilesChecksums(projectRootDir, fileNames)
 	if err != nil {
@@ -143,64 +172,95 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		}
 	}
 
-	//STRIP THE REST to separate funcsion
+	oldChecksums := utils.GetChecksumsFromEmbeddings(embeddingsFilePath, fileNames)
 
-	// Create llm connector for generating embeddings
-	connector, err := llm.NewLLMConnector(OpName, "", "",
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{}, "", "",
-		llm.GetSimpleRawMessageLogger(perpetualDir))
-	if err != nil {
-		logger.Panicln("Failed to create LLM connector:", err)
+	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
+	filesToEmbed, droppedFiles := utils.FilterFilesWithBlacklist(filesToEmbed, userBlacklist)
+	if len(droppedFiles) > 0 {
+		logger.Infoln("Number of files to embed, filtered by user-provided blacklist:", len(droppedFiles))
+	}
+	for _, file := range droppedFiles {
+		fileChecksums[file] = oldChecksums[file]
+		logger.Debugln("Filtered-out:", file)
 	}
 
-	// TODO: Generate embeddings for each file
-	// This would involve:
-	// 1. Reading file contents
-	// 2. Generating embeddings (using a vector embedding model)
-	// 3. Storing embeddings in a structured format
+	if dryRun {
+		logger.Infoln("Files to embed:")
+		for _, file := range filesToEmbed {
+			fmt.Println(file)
+		}
+		os.Exit(0)
+	}
 
 	logger.Infoln("Generating embeddings, file count:", len(filesToEmbed))
 
-	if len(filesToEmbed) > 0 && connector.GetVariantCount() <= 1 {
+	if len(filesToEmbed) > 0 {
 		logger.Infoln(connector.GetDebugString())
+
+		// only rotate logfile for outer call if we have files to proceed
+		if !innerCall {
+			logger.Debugln("Rotating log file")
+			if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+				logger.Panicln("Failed to rotate log file:", err)
+			}
+		}
 	}
 
-	// Placeholder for embeddings generation
-	// In a real implementation, this would call an embedding service or library
-	embeddings := make(map[string][]float32)
-	for _, file := range filesToEmbed {
-		logger.Debugln("Processing file:", file)
-
-		// Read file contents
-		/*fileContent*/
-		_, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
+	errorFlag := false
+	newEmbeddings := make(map[string][][]float64)
+	for i, filePath := range filesToEmbed {
+		// Read file contents and generate embedding
+		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
-			logger.Errorf("Failed to read file %s: %s", file, err)
+			logger.Errorf("Failed to read file %s: %s", filePath, err)
 			continue
 		}
-
-		// Get file annotation
-		//annotation := annotations[file]
-
-		// Combine content and annotation for better semantic representation
-		//combinedText := annotation + "\n" + fileContent
-
-		// TODO: Generate actual embeddings
-		// This is a placeholder - in a real implementation, you would call an embedding model
-		// embeddings[file] = generateEmbedding(combinedText)
-
-		// For now, just create a dummy embedding
-		dummyEmbedding := make([]float32, 5)
-		embeddings[file] = dummyEmbedding
+		fileContents := string(fileBytes)
+		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
+		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+			logger.Infof("%d: %s", i+1, filePath)
+			//TODO: get actual embeddings
+			status, err := connector.CreateEmbeddings(fileContents)
+			// Check for general error on query
+			if err != nil {
+				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
+				if onFailRetriesLeft < 1 {
+					fileChecksums[filePath] = oldChecksums[filePath]
+					errorFlag = true
+				}
+				continue
+			}
+			// Check for hitting token limit, ideally should not occur at all for embedding models
+			if status == llm.QueryMaxTokens {
+				logger.Errorln("LLM response(s) reached max tokens, that's probably an error with configuration of embedding model")
+				// do not retry, go to the next file
+				fileChecksums[filePath] = oldChecksums[filePath]
+				errorFlag = true
+				break
+			}
+			//TODO: save actual embeddings
+			newEmbeddings[filePath] = [][]float64{}
+			break
+		}
 	}
 
-	// TODO: Save embeddings to file
-	logger.Infoln("Saving embeddings to", embeddingsFilePath)
+	embeddings, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
+	if err != nil {
+		logger.Panicln("Failed to read old embeddings:", err)
+	}
 
-	// Placeholder for saving embeddings
-	// In a real implementation, this would serialize the embeddings to JSON
-	// and save them to the specified file
+	// Copy new embeddings back to old embeddings
+	for element := range newEmbeddings {
+		embeddings[element] = newEmbeddings[element]
+	}
 
-	logger.Infoln("Embedding generation complete")
+	// Save updated embeddings
+	logger.Infoln("Saving embeddings")
+	if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, embeddings); err != nil {
+		logger.Panicln("Failed to save embeddings:", err)
+	}
+
+	if errorFlag {
+		logger.Panicln("Not all files were successfully processed. Run embed again to process failed files.")
+	}
 }
