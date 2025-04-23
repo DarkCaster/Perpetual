@@ -9,6 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
+	"github.com/DarkCaster/Perpetual/op_embed"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -169,13 +170,16 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		if !noAnnotate {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
 			op_annotate_params := []string{}
+			op_embed_params := []string{}
 			if userFilterFile != "" {
 				op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
+				op_embed_params = append(op_embed_params, "-x", userFilterFile)
 			}
 			if contextSaving != "AUTO" {
 				op_annotate_params = append(op_annotate_params, "-c", contextSaving)
 			}
 			op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
+			op_embed.Run(op_embed_params, true, logger, stdErrLogger)
 		}
 
 		// Load annotations needed for stage1
