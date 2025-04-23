@@ -201,7 +201,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	errorFlag := false
-	newEmbeddings := make(map[string][][]float64)
+	newEmbeddings := make(map[string][][]float32)
 	for i, filePath := range filesToEmbed {
 		// Read file contents and generate embedding
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
@@ -234,7 +234,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				break
 			}
 			//TODO: save actual embeddings
-			newEmbeddings[filePath] = [][]float64{}
+			newEmbeddings[filePath] = [][]float32{}
 			break
 		}
 	}

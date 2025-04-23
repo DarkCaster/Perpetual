@@ -35,7 +35,7 @@ func (entries annotationEntries) Swap(i, j int) {
 type embeddingEntry struct {
 	Filename string      `json:"filename"`
 	Checksum string      `json:"checksum"`
-	Vectors  [][]float64 `json:"vectors"`
+	Vectors  [][]float32 `json:"vectors"`
 }
 
 type embeddingEntries []embeddingEntry
@@ -129,7 +129,7 @@ func GetChangedAnnotations(annotationsFilePath string, fileChecksums map[string]
 	return changedFiles, nil
 }
 
-func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map[string][][]float64) error {
+func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map[string][][]float32) error {
 	var entries embeddingEntries
 	for filename, checksum := range checksums {
 		vectors, ok := embeddings[filename]
@@ -151,17 +151,17 @@ func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map
 	return nil
 }
 
-func GetEmbeddings(filePath string, filenames []string) (map[string][][]float64, error) {
+func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, error) {
 	var embeddings embeddingEntries
 	err := LoadJsonFile(filePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
 
-	result := make(map[string][][]float64)
+	result := make(map[string][][]float32)
 
 	for _, filename := range filenames {
-		var embedding [][]float64
+		var embedding [][]float32
 		found := false
 
 		for _, entry := range embeddings {
