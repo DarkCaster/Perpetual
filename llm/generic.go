@@ -112,7 +112,11 @@ func NewGenericLLMConnectorFromEnv(
 		streaming = 0
 	}
 
-	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
+	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
+	if operation == "EMBED" {
+		envVars = []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation)}
+	}
+	model, err := utils.GetEnvString(envVars...)
 	if err != nil {
 		return nil, err
 	}
