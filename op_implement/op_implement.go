@@ -192,6 +192,11 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
+	logger.Debugln("Rotating log file")
+	if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+		logger.Panicln("Failed to rotate log file:", err)
+	}
+
 	// Check if target files includes all project files, and run annotate if needed
 	skipStage1 := false
 	if len(targetFiles) == len(fileNames) {
@@ -209,13 +214,6 @@ func Run(args []string, logger logging.ILogger) {
 		op_annotate.Run(op_annotate_params, true, logger, logger)
 	} else {
 		logger.Warnln("File-annotations update disabled, this may worsen the final result")
-	}
-
-	if skipStage1 || noAnnotate {
-		logger.Debugln("Rotating log file")
-		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
-			logger.Panicln("Failed to rotate log file:", err)
-		}
 	}
 
 	var filesToReview []string

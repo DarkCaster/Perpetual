@@ -129,6 +129,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		if contextSaving != "AUTO" {
 			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
 		}
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
 		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 		// Load annotations
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)

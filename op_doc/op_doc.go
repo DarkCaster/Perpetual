@@ -161,6 +161,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Document content is empty, please provide at least a minimal draft to proceed")
 		}
 
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
+
 		if !noAnnotate {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
 			op_annotate_params := []string{}
@@ -177,13 +182,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {
 			logger.Panicln("Error reading annotations:", err)
-		}
-
-		if noAnnotate {
-			logger.Debugln("Rotating log file")
-			if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
-				logger.Panicln("Failed to rotate log file:", err)
-			}
 		}
 
 		// Run stage1 to find out what project-files contents we need to work on document

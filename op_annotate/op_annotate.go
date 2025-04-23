@@ -199,11 +199,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	logger.Debugln("Rotating log file")
-	if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
-		logger.Panicln("Failed to rotate log file:", err)
-	}
-
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
@@ -240,6 +235,13 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Infoln(connector.GetDebugString())
 		logger.Infoln("Annotate LLM config for post-processing:")
 		logger.Infoln(connectorPost.GetDebugString())
+	}
+
+	if !innerCall && len(filesToAnnotate) > 0 {
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
 	}
 
 	logger.Debugln("Sorting files according to sizes")
