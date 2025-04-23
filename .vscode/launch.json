@@ -21,6 +21,14 @@
 			"args": ["embed","-vv","-f"],
 		},
 		{
+			"name": "Launch Package: embed (big file)",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["embed","-vv","-r","utils/tag_parsing_test.go"],
+		},
+		{
 			"name": "Launch Package: brief report",
 			"type": "go",
 			"request": "launch",
