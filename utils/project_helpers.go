@@ -171,6 +171,24 @@ func GetChecksumsFromAnnotations(annotationsFilePath string, files []string) map
 	return annotationChecksums
 }
 
+func GetChecksumsFromEmbeddings(embeddingsFilePath string, files []string) map[string]string {
+	var embeddings embeddingEntries
+	err := LoadJsonFile(embeddingsFilePath, &embeddings)
+	if err != nil {
+		embeddings = nil
+	}
+
+	embeddingChecksums := make(map[string]string)
+	for _, file := range files {
+		embeddingChecksums[file] = "error"
+	}
+	for _, entry := range embeddings {
+		embeddingChecksums[entry.Filename] = entry.Checksum
+	}
+
+	return embeddingChecksums
+}
+
 // Recursively get project files, starting from projectRootDir
 // Return values:
 // - filenames filtered with whitelist and blacklist (relative to projectRootDir)
