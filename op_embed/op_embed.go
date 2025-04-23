@@ -218,9 +218,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			// Check for general error on query
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
-				if onFailRetriesLeft < 1 {
+				if status == llm.QueryInitFailed || onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = oldChecksums[filePath]
 					errorFlag = true
+					break
 				}
 				continue
 			}
