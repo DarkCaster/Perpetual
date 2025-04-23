@@ -337,8 +337,117 @@ func NewOllamaLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *OllamaLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
-	return QueryInitFailed, errors.New("TODO")
+func (p *OllamaLLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+	if len(content) < 1 {
+		//return no embeddings for empty content
+		return [][]float32{}, QueryOk, nil
+	}
+
+	ollamaOptions := utils.NewSlice(ollama.WithModel(p.Model))
+	if p.BaseURL != "" {
+		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
+	}
+
+	transformers := []requestTransformer{}
+	if len(p.Auth) > 0 && p.AuthType == Bearer {
+		transformers = append(transformers, newTokenAuthTransformer(p.Auth))
+	} else {
+		transformers = append(transformers, newBasicAuthTransformer(p.Auth))
+	}
+
+	if len(p.OptionsToRemove) > 0 {
+		transformers = append(transformers, newInnerBodyValuesRemover([]string{"options"}, p.OptionsToRemove))
+	}
+
+	statusCodeCollector := newStatusCodeCollector()
+
+	//TODO: create response streamer analog
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
+	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
+
+	model, err := ollama.New(ollamaOptions...)
+	if err != nil {
+		return [][]float32{}, QueryInitFailed, err
+	}
+
+	//TODO: split content into chunks
+	chunks := []string{content}
+
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+	}
+
+	//TODO: log something to messages.log to indicate progress
+
+	// Perform LLM query
+	embeddings, err := model.CreateEmbedding(
+		context.Background(),
+		chunks,
+	)
+
+	// Process status codes, probably not applicable for private ollama instances
+	// but still may be used with public instances wrapped with https reverse-proxy
+	switch statusCodeCollector.StatusCode {
+	case 429:
+		// rate limit hit, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return [][]float32{}, QueryFailed, err
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
+	case 503:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return [][]float32{}, QueryFailed, err
+	}
+
+	//handle regular errors
+	if err != nil {
+		return [][]float32{}, QueryFailed, err
+	}
+
+	//TODO: handle errors detected while processing response with custom response reader
+
+	//reset rate limit delay
+	p.RateLimitDelayS = 0
+
+	if len(embeddings) < 1 {
+		return [][]float32{}, QueryFailed, errors.New("no vectors generated for source chunks")
+	}
+
+	for i, vector := range embeddings {
+		if len(vector) < 1 {
+			return [][]float32{}, QueryFailed, fmt.Errorf("invalid vector generated for chunk #%d", i)
+		}
+	}
+
+	return embeddings, QueryOk, nil
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
