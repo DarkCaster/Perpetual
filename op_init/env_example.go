@@ -22,6 +22,7 @@ const DotEnvExample = `# The following example contains all currently supported 
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
 # LLM_PROVIDER_OP_ANNOTATE_POST="anthropic"
+# LLM_PROVIDER_OP_EMBED="ollama"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE1="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE2="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE3="anthropic"
@@ -51,6 +52,7 @@ LLM_PROVIDER="anthropic"
 
 
 # Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
+# NOTE: Anthropic provider has no embedding models (as for Apr 2025)
 
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
@@ -289,6 +291,7 @@ OPENAI_TEMPERATURE="0.5"
 
 OLLAMA_MODEL_OP_ANNOTATE="qwen2.5-coder:7b-instruct-q5_K_M"
 OLLAMA_MODEL_OP_ANNOTATE_POST="qwen2.5-coder:7b-instruct-q5_K_M" # used to process multiple response-variants if any
+OLLAMA_MODEL_OP_EMBED="snowflake-arctic-embed2" # embedding model currently do not have any other settings, you should use modelfile to customize it
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:14b-instruct-q4_K_M"
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="qwen2.5-coder:14b-instruct-q4_K_M"
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="qwen2.5-coder:14b-instruct-q4_K_M"
