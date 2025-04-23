@@ -193,8 +193,8 @@ func NewAnthropicLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *AnthropicLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
-	return QueryInitFailed, errors.New("TODO")
+func (p *AnthropicLLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+	return [][]float32{}, QueryInitFailed, errors.New("TODO")
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {

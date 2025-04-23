@@ -224,8 +224,8 @@ func processOpenAISchema(target map[string]interface{}) {
 	}
 }
 
-func (p *OpenAILLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
-	return QueryInitFailed, errors.New("TODO")
+func (p *OpenAILLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+	return [][]float32{}, QueryInitFailed, errors.New("TODO")
 }
 
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
