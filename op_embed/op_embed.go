@@ -97,8 +97,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		if innerCall {
-			logger.Debugf("Failed to create LLM connector for embed operation:", err)
-			logger.Infoln("Embeddings not available, LLM is not configured properly")
+			logger.Debugln("Failed to create LLM connector for embed operation:", err)
+			logger.Infoln("Embedding model is not available, LLM is not configured properly")
 			return
 		} else {
 			logger.Panicln("Failed to create LLM connector:", err)
