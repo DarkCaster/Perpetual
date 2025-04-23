@@ -13,6 +13,14 @@
 			"args": ["annotate","-vv","-f"],
 		},
 		{
+			"name": "Launch Package: embed",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["embed","-vv","-f"],
+		},
+		{
 			"name": "Launch Package: brief report",
 			"type": "go",
 			"request": "launch",
