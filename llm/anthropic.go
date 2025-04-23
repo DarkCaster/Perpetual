@@ -193,10 +193,6 @@ func NewAnthropicLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *AnthropicLLMConnector) GetEmbeddingsEnabled() bool {
-	return false
-}
-
 func (p *AnthropicLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
 	return QueryInitFailed, errors.New("TODO")
 }

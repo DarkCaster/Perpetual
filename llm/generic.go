@@ -304,10 +304,6 @@ func NewGenericLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *GenericLLMConnector) GetEmbeddingsEnabled() bool {
-	return false
-}
-
 func (p *GenericLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
 	return QueryInitFailed, errors.New("TODO")
 }

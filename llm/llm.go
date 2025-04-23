@@ -56,7 +56,6 @@ const (
 type LLMConnector interface {
 	// Generate embeddings
 	CreateEmbeddings(content string) (QueryStatus, error) //TODO: will be updated
-	GetEmbeddingsEnabled() bool
 	// Generate text messages
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit

@@ -337,10 +337,6 @@ func NewOllamaLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *OllamaLLMConnector) GetEmbeddingsEnabled() bool {
-	return false
-}
-
 func (p *OllamaLLMConnector) CreateEmbeddings(content string) (QueryStatus, error) {
 	return QueryInitFailed, errors.New("TODO")
 }
