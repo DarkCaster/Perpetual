@@ -129,6 +129,28 @@ func GetChangedAnnotations(annotationsFilePath string, fileChecksums map[string]
 	return changedFiles, nil
 }
 
+func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map[string][][]float64) error {
+	var entries embeddingEntries
+	for filename, checksum := range checksums {
+		vectors, ok := embeddings[filename]
+		if !ok {
+			continue
+		}
+		entry := embeddingEntry{
+			Filename: filename,
+			Checksum: checksum,
+			Vectors:  vectors,
+		}
+		entries = append(entries, entry)
+	}
+	sort.Sort(entries)
+	err := SaveJsonFile(filePath, entries)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetEmbeddings(filePath string, filenames []string) (map[string][][]float64, error) {
 	var embeddings embeddingEntries
 	err := LoadJsonFile(filePath, &embeddings)
