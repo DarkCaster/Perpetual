@@ -98,17 +98,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if err != nil {
 		if innerCall {
 			logger.Debugln("Failed to create LLM connector for embed operation:", err)
-			logger.Infoln("Embedding model is not available, LLM is not configured properly")
+			logger.Infoln("Embedding model is not configured or not available for selected LLM provider")
 			return
 		} else {
 			logger.Panicln("Failed to create LLM connector:", err)
 		}
-	}
-
-	if !connector.GetEmbeddingsEnabled() {
-		logger.Infoln(connector.GetDebugString())
-		logger.Infoln("Embeddings generation not enabled or configured properly with selected LLM provider")
-		return
 	}
 
 	var userBlacklist []*regexp.Regexp
