@@ -1,4 +1,5 @@
 /.env
 /.annotations.json
+/.embeddings.json
 /.message_log.txt*
 /.stash
