@@ -143,3 +143,31 @@ func GetOddRegexps(arr []*regexp.Regexp) []*regexp.Regexp {
 	}
 	return oddIndexElements
 }
+
+func SplitTextToChunks(sourceText string, chunkSize, chunkOverlap int) []string {
+	if chunkOverlap >= chunkSize {
+		return []string{sourceText}
+	}
+
+	sourceRunes := []rune(sourceText)
+	// single chunk text
+	if len(sourceRunes) <= chunkSize {
+		return []string{sourceText}
+	}
+
+	result := []string{}
+	//copy source runes chunk by chunk, mind the overlap from start
+	//leave the last chunk untouched
+	for len(sourceRunes) > chunkSize {
+		//copy chunk from start
+		result = append(result, string(sourceRunes[:chunkSize]))
+		skip := chunkSize - chunkOverlap
+		if len(sourceRunes)-skip < chunkSize {
+			skip = len(sourceRunes) - chunkSize
+		}
+		sourceRunes = sourceRunes[skip:]
+	}
+	//sourceRunes slice now contains full chunk, add it and return
+	result = append(result, string(sourceRunes))
+	return result
+}
