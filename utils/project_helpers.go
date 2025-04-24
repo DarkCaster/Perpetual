@@ -144,7 +144,7 @@ func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map
 		entries = append(entries, entry)
 	}
 	sort.Sort(entries)
-	err := SaveJsonFile(filePath, entries)
+	err := SaveMsgPackFile(filePath, entries)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map
 
 func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, error) {
 	var embeddings embeddingEntries
-	err := LoadJsonFile(filePath, &embeddings)
+	err := LoadMsgPackFile(filePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
@@ -184,7 +184,7 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 
 func GetChangedEmbeddings(embeddingsFilePath string, fileChecksums map[string]string) ([]string, error) {
 	var embeddings embeddingEntries
-	err := LoadJsonFile(embeddingsFilePath, &embeddings)
+	err := LoadMsgPackFile(embeddingsFilePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
@@ -226,7 +226,7 @@ func GetChecksumsFromAnnotations(annotationsFilePath string, files []string) map
 
 func GetChecksumsFromEmbeddings(embeddingsFilePath string, files []string) map[string]string {
 	var embeddings embeddingEntries
-	err := LoadJsonFile(embeddingsFilePath, &embeddings)
+	err := LoadMsgPackFile(embeddingsFilePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
