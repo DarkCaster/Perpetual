@@ -161,12 +161,22 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			}
 			filesToEmbed = utils.NewSlice(requestedFile)
 		} else {
+			//TODO: remove all current possibly inconsistent embeddings
 			filesToEmbed = utils.NewSlice(fileNames...)
 			sort.Strings(filesToEmbed)
 		}
 	}
 
 	oldChecksums := utils.GetChecksumsFromEmbeddings(embeddingsFilePath, fileNames)
+
+	//load old embeddings file
+	embeddings, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
+	if err != nil {
+		logger.Panicln("Failed to read old embeddings:", err)
+	}
+
+	//TODO: detect vector dimension-count and check consistency
+	vectorDimensions := 0
 
 	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
 	filesToEmbed, droppedFiles := utils.FilterFilesWithBlacklist(filesToEmbed, userBlacklist)
@@ -232,15 +242,29 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				errorFlag = true
 				break
 			}
-			//TODO: save actual embeddings
+
+			// Check vector dimensions consistency
+			if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
+				// This is the first valid vector, set the dimensions
+				vectorDimensions = len(vectors[0])
+				logger.Debugln("Vectors dimensions detected:", vectorDimensions)
+			}
+
+			if vectorDimensions > 0 && len(vectors) > 0 {
+				for _, vector := range vectors {
+					if len(vector) != vectorDimensions {
+						logger.Panicf(
+							"Vector dimension mismatch for file %s: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
+							filePath,
+							vectorDimensions,
+							len(vector))
+					}
+				}
+			}
+
 			newEmbeddings[filePath] = vectors
 			break
 		}
-	}
-
-	embeddings, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
-	if err != nil {
-		logger.Panicln("Failed to read old embeddings:", err)
 	}
 
 	// Copy new embeddings back to old embeddings
