@@ -33,10 +33,6 @@ Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and ge
 
 It also allows you to offload different tasks to different models and providers to balance costs and quality. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3.7 Sonnet, or GPT-4o.
 
-Project internally utilizes the LangChain library for Go, which can be found at the following GitHub project:
-
-<https://github.com/tmc/langchaingo>
-
 ## Getting Started
 
 ### Obtain API Keys
@@ -168,3 +164,11 @@ This project and its associated materials are provided "as is" and without warra
 The project is intended for educational and experimental purposes only. It should not be used in production environments or for any mission-critical applications without thorough testing and validation. The author(s) make no guarantees about the reliability, security, or suitability of this project for any particular use case.
 
 Users are encouraged to review the project's documentation, logs, and source code carefully before relying on it. If you encounter any problems or have suggestions for improvement, please feel free to reach out to the project maintainers.
+
+## Used Third-party Libraries
+
+[LangChain Go](https://github.com/tmc/langchaingo)
+
+[GoDotEnv](https://github.com/joho/godotenv)
+
+[MessagePack encoding for Golang](https://github.com/vmihailenco/msgpack)
