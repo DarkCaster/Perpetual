@@ -383,7 +383,6 @@ func (p *OllamaLLMConnector) CreateEmbeddings(content string) ([][]float32, Quer
 
 	statusCodeCollector := newStatusCodeCollector()
 
-	//TODO: create response streamer analog
 	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	ollamaOptions = append(ollamaOptions, ollama.WithHTTPClient(mitmClient))
 
@@ -393,7 +392,7 @@ func (p *OllamaLLMConnector) CreateEmbeddings(content string) ([][]float32, Quer
 	}
 
 	//TODO: split content into chunks
-	chunks := []string{content}
+	chunks := utils.SplitTextToChunks(content, p.EmbedChunk, p.EmbedOverlap)
 
 	//make a pause, if we need to wait to recover from previous error
 	if p.RateLimitDelayS > 0 {
