@@ -187,7 +187,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
 			// This is the first valid vector, set the dimensions
 			vectorDimensions = len(vectors[0])
-			logger.Debugln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
+			logger.Infoln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
 		}
 		if vectorDimensions > 0 && len(vectors) > 0 {
 			for _, vector := range vectors {
@@ -271,7 +271,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
 				// This is the first valid vector, set the dimensions
 				vectorDimensions = len(vectors[0])
-				logger.Debugln("Vectors dimensions detected:", vectorDimensions)
+				logger.Infoln("Vectors dimensions detected:", vectorDimensions)
 			}
 
 			if vectorDimensions > 0 && len(vectors) > 0 {
