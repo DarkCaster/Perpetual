@@ -400,7 +400,7 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 
 	//TODO: log something to messages.log to indicate progress
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger("Creating embeddings for %s, chunk count: %d\n\n\n", tag, len(chunks))
+		p.RawMessageLogger("Creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
 	}
 
 	// Perform LLM query
@@ -408,6 +408,11 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 		context.Background(),
 		chunks,
 	)
+
+	if len(embeddings) > 0 {
+		p.RawMessageLogger("\nVectors dimension count: %d", len(embeddings[0]))
+	}
+	p.RawMessageLogger("\n\n\n")
 
 	// Process status codes, probably not applicable for private ollama instances
 	// but still may be used with public instances wrapped with https reverse-proxy
