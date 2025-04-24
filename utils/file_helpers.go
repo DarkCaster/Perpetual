@@ -370,7 +370,11 @@ func SaveMsgPackFile(filePath string, v any) error {
 	}
 	defer file.Close()
 	bFile := bufio.NewWriter(file)
-	if err := msgpack.NewEncoder(bFile).Encode(v); err != nil {
+	encoder := msgpack.GetEncoder()
+	encoder.Reset(bFile)
+	err = encoder.Encode(v)
+	msgpack.PutEncoder(encoder)
+	if err != nil {
 		return err
 	}
 	return bFile.Flush()
@@ -382,5 +386,10 @@ func LoadMsgPackFile(filePath string, v any) error {
 		return err
 	}
 	defer file.Close()
-	return msgpack.NewDecoder(file).Decode(&v)
+	decoder := msgpack.GetDecoder()
+	decoder.UsePreallocateValues(true)
+	decoder.Reset(file)
+	err = decoder.Decode(&v)
+	msgpack.PutDecoder(decoder)
+	return err
 }
