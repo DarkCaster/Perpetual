@@ -175,8 +175,29 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Failed to read old embeddings:", err)
 	}
 
-	//TODO: detect vector dimension-count and check consistency
+	//detect vector dimension-count and check all vectors have same dimensions
 	vectorDimensions := 0
+
+	// Check existing embeddings for dimension consistency
+	for file, vectors := range embeddings {
+		// Check vector dimensions consistency
+		if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
+			// This is the first valid vector, set the dimensions
+			vectorDimensions = len(vectors[0])
+			logger.Debugln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
+		}
+		if vectorDimensions > 0 && len(vectors) > 0 {
+			for _, vector := range vectors {
+				if len(vector) != vectorDimensions {
+					logger.Panicf(
+						"Vector dimensions from existing embeddings mismatch for file %s: expected %d, got %d, Please rebuild all embeddings by running embed operation with -f flag",
+						file,
+						vectorDimensions,
+						len(vector))
+				}
+			}
+		}
+	}
 
 	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
 	filesToEmbed, droppedFiles := utils.FilterFilesWithBlacklist(filesToEmbed, userBlacklist)
@@ -254,7 +275,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				for _, vector := range vectors {
 					if len(vector) != vectorDimensions {
 						logger.Panicf(
-							"Vector dimension mismatch for file %s: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
+							"Vector dimensions mismatch for file %s: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
 							filePath,
 							vectorDimensions,
 							len(vector))
