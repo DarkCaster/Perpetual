@@ -391,7 +391,6 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 		return [][]float32{}, QueryInitFailed, err
 	}
 
-	//TODO: split content into chunks
 	chunks := utils.SplitTextToChunks(content, p.EmbedChunk, p.EmbedOverlap)
 
 	//make a pause, if we need to wait to recover from previous error
@@ -400,6 +399,9 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 	}
 
 	//TODO: log something to messages.log to indicate progress
+	if p.RawMessageLogger != nil {
+		p.RawMessageLogger("Creating embeddings for %s, chunk count: %d\n\n\n", tag, len(chunks))
+	}
 
 	// Perform LLM query
 	embeddings, err := model.CreateEmbedding(
@@ -453,7 +455,7 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 		return [][]float32{}, QueryFailed, err
 	}
 
-	//TODO: handle errors detected while processing response with custom response reader
+	//TODO: handle errors detected while processing response with custom response reader, if needed
 
 	//reset rate limit delay
 	p.RateLimitDelayS = 0
