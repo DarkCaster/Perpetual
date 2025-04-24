@@ -169,6 +169,14 @@ func AppendToTextFile(filePath string, text string) error {
 	return nil
 }
 
+func RemoveFile(filePath string) error {
+	err := os.Remove(filePath)
+	if err != nil && os.IsNotExist(err) {
+		return nil
+	}
+	return err
+}
+
 func RotateFiles(baseFilePath string, count int) error {
 	// Check if the base file exists
 	if _, err := os.Stat(baseFilePath); os.IsNotExist(err) {
