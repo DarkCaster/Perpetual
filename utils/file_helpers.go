@@ -104,14 +104,6 @@ func LoadTextFile(filePath string) (string, error) {
 	return LoadTextData(bytes)
 }
 
-func LoadBinaryFile(filePath string) ([]byte, error) {
-	bytes, err := os.ReadFile(filePath)
-	if err != nil {
-		return []byte{}, err
-	}
-	return bytes, nil
-}
-
 func LoadTextData(bytes []byte) (string, error) {
 	bytes, err := convertToBOMLessUTF8(bytes)
 	if err != nil {
@@ -137,18 +129,6 @@ func LoadJsonFile(filePath string, v any) error {
 	return nil
 }
 
-func LoadMsgPackFile(filePath string, v any) error {
-	b, err := LoadBinaryFile(filePath)
-	if err != nil {
-		return err
-	}
-	err = msgpack.Unmarshal(b, &v)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func SaveTextFile(filePath string, text string) error {
 	//TODO: use better method to convert windows line-endings
 	if runtime.GOOS == "windows" {
@@ -159,10 +139,6 @@ func SaveTextFile(filePath string, text string) error {
 		return err
 	}
 	return nil
-}
-
-func SaveBinaryFile(filePath string, data []byte) error {
-	return os.WriteFile(filePath, data, 0644)
 }
 
 func WriteTextStdout(text string) error {
@@ -245,14 +221,6 @@ func SaveJsonFile(filePath string, v any) error {
 		return err
 	}
 	return SaveTextFile(filePath, writer.String())
-}
-
-func SaveMsgPackFile(filePath string, v any) error {
-	bytes, err := msgpack.Marshal(v)
-	if err != nil {
-		return err
-	}
-	return SaveBinaryFile(filePath, bytes)
 }
 
 func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, error) {
@@ -393,4 +361,26 @@ func ConvertFilePathToOSFormat(targetFile string) string {
 
 func convertFilePathToOSFormat(targetFile string, invalidSeparator string, validSeparator string) string {
 	return strings.ReplaceAll(targetFile, invalidSeparator, validSeparator)
+}
+
+func SaveMsgPackFile(filePath string, v any) error {
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	bFile := bufio.NewWriter(file)
+	if err := msgpack.NewEncoder(bFile).Encode(v); err != nil {
+		return err
+	}
+	return bFile.Flush()
+}
+
+func LoadMsgPackFile(filePath string, v any) error {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return msgpack.NewDecoder(file).Decode(&v)
 }
