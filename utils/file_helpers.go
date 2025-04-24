@@ -14,6 +14,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/encoding/unicode/utf32"
 )
@@ -103,6 +104,14 @@ func LoadTextFile(filePath string) (string, error) {
 	return LoadTextData(bytes)
 }
 
+func LoadBinaryFile(filePath string) ([]byte, error) {
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return []byte{}, err
+	}
+	return bytes, nil
+}
+
 func LoadTextData(bytes []byte) (string, error) {
 	bytes, err := convertToBOMLessUTF8(bytes)
 	if err != nil {
@@ -128,6 +137,18 @@ func LoadJsonFile(filePath string, v any) error {
 	return nil
 }
 
+func LoadMsgPackFile(filePath string, v any) error {
+	b, err := LoadBinaryFile(filePath)
+	if err != nil {
+		return err
+	}
+	err = msgpack.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func SaveTextFile(filePath string, text string) error {
 	//TODO: use better method to convert windows line-endings
 	if runtime.GOOS == "windows" {
@@ -138,6 +159,10 @@ func SaveTextFile(filePath string, text string) error {
 		return err
 	}
 	return nil
+}
+
+func SaveBinaryFile(filePath string, data []byte) error {
+	return os.WriteFile(filePath, data, 0644)
 }
 
 func WriteTextStdout(text string) error {
@@ -220,6 +245,14 @@ func SaveJsonFile(filePath string, v any) error {
 		return err
 	}
 	return SaveTextFile(filePath, writer.String())
+}
+
+func SaveMsgPackFile(filePath string, v any) error {
+	bytes, err := msgpack.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return SaveBinaryFile(filePath, bytes)
 }
 
 func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, error) {
