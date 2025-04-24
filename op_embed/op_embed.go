@@ -173,10 +173,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	oldChecksums := utils.GetChecksumsFromEmbeddings(embeddingsFilePath, fileNames)
 
 	//load old embeddings file
+	logger.Traceln("Loading current embeddings")
 	embeddings, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
 	if err != nil {
 		logger.Panicln("Failed to read old embeddings:", err)
 	}
+	logger.Traceln("Done loading current embeddings")
 
 	//detect vector dimension-count and check all vectors have same dimensions
 	vectorDimensions := 0
@@ -297,9 +299,14 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Save updated embeddings
-	logger.Infoln("Saving embeddings")
-	if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, embeddings); err != nil {
-		logger.Panicln("Failed to save embeddings:", err)
+	if len(newEmbeddings) > 0 {
+		logger.Infoln("Saving embeddings")
+		if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, embeddings); err != nil {
+			logger.Panicln("Failed to save embeddings:", err)
+		}
+		logger.Traceln("Done saving embeddings")
+	} else {
+		logger.Infoln("Embeddings unchanged")
 	}
 
 	if errorFlag {
