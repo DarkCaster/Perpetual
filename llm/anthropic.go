@@ -64,16 +64,16 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
+	if operation == "EMBED" {
+		return nil, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
+	}
+
 	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
-	if operation == "EMBED" {
-		envVars = []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation)}
-	}
-	model, err := utils.GetEnvString(envVars...)
+	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func NewAnthropicLLMConnectorFromEnv(
 }
 
 func (p *AnthropicLLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
-	return [][]float32{}, QueryInitFailed, errors.New("TODO")
+	return [][]float32{}, QueryInitFailed, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 }
 
 func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
