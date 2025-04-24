@@ -52,6 +52,8 @@ type OllamaLLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	OptionsToRemove       []string
+	EmbedChunk            int
+	EmbedOverlap          int
 	ThinkRemoveRx         []*regexp.Regexp
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
@@ -137,6 +139,8 @@ func NewOllamaLLMConnectorFromEnv(
 	var seed int = math.MaxInt
 	var maxTokens int = 0
 	var variants int = 1
+	var chunk int = 2048
+	var overlap int = 256
 
 	variantStrategy := Short
 	systemPromptRole := SystemRole
@@ -145,6 +149,18 @@ func NewOllamaLLMConnectorFromEnv(
 
 	if operation == "EMBED" {
 		optionsToRemove = append(optionsToRemove, "temperature")
+
+		chunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_SIZE", prefix))
+		if err != nil || chunk < 1 {
+			chunk = 2048
+		}
+		debug.Add("embed chunk size", chunk)
+
+		overlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_OVERLAP", prefix))
+		if err != nil || overlap < 1 {
+			overlap = 256
+		}
+		debug.Add("embed chunk overlap", overlap)
 	} else {
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
@@ -330,6 +346,8 @@ func NewOllamaLLMConnectorFromEnv(
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		OptionsToRemove:       optionsToRemove,
+		EmbedChunk:            chunk,
+		EmbedOverlap:          overlap,
 		ThinkRemoveRx:         thinkRx,
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
