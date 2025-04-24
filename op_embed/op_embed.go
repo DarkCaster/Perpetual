@@ -249,7 +249,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
-			vectors, status, err := connector.CreateEmbeddings(filePath, fileContents)
+			vectors, status, err := connector.CreateEmbeddings(fmt.Sprintf("file:%s", filePath), fileContents)
 			// Check for general error on query
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
