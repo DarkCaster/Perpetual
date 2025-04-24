@@ -161,6 +161,10 @@ func NewOllamaLLMConnectorFromEnv(
 			overlap = 256
 		}
 		debug.Add("embed chunk overlap", overlap)
+
+		if overlap >= chunk {
+			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		}
 	} else {
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
