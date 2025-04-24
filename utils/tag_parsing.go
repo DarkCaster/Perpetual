@@ -145,6 +145,10 @@ func GetOddRegexps(arr []*regexp.Regexp) []*regexp.Regexp {
 }
 
 func SplitTextToChunks(sourceText string, chunkSize, chunkOverlap int) []string {
+	if len(sourceText) < 1 {
+		return []string{}
+	}
+
 	if chunkOverlap >= chunkSize {
 		return []string{sourceText}
 	}
