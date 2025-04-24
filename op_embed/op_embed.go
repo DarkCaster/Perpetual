@@ -161,7 +161,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			}
 			filesToEmbed = utils.NewSlice(requestedFile)
 		} else {
-			//TODO: remove all current possibly inconsistent embeddings
+			logger.Debugln("Removing obsolete embeddings storage file:", embeddingsFilePath)
+			if err = utils.RemoveFile(embeddingsFilePath); err != nil {
+				logger.Panicln("Failed to remove obsolete embeddings storage file:", err)
+			}
 			filesToEmbed = utils.NewSlice(fileNames...)
 			sort.Strings(filesToEmbed)
 		}
