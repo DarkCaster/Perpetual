@@ -359,7 +359,7 @@ func NewOllamaLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *OllamaLLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content
 		return [][]float32{}, QueryOk, nil

@@ -224,7 +224,7 @@ func processOpenAISchema(target map[string]interface{}) {
 	}
 }
 
-func (p *OpenAILLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+func (p *OpenAILLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
 	return [][]float32{}, QueryInitFailed, errors.New("TODO")
 }
 

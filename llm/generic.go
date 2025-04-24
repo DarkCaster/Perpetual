@@ -304,7 +304,7 @@ func NewGenericLLMConnectorFromEnv(
 	}, nil
 }
 
-func (p *GenericLLMConnector) CreateEmbeddings(content string) ([][]float32, QueryStatus, error) {
+func (p *GenericLLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
 	return [][]float32{}, QueryInitFailed, errors.New("TODO")
 }
 
