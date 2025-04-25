@@ -265,7 +265,7 @@ func (p *OpenAILLMConnector) CreateEmbeddings(tag, content string) ([][]float32,
 		return [][]float32{}, QueryOk, nil
 	}
 
-	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithModel(p.Model))
+	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithEmbeddingModel(p.Model))
 	if p.BaseURL != "" {
 		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
 	}
