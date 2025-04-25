@@ -324,6 +324,8 @@ func NewGenericLLMConnectorFromEnv(
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
+		EmbedChunk:            chunk,
+		EmbedOverlap:          overlap,
 		ThinkRemoveRx:         thinkRx,
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
@@ -337,7 +339,7 @@ func (p *GenericLLMConnector) CreateEmbeddings(tag, content string) ([][]float32
 		return [][]float32{}, QueryOk, nil
 	}
 
-	providerOptions := utils.NewSlice(openai.WithModel(p.Model))
+	providerOptions := utils.NewSlice(openai.WithEmbeddingModel(p.Model))
 	if p.BaseURL != "" {
 		providerOptions = append(providerOptions, openai.WithBaseURL(p.BaseURL))
 	}
