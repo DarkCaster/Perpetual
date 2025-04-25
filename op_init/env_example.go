@@ -162,6 +162,7 @@ OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
 OPENAI_MODEL_OP_ANNOTATE="gpt-4o-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-4o-mini" # used to process multiple response-variants if any
+OPENAI_MODEL_OP_EMBED="text-embedding-3-small"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-4o"
@@ -179,6 +180,14 @@ OPENAI_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to ge
 OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
 OPENAI_VARIANT_COUNT="1" # will be used as fallback
 OPENAI_VARIANT_SELECTION="short" # will be used as fallback
+
+# Text chunk size (chars) used when generating embeddings
+# Values too big may lead to model context window overflow or make semantic search worse,
+# Values too small may also worsen semantic search results and increase RAM and disk requirements
+OPENAI_EMBED_CHUNK_SIZE=2048
+OPENAI_EMBED_CHUNK_OVERLAP=256
+# Set dimension count of generated vectors, supported for text-embedding-3 models
+# OPENAI_EMBED_DIMENSIONS=1024
 
 # Switch to use structured JSON output format for supported operations
 # Supported values: plain, json. Default: plain
@@ -307,7 +316,8 @@ OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk size (chars) used when generating embeddings
-# Values too big may lead to model context window overflow, values too small may worsen semantic search results
+# Values too big may lead to model context window overflow or make semantic search worse,
+# Values too small may also worsen semantic search results and increase RAM and disk requirements
 OLLAMA_EMBED_CHUNK_SIZE=2048
 OLLAMA_EMBED_CHUNK_OVERLAP=256
 
