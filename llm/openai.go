@@ -39,6 +39,7 @@ type OpenAILLMConnector struct {
 	FieldsToRemove        []string
 	EmbedChunk            int
 	EmbedOverlap          int
+	EmbedDimensions       int
 	Debug                 llmDebug
 	RateLimitDelayS       int
 }
@@ -123,6 +124,11 @@ func NewOpenAILLMConnectorFromEnv(
 			overlap = 256
 		}
 		debug.Add("embed chunk overlap", overlap)
+
+		if dimensions, err := utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DIMENSIONS", prefix)); err == nil && dimensions != 0 {
+			fieldsToInject["dimensions"] = dimensions
+			debug.Add("embed dimensions", dimensions)
+		}
 
 		if overlap >= chunk {
 			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
