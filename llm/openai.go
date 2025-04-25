@@ -37,6 +37,8 @@ type OpenAILLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
+	EmbedChunk            int
+	EmbedOverlap          int
 	Debug                 llmDebug
 	RateLimitDelayS       int
 }
@@ -99,73 +101,98 @@ func NewOpenAILLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
-	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
-		debug.Add("temperature", temperature)
-	} else {
-		fieldsToRemove = append(fieldsToRemove, "temperature")
-	}
-
-	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
-		debug.Add("max tokens", maxTokens)
-	} else {
-		fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
-	}
-
 	fieldsToInject := map[string]interface{}{}
-	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
-		fieldsToInject["top_p"] = topP
-		debug.Add("top p", topP)
-	}
 
-	if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
-		debug.Add("reasoning effort", reasoning)
-		if reasoning == "LOW" {
-			fieldsToInject["reasoning_effort"] = "low"
-		} else if reasoning == "MEDIUM" {
-			fieldsToInject["reasoning_effort"] = "medium"
-		} else if reasoning == "HIGH" {
-			fieldsToInject["reasoning_effort"] = "high"
-		} else {
-			return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
-		}
-	}
-
-	if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithSeed(seed))
-		debug.Add("seed", seed)
-	}
-
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
-		debug.Add("freq penalty", freqPenalty)
-	}
-
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
-		debug.Add("presence penalty", presencePenalty)
-	}
-
-	variants := 1
-	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-		variants = curVariants
-		debug.Add("variants", variants)
-	}
+	var chunk int = 2048
+	var overlap int = 256
+	var variants int = 1
 
 	variantStrategy := Short
-	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-		debug.Add("strategy", curStrategy)
-		if curStrategy == "SHORT" {
-			variantStrategy = Short
-		} else if curStrategy == "LONG" {
-			variantStrategy = Long
-		} else if curStrategy == "COMBINE" {
-			variantStrategy = Combine
-		} else if curStrategy == "BEST" {
-			variantStrategy = Best
+
+	if operation == "EMBED" {
+		fieldsToRemove = append(fieldsToRemove, "temperature")
+
+		chunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_SIZE", prefix))
+		if err != nil || chunk < 1 {
+			chunk = 2048
+		}
+		debug.Add("embed chunk size", chunk)
+
+		overlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_OVERLAP", prefix))
+		if err != nil || overlap < 1 {
+			overlap = 256
+		}
+		debug.Add("embed chunk overlap", overlap)
+
+		if overlap >= chunk {
+			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		}
+	} else {
+		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+			debug.Add("temperature", temperature)
 		} else {
-			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
+			fieldsToRemove = append(fieldsToRemove, "temperature")
+		}
+
+		if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+			debug.Add("max tokens", maxTokens)
+		} else {
+			fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
+		}
+
+		if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
+			fieldsToInject["top_p"] = topP
+			debug.Add("top p", topP)
+		}
+
+		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+			debug.Add("reasoning effort", reasoning)
+			if reasoning == "LOW" {
+				fieldsToInject["reasoning_effort"] = "low"
+			} else if reasoning == "MEDIUM" {
+				fieldsToInject["reasoning_effort"] = "medium"
+			} else if reasoning == "HIGH" {
+				fieldsToInject["reasoning_effort"] = "high"
+			} else {
+				return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
+			}
+		}
+
+		if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithSeed(seed))
+			debug.Add("seed", seed)
+		}
+
+		if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+			debug.Add("freq penalty", freqPenalty)
+		}
+
+		if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+			debug.Add("presence penalty", presencePenalty)
+		}
+
+		if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
+			variants = curVariants
+			debug.Add("variants", variants)
+		}
+
+		if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+			debug.Add("strategy", curStrategy)
+			if curStrategy == "SHORT" {
+				variantStrategy = Short
+			} else if curStrategy == "LONG" {
+				variantStrategy = Long
+			} else if curStrategy == "COMBINE" {
+				variantStrategy = Combine
+			} else if curStrategy == "BEST" {
+				variantStrategy = Best
+			} else {
+				return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
+			}
 		}
 	}
 
@@ -201,6 +228,8 @@ func NewOpenAILLMConnectorFromEnv(
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
+		EmbedChunk:            chunk,
+		EmbedOverlap:          overlap,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 	}, nil
