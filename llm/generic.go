@@ -50,6 +50,8 @@ type GenericLLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
+	EmbedChunk            int
+	EmbedOverlap          int
 	ThinkRemoveRx         []*regexp.Regexp
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
@@ -92,26 +94,6 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("auth", "not set")
 	}
 
-	maxTokensFormat := MaxTokensOld
-	if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_MAXTOKENS_FORMAT", prefix)); err == nil {
-		switch format {
-		case "OLD":
-			maxTokensFormat = MaxTokensOld
-		case "NEW":
-			maxTokensFormat = MaxTokensNew
-		default:
-			return nil, fmt.Errorf("invalid max tokens format provided for %s provider: %s", prefix, format)
-		}
-		debug.Add("max-tokens format", format)
-	}
-
-	streaming, err := utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
-	if err == nil {
-		debug.Add("streaming", streaming > 0)
-	} else {
-		streaming = 0
-	}
-
 	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
 	if operation == "EMBED" {
 		envVars = []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation)}
@@ -142,138 +124,183 @@ func NewGenericLLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
-	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
-		debug.Add("temperature", temperature)
-	} else {
-		fieldsToRemove = append(fieldsToRemove, "temperature")
-	}
-
-	if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
-		debug.Add("max tokens", maxTokens)
-	} else {
-		fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
-	}
-
 	fieldsToInject := map[string]interface{}{}
-	if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
-		fieldsToInject["top_k"] = topK
-		debug.Add("top k", topK)
-	}
 
-	if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
-		fieldsToInject["top_p"] = topP
-		debug.Add("top p", topP)
-	}
+	var streaming int = 0
+	var chunk int = 2048
+	var overlap int = 256
+	var seed int = math.MaxInt
+	var variants int = 1
 
-	seed := math.MaxInt
-	if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
-		seed = customSeed
-		debug.Add("seed", seed)
-	}
-
-	if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
-		fieldsToInject["repeat_penalty"] = repeatPenalty
-		debug.Add("repeat penalty", repeatPenalty)
-	}
-
-	if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
-		debug.Add("freq penalty", freqPenalty)
-	}
-
-	if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
-		extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
-		debug.Add("presence penalty", presencePenalty)
-	}
-
-	if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
-		debug.Add("reasoning effort", reasoning)
-		if reasoning == "LOW" {
-			fieldsToInject["reasoning_effort"] = "low"
-		} else if reasoning == "MEDIUM" {
-			fieldsToInject["reasoning_effort"] = "medium"
-		} else if reasoning == "HIGH" {
-			fieldsToInject["reasoning_effort"] = "high"
-		} else {
-			return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
-		}
-	}
-
-	variants := 1
-	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-		variants = curVariants
-		debug.Add("variants", variants)
-	}
-
+	maxTokensFormat := MaxTokensOld
 	variantStrategy := Short
-	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-		debug.Add("strategy", curStrategy)
-		switch curStrategy {
-		case "SHORT":
-			variantStrategy = Short
-		case "LONG":
-			variantStrategy = Long
-		case "COMBINE":
-			variantStrategy = Combine
-		case "BEST":
-			variantStrategy = Best
-		default:
-			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation: %s", operation, curStrategy)
-		}
-	}
-
 	systemPromptRole := SystemRole
-	if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
-		debug.Add("system prompt role", curSystemPromptRole)
-		switch curSystemPromptRole {
-		case "SYSTEM":
-			systemPromptRole = SystemRole
-		case "DEVELOPER":
-			systemPromptRole = DeveloperRole
-		case "USER":
-			systemPromptRole = UserRole
-		default:
-			return nil, fmt.Errorf("invalid system prompt role provided for %s operation: %s", operation, curSystemPromptRole)
-		}
-	}
-
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
 
-	thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
-	thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
-	thinkLRx, errLC := regexp.Compile(thinkLRxStr)
-	thinkRRx, errRC := regexp.Compile(thinkRRxStr)
-	if errL == nil && errR == nil && errLC == nil && errRC == nil {
-		thinkRx = append(thinkRx, thinkLRx)
-		thinkRx = append(thinkRx, thinkRRx)
-	} else if errL != nil && errR == nil {
-		return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
-	} else if errL == nil && errR != nil {
-		return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
-	} else if errL == nil && errR == nil && errLC != nil {
-		return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
-	} else if errL == nil && errR == nil && errRC != nil {
-		return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
-	}
+	if operation == "EMBED" {
+		fieldsToRemove = append(fieldsToRemove, "temperature")
 
-	outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
-	outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
-	outLRx, errLC := regexp.Compile(outLRxStr)
-	outRRx, errRC := regexp.Compile(outRRxStr)
-	if errL == nil && errR == nil && errLC == nil && errRC == nil {
-		outRx = append(outRx, outLRx)
-		outRx = append(outRx, outRRx)
-	} else if errL != nil && errR == nil {
-		return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
-	} else if errL == nil && errR != nil {
-		return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
-	} else if errL == nil && errR == nil && errLC != nil {
-		return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
-	} else if errL == nil && errR == nil && errRC != nil {
-		return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
+		chunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_SIZE", prefix))
+		if err != nil || chunk < 1 {
+			chunk = 2048
+		}
+		debug.Add("embed chunk size", chunk)
+
+		overlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_OVERLAP", prefix))
+		if err != nil || overlap < 1 {
+			overlap = 256
+		}
+		debug.Add("embed chunk overlap", overlap)
+
+		if overlap >= chunk {
+			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		}
+	} else {
+		if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_MAXTOKENS_FORMAT", prefix)); err == nil {
+			switch format {
+			case "OLD":
+				maxTokensFormat = MaxTokensOld
+			case "NEW":
+				maxTokensFormat = MaxTokensNew
+			default:
+				return nil, fmt.Errorf("invalid max tokens format provided for %s provider: %s", prefix, format)
+			}
+			debug.Add("max-tokens format", format)
+		}
+
+		streaming, err = utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
+		if err == nil {
+			debug.Add("streaming", streaming > 0)
+		} else {
+			streaming = 0
+		}
+
+		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
+			debug.Add("temperature", temperature)
+		} else {
+			fieldsToRemove = append(fieldsToRemove, "temperature")
+		}
+
+		if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+			debug.Add("max tokens", maxTokens)
+		} else {
+			fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
+		}
+
+		if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
+			fieldsToInject["top_k"] = topK
+			debug.Add("top k", topK)
+		}
+
+		if topP, err := utils.GetEnvFloat(fmt.Sprintf("%s_TOP_P_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_P", prefix)); err == nil {
+			fieldsToInject["top_p"] = topP
+			debug.Add("top p", topP)
+		}
+
+		if customSeed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {
+			seed = customSeed
+			debug.Add("seed", seed)
+		}
+
+		if repeatPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_REPEAT_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_REPEAT_PENALTY", prefix)); err == nil {
+			fieldsToInject["repeat_penalty"] = repeatPenalty
+			debug.Add("repeat penalty", repeatPenalty)
+		}
+
+		if freqPenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_FREQ_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_FREQ_PENALTY", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithFrequencyPenalty(freqPenalty))
+			debug.Add("freq penalty", freqPenalty)
+		}
+
+		if presencePenalty, err := utils.GetEnvFloat(fmt.Sprintf("%s_PRESENCE_PENALTY_OP_%s", prefix, operation), fmt.Sprintf("%s_PRESENCE_PENALTY", prefix)); err == nil {
+			extraOptions = append(extraOptions, llms.WithPresencePenalty(presencePenalty))
+			debug.Add("presence penalty", presencePenalty)
+		}
+
+		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+			debug.Add("reasoning effort", reasoning)
+			if reasoning == "LOW" {
+				fieldsToInject["reasoning_effort"] = "low"
+			} else if reasoning == "MEDIUM" {
+				fieldsToInject["reasoning_effort"] = "medium"
+			} else if reasoning == "HIGH" {
+				fieldsToInject["reasoning_effort"] = "high"
+			} else {
+				return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
+			}
+		}
+
+		if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
+			variants = curVariants
+			debug.Add("variants", variants)
+		}
+
+		if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
+			debug.Add("strategy", curStrategy)
+			switch curStrategy {
+			case "SHORT":
+				variantStrategy = Short
+			case "LONG":
+				variantStrategy = Long
+			case "COMBINE":
+				variantStrategy = Combine
+			case "BEST":
+				variantStrategy = Best
+			default:
+				return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation: %s", operation, curStrategy)
+			}
+		}
+
+		if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
+			debug.Add("system prompt role", curSystemPromptRole)
+			switch curSystemPromptRole {
+			case "SYSTEM":
+				systemPromptRole = SystemRole
+			case "DEVELOPER":
+				systemPromptRole = DeveloperRole
+			case "USER":
+				systemPromptRole = UserRole
+			default:
+				return nil, fmt.Errorf("invalid system prompt role provided for %s operation: %s", operation, curSystemPromptRole)
+			}
+		}
+
+		thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
+		thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
+		thinkLRx, errLC := regexp.Compile(thinkLRxStr)
+		thinkRRx, errRC := regexp.Compile(thinkRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			thinkRx = append(thinkRx, thinkLRx)
+			thinkRx = append(thinkRx, thinkRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
+		}
+
+		outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
+		outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
+		outLRx, errLC := regexp.Compile(outLRxStr)
+		outRRx, errRC := regexp.Compile(outRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			outRx = append(outRx, outLRx)
+			outRx = append(outRx, outRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
+		}
 	}
 
 	return &GenericLLMConnector{
