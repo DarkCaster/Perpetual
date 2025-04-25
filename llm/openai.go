@@ -254,7 +254,121 @@ func processOpenAISchema(target map[string]interface{}) {
 }
 
 func (p *OpenAILLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
-	return [][]float32{}, QueryInitFailed, errors.New("TODO")
+	if len(content) < 1 {
+		//return no embeddings for empty content
+		return [][]float32{}, QueryOk, nil
+	}
+
+	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithModel(p.Model))
+	if p.BaseURL != "" {
+		openAiOptions = append(openAiOptions, openai.WithBaseURL(p.BaseURL))
+	}
+
+	transformers := []requestTransformer{}
+
+	if len(p.FieldsToInject) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
+	}
+	if len(p.FieldsToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
+	}
+
+	statusCodeCollector := newStatusCodeCollector()
+	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
+	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
+
+	// Create backup of env vars and unset them
+	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
+	utils.UnsetEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
+
+	// Defer env vars restore
+	defer utils.RestoreEnvVars(envBackup)
+
+	model, err := openai.New(openAiOptions...)
+	if err != nil {
+		return [][]float32{}, QueryInitFailed, err
+	}
+
+	chunks := utils.SplitTextToChunks(content, p.EmbedChunk, p.EmbedOverlap)
+
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
+	}
+
+	if p.RawMessageLogger != nil {
+		p.RawMessageLogger("OpenAI: creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+	}
+
+	// Perform LLM query
+	embeddings, err := model.CreateEmbedding(
+		context.Background(),
+		chunks,
+	)
+
+	if len(embeddings) > 0 {
+		p.RawMessageLogger("\nVectors dimension count: %d", len(embeddings[0]))
+	}
+	p.RawMessageLogger("\n\n\n")
+
+	// Process status codes for rate limiting
+	switch statusCodeCollector.StatusCode {
+	case 429:
+		// rate limit hit, calculate the next sleep time interval
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return [][]float32{}, QueryFailed, err
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
+	case 503:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return [][]float32{}, QueryFailed, err
+	}
+
+	if err != nil {
+		return [][]float32{}, QueryFailed, err
+	}
+
+	// reset rate limit delay
+	p.RateLimitDelayS = 0
+
+	if len(embeddings) < 1 {
+		return [][]float32{}, QueryFailed, errors.New("no vectors generated for source chunks")
+	}
+
+	for i, vector := range embeddings {
+		if len(vector) < 1 {
+			return [][]float32{}, QueryFailed, fmt.Errorf("invalid vector generated for chunk #%d", i)
+		}
+	}
+
+	return embeddings, QueryOk, nil
 }
 
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
