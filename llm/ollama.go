@@ -398,9 +398,8 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
 	}
 
-	//TODO: log something to messages.log to indicate progress
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger("Creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+		p.RawMessageLogger("Ollama: creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
 	}
 
 	// Perform LLM query
