@@ -143,6 +143,14 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	embeddingsFilePath := filepath.Join(perpetualDir, utils.EmbeddingsFileName)
 
+	//load old embeddings file
+	logger.Traceln("Loading current embeddings")
+	embeddings, oldChecksums, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
+	if err != nil {
+		logger.Panicln("Failed to read old embeddings:", err)
+	}
+	logger.Traceln("Done loading current embeddings")
+
 	var filesToEmbed []string
 	if !force {
 		filesToEmbed, err = utils.GetChangedEmbeddings(embeddingsFilePath, fileChecksums)
@@ -170,16 +178,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			sort.Strings(filesToEmbed)
 		}
 	}
-
-	oldChecksums := utils.GetChecksumsFromEmbeddings(embeddingsFilePath, fileNames)
-
-	//load old embeddings file
-	logger.Traceln("Loading current embeddings")
-	embeddings, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
-	if err != nil {
-		logger.Panicln("Failed to read old embeddings:", err)
-	}
-	logger.Traceln("Done loading current embeddings")
 
 	//detect vector dimension-count and check all vectors have same dimensions
 	vectorDimensions := 0

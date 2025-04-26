@@ -151,35 +151,41 @@ func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map
 	return nil
 }
 
-func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, error) {
+func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, map[string]string, error) {
 	var embeddings embeddingEntries
 	err := LoadMsgPackFile(filePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
 
-	result := make(map[string][][]float32)
+	fileVectors := make(map[string][][]float32)
+	fileChecksums := make(map[string]string)
 
 	for _, filename := range filenames {
-		var embedding [][]float32
+		//set initial state of requested file checksum to "error"
+		fileChecksums[filename] = "error"
+		//only set vectors for requested files, to lower ram usage
+		var vectors [][]float32
 		found := false
-
 		for _, entry := range embeddings {
 			if entry.Filename == filename {
-				embedding = entry.Vectors
+				vectors = entry.Vectors
 				found = true
 				break
 			}
 		}
-
 		if !found {
 			continue
 		}
-
-		result[filename] = embedding
+		fileVectors[filename] = vectors
 	}
 
-	return result, nil
+	//save all checksums present at embeddings-storage for convenience
+	for _, entry := range embeddings {
+		fileChecksums[entry.Filename] = entry.Checksum
+	}
+
+	return fileVectors, fileChecksums, nil
 }
 
 func GetChangedEmbeddings(embeddingsFilePath string, fileChecksums map[string]string) ([]string, error) {
@@ -222,24 +228,6 @@ func GetChecksumsFromAnnotations(annotationsFilePath string, files []string) map
 	}
 
 	return annotationChecksums
-}
-
-func GetChecksumsFromEmbeddings(embeddingsFilePath string, files []string) map[string]string {
-	var embeddings embeddingEntries
-	err := LoadMsgPackFile(embeddingsFilePath, &embeddings)
-	if err != nil {
-		embeddings = nil
-	}
-
-	embeddingChecksums := make(map[string]string)
-	for _, file := range files {
-		embeddingChecksums[file] = "error"
-	}
-	for _, entry := range embeddings {
-		embeddingChecksums[entry.Filename] = entry.Checksum
-	}
-
-	return embeddingChecksums
 }
 
 // Recursively get project files, starting from projectRootDir
