@@ -151,13 +151,14 @@ func SaveEmbeddings(filePath string, checksums map[string]string, embeddings map
 	return nil
 }
 
-func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, map[string]string, error) {
+func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32, map[string]string, int, error) {
 	var embeddings embeddingEntries
 	err := LoadMsgPackFile(filePath, &embeddings)
 	if err != nil {
 		embeddings = nil
 	}
 
+	vectorDimensions := 0
 	fileVectors := make(map[string][][]float32)
 	fileChecksums := make(map[string]string)
 
@@ -177,7 +178,24 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 		if !found {
 			continue
 		}
+		//set vectors
 		fileVectors[filename] = vectors
+		//detect vector dimensions
+		if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
+			vectorDimensions = len(vectors[0])
+		}
+		//check vectors consistency
+		if vectorDimensions > 0 && len(vectors) > 0 {
+			for _, vector := range vectors {
+				if len(vector) != vectorDimensions {
+					return nil, nil, vectorDimensions, fmt.Errorf(
+						"vector dimensions from existing embeddings mismatch for file %s: expected %d, got %d. Please rebuild all embeddings by running embed operation with -f flag",
+						filename,
+						vectorDimensions,
+						len(vector))
+				}
+			}
+		}
 	}
 
 	//save all checksums present at embeddings-storage for convenience
@@ -185,7 +203,7 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 		fileChecksums[entry.Filename] = entry.Checksum
 	}
 
-	return fileVectors, fileChecksums, nil
+	return fileVectors, fileChecksums, vectorDimensions, nil
 }
 
 func GetChangedEmbeddings(embeddingsFilePath string, fileChecksums map[string]string) ([]string, error) {
