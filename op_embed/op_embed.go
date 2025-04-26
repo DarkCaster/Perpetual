@@ -145,7 +145,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	//load old embeddings file
 	logger.Traceln("Loading embeddings")
-	oldEmbeddings, oldChecksums, vectorDimensions, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
+	embeddings, oldChecksums, vectorDimensions, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
 	if err != nil {
 		logger.Panicln("Failed to load embeddings:", err)
 	}
@@ -153,10 +153,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	var filesToEmbed []string
 	if !force {
+		logger.Traceln("Detecting changes")
 		filesToEmbed, err = utils.GetChangedEmbeddings(embeddingsFilePath, fileChecksums)
 		if err != nil {
 			logger.Panicln("error getting changed files:", err)
 		}
+		logger.Traceln("Done detecting changes")
 	} else {
 		if requestedFile != "" {
 			// Check if requested file is within fileNames array
@@ -217,7 +219,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	errorFlag := false
-	newEmbeddings := make(map[string][][]float32)
+	changedFlag := false
 	for i, filePath := range filesToEmbed {
 		// Read file contents and generate embedding
 		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
@@ -268,20 +270,16 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				}
 			}
 
-			newEmbeddings[filePath] = vectors
+			embeddings[filePath] = vectors
+			changedFlag = true
 			break
 		}
 	}
 
-	// Copy new embeddings back to old embeddings
-	for element := range newEmbeddings {
-		oldEmbeddings[element] = newEmbeddings[element]
-	}
-
 	// Save updated embeddings
-	if len(newEmbeddings) > 0 {
+	if changedFlag {
 		logger.Infoln("Saving embeddings")
-		if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, oldEmbeddings); err != nil {
+		if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, embeddings); err != nil {
 			logger.Panicln("Failed to save embeddings:", err)
 		}
 		logger.Traceln("Done saving embeddings")
