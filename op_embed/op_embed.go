@@ -55,10 +55,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	if requestedFile != "" {
-		force = true
-	}
-
 	outerCallLogger := logger.Clone()
 	if innerCall {
 		outerCallLogger.DisableLevel(logging.ErrorLevel)
@@ -152,38 +148,39 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	logger.Traceln("Done loading embeddings")
 
 	var filesToEmbed []string
-	if !force {
-		logger.Traceln("Detecting changes")
-		filesToEmbed, err = utils.GetChangedEmbeddings(embeddingsFilePath, fileChecksums)
+	if requestedFile != "" {
+		// Check if requested file is within fileNames array
+		requestedFile, err := utils.MakePathRelative(projectRootDir, requestedFile, false)
 		if err != nil {
-			logger.Panicln("error getting changed files:", err)
+			logger.Panicln("Requested file is not inside project root", requestedFile)
 		}
-		logger.Traceln("Done detecting changes")
+		requestedFile, found := utils.CaseInsensitiveFileSearch(requestedFile, fileNames)
+		if !found {
+			logger.Panicln("Requested file not found in project")
+		}
+		filesToEmbed = utils.NewSlice(requestedFile)
+	} else if force {
+		logger.Debugln("Removing obsolete embeddings storage file:", embeddingsFilePath)
+		if err = utils.RemoveFile(embeddingsFilePath); err != nil {
+			logger.Panicln("Failed to remove obsolete embeddings storage file:", err)
+		}
+		filesToEmbed = utils.NewSlice(fileNames...)
+		sort.Strings(filesToEmbed)
+		//clear-out previously loaded embeddings
+		embeddings = make(map[string][][]float32)
+		vectorDimensions = 0
 	} else {
-		if requestedFile != "" {
-			// Check if requested file is within fileNames array
-			requestedFile, err := utils.MakePathRelative(projectRootDir, requestedFile, false)
-			if err != nil {
-				logger.Panicln("Requested file is not inside project root", requestedFile)
-			}
-			requestedFile, found := utils.CaseInsensitiveFileSearch(requestedFile, fileNames)
-			if !found {
-				logger.Panicln("Requested file not found in project")
-			}
-			filesToEmbed = utils.NewSlice(requestedFile)
-		} else {
-			logger.Debugln("Removing obsolete embeddings storage file:", embeddingsFilePath)
-			if err = utils.RemoveFile(embeddingsFilePath); err != nil {
-				logger.Panicln("Failed to remove obsolete embeddings storage file:", err)
-			}
-			filesToEmbed = utils.NewSlice(fileNames...)
-			sort.Strings(filesToEmbed)
-			vectorDimensions = 0
-		}
+		logger.Traceln("Detecting changes")
+		filesToEmbed = utils.GetChangedFiles(oldChecksums, fileChecksums)
+		logger.Traceln("Done detecting changes")
 	}
 
 	if vectorDimensions > 0 {
 		logger.Infoln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
+	}
+
+	if vectorDimensions < 0 {
+		logger.Panicln("Vectors dimensions inconsistency detected for existing embeddings, check your LLM embeddings configuration and rebuild all embeddings by running embed operation with -f flag")
 	}
 
 	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
