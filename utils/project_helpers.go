@@ -160,11 +160,9 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 			return nil, nil, 0, err
 		}
 	}
-
 	vectorDimensions := 0
 	fileVectors := make(map[string][][]float32)
 	fileChecksums := make(map[string]string)
-
 	for _, filename := range filenames {
 		//set initial state of requested file checksum to "error"
 		fileChecksums[filename] = "error"
@@ -191,46 +189,30 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 		if vectorDimensions > 0 && len(vectors) > 0 {
 			for _, vector := range vectors {
 				if len(vector) != vectorDimensions {
-					return nil, nil, vectorDimensions, fmt.Errorf(
-						"vector dimensions from existing embeddings mismatch for file %s: expected %d, got %d. Please rebuild all embeddings by running embed operation with -f flag",
-						filename,
-						vectorDimensions,
-						len(vector))
+					//inconsistent dimensions detected
+					vectorDimensions = -1
+					break
 				}
 			}
 		}
 	}
-
 	//save all checksums present at embeddings-storage for convenience
 	for _, entry := range embeddings {
 		fileChecksums[entry.Filename] = entry.Checksum
 	}
-
 	return fileVectors, fileChecksums, vectorDimensions, nil
 }
 
-func GetChangedEmbeddings(embeddingsFilePath string, fileChecksums map[string]string) ([]string, error) {
-	var embeddings embeddingEntries
-	err := LoadMsgPackFile(embeddingsFilePath, &embeddings)
-	if err != nil {
-		embeddings = nil
-	}
-
-	embeddingChecksums := make(map[string]string)
-	for _, entry := range embeddings {
-		embeddingChecksums[entry.Filename] = entry.Checksum
-	}
-
+func GetChangedFiles(oldFileChecksums map[string]string, curFileChecksums map[string]string) []string {
 	var changedFiles []string
-	for filename, checksum := range fileChecksums {
-		embeddingChecksum, ok := embeddingChecksums[filename]
-		if !ok || embeddingChecksum != checksum {
+	for filename, checksum := range curFileChecksums {
+		oldChecksum, ok := oldFileChecksums[filename]
+		if !ok || oldChecksum != checksum {
 			changedFiles = append(changedFiles, filename)
 		}
 	}
-
 	sort.Strings(changedFiles)
-	return changedFiles, nil
+	return changedFiles
 }
 
 func GetChecksumsFromAnnotations(annotationsFilePath string, files []string) map[string]string {
