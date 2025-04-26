@@ -1,6 +1,7 @@
 package op_embed
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -312,4 +313,55 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if errorFlag {
 		logger.Panicln("Not all files were successfully processed. Run embed again to process failed files.")
 	}
+}
+
+func GenerateEmbeddings(tag, content string, logger logging.ILogger) ([][]float32, error) {
+	logger.Debugln("Running GenerateVectors")
+
+	silentLogger := logger.Clone()
+	silentLogger.DisableLevel(logging.ErrorLevel)
+	silentLogger.DisableLevel(logging.WarnLevel)
+	silentLogger.DisableLevel(logging.InfoLevel)
+
+	_, perpetualDir, err := utils.FindProjectRoot(silentLogger)
+	if err != nil {
+		logger.Panicln("Error finding project root directory:", err)
+	}
+
+	projectConfig, err := config.LoadProjectConfig(perpetualDir)
+	if err != nil {
+		logger.Panicf("Error loading project config: %s", err)
+	}
+
+	// Create llm connector for generating embeddings
+	connector, err := llm.NewLLMConnector(OpName, "", "",
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		map[string]interface{}{}, "", "",
+		llm.GetSimpleRawMessageLogger(perpetualDir))
+	if err != nil {
+		return [][]float32{}, err
+	}
+
+	logger.Infoln("Generating embeddings for:", tag)
+	logger.Infoln(connector.GetDebugString())
+
+	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
+	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+		vectors, status, err := connector.CreateEmbeddings(tag, content)
+		// Check for general error on query
+		if err != nil {
+			logger.Errorf("LLM query failed with status %d, error: %s", status, err)
+			if status == llm.QueryInitFailed || onFailRetriesLeft < 1 {
+				return [][]float32{}, err
+			}
+			continue
+		}
+		// Check for hitting token limit, ideally should not occur at all for embedding models
+		if status == llm.QueryMaxTokens {
+			return [][]float32{}, errors.New("LLM response(s) reached max tokens, that's probably an error with configuration of embedding model")
+		}
+		return vectors, nil
+	}
+
+	return [][]float32{}, errors.New("unknown error")
 }
