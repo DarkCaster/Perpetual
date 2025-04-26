@@ -156,6 +156,9 @@ func GetEmbeddings(filePath string, filenames []string) (map[string][][]float32,
 	err := LoadMsgPackFile(filePath, &embeddings)
 	if err != nil {
 		embeddings = nil
+		if !os.IsNotExist(err) {
+			return nil, nil, 0, err
+		}
 	}
 
 	vectorDimensions := 0

@@ -144,12 +144,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	embeddingsFilePath := filepath.Join(perpetualDir, utils.EmbeddingsFileName)
 
 	//load old embeddings file
-	logger.Traceln("Loading current embeddings")
-	embeddings, oldChecksums, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
+	logger.Traceln("Loading embeddings")
+	oldEmbeddings, oldChecksums, vectorDimensions, err := utils.GetEmbeddings(embeddingsFilePath, fileNames)
 	if err != nil {
-		logger.Panicln("Failed to read old embeddings:", err)
+		logger.Panicln("Failed to load embeddings:", err)
 	}
-	logger.Traceln("Done loading current embeddings")
+	logger.Traceln("Done loading embeddings")
 
 	var filesToEmbed []string
 	if !force {
@@ -176,31 +176,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			}
 			filesToEmbed = utils.NewSlice(fileNames...)
 			sort.Strings(filesToEmbed)
+			vectorDimensions = 0
 		}
 	}
 
-	//detect vector dimension-count and check all vectors have same dimensions
-	vectorDimensions := 0
-
-	// Check existing embeddings for dimension consistency
-	for file, vectors := range embeddings {
-		// Check vector dimensions consistency
-		if vectorDimensions == 0 && len(vectors) > 0 && len(vectors[0]) > 0 {
-			// This is the first valid vector, set the dimensions
-			vectorDimensions = len(vectors[0])
-			logger.Infoln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
-		}
-		if vectorDimensions > 0 && len(vectors) > 0 {
-			for _, vector := range vectors {
-				if len(vector) != vectorDimensions {
-					logger.Panicf(
-						"Vector dimensions from existing embeddings mismatch for file %s: expected %d, got %d, Please rebuild all embeddings by running embed operation with -f flag",
-						file,
-						vectorDimensions,
-						len(vector))
-				}
-			}
-		}
+	if vectorDimensions > 0 {
+		logger.Infoln("Vectors dimensions detected from existing embeddings:", vectorDimensions)
 	}
 
 	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
@@ -294,13 +275,13 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Copy new embeddings back to old embeddings
 	for element := range newEmbeddings {
-		embeddings[element] = newEmbeddings[element]
+		oldEmbeddings[element] = newEmbeddings[element]
 	}
 
 	// Save updated embeddings
 	if len(newEmbeddings) > 0 {
 		logger.Infoln("Saving embeddings")
-		if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, embeddings); err != nil {
+		if err := utils.SaveEmbeddings(embeddingsFilePath, fileChecksums, oldEmbeddings); err != nil {
 			logger.Panicln("Failed to save embeddings:", err)
 		}
 		logger.Traceln("Done saving embeddings")
