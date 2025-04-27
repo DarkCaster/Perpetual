@@ -2,9 +2,13 @@ package op_embed
 
 import (
 	"math"
+	"path/filepath"
+
+	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/utils"
 )
 
-/*func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
+func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
 	if limit < 1 {
 		logger.Infoln("Local similarity search is disabled")
 		return preSelectedFiles
@@ -33,8 +37,35 @@ import (
 		logger.Panicln("Vectors dimensions inconsistency detected for existing embeddings, check your LLM embeddings configuration and rebuild all embeddings by running embed operation with -f flag")
 	}
 
-	logger.Infoln(connector.GetDebugString())
-}*/
+	//get similarity results for search queries
+	similarityResults := SimilaritySearch(searchVectors, embeddings)
+
+	//calculate result limit
+	resultsLimit := int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit)))
+	resultsDistribution := make([]int, len(similarityResults), len(similarityResults))
+
+	//helper for (re)calculating resultsDistribution for all or some elements of resultsDistribution:
+	redistributeResultsLimit := func(start, count int) {
+		pos := start
+		for ; count > 0; count-- {
+			resultsDistribution[pos] += 1
+			pos++
+			if pos >= len(resultsDistribution) {
+				pos = start
+			}
+		}
+		// Ensure each result-distribution counter entry has at least 1 result
+		for i := start; i < len(resultsDistribution); i++ {
+			if resultsDistribution[i] < 1 {
+				resultsDistribution[i] = 1
+			}
+		}
+	}
+
+	//initial results distribution
+	redistributeResultsLimit(0, resultsLimit)
+
+}
 
 func SimilaritySearch(searchVector [][]float32, filesSourceVectors map[string][][]float32) []map[string]float32 {
 	scoresBySearchVector := []map[string]float32{}
