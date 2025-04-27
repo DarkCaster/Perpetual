@@ -195,8 +195,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		fileNames,
 		annotations,
 		question,
-		similarFilesLimit,
-		similarFilesRatio,
 		logger)
 
 	if listFilesOnly {
