@@ -332,7 +332,9 @@ func GenerateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 		}
 		// Check for hitting token limit, ideally should not occur at all for embedding models
 		if status == llm.QueryMaxTokens {
-			return [][]float32{}, errors.New("LLM response(s) reached max tokens, that's probably an error with configuration of embedding model")
+			err := "LLM response(s) reached max tokens, that's probably an error with configuration of embedding model"
+			logger.Errorf(err)
+			return [][]float32{}, errors.New(err)
 		}
 		return vectors, nil
 	}
