@@ -14,6 +14,8 @@ func Stage1(projectRootDir string,
 	projectFiles []string,
 	annotations map[string]string,
 	question string,
+	similarFilesLimit int,
+	similarFilesRatio float64,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
