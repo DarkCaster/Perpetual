@@ -102,11 +102,19 @@ func TestSimilaritySearch(t *testing.T) {
 		},
 	}
 
-	expected := map[string]float32{
-		"file1.txt": 1.0,     // Perfect match with first search vector
-		"file2.txt": 1.0,     // Perfect match with second search vector
-		"file3.txt": 0.57735, // Best match is with the second vector
-	}
+	expected := []map[string]float32{
+		// first search vector matches
+		{
+			"file1.txt": 1.0,     // Perfect match with file 1 vector 1
+			"file2.txt": 0,       // No match with any of file 2 vectors
+			"file3.txt": 0.57735, // Best match with first search vector
+		},
+		// second search vector matches
+		{
+			"file1.txt": 0.70710677, // Best match with file 1 vector 2
+			"file2.txt": 1.0,        // Perfect match with file 1 vector 1
+			"file3.txt": 0.57735,    // Best match is with the second vector
+		}}
 
 	result := SimilaritySearch(searchVectors, filesSourceVectors)
 
@@ -114,11 +122,14 @@ func TestSimilaritySearch(t *testing.T) {
 		t.Errorf("SimilaritySearch() returned %d results, want %d", len(result), len(expected))
 	}
 
-	for file, score := range expected {
-		if resultScore, ok := result[file]; !ok {
-			t.Errorf("SimilaritySearch() missing result for %s", file)
-		} else if math.Abs(float64(resultScore-score)) > 1e-5 {
-			t.Errorf("SimilaritySearch() for %s = %v, want %v", file, resultScore, score)
+	for i, outer := range expected {
+		t.Logf("Testing result %d", i)
+		for file, score := range outer {
+			if resultScore, ok := result[i][file]; !ok {
+				t.Errorf("SimilaritySearch() missing result for %s", file)
+			} else if math.Abs(float64(resultScore-score)) > 1e-5 {
+				t.Errorf("SimilaritySearch() for %s = %v, want %v", file, resultScore, score)
+			}
 		}
 	}
 }
@@ -152,14 +163,14 @@ func TestSimilaritySearchFromQdrantExample(t *testing.T) {
 		},
 	}
 
-	expected := map[string]float32{
+	expected := []map[string]float32{{
 		"id4": 0.99248314,
 		"id1": 0.89463294,
 		"id5": 0.8543979,
 		"id3": 0.83872515,
 		"id6": 0.7216256,
 		"id2": 0.66603535,
-	}
+	}}
 
 	result := SimilaritySearch(searchVectors, filesSourceVectors)
 
@@ -167,11 +178,13 @@ func TestSimilaritySearchFromQdrantExample(t *testing.T) {
 		t.Errorf("SimilaritySearch() returned %d results, want %d", len(result), len(expected))
 	}
 
-	for file, score := range expected {
-		if resultScore, ok := result[file]; !ok {
-			t.Errorf("SimilaritySearch() missing result for %s", file)
-		} else if math.Abs(float64(resultScore-score)) > 1e-5 {
-			t.Errorf("SimilaritySearch() for %s = %v, want %v", file, resultScore, score)
+	for i, outer := range expected {
+		for file, score := range outer {
+			if resultScore, ok := result[i][file]; !ok {
+				t.Errorf("SimilaritySearch() missing result for %s", file)
+			} else if math.Abs(float64(resultScore-score)) > 1e-5 {
+				t.Errorf("SimilaritySearch() for %s = %v, want %v", file, resultScore, score)
+			}
 		}
 	}
 }
