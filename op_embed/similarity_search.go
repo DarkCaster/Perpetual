@@ -10,10 +10,14 @@ import (
 )
 
 func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
+	logger.Traceln("SimilaritySearchStage: Starting")
+	defer logger.Traceln("SimilaritySearchStage: Finished")
+
 	if limit < 1 {
 		logger.Infoln("Local similarity search is disabled")
 		return preSelectedFiles
 	}
+	logger.Infoln("Attempting local similarity search")
 
 	//generate embeddings for search queries
 	searchVectors := [][]float32{}
@@ -78,17 +82,35 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		}
 	}
 	//initial results distribution
-	redistributeResultsLimit(0, int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit))))
+	initialLimit := int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit)))
+	redistributeResultsLimit(0, initialLimit)
+
+	if logger.IsLevelEnabled(logging.DebugLevel) {
+		logger.Debugln("Limit of similar files to output:", initialLimit)
+		for i, result := range similarityResults {
+			sortedResult := sortFilesByScore(result)
+			logger.Debugf("Top %d similarity scores for tag: %s", limit, searchTags[i])
+			for r := 0; r < limit && r < len(sortedResult); r++ {
+				logger.Debugf("%s: %f", sortedResult[r], result[sortedResult[r]])
+			}
+		}
+	}
 
 	logger.Infoln("Selecting files according to similarity score")
 	selectedFiles := []string{}
 	for i, result := range similarityResults {
 		//invalidate scores for files that already in preSelectedFiles
 		for _, filename := range preSelectedFiles {
+			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
+				logger.Debugf("Dropping file from previous stage for tag %s: %s", searchTags[i], filename)
+			}
 			result[filename] = -math.MaxFloat32
 		}
 		//invalidate scores for files that already selected
 		for _, filename := range selectedFiles {
+			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
+				logger.Debugf("Dropping already promoted file for tag %s: %s", searchTags[i], filename)
+			}
 			result[filename] = -math.MaxFloat32
 		}
 		sortedResult := sortFilesByScore(result)
@@ -98,6 +120,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 			//TODO: select files with scores > treshold value. currently it is hardcoded as 0
 			if result[sortedResult[r]] > 0 {
 				added++
+				logger.Debugf("Promoting file for tag %s: %s", searchTags[i], sortedResult[r])
 				selectedFiles = append(selectedFiles, sortedResult[r])
 			}
 		}
@@ -109,7 +132,6 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		}
 	}
 
-	logger.Traceln("Done selecting files")
 	return selectedFiles
 }
 
