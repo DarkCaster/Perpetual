@@ -197,6 +197,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question,
 		logger)
 
+	// Local similarity search stage
+	similarFiles := op_embed.SimilaritySearchStage(similarFilesLimit, similarFilesRatio, perpetualDir, []string{question}, []string{"Question"}, fileNames, requestedFiles, logger)
+	requestedFiles = append(requestedFiles, similarFiles...)
+
 	if listFilesOnly {
 		// for this mode, just list files one file per line for easier parsing with 3-rd party tool
 		if outputFile != "" {
