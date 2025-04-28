@@ -34,6 +34,8 @@ type ILogger interface {
 	EnableLevel(level LogLevel)
 	DisableLevel(level LogLevel)
 	Clone() ILogger
+
+	IsLevelEnabled(level LogLevel) bool
 }
 
 func initLogLevels(maxLevel LogLevel) LogLevel {

@@ -118,3 +118,7 @@ func (l *SimpleLogger) DisableLevel(level LogLevel) {
 func (l *SimpleLogger) Clone() ILogger {
 	return &SimpleLogger{CurLevel: l.CurLevel, NormalLogger: l.NormalLogger, ErrorLogger: l.ErrorLogger, Start: l.Start}
 }
+
+func (l *SimpleLogger) IsLevelEnabled(level LogLevel) bool {
+	return (l.CurLevel & level) != 0
+}
