@@ -53,6 +53,14 @@
 			"args": ["implement","-n","-u","-pr","-vv"],
 		},
 		{
+			"name": "Launch Package: explain -i question.txt",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["explain","-i","question.txt","-vv"],
+		},
+		{
 			"name": "Launch Package: implement",
 			"type": "go",
 			"request": "launch",
