@@ -54,7 +54,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	}
 
 	//get similarity results for search queries
-	logger.Infoln("Performing local similarity search")
+	logger.Debugln("Performing local similarity search")
 	similarityResults := SimilaritySearch(searchVectors, embeddings)
 	logger.Traceln("Done local similarity search")
 
@@ -96,20 +96,21 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		}
 	}
 
-	logger.Infoln("Selecting files according to similarity score")
 	selectedFiles := []string{}
+	logger.Infoln("Selecting files according to similarity scores:")
 	for i, result := range similarityResults {
+		logger.Debugf("Processing scores for tag %s: ", searchTags[i])
 		//invalidate scores for files that already in preSelectedFiles
 		for _, filename := range preSelectedFiles {
 			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
-				logger.Debugf("Dropping file from previous stage for tag %s: %s", searchTags[i], filename)
+				logger.Debugln("Dropping file from previous stage:", filename)
 			}
 			result[filename] = -math.MaxFloat32
 		}
 		//invalidate scores for files that already selected
 		for _, filename := range selectedFiles {
 			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
-				logger.Debugf("Dropping already promoted file for tag %s: %s", searchTags[i], filename)
+				logger.Debugln("Dropping already selected file:", filename)
 			}
 			result[filename] = -math.MaxFloat32
 		}
@@ -119,9 +120,9 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
 			//TODO: select files with scores > treshold value. currently it is hardcoded as 0
 			if result[sortedResult[r]] > 0 {
-				added++
-				logger.Debugf("Promoting file for tag %s: %s", searchTags[i], sortedResult[r])
+				logger.Infoln(sortedResult[r])
 				selectedFiles = append(selectedFiles, sortedResult[r])
+				added++
 			}
 		}
 		//calculate how much more extra slots we have
