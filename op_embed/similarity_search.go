@@ -3,6 +3,7 @@ package op_embed
 import (
 	"math"
 	"path/filepath"
+	"sort"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -41,12 +42,15 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	similarityResults := SimilaritySearch(searchVectors, embeddings)
 
 	//calculate result limit
-	resultsLimit := int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit)))
-	resultsDistribution := make([]int, len(similarityResults), len(similarityResults))
+	resultsDistribution := make([]int, len(similarityResults))
 
 	//helper for (re)calculating resultsDistribution for all or some elements of resultsDistribution:
 	redistributeResultsLimit := func(start, count int) {
 		pos := start
+		if pos >= len(resultsDistribution) {
+			return
+		}
+		//fair slots distribution across resultsDistribution elements
 		for ; count > 0; count-- {
 			resultsDistribution[pos] += 1
 			pos++
@@ -54,7 +58,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 				pos = start
 			}
 		}
-		// Ensure each result-distribution counter entry has at least 1 result
+		//ensure each result-distribution counter entry has at least 1 result
 		for i := start; i < len(resultsDistribution); i++ {
 			if resultsDistribution[i] < 1 {
 				resultsDistribution[i] = 1
@@ -63,8 +67,48 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	}
 
 	//initial results distribution
-	redistributeResultsLimit(0, resultsLimit)
+	redistributeResultsLimit(0, int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit))))
 
+	selectedFiles := []string{}
+	for i, result := range similarityResults {
+		//invalidate scores for files that already in preSelectedFiles
+		for _, filename := range preSelectedFiles {
+			result[filename] = -math.MaxFloat32
+		}
+		//invalidate scores for files that already selected
+		for _, filename := range selectedFiles {
+			result[filename] = -math.MaxFloat32
+		}
+		sortedResult := sortFilesByScore(result)
+		added := 0
+		//select top N results according to previously calculated resultsDistribution count
+		for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
+			//TODO: select files with scores > treshold value. currently it is hardcoded as 0
+			if result[sortedResult[r]] > 0 {
+				added++
+				selectedFiles = append(selectedFiles, sortedResult[r])
+			}
+		}
+		//calculate how much more extra slots we have
+		extra := resultsDistribution[i] - added
+		if extra > 0 {
+			//redistribute extra slots for use with other similarityResults
+			redistributeResultsLimit(i+1, extra)
+		}
+	}
+
+	return selectedFiles
+}
+
+func sortFilesByScore(sourceMap map[string]float32) []string {
+	keys := make([]string, 0, len(sourceMap))
+	for key := range sourceMap {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return sourceMap[keys[i]] > sourceMap[keys[j]]
+	})
+	return keys
 }
 
 func SimilaritySearch(searchVector [][]float32, filesSourceVectors map[string][][]float32) []map[string]float32 {
