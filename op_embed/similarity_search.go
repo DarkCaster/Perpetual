@@ -15,7 +15,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 
 	if limit < 1 {
 		logger.Infoln("Local similarity search is disabled")
-		return preSelectedFiles
+		return []string{}
 	}
 	logger.Infoln("Attempting local similarity search")
 
@@ -26,7 +26,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		if err != nil {
 			logger.Debugln("Failed to generate embeddings for search queries:", err)
 			logger.Infoln("LLM embeddings for local similarity search is not configured or failed")
-			return preSelectedFiles
+			return []string{}
 		}
 		searchVectors = append(searchVectors, vectors...)
 	}
