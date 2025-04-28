@@ -38,6 +38,17 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		logger.Panicln("Vectors dimensions inconsistency detected for existing embeddings, check your LLM embeddings configuration and rebuild all embeddings by running embed operation with -f flag")
 	}
 
+	//check searchVectors have corresponding dimensions
+	for i, vector := range searchVectors {
+		if len(vector) != vectorDimensions {
+			logger.Panicf(
+				"Vector dimensions mismatch for %s: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
+				searchTags[i],
+				vectorDimensions,
+				len(vector))
+		}
+	}
+
 	//get similarity results for search queries
 	logger.Infoln("Performing local similarity search")
 	similarityResults := SimilaritySearch(searchVectors, embeddings)
