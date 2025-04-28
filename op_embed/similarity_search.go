@@ -39,11 +39,12 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	}
 
 	//get similarity results for search queries
+	logger.Infoln("Performing local similarity search")
 	similarityResults := SimilaritySearch(searchVectors, embeddings)
+	logger.Traceln("Done local similarity search")
 
 	//calculate result limit
 	resultsDistribution := make([]int, len(similarityResults))
-
 	//helper for (re)calculating resultsDistribution for all or some elements of resultsDistribution:
 	redistributeResultsLimit := func(start, count int) {
 		pos := start
@@ -65,10 +66,10 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 			}
 		}
 	}
-
 	//initial results distribution
 	redistributeResultsLimit(0, int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit))))
 
+	logger.Infoln("Selecting files according to similarity score")
 	selectedFiles := []string{}
 	for i, result := range similarityResults {
 		//invalidate scores for files that already in preSelectedFiles
@@ -97,6 +98,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		}
 	}
 
+	logger.Traceln("Done selecting files")
 	return selectedFiles
 }
 
