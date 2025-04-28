@@ -25,8 +25,11 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		vectors, err := GenerateEmbeddings(searchTags[i], query, logger)
 		if err != nil {
 			logger.Debugln("Failed to generate embeddings for search queries:", err)
-			logger.Infoln("LLM embeddings for local similarity search is not configured or failed")
+			logger.Infoln("LLM embeddings for local similarity search not configured or failed")
 			return []string{}
+		}
+		if len(vectors) > 1 {
+			logger.Warnf("Embeddings for %s contain more than one vector (%d), this may negatively affect search results", searchTags[i], len(vectors))
 		}
 		searchVectors = append(searchVectors, vectors...)
 	}
@@ -46,10 +49,8 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	for i, vector := range searchVectors {
 		if len(vector) != vectorDimensions {
 			logger.Panicf(
-				"Vector dimensions mismatch for %s: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
-				searchTags[i],
-				vectorDimensions,
-				len(vector))
+				"Vector dimensions mismatch for vector %d: expected %d, got %d, please check your LLM configuration and rebuild all embeddings if needed by running embed operation with -f flag",
+				i, vectorDimensions, len(vector))
 		}
 	}
 
@@ -89,7 +90,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		logger.Debugln("Limit of similar files to output:", initialLimit)
 		for i, result := range similarityResults {
 			sortedResult := sortFilesByScore(result)
-			logger.Debugf("Top %d similarity scores for tag: %s", limit, searchTags[i])
+			logger.Debugf("Top %d similarity scores for search vector: %d", limit, i)
 			for r := 0; r < limit && r < len(sortedResult); r++ {
 				logger.Debugf("%s: %f", sortedResult[r], result[sortedResult[r]])
 			}
@@ -99,7 +100,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	selectedFiles := []string{}
 	logger.Infoln("Selecting files according to similarity scores:")
 	for i, result := range similarityResults {
-		logger.Debugf("Processing scores for tag %s: ", searchTags[i])
+		logger.Debugf("Processing scores for vector %d: ", i)
 		//invalidate scores for files that already in preSelectedFiles
 		for _, filename := range preSelectedFiles {
 			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
