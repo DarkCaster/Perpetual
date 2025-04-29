@@ -50,8 +50,10 @@ type GenericLLMConnector struct {
 	Variants              int
 	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
-	EmbedChunk            int
-	EmbedOverlap          int
+	EmbedDocChunk         int
+	EmbedDocOverlap       int
+	EmbedSearchChunk      int
+	EmbedSearchOverlap    int
 	EmbedThreshold        float32
 	EmbedDocPrefix        string
 	EmbedSearchPrefix     string
@@ -130,8 +132,10 @@ func NewGenericLLMConnectorFromEnv(
 	fieldsToInject := map[string]interface{}{}
 
 	var streaming int = 0
-	var chunk int = 1024
-	var overlap int = 64
+	var docChunk int = 1024
+	var docOverlap int = 64
+	var searchChunk int = 4096
+	var searchOverlap int = 128
 	var seed int = math.MaxInt
 	var variants int = 1
 
@@ -148,20 +152,36 @@ func NewGenericLLMConnectorFromEnv(
 	if operation == "EMBED" {
 		fieldsToRemove = append(fieldsToRemove, "temperature")
 
-		chunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_SIZE", prefix))
-		if err != nil || chunk < 1 {
-			chunk = 1024
+		docChunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DOC_CHUNK_SIZE", prefix))
+		if err != nil || docChunk < 1 {
+			docChunk = 1024
 		}
-		debug.Add("embed chunk size", chunk)
+		debug.Add("embed doc chunk size", docChunk)
 
-		overlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_OVERLAP", prefix))
-		if err != nil || overlap < 1 {
-			overlap = 64
+		docOverlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DOC_CHUNK_OVERLAP", prefix))
+		if err != nil || docOverlap < 1 {
+			docOverlap = 64
 		}
-		debug.Add("embed chunk overlap", overlap)
+		debug.Add("embed doc chunk overlap", docOverlap)
 
-		if overlap >= chunk {
-			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		searchChunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_SEARCH_CHUNK_SIZE", prefix))
+		if err != nil || searchChunk < 1 {
+			searchChunk = 4096
+		}
+		debug.Add("embed search chunk size", searchChunk)
+
+		searchOverlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_SEARCH_CHUNK_OVERLAP", prefix))
+		if err != nil || searchOverlap < 1 {
+			searchOverlap = 128
+		}
+		debug.Add("embed search chunk overlap", searchOverlap)
+
+		if docOverlap >= docChunk {
+			return nil, fmt.Errorf("%s_EMBED_DOC_CHUNK_OVERLAP must be smaller than %s_EMBED_DOC_CHUNK_SIZE", prefix, prefix)
+		}
+
+		if searchOverlap >= searchChunk {
+			return nil, fmt.Errorf("%s_EMBED_SEARCH_CHUNK_OVERLAP must be smaller than %s_EMBED_SEARCH_CHUNK_SIZE", prefix, prefix)
 		}
 
 		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
@@ -353,8 +373,10 @@ func NewGenericLLMConnectorFromEnv(
 		Variants:              variants,
 		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
-		EmbedChunk:            chunk,
-		EmbedOverlap:          overlap,
+		EmbedDocChunk:         docChunk,
+		EmbedDocOverlap:       docOverlap,
+		EmbedSearchChunk:      searchChunk,
+		EmbedSearchOverlap:    searchOverlap,
 		EmbedThreshold:        embedThreshold,
 		EmbedDocPrefix:        embedDocPrefix,
 		EmbedSearchPrefix:     embedSearchPrefix,
@@ -413,15 +435,21 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 		return [][]float32{}, QueryInitFailed, err
 	}
 
+	chunk := p.EmbedDocChunk
+	overlap := p.EmbedDocOverlap
 	switch mode {
 	case DocEmbed:
 		content = p.EmbedDocPrefix + content
+		chunk = p.EmbedDocChunk
+		overlap = p.EmbedDocOverlap
 	case SearchEmbed:
 		content = p.EmbedSearchPrefix + content
+		chunk = p.EmbedSearchChunk
+		overlap = p.EmbedSearchOverlap
 	default:
 	}
 
-	chunks := utils.SplitTextToChunks(content, p.EmbedChunk, p.EmbedOverlap)
+	chunks := utils.SplitTextToChunks(content, chunk, overlap)
 
 	//make a pause, if we need to wait to recover from previous error
 	if p.RateLimitDelayS > 0 {
