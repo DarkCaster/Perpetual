@@ -174,11 +174,13 @@ func NewOllamaLLMConnectorFromEnv(
 		}
 
 		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
-		if err != nil || threshold < -math.MaxFloat32 || threshold > math.MaxFloat32 {
-			return nil, fmt.Errorf("%s_EMBED_SCORE_THRESHOLD must be valid float value (32bit)", prefix)
-		} else {
-			embedThreshold = float32(threshold)
-			debug.Add("embed score threshold", embedThreshold)
+		if err == nil {
+			if threshold < -math.MaxFloat32 || threshold > math.MaxFloat32 {
+				return nil, fmt.Errorf("%s_EMBED_SCORE_THRESHOLD must be valid float value (32bit)", prefix)
+			} else {
+				embedThreshold = float32(threshold)
+				debug.Add("embed score threshold", embedThreshold)
+			}
 		}
 
 		docPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_DOC_PREFIX", prefix))
