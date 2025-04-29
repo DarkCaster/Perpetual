@@ -183,8 +183,8 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search.
-# OPENAI_EMBED_CHUNK_SIZE="2048"
-# OPENAI_EMBED_CHUNK_OVERLAP="256"
+# OPENAI_EMBED_CHUNK_SIZE="1024"
+# OPENAI_EMBED_CHUNK_OVERLAP="64"
 
 # Set dimension count of generated vectors, supported for text-embedding-3 models, usually not need to change anything here.
 # OPENAI_EMBED_DIMENSIONS="1536" # not set by default
@@ -321,8 +321,8 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search. Highly model-dependent.
-# OLLAMA_EMBED_CHUNK_SIZE="2048"
-# OLLAMA_EMBED_CHUNK_OVERLAP="256"
+# OLLAMA_EMBED_CHUNK_SIZE="1024"
+# OLLAMA_EMBED_CHUNK_OVERLAP="64"
 
 # Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
 # Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
@@ -572,8 +572,8 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search. Highly model-dependent.
-# GENERIC_EMBED_CHUNK_SIZE="2048"
-# GENERIC_EMBED_CHUNK_OVERLAP="256"
+# GENERIC_EMBED_CHUNK_SIZE="1024"
+# GENERIC_EMBED_CHUNK_OVERLAP="64"
 
 # Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
 # Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
