@@ -162,7 +162,7 @@ OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
 OPENAI_MODEL_OP_ANNOTATE="gpt-4o-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-4o-mini" # used to process multiple response-variants if any
-OPENAI_MODEL_OP_EMBED="text-embedding-3-small"
+# OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # uncomment to enable embedding and local similarity search
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-4o"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-4o"
@@ -183,8 +183,10 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search.
-# OPENAI_EMBED_CHUNK_SIZE="1024"
-# OPENAI_EMBED_CHUNK_OVERLAP="64"
+# OPENAI_EMBED_DOC_CHUNK_SIZE="1024"
+# OPENAI_EMBED_DOC_CHUNK_OVERLAP="64"
+# OPENAI_EMBED_SEARCH_CHUNK_SIZE="4096"
+# OPENAI_EMBED_SEARCH_CHUNK_OVERLAP="128"
 
 # Set dimension count of generated vectors, supported for text-embedding-3 models, usually not need to change anything here.
 # OPENAI_EMBED_DIMENSIONS="1536" # not set by default
@@ -304,7 +306,7 @@ OPENAI_TEMPERATURE="0.5"
 
 OLLAMA_MODEL_OP_ANNOTATE="qwen2.5-coder:7b-instruct-q5_K_M"
 OLLAMA_MODEL_OP_ANNOTATE_POST="qwen2.5-coder:7b-instruct-q5_K_M" # used to process multiple response-variants if any
-OLLAMA_MODEL_OP_EMBED="snowflake-arctic-embed2" # embedding model currently do not have any other settings, you should use modelfile to customize it
+# OLLAMA_MODEL_OP_EMBED="snowflake-arctic-embed2" # uncomment to enable embedding, install model by running ollama pull snowflake-arctic-embed2
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE1="qwen2.5-coder:14b-instruct-q4_K_M"
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE2="qwen2.5-coder:14b-instruct-q4_K_M"
 # OLLAMA_MODEL_OP_IMPLEMENT_STAGE3="qwen2.5-coder:14b-instruct-q4_K_M"
@@ -320,9 +322,12 @@ OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
-# Values too small or too large may lead to less effective search. Highly model-dependent.
-# OLLAMA_EMBED_CHUNK_SIZE="1024"
-# OLLAMA_EMBED_CHUNK_OVERLAP="64"
+# Optimal values are model dependent, large values may overflow model context window. Example below is for snowflake-arctic-embed2
+# Values too small or too large may lead to less effective search or may not work at all.
+# OLLAMA_EMBED_DOC_CHUNK_SIZE="1024"
+# OLLAMA_EMBED_DOC_CHUNK_OVERLAP="64"
+# OLLAMA_EMBED_SEARCH_CHUNK_SIZE="4096"
+# OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="128"
 
 # Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
 # Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
@@ -571,9 +576,11 @@ GENERIC_VARIANT_COUNT="1" # will be used as fallback
 GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
-# Values too small or too large may lead to less effective search. Highly model-dependent.
-# GENERIC_EMBED_CHUNK_SIZE="1024"
-# GENERIC_EMBED_CHUNK_OVERLAP="64"
+# Values too small or too large may lead to less effective search or may not work at all. Highly model-dependent.
+# GENERIC_EMBED_DOC_CHUNK_SIZE="1024"
+# GENERIC_EMBED_DOC_CHUNK_OVERLAP="64"
+# GENERIC_EMBED_SEARCH_CHUNK_SIZE="4096"
+# GENERIC_EMBED_SEARCH_CHUNK_OVERLAP="128"
 
 # Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
 # Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
