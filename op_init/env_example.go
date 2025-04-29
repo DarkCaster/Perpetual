@@ -181,13 +181,17 @@ OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: shor
 OPENAI_VARIANT_COUNT="1" # will be used as fallback
 OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
-# Text chunk size (chars) used when generating embeddings
-# Values too big may lead to model context window overflow or make semantic search worse,
-# Values too small may also worsen semantic search results and increase RAM and disk requirements
-OPENAI_EMBED_CHUNK_SIZE=2048
-OPENAI_EMBED_CHUNK_OVERLAP=256
-# Set dimension count of generated vectors, supported for text-embedding-3 models
-# OPENAI_EMBED_DIMENSIONS=1024
+# Text chunk/sequence size in characters (not tokens), used when generating embeddings.
+# Values too small or too large may lead to less effective search.
+# OPENAI_EMBED_CHUNK_SIZE="2048"
+# OPENAI_EMBED_CHUNK_OVERLAP="256"
+
+# Set dimension count of generated vectors, supported for text-embedding-3 models, usually not need to change anything here.
+# OPENAI_EMBED_DIMENSIONS="1536" # not set by default
+
+# Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
+# Model dependent, may be less than 0 but seem not for OpenAI, (score < 0 usually means that the vectors are semantically opposite)
+# OPENAI_EMBED_SCORE_THRESHOLD="0.0"
 
 # Switch to use structured JSON output format for supported operations
 # Supported values: plain, json. Default: plain
@@ -315,11 +319,27 @@ OLLAMA_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: shor
 OLLAMA_VARIANT_COUNT="1" # will be used as fallback
 OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
-# Text chunk size (chars) used when generating embeddings
-# Values too big may lead to model context window overflow or make semantic search worse,
-# Values too small may also worsen semantic search results and increase RAM and disk requirements
-OLLAMA_EMBED_CHUNK_SIZE=2048
-OLLAMA_EMBED_CHUNK_OVERLAP=256
+# Text chunk/sequence size in characters (not tokens), used when generating embeddings.
+# Values too small or too large may lead to less effective search. Highly model-dependent.
+# OLLAMA_EMBED_CHUNK_SIZE="2048"
+# OLLAMA_EMBED_CHUNK_OVERLAP="256"
+
+# Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
+# Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
+# OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
+
+# LLM query text prefix used when generating embeddings for project files. Model dependent. Unset by default.
+# OLLAMA_EMBED_DOC_PREFIX="Process following document:\n"
+# LLM query text prefix used when generating embeddings for search queries. Model dependent. Unset by default.
+# OLLAMA_EMBED_SEARCH_PREFIX="Process following search query:\n"
+
+# examples for some models:
+# nomic-embed-text-v1.5
+# OLLAMA_EMBED_DOC_PREFIX="search_document: \n"
+# OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
+# mxbai-embed-large-v1
+# OLLAMA_EMBED_DOC_PREFIX=""
+# OLLAMA_EMBED_SEARCH_PREFIX="Represent this sentence for searching relevant passages: \n"
 
 # Context overflow detection and management options: multiplier to increase context size, upper limit, and estimation multiplier.
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to initial value when starting new operation stage.
@@ -550,11 +570,19 @@ GENERIC_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: sho
 GENERIC_VARIANT_COUNT="1" # will be used as fallback
 GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 
-# Text chunk size (chars) used when generating embeddings
-# Values too big may lead to model context window overflow or make semantic search worse,
-# Values too small may also worsen semantic search results and increase RAM and disk requirements
-GENERIC_EMBED_CHUNK_SIZE=2048
-GENERIC_EMBED_CHUNK_OVERLAP=256
+# Text chunk/sequence size in characters (not tokens), used when generating embeddings.
+# Values too small or too large may lead to less effective search. Highly model-dependent.
+# GENERIC_EMBED_CHUNK_SIZE="2048"
+# GENERIC_EMBED_CHUNK_OVERLAP="256"
+
+# Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
+# Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
+# GENERIC_EMBED_SCORE_THRESHOLD="0.0"
+
+# LLM query text prefix used when generating embeddings for project files. Model dependent. Unset by default.
+# GENERIC_EMBED_DOC_PREFIX="Process following document:\n"
+# LLM query text prefix used when generating embeddings for search queries. Model dependent. Unset by default.
+# GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
 GENERIC_MAX_TOKENS_OP_ANNOTATE="768"
 GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
