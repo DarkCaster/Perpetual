@@ -363,6 +363,10 @@ func NewGenericLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *GenericLLMConnector) GetEmbedScoreThreshold() float32 {
+	return p.EmbedThreshold
+}
+
 func (p *GenericLLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content

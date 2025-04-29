@@ -271,6 +271,10 @@ func processOpenAISchema(target map[string]interface{}) {
 	}
 }
 
+func (p *OpenAILLMConnector) GetEmbedScoreThreshold() float32 {
+	return p.EmbedThreshold
+}
+
 func (p *OpenAILLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content

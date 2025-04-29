@@ -389,6 +389,10 @@ func NewOllamaLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *OllamaLLMConnector) GetEmbedScoreThreshold() float32 {
+	return p.EmbedThreshold
+}
+
 func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content

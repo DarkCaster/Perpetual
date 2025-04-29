@@ -193,6 +193,10 @@ func NewAnthropicLLMConnectorFromEnv(
 	}, nil
 }
 
+func (p *AnthropicLLMConnector) GetEmbedScoreThreshold() float32 {
+	return 0
+}
+
 func (p *AnthropicLLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
 	return [][]float32{}, QueryInitFailed, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 }
