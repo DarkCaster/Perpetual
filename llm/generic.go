@@ -130,8 +130,8 @@ func NewGenericLLMConnectorFromEnv(
 	fieldsToInject := map[string]interface{}{}
 
 	var streaming int = 0
-	var chunk int = 2048
-	var overlap int = 256
+	var chunk int = 1024
+	var overlap int = 64
 	var seed int = math.MaxInt
 	var variants int = 1
 
@@ -150,13 +150,13 @@ func NewGenericLLMConnectorFromEnv(
 
 		chunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_SIZE", prefix))
 		if err != nil || chunk < 1 {
-			chunk = 2048
+			chunk = 1024
 		}
 		debug.Add("embed chunk size", chunk)
 
 		overlap, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_CHUNK_OVERLAP", prefix))
 		if err != nil || overlap < 1 {
-			overlap = 256
+			overlap = 64
 		}
 		debug.Add("embed chunk overlap", overlap)
 
