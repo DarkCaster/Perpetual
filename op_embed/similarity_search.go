@@ -14,7 +14,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	logger.Traceln("SimilaritySearchStage: Starting")
 	defer logger.Traceln("SimilaritySearchStage: Finished")
 
-	if limit < 1 {
+	if limit < 1 || len(searchQueries) < 1 {
 		logger.Infoln("Local similarity search is disabled")
 		return []string{}
 	}
@@ -22,8 +22,12 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 
 	//generate embeddings for search queries
 	searchVectors := [][]float32{}
+	var similarityThreshold float32 = math.MaxFloat32
 	for i, query := range searchQueries {
-		vectors, err := GenerateEmbeddings(llm.SearchEmbed, searchTags[i], query, logger)
+		vectors, threshold, err := GenerateEmbeddings(llm.SearchEmbed, searchTags[i], query, logger)
+		if threshold < similarityThreshold {
+			similarityThreshold = threshold
+		}
 		if err != nil {
 			logger.Debugln("Failed to generate embeddings for search queries:", err)
 			logger.Infoln("LLM embeddings for local similarity search not configured or failed")
@@ -120,8 +124,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 		added := 0
 		//select top N results according to previously calculated resultsDistribution count
 		for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
-			//TODO: select files with scores > treshold value. currently it is hardcoded as 0
-			if result[sortedResult[r]] > 0 {
+			if result[sortedResult[r]] >= similarityThreshold {
 				logger.Infoln(sortedResult[r])
 				selectedFiles = append(selectedFiles, sortedResult[r])
 				added++

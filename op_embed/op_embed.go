@@ -289,7 +289,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 }
 
-func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.ILogger) ([][]float32, error) {
+func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.ILogger) ([][]float32, float32, error) {
 	logger.Debugln("Running GenerateVectors")
 
 	silentLogger := logger.Clone()
@@ -313,7 +313,7 @@ func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.
 		map[string]interface{}{}, "", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
-		return [][]float32{}, err
+		return [][]float32{}, 0, err
 	}
 
 	switch mode {
@@ -334,7 +334,7 @@ func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.
 		if err != nil {
 			logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 			if status == llm.QueryInitFailed || onFailRetriesLeft < 1 {
-				return [][]float32{}, err
+				return [][]float32{}, 0, err
 			}
 			continue
 		}
@@ -342,10 +342,10 @@ func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.
 		if status == llm.QueryMaxTokens {
 			err := "LLM response(s) reached max tokens, that's probably an error with configuration of embedding model"
 			logger.Errorf(err)
-			return [][]float32{}, errors.New(err)
+			return [][]float32{}, 0, errors.New(err)
 		}
-		return vectors, nil
+		return vectors, connector.GetEmbedScoreThreshold(), nil
 	}
 
-	return [][]float32{}, errors.New("unknown error")
+	return [][]float32{}, 0, errors.New("unknown error")
 }
