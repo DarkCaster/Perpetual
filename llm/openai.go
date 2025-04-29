@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -39,7 +40,7 @@ type OpenAILLMConnector struct {
 	FieldsToRemove        []string
 	EmbedChunk            int
 	EmbedOverlap          int
-	EmbedDimensions       int
+	EmbedThreshold        float32
 	Debug                 llmDebug
 	RateLimitDelayS       int
 }
@@ -108,6 +109,8 @@ func NewOpenAILLMConnectorFromEnv(
 	var overlap int = 256
 	var variants int = 1
 
+	var embedThreshold float32 = 0.0
+
 	variantStrategy := Short
 
 	if operation == "EMBED" {
@@ -132,6 +135,14 @@ func NewOpenAILLMConnectorFromEnv(
 
 		if overlap >= chunk {
 			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		}
+
+		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
+		if err != nil || threshold < -math.MaxFloat32 || threshold > math.MaxFloat32 {
+			return nil, fmt.Errorf("%s_EMBED_SCORE_THRESHOLD must be valid float value (32bit)", prefix)
+		} else {
+			embedThreshold = float32(threshold)
+			debug.Add("embed score threshold", embedThreshold)
 		}
 	} else {
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
@@ -236,6 +247,7 @@ func NewOpenAILLMConnectorFromEnv(
 		FieldsToRemove:        fieldsToRemove,
 		EmbedChunk:            chunk,
 		EmbedOverlap:          overlap,
+		EmbedThreshold:        embedThreshold,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 	}, nil

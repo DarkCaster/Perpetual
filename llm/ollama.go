@@ -54,6 +54,9 @@ type OllamaLLMConnector struct {
 	OptionsToRemove       []string
 	EmbedChunk            int
 	EmbedOverlap          int
+	EmbedThreshold        float32
+	EmbedDocPrefix        string
+	EmbedSearchPrefix     string
 	ThinkRemoveRx         []*regexp.Regexp
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
@@ -142,6 +145,10 @@ func NewOllamaLLMConnectorFromEnv(
 	var chunk int = 2048
 	var overlap int = 256
 
+	var embedThreshold float32 = 0.0
+	var embedDocPrefix string = ""
+	var embedSearchPrefix string = ""
+
 	variantStrategy := Short
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
@@ -164,6 +171,26 @@ func NewOllamaLLMConnectorFromEnv(
 
 		if overlap >= chunk {
 			return nil, fmt.Errorf("%s_EMBED_CHUNK_OVERLAP must be smaller than %s_EMBED_CHUNK_SIZE", prefix, prefix)
+		}
+
+		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
+		if err != nil || threshold < -math.MaxFloat32 || threshold > math.MaxFloat32 {
+			return nil, fmt.Errorf("%s_EMBED_SCORE_THRESHOLD must be valid float value (32bit)", prefix)
+		} else {
+			embedThreshold = float32(threshold)
+			debug.Add("embed score threshold", embedThreshold)
+		}
+
+		docPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_DOC_PREFIX", prefix))
+		if err == nil {
+			embedDocPrefix = docPrefix
+			debug.Add("embed doc prefix", "set")
+		}
+
+		searchPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_SEARCH_PREFIX", prefix))
+		if err == nil {
+			embedSearchPrefix = searchPrefix
+			debug.Add("embed search prefix", "set")
 		}
 	} else {
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
@@ -352,6 +379,9 @@ func NewOllamaLLMConnectorFromEnv(
 		OptionsToRemove:       optionsToRemove,
 		EmbedChunk:            chunk,
 		EmbedOverlap:          overlap,
+		EmbedThreshold:        embedThreshold,
+		EmbedDocPrefix:        embedDocPrefix,
+		EmbedSearchPrefix:     embedSearchPrefix,
 		ThinkRemoveRx:         thinkRx,
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
