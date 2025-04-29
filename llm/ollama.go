@@ -393,7 +393,7 @@ func (p *OllamaLLMConnector) GetEmbedScoreThreshold() float32 {
 	return p.EmbedThreshold
 }
 
-func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]float32, QueryStatus, error) {
+func (p *OllamaLLMConnector) CreateEmbeddings(mode EmbedMode, tag string, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content
 		return [][]float32{}, QueryOk, nil
@@ -425,6 +425,14 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 		return [][]float32{}, QueryInitFailed, err
 	}
 
+	switch mode {
+	case DocEmbed:
+		content = p.EmbedDocPrefix + content
+	case SearchEmbed:
+		content = p.EmbedSearchPrefix + content
+	default:
+	}
+
 	chunks := utils.SplitTextToChunks(content, p.EmbedChunk, p.EmbedOverlap)
 
 	//make a pause, if we need to wait to recover from previous error
@@ -433,7 +441,14 @@ func (p *OllamaLLMConnector) CreateEmbeddings(tag string, content string) ([][]f
 	}
 
 	if p.RawMessageLogger != nil {
-		p.RawMessageLogger("Ollama: creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+		switch mode {
+		case DocEmbed:
+			p.RawMessageLogger("Ollama: creating document embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+		case SearchEmbed:
+			p.RawMessageLogger("Ollama: creating search query embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+		default:
+			p.RawMessageLogger("Ollama: creating embeddings for %s, chunk/vector count: %d", tag, len(chunks))
+		}
 	}
 
 	// Perform LLM query

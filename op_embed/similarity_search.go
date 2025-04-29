@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -22,7 +23,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	//generate embeddings for search queries
 	searchVectors := [][]float32{}
 	for i, query := range searchQueries {
-		vectors, err := GenerateEmbeddings(searchTags[i], query, logger)
+		vectors, err := GenerateEmbeddings(llm.SearchEmbed, searchTags[i], query, logger)
 		if err != nil {
 			logger.Debugln("Failed to generate embeddings for search queries:", err)
 			logger.Infoln("LLM embeddings for local similarity search not configured or failed")

@@ -275,7 +275,7 @@ func (p *OpenAILLMConnector) GetEmbedScoreThreshold() float32 {
 	return p.EmbedThreshold
 }
 
-func (p *OpenAILLMConnector) CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error) {
+func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content string) ([][]float32, QueryStatus, error) {
 	if len(content) < 1 {
 		//return no embeddings for empty content
 		return [][]float32{}, QueryOk, nil

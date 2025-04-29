@@ -41,8 +41,8 @@ const (
 type EmbedMode int
 
 const (
-	Doc EmbedMode = iota
-	Search
+	DocEmbed EmbedMode = iota
+	SearchEmbed
 )
 
 type providerAuthType int
@@ -62,7 +62,7 @@ const (
 
 type LLMConnector interface {
 	// Generate embeddings
-	CreateEmbeddings(tag, content string) ([][]float32, QueryStatus, error)
+	CreateEmbeddings(mode EmbedMode, tag, content string) ([][]float32, QueryStatus, error)
 	GetEmbedScoreThreshold() float32
 	// Generate text messages
 	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
