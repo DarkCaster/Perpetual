@@ -60,7 +60,7 @@ func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searc
 
 	//get similarity results for search queries
 	logger.Debugln("Performing local similarity search")
-	similarityResults := SimilaritySearch(searchVectors, embeddings)
+	similarityResults := similaritySearch(searchVectors, embeddings)
 	logger.Traceln("Done local similarity search")
 
 	//calculate result limit
@@ -178,7 +178,7 @@ func sortFilesByScore(sourceMap map[string]float32) []string {
 	return keys
 }
 
-func SimilaritySearch(searchVector [][]float32, filesSourceVectors map[string][][]float32) []map[string]float32 {
+func similaritySearch(searchVector [][]float32, filesSourceVectors map[string][][]float32) []map[string]float32 {
 	scoresBySearchVector := []map[string]float32{}
 	// iterate over search vectors
 	for _, searchVector := range searchVector {

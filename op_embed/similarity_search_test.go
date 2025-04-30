@@ -116,7 +116,7 @@ func TestSimilaritySearch(t *testing.T) {
 			"file3.txt": 0.57735,    // Best match is with the second vector
 		}}
 
-	result := SimilaritySearch(searchVectors, filesSourceVectors)
+	result := similaritySearch(searchVectors, filesSourceVectors)
 
 	if len(result) != len(expected) {
 		t.Errorf("SimilaritySearch() returned %d results, want %d", len(result), len(expected))
@@ -172,7 +172,7 @@ func TestSimilaritySearchFromQdrantExample(t *testing.T) {
 		"id2": 0.66603535,
 	}}
 
-	result := SimilaritySearch(searchVectors, filesSourceVectors)
+	result := similaritySearch(searchVectors, filesSourceVectors)
 
 	if len(result) != len(expected) {
 		t.Errorf("SimilaritySearch() returned %d results, want %d", len(result), len(expected))
