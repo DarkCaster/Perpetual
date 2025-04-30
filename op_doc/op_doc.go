@@ -25,6 +25,7 @@ func docFlags() *flag.FlagSet {
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var docFile, docExample, action, userFilterFile, contextSaving string
+	var searchLimit int
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
@@ -34,6 +35,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
+	flags.IntVar(&searchLimit, "s", 7, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -67,6 +69,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	contextSaving = strings.ToUpper(contextSaving)
 	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
 		logger.Panicln("Invalid context saving mode value provided")
+	}
+
+	if searchLimit < 0 {
+		logger.Panicln("Similar files limit parameter cannot be less than 0")
 	}
 
 	// Find project root and perpetual directories
@@ -199,6 +205,34 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docExampleContent,
 			action,
 			logger)
+
+		searchMode := 0
+		switch contextSaving {
+		case "HIGH":
+			searchMode = 1
+		case "MEDIUM":
+			searchMode = 1
+		case "OFF":
+			searchMode = 0
+		case "AUTO":
+			fallthrough
+		default:
+			if len(requestedFiles) <= searchLimit {
+				//for low requested file count - use aggressive search mode
+				searchMode = 0
+			} else {
+				//for high requested file count - use conservative search mode
+				searchMode = 1
+			}
+		}
+
+		if searchLimit > len(requestedFiles) {
+			searchLimit = len(requestedFiles)
+		}
+
+		// Local similarity search stage
+		similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, []string{docContent}, []string{"document"}, fileNames, requestedFiles, logger)
+		requestedFiles = append(requestedFiles, similarFiles...)
 
 		// Check requested files for no-upload mark and filter it out
 		var filteredRequestedFiles []string
