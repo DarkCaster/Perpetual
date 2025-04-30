@@ -10,7 +10,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
+func SimilaritySearchStage(fileSelectMode, limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
 	logger.Traceln("SimilaritySearchStage: Starting")
 	defer logger.Traceln("SimilaritySearchStage: Finished")
 
@@ -103,38 +103,66 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	}
 
 	selectedFiles := []string{}
-	logger.Infoln("Selecting files according to similarity scores:")
-	for i, result := range similarityResults {
-		logger.Debugf("Processing scores for vector %d: ", i)
-		//invalidate scores for files that already in preSelectedFiles
+	if fileSelectMode == 0 {
+		logger.Infoln("Selecting files (aggressive):")
+		for i, result := range similarityResults {
+			logger.Debugf("Processing scores for vector %d: ", i)
+			//invalidate scores for files that already in preSelectedFiles
+			for _, filename := range preSelectedFiles {
+				if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
+					logger.Debugln("Dropping file from previous stage:", filename)
+				}
+				result[filename] = -math.MaxFloat32
+			}
+			//invalidate scores for files that already selected
+			for _, filename := range selectedFiles {
+				if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
+					logger.Debugln("Dropping already selected file:", filename)
+				}
+				result[filename] = -math.MaxFloat32
+			}
+			sortedResult := sortFilesByScore(result)
+			added := 0
+			//select top N results according to previously calculated resultsDistribution count
+			for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
+				if result[sortedResult[r]] >= similarityThreshold {
+					logger.Infoln(sortedResult[r])
+					selectedFiles = append(selectedFiles, sortedResult[r])
+					added++
+				}
+			}
+			//calculate how much more extra slots we have
+			extra := resultsDistribution[i] - added
+			if extra > 0 {
+				//redistribute extra slots for use with other similarityResults
+				redistributeResultsLimit(i+1, extra)
+			}
+		}
+	} else {
+		logger.Infoln("Selecting files (conservative):")
+		promotedFiles := make(map[string]bool)
+		for i, result := range similarityResults {
+			sortedResult := sortFilesByScore(result)
+			//select top N results according to previously calculated resultsDistribution count
+			for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
+				if result[sortedResult[r]] >= similarityThreshold {
+					promotedFiles[sortedResult[r]] = true
+				}
+			}
+		}
+		//remove files already in preselected files
 		for _, filename := range preSelectedFiles {
-			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
+			if selected, ok := promotedFiles[filename]; ok && selected {
 				logger.Debugln("Dropping file from previous stage:", filename)
 			}
-			result[filename] = -math.MaxFloat32
+			promotedFiles[filename] = false
 		}
-		//invalidate scores for files that already selected
-		for _, filename := range selectedFiles {
-			if score, ok := result[filename]; ok && score > -math.MaxFloat32 {
-				logger.Debugln("Dropping already selected file:", filename)
+		//add files to selected
+		for filename, selected := range promotedFiles {
+			if selected {
+				logger.Infoln(filename)
+				selectedFiles = append(selectedFiles, filename)
 			}
-			result[filename] = -math.MaxFloat32
-		}
-		sortedResult := sortFilesByScore(result)
-		added := 0
-		//select top N results according to previously calculated resultsDistribution count
-		for r := 0; r < resultsDistribution[i] && r < len(sortedResult); r++ {
-			if result[sortedResult[r]] >= similarityThreshold {
-				logger.Infoln(sortedResult[r])
-				selectedFiles = append(selectedFiles, sortedResult[r])
-				added++
-			}
-		}
-		//calculate how much more extra slots we have
-		extra := resultsDistribution[i] - added
-		if extra > 0 {
-			//redistribute extra slots for use with other similarityResults
-			redistributeResultsLimit(i+1, extra)
 		}
 	}
 
