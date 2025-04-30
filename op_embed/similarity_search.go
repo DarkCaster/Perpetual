@@ -10,7 +10,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func SimilaritySearchStage(fileSelectMode, limit int, ratio float64, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
+func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
 	logger.Traceln("SimilaritySearchStage: Starting")
 	defer logger.Traceln("SimilaritySearchStage: Finished")
 
@@ -88,20 +88,19 @@ func SimilaritySearchStage(fileSelectMode, limit int, ratio float64, perpetualDi
 		}
 	}
 	//initial results distribution
-	initialLimit := int(math.Min(math.Ceil(float64(len(preSelectedFiles))*ratio), float64(limit)))
-	redistributeResultsLimit(0, initialLimit)
-
+	redistributeResultsLimit(0, limit)
+	//debug
 	if logger.IsLevelEnabled(logging.DebugLevel) {
-		logger.Debugln("Limit of similar files to output:", initialLimit)
+		logger.Debugln("Limit of similar files to output:", limit)
 		for i, result := range similarityResults {
 			sortedResult := sortFilesByScore(result)
-			logger.Debugf("Top %d similarity scores for search vector: %d", limit, i)
-			for r := 0; r < limit && r < len(sortedResult); r++ {
+			logger.Debugf("Top 20 similarity scores for search vector: %d", i)
+			for r := 0; r < 20 && r < len(sortedResult); r++ {
 				logger.Debugf("%s: %f", sortedResult[r], result[sortedResult[r]])
 			}
 		}
 	}
-
+	//file selection
 	selectedFiles := []string{}
 	if fileSelectMode == 0 {
 		logger.Infoln("Selecting files (aggressive):")
