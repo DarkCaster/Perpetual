@@ -289,7 +289,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 }
 
-func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.ILogger) ([][]float32, float32, error) {
+// Called internally to generate embeddings for local similarity search queries
+func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float32, float32, error) {
 	logger.Debugln("Running GenerateVectors")
 
 	silentLogger := logger.Clone()
@@ -316,20 +317,13 @@ func GenerateEmbeddings(mode llm.EmbedMode, tag, content string, logger logging.
 		return [][]float32{}, 0, err
 	}
 
-	switch mode {
-	case llm.DocEmbed:
-		logger.Infoln("Generating document embeddings for:", tag)
-	case llm.SearchEmbed:
-		logger.Infoln("Generating search query embeddings for:", tag)
-	default:
-		logger.Infoln("Generating embeddings for:", tag)
-	}
+	logger.Infoln("Generating search query embeddings for:", tag)
 
 	logger.Infoln(connector.GetDebugString())
 
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		vectors, status, err := connector.CreateEmbeddings(mode, tag, content)
+		vectors, status, err := connector.CreateEmbeddings(llm.SearchEmbed, tag, content)
 		// Check for general error on query
 		if err != nil {
 			logger.Errorf("LLM query failed with status %d, error: %s", status, err)

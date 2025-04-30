@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -24,7 +23,7 @@ func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searc
 	searchVectors := [][]float32{}
 	var similarityThreshold float32 = math.MaxFloat32
 	for i, query := range searchQueries {
-		vectors, threshold, err := GenerateEmbeddings(llm.SearchEmbed, searchTags[i], query, logger)
+		vectors, threshold, err := generateEmbeddings(searchTags[i], query, logger)
 		if threshold < similarityThreshold {
 			similarityThreshold = threshold
 		}
