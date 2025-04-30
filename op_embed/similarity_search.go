@@ -201,8 +201,6 @@ func similaritySearch(searchVector [][]float32, filesSourceVectors map[string][]
 	return scoresBySearchVector
 }
 
-// TODO: optimize ? maybe, use 32bit math ?
-// based on example from here: https://github.com/tmc/langchaingo/blob/main/examples/cybertron-embedding-example/cybertron-embedding.go
 func cosineSearch(x, y []float32) (float32, bool) {
 	if len(x) != len(y) {
 		return -math.MaxFloat32, false
