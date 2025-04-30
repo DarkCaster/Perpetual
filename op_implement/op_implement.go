@@ -2,6 +2,7 @@ package op_implement
 
 import (
 	"flag"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -27,6 +28,7 @@ func implementFlags() *flag.FlagSet {
 func Run(args []string, logger logging.ILogger) {
 	var help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var taskFile, userFilterFile, contextSaving string
+	var searchLimit int
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
@@ -36,6 +38,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
+	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.BoolVar(&taskMode, "t", false, "Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the -p flag.")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -253,6 +256,50 @@ func Run(args []string, logger logging.ILogger) {
 				targetFiles,
 				task,
 				logger)
+			// Prepare for local similarity search
+			var searchQueries []string
+			var searchTags []string
+			// Compose queries for similarity search
+			if task != "" {
+				searchQueries = []string{task}
+				searchTags = []string{"task"}
+			} else {
+				for _, file := range targetFiles {
+					annotation, ok := annotations[file]
+					if ok {
+						searchQueries = append(searchQueries, annotation)
+						searchTags = append(searchTags, fmt.Sprintf("annotation:%s", file))
+					}
+				}
+			}
+			// Compose list of already requested files
+			requestedFiles := append(utils.NewSlice(filesToReview...), targetFiles...)
+			// Select search mode
+			searchMode := 0
+			switch contextSaving {
+			case "HIGH":
+				searchMode = 1
+			case "MEDIUM":
+				searchMode = 1
+			case "OFF":
+				searchMode = 0
+			case "AUTO":
+				fallthrough
+			default:
+				if len(requestedFiles) <= searchLimit {
+					//for low requested file count - use aggressive search mode
+					searchMode = 0
+				} else {
+					//for high requested file count - use conservative search mode
+					searchMode = 1
+				}
+			}
+			if searchLimit > len(requestedFiles) {
+				searchLimit = len(requestedFiles)
+			}
+			// Local similarity search stage
+			similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, searchQueries, searchTags, fileNames, requestedFiles, logger)
+			filesToReview = append(filesToReview, similarFiles...)
 		} else {
 			logger.Warnln("All source code files already selected for review, no need to run stage1")
 		}
