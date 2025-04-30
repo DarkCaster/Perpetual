@@ -26,8 +26,7 @@ func docFlags() *flag.FlagSet {
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var outputFile, inputFile, userFilterFile, contextSaving string
-	var similarFilesLimit int
-	var similarFilesRatio float64
+	var searchLimit int
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
@@ -40,8 +39,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
-	flags.IntVar(&similarFilesLimit, "sl", 10, "When performing a local similarity search to find source files related to a question, limit the maximum number of files returned to this number (0 to disable local search and only use files requested by LLM)")
-	flags.Float64Var(&similarFilesRatio, "sr", 1, "Ratio that determines how many files related to a question that was found locally should be included based on the number of files requested by LLM")
+	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -70,12 +68,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Invalid context saving mode value provided")
 	}
 
-	if similarFilesLimit < 0 {
+	if searchLimit < 0 {
 		logger.Panicln("Similar files limit parameter cannot be less than 0")
-	}
-
-	if similarFilesRatio < 0 {
-		logger.Panicln("Similar files ratio parameter cannot be less than 0")
 	}
 
 	// Find project root and perpetual directories
@@ -197,8 +191,32 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question,
 		logger)
 
+	searchMode := 0
+	switch contextSaving {
+	case "HIGH":
+		searchMode = 1
+	case "MEDIUM":
+		searchMode = 1
+	case "OFF":
+		searchMode = 0
+	case "AUTO":
+		fallthrough
+	default:
+		if len(requestedFiles) <= searchLimit {
+			//for low requested file count - use aggressive search mode
+			searchMode = 0
+		} else {
+			//for high requested file count - use conservative search mode
+			searchMode = 1
+		}
+	}
+
+	if searchLimit > len(requestedFiles) {
+		searchLimit = len(requestedFiles)
+	}
+
 	// Local similarity search stage
-	similarFiles := op_embed.SimilaritySearchStage(1, similarFilesLimit, similarFilesRatio, perpetualDir, []string{question}, []string{"question"}, fileNames, requestedFiles, logger)
+	similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, []string{question}, []string{"question"}, fileNames, requestedFiles, logger)
 	requestedFiles = append(requestedFiles, similarFiles...)
 
 	if listFilesOnly {
