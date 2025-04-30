@@ -14,7 +14,7 @@ func SimilaritySearchStage(limit int, ratio float64, perpetualDir string, search
 	logger.Traceln("SimilaritySearchStage: Starting")
 	defer logger.Traceln("SimilaritySearchStage: Finished")
 
-	if limit < 1 || len(searchQueries) < 1 {
+	if limit < 1 || len(searchQueries) < 1 || len(sourceFiles) < 1 {
 		logger.Infoln("Local similarity search is disabled")
 		return []string{}
 	}
