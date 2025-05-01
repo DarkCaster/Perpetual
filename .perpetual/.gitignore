@@ -1,4 +1,4 @@
-/.env
+/*.env
 /.annotations.json
 /.embeddings.msgpack
 /.message_log.txt*
