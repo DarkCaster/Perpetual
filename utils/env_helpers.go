@@ -109,7 +109,7 @@ func LoadEnvFiles(logger logging.ILogger, directories ...string) {
 				continue
 			}
 			filename := entry.Name()
-			if strings.HasSuffix(strings.ToLower(filename), ".env") {
+			if strings.HasSuffix(strings.ToLower(filename), DotEnvSuffixName) {
 				envFiles = append(envFiles, filepath.Join(dir, filename))
 			}
 		}

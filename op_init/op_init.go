@@ -84,7 +84,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	}
 
 	// Save default global config file if missing
-	globalConfigText := "# This is global .env file for Perpetual, values declared here have the lowest priority and will be used last"
+	globalConfigText := "# This is a global .env file for Perpetual, values declared here have lower priority than values read from the .perpetual directory inside your project.\n# You can place other *.env files next to this one, they will be loaded in alphabetical order.\n"
 	globalConfigFile := filepath.Join(globalConfigDir, utils.DotEnvFileName)
 	if _, err := os.Stat(globalConfigFile); os.IsNotExist(err) {
 		logger.Traceln("Creating default global config file")
@@ -97,7 +97,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
 
-	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s*\n/%s\n", utils.DotEnvFileName, utils.AnnotationsFileName, utils.EmbeddingsFileName, llm.LLMRawLogFile, utils.StashesDirName)
+	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s*\n/%s\n", utils.DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, llm.LLMRawLogFile, utils.StashesDirName)
 	err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
 		logger.Panicln("Error creating .gitignore file:", err)
