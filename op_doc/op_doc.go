@@ -89,7 +89,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFilesFrom(logger, perpetualDir, globalConfigDir)
+	utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 
 	var docExampleContent string
 	var docContent string

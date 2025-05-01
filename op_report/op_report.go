@@ -73,7 +73,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFilesFrom(logger, perpetualDir, globalConfigDir)
+	utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 
 	reportConfig, err := config.LoadOpReportConfig(perpetualDir)
 	if err != nil {

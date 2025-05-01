@@ -78,7 +78,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if innerCall {
 		logger.Debugln("Not re-loading env files for inner call of embed operation")
 	} else {
-		utils.LoadEnvFilesFrom(logger, perpetualDir, globalConfigDir)
+		utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)

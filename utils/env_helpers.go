@@ -83,7 +83,7 @@ func GetEnvFloat(vars ...string) (float64, error) {
 	return 0, fmt.Errorf("none of the environment variables were found or could be converted to float: %v", vars)
 }
 
-func LoadEnvFilesFrom(logger logging.ILogger, directories ...string) {
+func LoadEnvFiles(logger logging.ILogger, directories ...string) {
 	for _, dir := range directories {
 		// Check if directory exists
 		dirInfo, err := os.Stat(dir)

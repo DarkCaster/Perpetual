@@ -98,7 +98,7 @@ func Run(args []string, logger logging.ILogger) {
 	logger.Infoln("Project root directory:", projectRootDir)
 	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFilesFrom(logger, perpetualDir, globalConfigDir)
+	utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 
 	implementConfig, err := config.LoadOpImplementConfig(perpetualDir)
 	if err != nil {
