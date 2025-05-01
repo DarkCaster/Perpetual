@@ -15,17 +15,22 @@ const openAiEnvExampleFileName = "openai.env.example"
 const anthropicEnvExampleFileName = "anthropic.env.example"
 const genericEnvExampleFileName = "generic.env.example"
 
-const dotEnvExample = `# The following example contains all currently supported environment parameters.
-# They are used to set up the connection to LLM and configure it for various operations. Your actual configuration may be significantly smaller.
-# Some options are commented out, you can uncomment them to customize the behavior in special cases - it will take priority only for those specific cases.
+const dotEnvExample = `# Configuration files should have ".env" extensions and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/*.env
+# Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
+# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
-# Configuration file should be named ".env" and it can be placed to the following locations:
-# Project local config: <Project root>/.perpetual/.env
-# Global config. On Linux: ~/.config/Perpetual/.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\.env
-# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files.
-
-# Provider selection for particular operations and stages
+# This particular example only contain provider selection for Perpetual operations and stages.
 # You can offload tasks to different providers to balance between generation quality and costs.
+# See other "*.env.example" file for LLM-providers specific parameters.
+
+# For now 4 LLM providers are supported:
+# "anthropic": which parameters started with ANTHROPIC_* prefix
+# "openai": which parameters started with OPENAI_* prefix
+# "ollama": which parameters started with OLLAMA_* prefix
+# "generic": Generic OpenAI compatible provider, which parameters started with GENERIC_* prefix
+
+# Per-operation provider selection
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
 # LLM_PROVIDER_OP_ANNOTATE_POST="anthropic"
@@ -39,7 +44,7 @@ const dotEnvExample = `# The following example contains all currently supported 
 # LLM_PROVIDER_OP_EXPLAIN_STAGE1="anthropic"
 # LLM_PROVIDER_OP_EXPLAIN_STAGE2="anthropic"
 
-# Default, fallback provider selection, will be used if options above are not used
+# Default, fallback provider selection, will be used if parameters above are not set
 
 LLM_PROVIDER="anthropic"
 # LLM_PROVIDER="openai"
@@ -49,7 +54,7 @@ LLM_PROVIDER="anthropic"
 # NOTE: you can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
 # examples:
 
-# LLM_PROVIDER="ollama1"
+# LLM_PROVIDER="ollama1" # Will use parameters started with prefix OLLAMA1_*, like:
 # OLLAMA1_BASE_URL=...
 # OLLAMA1_MODEL=...
 
@@ -58,9 +63,11 @@ LLM_PROVIDER="anthropic"
 # GENERIC1_MODEL=...
 `
 
-const anthropicEnvExample = `
-# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
+const anthropicEnvExample = `# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
 # NOTE: Anthropic provider has no embedding models (as for Apr 2025)
+
+# Uncomment if this is the only .env config file you are using
+# LLM_PROVIDER="anthropic"
 
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
@@ -164,8 +171,10 @@ ANTHROPIC_TEMPERATURE="0.5"
 # ANTHROPIC_TOP_P="0.9"
 `
 
-const openAiEnvExample = `
-# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
+const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
+
+# Uncomment if this is the only .env config file you are using
+# LLM_PROVIDER="openai"
 
 OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
@@ -300,12 +309,15 @@ OPENAI_TEMPERATURE="0.5"
 # OPENAI_PRESENCE_PENALTY="1.0"
 `
 
-const ollamaEnvExample = `# Options for Ollama integration, running locally.
+const ollamaEnvExample = `# Options for Ollama instance, local or public.
 # When using a large enough model it can produce good results for some operations. See docs/ollama.md for more info
+
+# Uncomment if this is the only .env config file you are using
+# LLM_PROVIDER="ollama"
 
 # OLLAMA_BASE_URL="http://127.0.0.1:11434"
 
-# Optional authentication, for use with external https proxy
+# Optional authentication, for use with external https proxy or public instance
 # OLLAMA_AUTH_TYPE="Bearer" # Type of the authentication used, "Bearer" - api key or token (default), "Basic" - web auth with login and password.
 # OLLAMA_AUTH="<your api-key or token goes here>" # When using bearer auth type, put your api key or auth token here
 # OLLAMA_AUTH="<login>:<password>" # Web auth requres login and password separated by a colon
@@ -548,8 +560,12 @@ OLLAMA_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
 # OLLAMA_PRESENCE_PENALTY="1.0"
 `
 
-const genericEnvExample = `# Options for generic provider with OpenAI compatible API, JSON structured output mode is not supported
+const genericEnvExample = `# Options for generic provider with OpenAI compatible API
+# JSON structured output mode is not supported for now, embeddings support depends on the provider.
 # Below is example for deepseek (https://www.deepseek.com/)
+
+# Uncomment if this is the only .env config file you are using
+# LLM_PROVIDER="generic"
 
 GENERIC_BASE_URL="https://api.deepseek.com/v1" # Required parameter for generic provider (example for deepseek)
 
