@@ -55,6 +55,7 @@ Supported operations:
 
 - [`init`: Initialize a new `.perpetual` directory to store the configuration](docs/op_init.md)
 - [`annotate`: Generate annotations for project files](docs/op_annotate.md)
+- [`embed`: Generate vector embeddings for project files](docs/op_embed.md)
 - [`implement`: Implement code according to task or instructions marked with `###IMPLEMENT###` comments](docs/op_implement.md)
 - [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
 - [`report`: Create a report from project source code that can be manually uploaded into the LLM for use as a knowledge base or for manual analysis](docs/op_report.md)
