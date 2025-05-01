@@ -2,96 +2,91 @@
 
 Perpetual employs a configuration system that allows you to tailor the application's behavior to suit your project's needs. The configuration is divided into two main types:
 
-1. **Environment Configuration**: This includes machine-specific settings such as LLM provider details, API keys, and model configurations. These settings can be injected directly into the environment before running Perpetual or specified in `.env` files. They are specific to the machine or instance and should not be added to version control systems (VCS).
+1. **Environment Configuration**  
+   Machine- and instance-specific LLM settings such as LLM provider details, API keys, and model parameters. These can be set directly in the system environment or defined in `*.env` files (`.env` extension). They should **not** be committed to version control.
 
-2. **Project Configuration**: These are project-specific settings defined in JSON format. They control aspects such as file selection filters, LLM prompts for different file types, and configurations for various tasks performed on the project's source files. These files reside in the `.perpetual` subdirectory and can be safely added to VCS.
+2. **Project Configuration**  
+   Project-specific settings defined in JSON format. These control aspects such as file-selection filters, LLM prompts for different file types, and operation-specific templates. These files reside in the `.perpetual` subdirectory and can be safely added to version control.
 
 ## LLM Configuration
 
-Perpetual relies on Large Language Models (LLMs) for various operations, and the LLM configuration is crucial for connecting to these services. This configuration includes provider details, API keys, and model parameters.
+Perpetual relies on Large Language Models (LLMs) for various operations. The LLM configuration includes provider selection, authentication, model parameters, and per-operation overrides.
 
 ### Environment Variables and `.env` Files
 
-LLM configurations are specified using environment variables, which can be set directly in your system environment or defined in `.env` files. Perpetual supports loading environment variables from different `.env` files, which are processed in the following order:
+LLM settings are read from environment variables and from `.env` files loaded by Perpetual. Loading occurs in this order:
 
-1. **System Environment Variables**: Perpetual first uses environment variables present in the current system environment.
+1. **System Environment Variables**  
+   Variables already set in your shell or operating system take highest priority.
 
-2. **Project-Specific `.env` File**: Next, it tries to load the `.env` file located in the project's `.perpetual` directory, typically at `<project_root>/.perpetual/.env`.
+2. **Project `*.env` Files**  
+   All files ending in `.env` located in the project’s `.perpetual` directory. They are loaded in alphabetical order; a variable already set by the system or by an earlier file is not overridden.
 
-3. **Global Configuration Directory**: Finally, it attempts to load the `.env` file from the global configuration directory:
-   - **Unix/Linux**: `$HOME/.config/Perpetual/.env`
-   - **Windows**: `%AppData%\Perpetual\.env`
+3. **Global `.env` Files**  
+   All files ending in `.env` in your global Perpetual config directory:
+   - Unix/Linux: `$HOME/.config/Perpetual/`
+   - Windows: `%AppData%\Perpetual\`
 
-Variables loaded earlier override those loaded later, allowing you to customize configurations at different levels.
-
-When performing `Perpetual init -l <lang>`, an example `.env` file is placed at `<project_root>/.perpetual/.env.example`. Use this as a reference when creating your configuration. Note that `.env.example` **will not be loaded** by Perpetual.
+When you run `perpetual init -l <lang>`, an example files named `*.env.example` are created in `.perpetual` as a reference. **`*.env.example` files are not loaded** by Perpetual.
 
 ### Key Environment Variables
 
-The following environment variables are commonly used for LLM configuration:
+Use `*.env.example` as a templates. Common settings include:
 
-- **LLM Provider Settings**:
-  - `LLM_PROVIDER`: Specifies the LLM provider profile to use. Supported values include `openai`, `anthropic`, `ollama`, or `generic`. It can also include a profile number in formats like `openai1`, `openai2`, `generic3`, etc., allowing multiple distinct profiles for a single provider and enabling different configurations for different operations.
-  - `LLM_PROVIDER_OP_*`: Operation-specific provider selection, such as `LLM_PROVIDER_OP_ANNOTATE` or `LLM_PROVIDER_OP_DOC_STAGE2`. These take precedence over the default `LLM_PROVIDER` setting.
+- **Provider Selection**  
+  - `LLM_PROVIDER`: Default provider profile, e.g. `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g. `openai1`) to maintain multiple configurations.
+  - `LLM_PROVIDER_OP_<OPERATION>`: Operation-specific provider override (e.g. `LLM_PROVIDER_OP_ANNOTATE`).
 
-- **Authentication**:
-  - `<PROFILE_NAME>_API_KEY`: Provider-specific API key for the LLM provider, such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. This is typically required for authentication.
-  - `<PROFILE_NAME>_AUTH_TYPE`: Type of authentication used. Values: "Bearer" (default) for API key/token, or "Basic" for web authentication.
-  - `<PROFILE_NAME>_AUTH`: Authentication credentials. For Bearer auth, specify the API key/token. For Basic auth, specify `<login>:<password>`.
+- **Authentication**  
+  - `<PROFILE>_API_KEY`: API key for the provider.
+  - `<PROFILE>_AUTH_TYPE`: `"Bearer"` (API key/token) or `"Basic"` (login:password).
+  - `<PROFILE>_AUTH`: Credential string, either the token or `login:password`.
 
-- **Model and Operation Settings**:
-  - `<PROFILE_NAME>_MODEL`: Default model to use, like `ANTHROPIC_MODEL="claude-3-7-sonnet-latest"`.
-  - `<PROFILE_NAME>_MODEL_OP_*`: Operation-specific model selection, such as `ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-3-7-sonnet-latest"`.
-  - `<PROFILE_NAME>_TEMPERATURE`: Controls randomness in responses (0-1 typically).
-  - `<PROFILE_NAME>_MAX_TOKENS`: Maximum tokens in the generated response.
-  - `<PROFILE_NAME>_FORMAT_OP_*`: Response format for specific operations, values: "plain" or "json".
-  - `<PROFILE_NAME>_VARIANT_COUNT`: Number of response variants to generate.
-  - `<PROFILE_NAME>_VARIANT_SELECTION`: How to select the final variant: "short", "long", "combine", or "best".
+- **Model and Parameters**  
+  - `<PROFILE>_MODEL`: Default model name (e.g. `OPENAI_MODEL="gpt-4.1"`).
+  - `<PROFILE>_MODEL_OP_<OPERATION>`: Model override for a specific operation.
+  - `<PROFILE>_TEMPERATURE`: Sampling temperature (`0.0`–`1.0`).
+  - `<PROFILE>_MAX_TOKENS`: Maximum tokens per response.
+  - `<PROFILE>_FORMAT_OP_<OPERATION>`: Response format (`plain` or `json`).
+  - `<PROFILE>_VARIANT_COUNT`: Number of response variants to generate.
+  - `<PROFILE>_VARIANT_SELECTION`: Strategy for selecting final variant (`short`, `long`, `combine`, or `best`).
 
-Use `.env.example` as a reference; it contains sane defaults for different providers. Not all options are strictly required for each operation. Refer to the comments within the `.env.example` file for more detailed information. You can also remove provider-specific sections if not using a particular LLM provider.
+Refer to the comments within `*.env.example` files for detailed defaults. You may create single or multiple `*.env` files with options for provider(s) you are using.
 
-### Important Notes
-
-- **Security**: `.env` files may contain sensitive information (e.g., API keys) and should **not** be committed to version control.
-
-- **Overriding Variables**: Environment variables set directly in the system environment have higher precedence over those defined in `.env` files.
+**Security**: `.env` files may contain sensitive credentials. Do not commit them to version control.
 
 ## Project Configuration
 
-Project configuration files allow for extensive customization of Perpetual's operations on a per-project basis. These configurations are stored as JSON files within the `.perpetual` subdirectory of your project.
+Project configuration files allow you to customize Perpetual’s behavior on a per-project basis. They are stored in JSON files under the `.perpetual` directory.
 
 ### Configuration Files
 
-The primary configuration files include:
+- **Global Project Settings**  
+  - `project.json`: Defines file-selection filters and Markdown code-block mappings.
 
-- **Project Configuration**: Defines global project settings, such as which files can be selected for processing, which files are related to unit tests (and may be omitted when not needed), and how to map particular file types to Markdown code blocks.
-  - `project.json`
+- **Operation-Specific Settings**  
+  - `op_annotate.json`: Prompts and templates for file annotation.
+  - `op_implement.json`: Prompts, tags, and regexes for code implementation.
+  - `op_doc.json`: Prompts and templates for documentation generation.
+  - `op_explain.json`: Prompts and templates for project explanation.
+  - `op_report.json`: Prompts for report generation.
 
-- **Operation-Specific Configurations**: Customize behavior for specific operations.
-  - `op_annotate.json`: Configuration for generating file annotations
-  - `op_implement.json`: Configuration for implementing marked code sections
-  - `op_doc.json`: Configuration for document generation and refinement
-  - `op_explain.json`: Configuration for explaining project aspects
-  - `op_report.json`: Configuration for report generation
+### `project.json` Parameters
 
-### Configurable Parameters
+Controls which files are included or excluded and how code is mapped to Markdown:
 
-#### `project.json`
+- `project_files_whitelist`: Array of regex patterns for files to include.
+- `project_files_blacklist`: Array of regex patterns for files to exclude.
+- `project_test_files_blacklist`: Regex patterns to exclude test files.
+- `files_to_md_code_mappings`: A 2D array of `[pattern, language]` mappings for Markdown code blocks.
 
-Controls which files are included or excluded during processing using regular expressions:
-
-- `project_files_whitelist`: An array of regex patterns specifying files to include.
-- `project_files_blacklist`: An array of regex patterns specifying files to exclude.
-- `project_test_files_blacklist`: An array of regex patterns to exclude test files.
-- `files_to_md_code_mappings`: A two-dimensional array representing mappings from file types to Markdown code block languages. Each sub-array contains two elements: the first is a regex pattern matching the file type, and the second is the corresponding Markdown language identifier. You can skip filling up this field and provide an empty array - most popular source-file types will be detected automatically by their extension, this field is particularly useful when using non-standard file types.
-
-**Example**:
+Example:
 
 ```json
 {
   "project_files_whitelist": ["(?i)^.*\\.go$"],
   "project_files_blacklist": ["(?i)^vendor(\\\\|\\/).*"],
-  "project_test_files_blacklist": ["(?i)^.*_test\\.go$", "(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$", "(?i)^test(\\\\|\\/).*\\.go$"],
+  "project_test_files_blacklist": ["(?i)^.*_test\\.go$"],
   "files_to_md_code_mappings": [
     [".*\\.go$", "go"],
     [".*\\.py$", "python"],
@@ -100,40 +95,24 @@ Controls which files are included or excluded during processing using regular ex
 }
 ```
 
-In this example:
+### `op_*.json` Parameters
 
-- The `project_files_whitelist` includes all `.go` files (case insensitive).
-- The `project_files_blacklist` excludes anything in the `vendor/` directory (case insensitive).
-- The `project_test_files_blacklist` specifically excludes test-files across the project.
-- The `files_to_md_code_mappings` maps `.go` files to `go` code blocks, `.py` files to `python` code blocks, and `.md` files to `markdown` code blocks in Markdown documentation.
+#### Prompts and System Messages
 
-#### `op_*.json` Config Files: LLM Prompts and Templates
+- `system_prompt`: The initial system context for the LLM.
+- `system_prompt_ack`: Acknowledgment message after the system prompt.
+- Stage-specific prompts (e.g. `stage1_prompts`, `stage2_prompt_variant`).
 
-Customize the prompts sent to the LLM for different operations and stages:
+#### Response Schemas (JSON Mode)
 
-- **System Prompt**: A general prompt that sets the context for LLM interactions.
-  - `system_prompt`
-  - `system_prompt_ack`: Acknowledgment message for system prompt
+- `stage1_output_schema`, `stage3_output_schema`, etc.: Define expected JSON structure when using the JSON output mode.
 
-- **Operation-Specific Prompts**: Different stages of an operation can have unique prompts.
-  - Examples include `stage1_prompts`, `stage2_prompt_variant`, `stage2_prompt_combine`, etc.
+#### Tags and Regexes
 
-- **Response Templates**: Define expected response formats from the LLM when using the structured JSON output format. This feature is experimental and may not be supported by all LLM providers or models. If JSON output mode is disabled in LLM `.env` configuration, these templates are unused.
-  - Examples include `stage1_output_schema`, `stage3_output_schema`, etc.
+- `filename_tags`: Tags used when embedding filenames in LLM prompts.
+- `filename_tags_rx`: Regex to recognize tagged filenames in LLM responses.
+- `code_tags_rx`: Regex to identify code blocks in responses.
+- `noupload_comments_rx`: Regex for comments that mark files as “no-upload.”
 
-#### `op_*.json` Config Files: Mappings and Tags
-
-Define how files are represented and parsed within LLM interactions:
-
-- `filename_tags`: Tags used to wrap filenames when sending them to the LLM to identify and process them correctly.
-
-- **Regular Expressions for Parsing LLM Responses**:
-  - `filename_tags_rx`: Regex patterns to recognize tagged filenames in LLM responses.
-  - `code_tags_rx`: Regex patterns to identify code blocks in responses.
-  - `noupload_comments_rx`: Regex patterns to detect comments indicating files should not be uploaded to LLM on implement and doc operations if requested by LLM.
-  - Additional regex-based configurations as needed.
-
-### Important Notes
-
-- **Version Control**: Project configuration files are intended to be added to version control, ensuring consistency across different environments and team members.
-- **Customization**: While default configurations are provided, you are encouraged to customize the prompts and settings to align with your project's requirements.
+**Version Control**: Operation configs in `.perpetual` should be committed to ensure consistency across environments.  
+**Customization**: Feel free to adjust prompts, regexes, and schemas to fit your project’s needs.
