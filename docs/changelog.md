@@ -21,11 +21,11 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
-## Embed Branch
+## v6.0.0
 
-### Experimental
+### New Features
 
-- Added `embed` operation to generate and manage embeddings. Generating and using embeddings is optional and automatic (if supported by your LLM provider and not explicitly disabled). Code embeddings are used for searching relevant source code files for `implement`, `explain` and `doc` operations in addition to direct search via annotations.
+- Added the `embed` operation to generate and manage embeddings. Generating and using embeddings is optional and automatic if supported by your LLM provider (you need manually enable it at your `.env` file). Code embeddings are used for local similarity search of relevant source files for the `implement`, `explain`, and `doc` operations, in addition to annotation-based selection.
 
 ## v5.0.0
 
