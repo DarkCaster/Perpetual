@@ -64,7 +64,12 @@ LLM_PROVIDER="anthropic"
 `
 
 const anthropicEnvExample = `# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
-# NOTE: Anthropic provider has no embedding models (as for Apr 2025)
+# Anthropic provider has no embedding models support (as for Apr 2025)
+
+# Configuration files should have ".env" extensions and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/*.env
+# Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
+# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
 # Uncomment if this is the only .env config file you are using
 # LLM_PROVIDER="anthropic"
@@ -172,6 +177,11 @@ ANTHROPIC_TEMPERATURE="0.5"
 `
 
 const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
+
+# Configuration files should have ".env" extensions and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/*.env
+# Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
+# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
 # Uncomment if this is the only .env config file you are using
 # LLM_PROVIDER="openai"
@@ -311,6 +321,11 @@ OPENAI_TEMPERATURE="0.5"
 
 const ollamaEnvExample = `# Options for Ollama instance, local or public.
 # When using a large enough model it can produce good results for some operations. See docs/ollama.md for more info
+
+# Configuration files should have ".env" extensions and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/*.env
+# Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
+# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
 # Uncomment if this is the only .env config file you are using
 # LLM_PROVIDER="ollama"
@@ -563,6 +578,11 @@ OLLAMA_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
 const genericEnvExample = `# Options for generic provider with OpenAI compatible API
 # JSON structured output mode is not supported for now, embeddings support depends on the provider.
 # Below is example for deepseek (https://www.deepseek.com/)
+
+# Configuration files should have ".env" extensions and it can be placed to the following locations:
+# Project local config: <Project root>/.perpetual/*.env
+# Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
+# Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
 # Uncomment if this is the only .env config file you are using
 # LLM_PROVIDER="generic"
