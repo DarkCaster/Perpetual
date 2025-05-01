@@ -85,7 +85,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 
 	// Save default global config file if missing
 	globalConfigText := "# This is a global .env file for Perpetual, values declared here have lower priority than values read from the .perpetual directory inside your project.\n# You can place other *.env files next to this one, they will be loaded in alphabetical order.\n"
-	globalConfigFile := filepath.Join(globalConfigDir, utils.DotEnvFileName)
+	globalConfigFile := filepath.Join(globalConfigDir, DotEnvFileName)
 	if _, err := os.Stat(globalConfigFile); os.IsNotExist(err) {
 		logger.Traceln("Creating default global config file")
 		err = utils.SaveTextFile(globalConfigFile, globalConfigText)
@@ -97,20 +97,25 @@ func Run(version string, args []string, logger logging.ILogger) {
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
 
-	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s*\n/%s\n", utils.DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, llm.LLMRawLogFile, utils.StashesDirName)
+	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s*\n/%s\n", DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, llm.LLMRawLogFile, utils.StashesDirName)
 	err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
 		logger.Panicln("Error creating .gitignore file:", err)
 	}
 
-	logger.Traceln("Creating env example file")
-	dotEnvExample := DotEnvExample
-	if version != "" {
-		dotEnvExample = "# Example .env config, version: " + version + "\n\n" + DotEnvExample
-	}
-	err = utils.SaveTextFile(filepath.Join(perpetualDir, DotEnvExampleFileName), dotEnvExample)
-	if err != nil {
-		logger.Panicln("Error creating env example file:", err)
+	logger.Traceln("Creating env example files")
+
+	filenames := []string{dotEnvExampleFileName, ollamaEnvExampleFileName, openAiEnvExampleFileName, anthropicEnvExampleFileName, genericEnvExampleFileName}
+	contents := []string{dotEnvExample, ollamaEnvExample, openAiEnvExample, anthropicEnvExample, genericEnvExample}
+
+	for i, filename := range filenames {
+		content := contents[i]
+		if version != "" {
+			content = "# Example .env config, version: " + version + "\n\n" + content
+		}
+		if err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
+			logger.Panicln("Error creating env example file:", err)
+		}
 	}
 
 	// Create a prompt-files based on the selected language

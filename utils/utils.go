@@ -11,14 +11,7 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 )
 
-const DotEnvFileName = ".env"
-const OllamaEnvFileName = "ollama.env"
-const OpenAIEnvFileName = "openai.env"
-const AnthropicAIEnvFileName = "anthropic.env"
-const GenericAIEnvFileName = "generic.env"
-
 const DotEnvSuffixName = ".env"
-const DotEnvMaskName = "*.env"
 const AnnotationsFileName = ".annotations.json"
 const EmbeddingsFileName = ".embeddings.msgpack"
 const StashesDirName = ".stash"
