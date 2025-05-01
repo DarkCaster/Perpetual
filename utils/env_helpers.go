@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -94,4 +96,51 @@ func LoadEnvFiles(logger logging.ILogger, filePaths ...string) {
 			logger.Infoln("Loaded env file:", filePath)
 		}
 	}
+}
+
+func LoadEnvFilesFrom(logger logging.ILogger, directories ...string) {
+	for _, dir := range directories {
+		// Check if directory exists
+		dirInfo, err := os.Stat(dir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			logger.Panicf("Failed to access directory %s: %s", dir, err)
+		}
+		if !dirInfo.IsDir() {
+			logger.Panicf("Not a directory:", dir)
+			continue
+		}
+		// Read all files from directory
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			logger.Panicf("Failed to read directory %s: %s", dir, err)
+		}
+		// Filter and collect .env files
+		var envFiles []string
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+			filename := entry.Name()
+			if strings.HasSuffix(strings.ToLower(filename), ".env") {
+				envFiles = append(envFiles, filepath.Join(dir, filename))
+			}
+		}
+		// Sort files alphabetically
+		sort.Strings(envFiles)
+		// Load each .env file
+		for _, filePath := range envFiles {
+			loadEnvFile(filePath, logger)
+		}
+	}
+}
+
+func loadEnvFile(filePath string, logger logging.ILogger) {
+	err := godotenv.Load(filePath)
+	if err != nil {
+		logger.Panicf("Failed to load env-file %s: %s", filePath, err)
+	}
+	logger.Infoln("Loaded env file:", filePath)
 }
