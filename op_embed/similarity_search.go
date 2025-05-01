@@ -164,6 +164,9 @@ func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searc
 		}
 	}
 
+	if len(selectedFiles) < 1 {
+		logger.Infoln("No new files selected")
+	}
 	return selectedFiles
 }
 
