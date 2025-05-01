@@ -76,7 +76,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
 	if err != nil {
-		logger.Panicln("error finding project root directory:", err)
+		logger.Panicln("Error finding project root directory:", err)
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
@@ -90,7 +90,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if innerCall {
 		logger.Debugln("Not re-loading env files for inner call of annotate operation")
 	} else {
-		utils.LoadEnvFiles(logger, filepath.Join(perpetualDir, utils.DotEnvFileName), filepath.Join(globalConfigDir, utils.DotEnvFileName))
+		utils.LoadEnvFilesFrom(logger, perpetualDir, globalConfigDir)
 	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)

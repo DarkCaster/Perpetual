@@ -83,21 +83,6 @@ func GetEnvFloat(vars ...string) (float64, error) {
 	return 0, fmt.Errorf("none of the environment variables were found or could be converted to float: %v", vars)
 }
 
-func LoadEnvFiles(logger logging.ILogger, filePaths ...string) {
-	for _, filePath := range filePaths {
-		err := godotenv.Load(filePath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				logger.Warnln("Not loading missing env file:", filePath)
-			} else {
-				logger.Panicf("Failed to load env-file %s: %s", filePath, err)
-			}
-		} else {
-			logger.Infoln("Loaded env file:", filePath)
-		}
-	}
-}
-
 func LoadEnvFilesFrom(logger logging.ILogger, directories ...string) {
 	for _, dir := range directories {
 		// Check if directory exists
