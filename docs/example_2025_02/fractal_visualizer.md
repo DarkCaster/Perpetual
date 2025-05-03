@@ -43,7 +43,7 @@ Initialize the **Perpetual** project by running:
 Perpetual init -l go
 ```
 
-Prepare your `.env` file with your Anthropic and/or OpenAI credentials and place it in the `.perpetual` directory. Use the `.perpetual/.env.example` file as a reference for all supported options. In this example, the Anthropic provider is used with the `claude-3-haiku-20240307` model for annotations and the `claude-3-7-sonnet-latest` model for all other tasks.
+Next, you need to create one or multiple `.env` files from provided `*.env.example` files and place it to apropriate config dir, see [this](../op_init.md) and [this](../configuration.md) docs for more info. In this example, the Anthropic provider is used with the `claude-3-haiku-20240307` model for annotations and the `claude-3-7-sonnet-latest` model for all other tasks.
 
 ### Generate Code
 

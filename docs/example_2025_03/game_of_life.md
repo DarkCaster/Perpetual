@@ -75,7 +75,7 @@ Perpetual init -l python3
 
 ### Prepare your .env file
 
-Prepare your `.env` file with your Anthropic and/or OpenAI credentials and place it in the `.perpetual` directory or [global configuration directory](../configuration.md). Use the `.perpetual/.env.example` file as a reference for all supported options. In this example, the Anthropic provider is used with the `claude-3-7-sonnet-latest` model for all operations.
+Next, you need to create one or multiple `.env` files from provided `*.env.example` files and place it to apropriate config dir, see [this](../op_init.md) and [this](../configuration.md) docs for more info. In this example, the Anthropic provider is used with the `claude-3-7-sonnet-latest` model for all operations.
 
 ### Generate Code
 

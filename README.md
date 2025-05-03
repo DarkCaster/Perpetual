@@ -90,7 +90,7 @@ Next, you need to manually create one or multiple `.env` files from provided `*.
 
 ### Creating Project Annotations
 
-After initializing a new `Perpetual` project and setting up the `.env` file, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code while not overloading the LLM's context window with irrelevant code. **NOTE**: It is not required to run this command now; it will be triggered automatically when needed. However, you can still do it manually. This operation may take a considerable amount of time when run for the first time or with a local LLM (so it may be convenient to start it manually and take a break).
+After initializing a new `Perpetual` project and setting up the `.env` files, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code while not overloading the LLM's context window with irrelevant code. **NOTE**: It is not required to run this command now; it will be triggered automatically when needed. However, you can still do it manually. This operation may take a considerable amount of time when run for the first time or with a local LLM (so it may be convenient to start it manually and take a break).
 
 To create source code annotations, use the `annotate` command:
 
