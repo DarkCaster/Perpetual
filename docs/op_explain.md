@@ -30,6 +30,8 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).
 
+- `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
+
 - `-h`: Display the help message, detailing all available flags and their descriptions.
 
 - `-v`: Enable debug logging to receive detailed output about the operation's execution process.
@@ -178,16 +180,6 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 - **`noupload_comments_rx`**: Regular expressions to detect `no-upload` comments, marking files that should not be processed for privacy or other reasons.
 
 - **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters that define the schema and structure of stage 1 outputs when JSON-structured output mode is enabled.
-
-**Customization Tips:**
-
-- **Adapt Prompts to Project Specifics**: Tailor the `system_prompt` and `stage<#>_question_prompt` to reflect the programming language, core technologies, and terminology used by your project for more accurate explanations.
-
-- **Structured Responses**: Utilize JSON-structured output mode by configuring the relevant prompts and environment variables. This enables easier parsing and integration of LLM responses with other tools or documentation systems.
-
-- **Handling Large Projects**: For extensive codebases, refine the prompts to focus on specific modules or components to avoid overwhelming the LLM and ensure detailed explanations.
-
-- **Use Bigger and Smarter Models**: Utilizing more advanced models can enhance the quality and depth of explanations, providing more accurate and insightful answers to complex questions.
 
 ## Workflow
 
