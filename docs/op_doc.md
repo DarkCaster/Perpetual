@@ -1,77 +1,86 @@
 # Document Operation
 
-The `doc` operation is designed to create or rework documentation files in Markdown or plain-text format. This operation streamlines the process of generating and maintaining project documentation by producing high-quality, context-aware documents based on your project's source code and any existing documentation.
+The `doc` operation creates or reworks documentation files in Markdown or plain-text format. It streamlines generating and maintaining project documentation by producing context-aware documents based on your project's source code and any existing materials.
 
-**NOTE**: This operation may provide unstable results. It is challenging to create clear and universal LLM prompts that yield reproducible outcomes across all documentation types. For optimal results, use large and intelligent models. Be aware that the `doc` operation requires significantly more tokens and a larger context than the `implement` operation. The effectiveness of using reasoning models is uncertain; they may produce less consistent results, although the writing style is typically better. Additionally, the cost of using reasoning models can be extremely high.
+**Note:** Results may vary depending on the model used. The `doc` operation uses more tokens and context than `implement`. Use a capable model for best consistency and style. Reasoning models can improve style but may incur higher costs, also looks like reasoning models are good in creating initial documents with `-a write` flag rather than refining documents with `-a refine`. The `doc` operation is somewhat experimental for now.
 
 ## Usage
-
-To use the `doc` operation, run the following command:
 
 ```sh
 Perpetual doc [flags]
 ```
 
-The `doc` operation supports several command-line flags to customize its behavior:
+Available flags:
 
-- `-r <file>`: Specify the target documentation file for processing. This flag is optional. If omitted, the operation will read from standard input and write the result to standard output.
-- `-e <file>`: Optionally specify a documentation file to use as an example or reference for style, structure, and format (but not for content). This helps maintain consistency across your project's documentation.
-- `-a <action>`: Select the action to perform. Valid values are:
-  - `draft`: Create an initial draft of the document with template content.
-  - `write`: Write or complete an existing document (default).
-  - `refine`: Refine and update an existing document.
-- `-c <mode>`: Set the context saving mode. Valid values are: `auto`, `off`, `medium`, or `high`. This option reduces LLM context usage for large projects.
-- `-f`: Disable the "no-upload" file filter and upload such files for review if requested. Use this flag with caution, as it may include sensitive information in the LLM's context.
-- `-n`: Enable "No annotate" mode, which skips re-annotating changed files and uses current annotations if available. This can save time and API calls if you are confident your annotations are up-to-date.
-- `-u`: Do not exclude unit-test source files from processing. By default, unit-test sources are excluded.
-- `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing. See more information about using the filter [here](user_filter.md).
-- `-h`: Display the help message, showing all available flags and their descriptions.
-- `-v`: Enable debug logging for more detailed output during the operation.
-- `-vv`: Enable both debug and trace logging for the highest level of verbosity.
+- `-r <file>`  
+  Target documentation file for processing. If omitted, reads from stdin and writes to stdout.
+- `-e <file>`  
+  Example/reference document for style, structure, and format (not content).
+- `-a <action>`  
+  Action to perform:  
+  - `draft`  Create an initial draft template.  
+  - `write`  Write or complete an existing document (default).  
+  - `refine` Refine and update an existing document.
+- `-c <mode>`  
+  Context saving mode: `auto`, `off`, `medium`, or `high`. Controls how aggressively LLM context is reduced on large projects.
+- `-s <limit>`  
+  Limit number of files for local similarity search via embeddings (0 disables local search; only uses LLM-requested files).
+- `-f`  
+  Disable the `no-upload` file filter and include such files for review if requested.
+- `-n`  
+  No-annotate mode: skip re-annotating changed files and use current annotations.
+- `-u`  
+  Include unit-test source files in processing (tests excluded by default).
+- `-x <file>`  
+  Path to a user-supplied regex filter file to exclude certain files. See more information about using the filter [here](user_filter.md).
+- `-v`  
+  Enable debug logging.
+- `-vv`  
+  Enable debug and trace logging.
+- `-h`  
+  Show help and exit.
 
 ### Examples
 
-1. **Create a new document:**
+1. **Draft a new document template:**
 
    ```sh
    Perpetual doc -r docs/new_feature.md -a draft
    ```
 
-   Edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`. After editing the draft and adding basic notes, section drafts, and the basic document structure, run:
+   Then, Edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`.
+
+2. **Write or complete a draft:**
 
    ```sh
    Perpetual doc -r docs/new_feature.md -a write
    ```
 
-   You can also use another document as a style and structure reference when writing the current document:
+3. **As alternative, write using an example for style:**
 
    ```sh
    Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
    ```
 
-2. **Refine an existing document using an example for style:**
+4. **Refine an existing document:**
 
    ```sh
    Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
    ```
 
-3. **Write a document with debug logging enabled:**
+5. **Read from stdin, write to stdout:**
 
    ```sh
-   Perpetual doc -r docs/troubleshooting.md -v
+   cat draft.md | Perpetual doc -a write -e docs/user_guide.md > final_doc.md
    ```
 
-4. **Create a document by reading from standard input and writing to standard output, using an example for style:**
-
-   ```sh
-   cat draft.md | Perpetual doc -a write -e docs/user_guide.md > final_document.md
-   ```
-
-5. **Use a custom regex filter file to exclude specific files:**
+6. **Exclude files via custom regex filter:**
 
    ```sh
    Perpetual doc -r docs/overview.md -a refine -x ../exclude_regexes.json
    ```
+
+## How It Works
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
 
