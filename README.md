@@ -8,7 +8,7 @@ LLM-driven software development assistant.
 
 The program works from the command-line and does not require complex installation, frontend/backend or containerization. It focuses on direct interaction with the project's codebase, eliminating the need for additional tools, deployment, or server infrastructure (apart from LLM API access keys). This approach results in a simple and easily deployable tool that can be used directly by developers or integrated into larger AI software development ecosystems. Main operations of the program support reading input from stdin and writing easily-parsable output to stdout (with redirecting logs to stderr). So it can be easily used with multi-agent systems as a main tool for writing code and planning project architecture.
 
-The program operates strictly inside the user's project directory, ensuring a controlled and safe environment for code manipulation. Currently, it does not have the capability to delete files or run any external tools on the user's system, further safeguarding the project's integrity.
+The program operates strictly inside the user's project directory and it only allowed to modify source code files inside it, ensuring a controlled and safe environment for code manipulation.
 
 **TL;DR: Go straight to Examples**:
 
@@ -29,7 +29,7 @@ Since the LLM almost never provides a completely deterministic result, and the q
 
 The key requirement for `Perpetual` is access to a Large Language Model (LLM) to perform the core tasks of code generation and project analysis. Access to LLM models requires API keys for the corresponding LLM provider.
 
-Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some minor limitations). For OpenAI, GPT-4/GPT-4-Turbo is the minimum suitable model, GPT-4o is recommended. For Anthropic, Claude 3 Haiku is the minimum suitable model, with Claude 3.7 Sonnet recommended for more complex tasks. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used for some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
+Currently, the assistant supports working with OpenAI, Anthropic, Ollama, and generic OpenAI-compatible providers (with some minor limitations). For OpenAI, GPT-4/GPT-4-Turbo is the minimum suitable model, GPT-4o/4.1 is recommended. For Anthropic, Claude 3 Haiku is the minimum suitable model, with Claude 3.7 Sonnet recommended for more complex tasks. For Ollama, the Qwen2.5-Coder-Instruct (7B and up) model can be used for some tasks locally. For other OpenAI-API compatible providers, [deepseek](https://www.deepseek.com) is known to work.
 
 It also allows you to offload different tasks to different models and providers to balance costs and quality. For example, code annotation or change planning tasks can be performed on more affordable models like Claude 3 Haiku, while the actual code writing can be handled by a more advanced model like Claude 3.7 Sonnet, or GPT-4o.
 
@@ -73,19 +73,20 @@ Perpetual init -l <language>
 The `init` command creates a `.perpetual` directory in the root of your project, which contains various system settings (that you can customize as needed) and other service files:
 
 - Config files with prompts and settings for different operations and regular expressions used for parsing responses from the LLM.
-- [`.env.example` file with example settings](.perpetual/.env.example)
+- `*.env.example` files with example settings: examples for [openai](.perpetual/openai.env.example), [anthropic](.perpetual/anthropic.env.example), [ollama](.perpetual/ollama.env.example), [generic](.perpetual/generic.env.example). General [.env.example](.perpetual/.env.example) file with providers selection for different operations.
 - Automatic backups for source code files it changes
 - LLM chat logs
 
 Additional files created when executing program operations. **DO NOT ADD THESE TO YOUR VCS** — these files are platform and instance dependent:
 
 - `.annotations.json` — Current annotations generated for your project files.
+- `.embeddings.msgpack` — Current vector embeddings generated from your project files.
 - `.message_log.txt`, `.message_log.txt.0`, `.message_log.txt.1`, etc — Raw LLM interaction logs (see below).
 - `.stash` subdirectory — Contains backups of source code files it changes.
 
 You should be cautious when modifying these settings. You can always rewrite them by running the `init` command in the project root directory again.
 
-Next, you need to manually create a `.env` file by copying the [`.env.example`](.perpetual/.env.example) file. The `.env` file should be self-explanatory.
+Next, you need to manually create one or multiple `.env` files from provided `*.env.example` files and place it to apropriate config dir, see [this](docs/op_init.md) for more info.
 
 ### Creating Project Annotations
 
