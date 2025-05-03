@@ -83,6 +83,9 @@ func Run(version string, args []string, logger logging.ILogger) {
 		logger.Panicln("Error creating global config directory:", err)
 	}
 
+	const DotEnvFileName = ".env"
+	const DotEnvMaskName = "*.env"
+
 	// Save default global config file if missing
 	globalConfigText := "# This is a global .env file for Perpetual, values declared here have lower priority than values read from the .perpetual directory inside your project.\n# You can place other *.env files next to this one, they will be loaded in alphabetical order.\n"
 	globalConfigFile := filepath.Join(globalConfigDir, DotEnvFileName)
