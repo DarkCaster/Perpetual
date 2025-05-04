@@ -34,6 +34,10 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 **NOTE**: There are no incompatible configuration changes, but using the `embed` operation requires adding new parameters to the `*.env` files; it is disabled by default.
 
+### Bug Fixes
+
+- Fixed parsing of empty string env values, so per-operation override of non-empty string value with empty value should work now. Mainly affects Ollama provider when using output extraction regexps from reasoning models.
+
 ## v5.0.0
 
 ### Improvements
