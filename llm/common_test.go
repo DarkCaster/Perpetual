@@ -11,18 +11,32 @@ import (
 func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 	testCases := []struct {
 		name     string
+		prefix   string
+		suffix   string
 		messages []Message
 		expected []llms.MessageContent
 		err      error
 	}{
 		{
 			name:     "Empty messages",
+			prefix:   "",
+			suffix:   "",
 			messages: []Message{},
 			expected: []llms.MessageContent{},
 			err:      errors.New("no messages was generated"),
 		},
 		{
-			name: "User request message",
+			name:     "Empty messages with prefix and suffix",
+			prefix:   "a",
+			suffix:   "b",
+			messages: []Message{},
+			expected: []llms.MessageContent{},
+			err:      errors.New("no messages was generated"),
+		},
+		{
+			name:   "User request message",
+			prefix: "",
+			suffix: "",
 			messages: []Message{
 				NewMessage(UserRequest),
 			},
@@ -32,7 +46,21 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "AI response message",
+			name:   "User request message with prefix and suffix",
+			prefix: "a",
+			suffix: "b",
+			messages: []Message{
+				NewMessage(UserRequest),
+			},
+			expected: []llms.MessageContent{
+				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "ab"}}},
+			},
+			err: nil,
+		},
+		{
+			name:   "AI response message",
+			prefix: "",
+			suffix: "",
 			messages: []Message{
 				NewMessage(SimulatedAIResponse),
 			},
@@ -42,7 +70,21 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "Real AI response with raw response",
+			name:   "AI response message with prefix and suffix",
+			prefix: "a",
+			suffix: "b",
+			messages: []Message{
+				NewMessage(SimulatedAIResponse),
+			},
+			expected: []llms.MessageContent{
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "ab"}}},
+			},
+			err: nil,
+		},
+		{
+			name:   "Real AI response with raw response",
+			prefix: "",
+			suffix: "",
 			messages: []Message{
 				SetRawResponse(NewMessage(RealAIResponse), "This is a raw response."),
 			},
@@ -50,7 +92,19 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 			err:      errors.New("cannot process real ai response, sending such message types are not supported for now"),
 		},
 		{
-			name: "Multiple messages with different fragments",
+			name:   "Real AI response with raw response with prefix and suffix",
+			prefix: "a",
+			suffix: "b",
+			messages: []Message{
+				SetRawResponse(NewMessage(RealAIResponse), "This is a raw response."),
+			},
+			expected: []llms.MessageContent{},
+			err:      errors.New("cannot process real ai response, sending such message types are not supported for now"),
+		},
+		{
+			name:   "Multiple messages with different fragment types, prefix and suffix",
+			prefix: "a",
+			suffix: "b",
 			messages: []Message{
 				AddPlainTextFragment(NewMessage(UserRequest), "Hello"),
 				AddPlainTextFragment(AddPlainTextFragment(NewMessage(UserRequest), "Hello"), "World"),
@@ -68,6 +122,7 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "\n\nHello\n", []string{"[", "]"}),
 				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "", []string{"[", "]"}),
 				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "\n", []string{"[", "]"}),
+				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "\n\n", []string{"[", "]"}),
 				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "\n\n", []string{"[", "]"}),
 			},
 			expected: []llms.MessageContent{
@@ -88,6 +143,24 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "[\n]\n"}}},
 				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "[\n\n]\n"}}},
 				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "[\n\n\n]\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "a[\n\n\n]\nb"}}},
+			},
+			err: nil,
+		},
+
+		{
+			name:   "Typical message queue with prefix and suffix",
+			prefix: "a",
+			suffix: "b",
+			messages: []Message{
+				AddPlainTextFragment(NewMessage(UserRequest), "Hello"),
+				AddMultilineTaggedFragment(NewMessage(SimulatedAIResponse), "Hello", []string{"[", "]"}),
+				AddPlainTextFragment(NewMessage(UserRequest), "Test"),
+			},
+			expected: []llms.MessageContent{
+				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "Hello\n"}}},
+				{Role: llms.ChatMessageTypeAI, Parts: []llms.ContentPart{llms.TextContent{Text: "[\nHello\n]\n"}}},
+				{Role: llms.ChatMessageTypeHuman, Parts: []llms.ContentPart{llms.TextContent{Text: "aTest\nb"}}},
 			},
 			err: nil,
 		},
@@ -95,7 +168,7 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := renderMessagesToGenericAILangChainFormat(nil, tc.messages)
+			result, err := renderMessagesToGenericAILangChainFormat(nil, tc.messages, tc.prefix, tc.suffix)
 			if err != nil && tc.err == nil || err == nil && tc.err != nil || (err != nil && tc.err != nil && err.Error() != tc.err.Error()) {
 				t.Errorf("Unexpected error: got %v, want %v", err, tc.err)
 			}
@@ -177,7 +250,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := renderMessagesToGenericAILangChainFormat(tc.mappings, tc.messages)
+			result, err := renderMessagesToGenericAILangChainFormat(tc.mappings, tc.messages, "", "")
 			if err != nil && tc.err == nil || err == nil && tc.err != nil || (err != nil && tc.err != nil && err.Error() != tc.err.Error()) {
 				t.Errorf("Unexpected error: got %v, want %v", err, tc.err)
 			}

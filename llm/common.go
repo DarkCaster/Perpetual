@@ -87,9 +87,10 @@ func getMarkdownCodeBlockType(filesToMdLangMappings [][]string, fileName string)
 	}
 }
 
-func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, messages []Message) ([]llms.MessageContent, error) {
+func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, error) {
 	var result []llms.MessageContent
-	for _, message := range messages {
+	for i, message := range messages {
+		lastMessage := (i >= len(messages)-1)
 		var llmMessage llms.MessageContent
 		// Convert message type
 		switch message.Type {
@@ -107,6 +108,9 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, 
 		} else {
 			// Convert message content
 			var builder strings.Builder
+			if lastMessage {
+				builder.WriteString(msgPrefix)
+			}
 			for index, fragment := range message.Fragments {
 				switch fragment.Type {
 				case PlainTextFragment:
@@ -193,6 +197,9 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, 
 					return result, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)
 				}
 			}
+			if lastMessage {
+				builder.WriteString(msgSuffix)
+			}
 			llmMessage.Parts = []llms.ContentPart{llms.TextContent{Text: builder.String()}}
 		}
 		result = append(result, llmMessage)
@@ -204,7 +211,7 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings [][]string, 
 }
 
 func RenderMessagesToAIStrings(filesToMdLangMappings [][]string, messages []Message) ([]string, error) {
-	messageContents, err := renderMessagesToGenericAILangChainFormat(filesToMdLangMappings, messages)
+	messageContents, err := renderMessagesToGenericAILangChainFormat(filesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return nil, err
 	}
