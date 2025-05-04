@@ -102,9 +102,7 @@ func NewOllamaLLMConnectorFromEnv(
 	}
 
 	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
-	if err != nil || len(auth) < 1 {
-		auth = ""
-	} else {
+	if err == nil && auth != "" {
 		debug.Add("auth", "set")
 	}
 
@@ -115,6 +113,9 @@ func NewOllamaLLMConnectorFromEnv(
 	model, err := utils.GetEnvString(envVars...)
 	if err != nil {
 		return nil, err
+	}
+	if model == "" {
+		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
 
@@ -131,10 +132,8 @@ func NewOllamaLLMConnectorFromEnv(
 	debug.Add("retries", onFailRetries)
 
 	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
-	if err == nil {
+	if err == nil && customBaseURL != "" {
 		debug.Add("base url", customBaseURL)
-	} else {
-		customBaseURL = ""
 	}
 
 	var extraOptions []llms.CallOption
@@ -213,13 +212,13 @@ func NewOllamaLLMConnectorFromEnv(
 		}
 
 		docPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_DOC_PREFIX", prefix))
-		if err == nil {
+		if err == nil && docPrefix != "" {
 			embedDocPrefix = docPrefix
 			debug.Add("embed doc prefix", "set")
 		}
 
 		searchPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_SEARCH_PREFIX", prefix))
-		if err == nil {
+		if err == nil && searchPrefix != "" {
 			embedSearchPrefix = searchPrefix
 			debug.Add("embed search prefix", "set")
 		}

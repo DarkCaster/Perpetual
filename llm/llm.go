@@ -105,6 +105,9 @@ func NewLLMConnector(operation string,
 	if err != nil {
 		return nil, err
 	}
+	if provider == "" {
+		return nil, errors.New("LLM provider is empty")
+	}
 
 	// Split provider name and profile number using regex
 	matches := regexp.MustCompile(`^([A-Z]+)(\d*)$`).FindStringSubmatch(provider)
@@ -124,8 +127,8 @@ func NewLLMConnector(operation string,
 
 	// try to setup output format from config and outputschema if applicable
 	// particular llm provider can still switch to plain format if schema is invalid or structured JSON output format is not supported
-	if format, err := utils.GetEnvString(fmt.Sprintf("%s_FORMAT_OP_%s", prefix, operation)); err == nil {
-		if strings.ToUpper(format) == "JSON" {
+	if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_FORMAT_OP_%s", prefix, operation)); err == nil {
+		if format == "JSON" {
 			if len(outputSchema) < 1 {
 				return nil, fmt.Errorf("output schema is empty, cannot use JSON mode")
 			}

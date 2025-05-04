@@ -72,10 +72,16 @@ func NewAnthropicLLMConnectorFromEnv(
 	if err != nil {
 		return nil, err
 	}
+	if token == "" {
+		return nil, errors.New("auth token is empty")
+	}
 
 	model, err := utils.GetEnvString(fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix))
 	if err != nil {
 		return nil, err
+	}
+	if model == "" {
+		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
 
@@ -92,10 +98,8 @@ func NewAnthropicLLMConnectorFromEnv(
 	debug.Add("retries", onFailRetries)
 
 	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
-	if err == nil {
+	if err == nil && customBaseURL != "" {
 		debug.Add("base url", customBaseURL)
-	} else {
-		customBaseURL = ""
 	}
 
 	var extraOptions []llms.CallOption

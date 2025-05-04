@@ -46,7 +46,7 @@ func RestoreEnvVars(backup map[string]string) error {
 
 func GetEnvString(vars ...string) (string, error) {
 	for _, v := range vars {
-		if value := os.Getenv(v); value != "" {
+		if value, ok := os.LookupEnv(v); ok {
 			return value, nil
 		}
 	}

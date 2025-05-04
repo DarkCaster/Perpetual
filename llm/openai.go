@@ -73,6 +73,9 @@ func NewOpenAILLMConnectorFromEnv(
 	if err != nil {
 		return nil, err
 	}
+	if token == "" {
+		return nil, errors.New("auth token is empty")
+	}
 
 	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
 	if operation == "EMBED" {
@@ -81,6 +84,9 @@ func NewOpenAILLMConnectorFromEnv(
 	model, err := utils.GetEnvString(envVars...)
 	if err != nil {
 		return nil, err
+	}
+	if model == "" {
+		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
 
@@ -97,10 +103,8 @@ func NewOpenAILLMConnectorFromEnv(
 	debug.Add("retries", onFailRetries)
 
 	customBaseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
-	if err == nil {
+	if err == nil && customBaseURL != "" {
 		debug.Add("base url", customBaseURL)
-	} else {
-		customBaseURL = ""
 	}
 
 	var extraOptions []llms.CallOption

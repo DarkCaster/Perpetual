@@ -81,6 +81,13 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
+	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
+	if err != nil || auth == "" {
+		debug.Add("auth", "not set")
+	} else {
+		debug.Add("auth", "set")
+	}
+
 	authType := Bearer
 	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix), fmt.Sprintf("%s_API_KEY", prefix)); err == nil {
 		debug.Add("auth type", curAuthType)
@@ -93,12 +100,6 @@ func NewGenericLLMConnectorFromEnv(
 		}
 	}
 
-	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
-	if err != nil || len(auth) < 1 {
-		auth = ""
-		debug.Add("auth", "not set")
-	}
-
 	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
 	if operation == "EMBED" {
 		envVars = []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation)}
@@ -106,6 +107,9 @@ func NewGenericLLMConnectorFromEnv(
 	model, err := utils.GetEnvString(envVars...)
 	if err != nil {
 		return nil, err
+	}
+	if model == "" {
+		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
 
@@ -122,8 +126,8 @@ func NewGenericLLMConnectorFromEnv(
 	debug.Add("retries", onFailRetries)
 
 	baseURL, err := utils.GetEnvString(fmt.Sprintf("%s_BASE_URL", prefix))
-	if err != nil || len(baseURL) < 1 {
-		return nil, fmt.Errorf("%s_BASE_URL env var missing or invalid", prefix)
+	if err != nil || baseURL == "" {
+		return nil, fmt.Errorf("%s_BASE_URL env var missing or empty", prefix)
 	}
 	debug.Add("base url", baseURL)
 
@@ -195,13 +199,13 @@ func NewGenericLLMConnectorFromEnv(
 		}
 
 		docPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_DOC_PREFIX", prefix))
-		if err == nil {
+		if err == nil && docPrefix != "" {
 			embedDocPrefix = docPrefix
 			debug.Add("embed doc prefix", "set")
 		}
 
 		searchPrefix, err := utils.GetEnvString(fmt.Sprintf("%s_EMBED_SEARCH_PREFIX", prefix))
-		if err == nil {
+		if err == nil && searchPrefix != "" {
 			embedSearchPrefix = searchPrefix
 			debug.Add("embed search prefix", "set")
 		}
