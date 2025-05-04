@@ -382,19 +382,19 @@ func NewOllamaLLMConnectorFromEnv(
 		}
 
 		systemPromptPrefix, err = utils.GetEnvString(fmt.Sprintf("%s_SYSTEM_PFX_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSTEM_PFX", prefix))
-		if err != nil && systemPromptPrefix != "" {
+		if err == nil && systemPromptPrefix != "" {
 			debug.Add("system prompt prefix", "set")
 		}
 		systemPromptSuffix, err = utils.GetEnvString(fmt.Sprintf("%s_SYSTEM_SFX_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSTEM_SFX", prefix))
-		if err != nil && systemPromptSuffix != "" {
+		if err == nil && systemPromptSuffix != "" {
 			debug.Add("system prompt suffix", "set")
 		}
 		userPromptPrefix, err = utils.GetEnvString(fmt.Sprintf("%s_USER_PFX_OP_%s", prefix, operation), fmt.Sprintf("%s_USER_PFX", prefix))
-		if err != nil && userPromptPrefix != "" {
+		if err == nil && userPromptPrefix != "" {
 			debug.Add("user prompt prefix", "set")
 		}
 		userPromptSuffix, err = utils.GetEnvString(fmt.Sprintf("%s_USER_SFX_OP_%s", prefix, operation), fmt.Sprintf("%s_USER_SFX", prefix))
-		if err != nil && userPromptSuffix != "" {
+		if err == nil && userPromptSuffix != "" {
 			debug.Add("user prompt suffix", "set")
 		}
 	}
