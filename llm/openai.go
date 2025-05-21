@@ -452,6 +452,13 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	transformers := []requestTransformer{}
 	systemPrompt := p.SystemPrompt
 
+	if len(p.FieldsToInject) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
+	}
+	if len(p.FieldsToRemove) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
+	}
+
 	//"o*" reasoning models requires some extra setup
 	modelStr := strings.ToLower(p.Model)
 	if strings.HasPrefix(modelStr, "o") {
@@ -489,13 +496,29 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			"top_logprobs",
 			"logit_bias",
 		}))
-	}
-
-	if len(p.FieldsToInject) > 0 {
-		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
-	}
-	if len(p.FieldsToRemove) > 0 {
-		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
+	} else if strings.HasPrefix(modelStr, "codex") {
+		//remove unsupported parameters of responses API
+		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
+			"presence_penalty",
+			"frequency_penalty",
+			"logprobs",
+			"top_logprobs",
+			"logit_bias",
+			//unfortunately, streaming of responses api is not compatible with chat completions at all
+			"stream",
+			"stream_options",
+		}))
+		//add system prompt and make responses API not to store generated response (we cannot reuse it anyway)
+		transformers = append(transformers, newTopLevelBodyValuesInjector(map[string]interface{}{
+			"instructions": systemPrompt,
+			"store":        false,
+		}))
+		//remove old system message
+		transformers = append(transformers, newSystemMessageTransformer("", ""))
+		//rename fields from chat completions api compatible with responses api
+		transformers = append(transformers, newTopLevelBodyValueRenamer("messages", "input"))
+		transformers = append(transformers, newTopLevelBodyValueRenamer("max_completion_tokens", "max_output_tokens"))
+		//TODO: change request endpoint
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
