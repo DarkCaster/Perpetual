@@ -157,17 +157,24 @@ func (p *systemMessageTransformer) ProcessBody(body map[string]interface{}) map[
 		msg := imsg.(map[string]interface{})
 		if msg["role"] == "system" {
 			sysMsgIdx = i
+			//do not add system message if it's new role is empty
+			if p.ChangeTo == "" {
+				continue
+			}
 		}
 		messages = append(messages, msg)
 	}
 	if sysMsgIdx < 0 {
 		return body
 	}
-	// convert system message into the provided message type
-	messages[sysMsgIdx]["role"] = p.ChangeTo
-	// insert extra acknowledge message as "assistant" message if needed
-	if len(p.ExtraAck) > 0 {
-		messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": p.ExtraAck})
+	//only change system message role if it is not empty
+	if p.ChangeTo != "" {
+		// convert system message into the provided message type
+		messages[sysMsgIdx]["role"] = p.ChangeTo
+		// insert extra acknowledge message as "assistant" message if needed
+		if p.ExtraAck != "" {
+			messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": p.ExtraAck})
+		}
 	}
 	//set new messages object to body
 	body["messages"] = messages
