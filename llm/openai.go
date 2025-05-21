@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -451,6 +452,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	transformers := []requestTransformer{}
 	systemPrompt := p.SystemPrompt
+	streamingSupported := true
 
 	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
@@ -498,15 +500,23 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}))
 	} else if strings.HasPrefix(modelStr, "codex") {
 		//remove unsupported parameters of responses API
+		streamingSupported = false
+		maxCandidates = 1
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
+			"n",
 			"presence_penalty",
 			"frequency_penalty",
 			"logprobs",
 			"top_logprobs",
 			"logit_bias",
-			//unfortunately, streaming of responses api is not compatible with chat completions at all
+			//implementing streaming for this shitty responses API is too hard for me, disabling
 			"stream",
 			"stream_options",
+		}))
+		//remove unsupported params for current codex models (as for may 2025)
+		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
+			"temperature",
+			"top_p",
 		}))
 		//add system prompt and make responses API not to store generated response (we cannot reuse it anyway)
 		transformers = append(transformers, newTopLevelBodyValuesInjector(map[string]interface{}{
@@ -518,7 +528,8 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//rename fields from chat completions api compatible with responses api
 		transformers = append(transformers, newTopLevelBodyValueRenamer("messages", "input"))
 		transformers = append(transformers, newTopLevelBodyValueRenamer("max_completion_tokens", "max_output_tokens"))
-		//TODO: change request endpoint
+		//change request endpoint
+		transformers = append(transformers, newOpenAIRequestsAPIUrlChanger())
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
@@ -567,7 +578,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	// Perform LLM query
 	if maxCandidates > 1 {
 		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
-	} else {
+	} else if streamingSupported {
 		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
 		streamingEnabled = true
 	}
@@ -699,4 +710,29 @@ func (p *OpenAILLMConnector) GetVariantCount() int {
 
 func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
+}
+
+type openAIRequestsAPIUrlChanger struct {
+}
+
+func newOpenAIRequestsAPIUrlChanger() requestTransformer {
+	return &openAIRequestsAPIUrlChanger{}
+}
+
+func (p *openAIRequestsAPIUrlChanger) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	return body
+}
+
+func (p *openAIRequestsAPIUrlChanger) ProcessHeader(header http.Header) http.Header {
+	return header
+}
+
+func (p *openAIRequestsAPIUrlChanger) ProcessURL(url string) string {
+	const completionsSuffix = "chat/completions"
+	if !strings.HasSuffix(url, completionsSuffix) {
+		return ""
+	}
+	url, _ = strings.CutSuffix(url, completionsSuffix)
+	url += "responses"
+	return url
 }
