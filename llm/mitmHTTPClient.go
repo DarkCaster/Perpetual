@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
 type requestTransformer interface {
+	ProcessURL(url string) string
 	ProcessBody(body map[string]interface{}) map[string]interface{}
 	ProcessHeader(header http.Header) http.Header
 }
@@ -56,6 +58,10 @@ func (p *bodyValuesRemover) ProcessBody(body map[string]interface{}) map[string]
 func (p *bodyValuesRemover) ProcessHeader(header http.Header) http.Header {
 	// No header modifications for this transformer
 	return header
+}
+
+func (p *bodyValuesRemover) ProcessURL(url string) string {
+	return ""
 }
 
 type bodyValuesRenamer struct {
@@ -104,6 +110,10 @@ func (p *bodyValuesRenamer) ProcessHeader(header http.Header) http.Header {
 	return header
 }
 
+func (p *bodyValuesRenamer) ProcessURL(url string) string {
+	return ""
+}
+
 type bodyValuesInjector struct {
 	ValuesToInject map[string]interface{}
 }
@@ -125,6 +135,10 @@ func (p *bodyValuesInjector) ProcessBody(body map[string]interface{}) map[string
 func (p *bodyValuesInjector) ProcessHeader(header http.Header) http.Header {
 	// No header modifications for this transformer
 	return header
+}
+
+func (p *bodyValuesInjector) ProcessURL(url string) string {
+	return ""
 }
 
 type basicAuthTransformer struct {
@@ -153,6 +167,10 @@ func (p *basicAuthTransformer) ProcessHeader(header http.Header) http.Header {
 	return header
 }
 
+func (p *basicAuthTransformer) ProcessURL(url string) string {
+	return ""
+}
+
 type tokenAuthTransformer struct {
 	Token string
 }
@@ -176,6 +194,10 @@ func (p *tokenAuthTransformer) ProcessHeader(header http.Header) http.Header {
 		header.Set("Authorization", "Bearer "+p.Token)
 	}
 	return header
+}
+
+func (p *tokenAuthTransformer) ProcessURL(url string) string {
+	return ""
 }
 
 type systemMessageTransformer struct {
@@ -232,6 +254,10 @@ func (p *systemMessageTransformer) ProcessHeader(header http.Header) http.Header
 	return header
 }
 
+func (p *systemMessageTransformer) ProcessURL(url string) string {
+	return ""
+}
+
 type responseCollector interface {
 	CollectResponse(response *http.Response) error
 }
@@ -274,8 +300,20 @@ type mitmTransport struct {
 func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Read request body if present
 	var bodyData []byte
-	var err error
+	// apply request url transformations
+	for _, transformer := range t.Transformers {
+		urlStr := transformer.ProcessURL(req.URL.String())
+		if urlStr == "" {
+			continue
+		}
+		var err error
+		req.URL, err = url.Parse(urlStr)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if req.Body != nil {
+		var err error
 		bodyData, err = io.ReadAll(req.Body)
 		req.Body.Close()
 		if err != nil {
@@ -286,6 +324,7 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	// Check and convert body to string
 	if len(bodyData) > 0 {
+		var err error
 		if err = utils.CheckUTF8(bodyData); err != nil {
 			return nil, err
 		}

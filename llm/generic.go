@@ -815,3 +815,7 @@ func (p *maxTokensModelTransformer) ProcessHeader(header http.Header) http.Heade
 	// No header modifications for this transformer
 	return header
 }
+
+func (p *maxTokensModelTransformer) ProcessURL(url string) string {
+	return ""
+}
