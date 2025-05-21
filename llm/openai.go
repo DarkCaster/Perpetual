@@ -1,9 +1,11 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"regexp"
@@ -451,6 +453,9 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	transformers := []requestTransformer{}
+	statusCodeCollector := newStatusCodeCollector()
+	collectors := []responseCollector{statusCodeCollector}
+
 	systemPrompt := p.SystemPrompt
 	streamingSupported := true
 
@@ -530,10 +535,11 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		transformers = append(transformers, newTopLevelBodyValueRenamer("max_completion_tokens", "max_output_tokens"))
 		//change request endpoint
 		transformers = append(transformers, newOpenAIRequestsAPIUrlChanger())
+		//add response collector that will read responses API answer and convert it to completions api answers
+		collectors = append(collectors, newOpenAIResponsesAPICollector())
 	}
 
-	statusCodeCollector := newStatusCodeCollector()
-	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
+	mitmClient := newMitmHTTPClient(collectors, transformers)
 	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -735,4 +741,77 @@ func (p *openAIRequestsAPIUrlChanger) ProcessURL(url string) string {
 	url, _ = strings.CutSuffix(url, completionsSuffix)
 	url += "responses"
 	return url
+}
+
+type openAIResponsesAPICollector struct {
+}
+
+func newOpenAIResponsesAPICollector() *openAIResponsesAPICollector {
+	return &openAIResponsesAPICollector{}
+}
+
+func (p *openAIResponsesAPICollector) CollectResponse(response *http.Response) error {
+	//not processing null response at all
+	if response == nil {
+		return nil
+	}
+	//basic check
+	if response.Body == nil {
+		return errors.New("null response body received")
+	}
+	//wrapper that will read response body and convert it to compatible format
+	reader := newInnerBodyReader(response.Body)
+	response.Body = reader
+	return nil
+}
+
+type innerBodyReader struct {
+	inner io.ReadCloser
+	outer io.ReadCloser
+	err   error
+}
+
+func (o *innerBodyReader) Read(p []byte) (int, error) {
+	if o.outer == nil {
+		defer o.inner.Close()
+		//prepare temporary buffers
+		readBuf := make([]byte, 4096)
+		innerBuf := make([]byte, 0, 65536)
+		//read all data from inner reader until we stop
+		var readErr error = nil
+		for readErr == nil {
+			numRead := 0
+			numRead, readErr = o.inner.Read(readBuf)
+			if numRead > 0 {
+				innerBuf = append(innerBuf, readBuf[:numRead]...)
+			}
+		}
+		if readErr != io.EOF {
+			o.err = readErr
+		}
+		if o.err == nil && len(innerBuf) > 0 {
+			//TODO: deserialize answer to map, convert to completions-compatible format, serialize again
+		}
+		o.outer = io.NopCloser(bytes.NewReader(innerBuf))
+	}
+	if o.err != nil {
+		return 0, o.err
+	}
+	//read final post-processed response
+	return o.outer.Read(p)
+}
+
+func (o *innerBodyReader) Close() error {
+	if o.outer != nil {
+		return o.outer.Close()
+	}
+	return nil
+}
+
+func newInnerBodyReader(inner io.ReadCloser) *innerBodyReader {
+	return &innerBodyReader{
+		inner: inner,
+		outer: nil,
+		err:   nil,
+	}
 }
