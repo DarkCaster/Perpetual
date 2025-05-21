@@ -58,6 +58,52 @@ func (p *bodyValuesRemover) ProcessHeader(header http.Header) http.Header {
 	return header
 }
 
+type bodyValuesRenamer struct {
+	Path    []string
+	OldName string
+	NewName string
+}
+
+func newTopLevelBodyValueRenamer(oldName, newName string) requestTransformer {
+	return &bodyValuesRenamer{
+		Path:    []string{},
+		OldName: oldName,
+		NewName: newName,
+	}
+}
+
+func newInnerBodyValueRenamer(path []string, oldName, newName string) requestTransformer {
+	return &bodyValuesRenamer{
+		Path:    path,
+		OldName: oldName,
+		NewName: newName,
+	}
+}
+
+func (p *bodyValuesRenamer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	current := body
+	// Navigate down the path
+	for i, key := range p.Path {
+		if val, ok := current[key].(map[string]interface{}); ok {
+			current = val
+		} else if i < len(p.Path)-1 {
+			// Path doesn't exist, return original
+			return body
+		}
+	}
+	// Rename specified value at current level
+	if value, ok := current[p.OldName]; ok {
+		delete(current, p.OldName)
+		current[p.NewName] = value
+	}
+	return body
+}
+
+func (p *bodyValuesRenamer) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
+}
+
 type bodyValuesInjector struct {
 	ValuesToInject map[string]interface{}
 }
