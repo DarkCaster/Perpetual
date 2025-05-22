@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -790,7 +791,7 @@ func (o *innerBodyReader) Read(p []byte) (int, error) {
 			o.err = readErr
 		}
 		if o.err == nil && len(innerBuf) > 0 {
-			//TODO: deserialize answer to map, convert to completions-compatible format, serialize again
+			innerBuf, o.err = convertOpenAIResponsesApiResponse(innerBuf)
 		}
 		o.outer = io.NopCloser(bytes.NewReader(innerBuf))
 	}
@@ -814,4 +815,88 @@ func newInnerBodyReader(inner io.ReadCloser) *innerBodyReader {
 		outer: nil,
 		err:   nil,
 	}
+}
+
+func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
+	//try decoding response from responses api
+	var input map[string]interface{}
+	if err := json.Unmarshal([]byte(inputBytes), &input); err != nil {
+		return nil, errors.New("response JSON object is malformed")
+	}
+	//generate completions-compatible output
+	output := make(map[string]interface{})
+	output["id"] = input["id"]
+	output["object"] = "chat.completion"
+	output["created"] = input["created_at"]
+	output["model"] = input["model"]
+
+	status, ok := input["status"].(string)
+	if !ok {
+		return nil, errors.New("invalid response status detected")
+	}
+	if status != "completed" {
+		return nil, fmt.Errorf("response status indicates an error: %s", status)
+	}
+
+	var targetMessages []interface{}
+	outputArray, ok := input["output"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid output-field type detected in response")
+	}
+	for _, iMessage := range outputArray {
+		message, ok := iMessage.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if message["type"] != "message" || message["status"] != "completed" || message["role"] != "assistant" {
+			continue
+		}
+		targetMessages, ok = message["content"].([]interface{})
+		if ok {
+			break
+		}
+	}
+	if len(targetMessages) < 1 {
+		return nil, fmt.Errorf("failed to extract assistant messages-array from response")
+	}
+
+	finalMessage := ""
+	for _, msg := range targetMessages {
+		assistantResponse, ok := msg.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if assistantResponse["type"] != "output_text" {
+			continue
+		}
+		finalMessage, ok = assistantResponse["text"].(string)
+		if ok {
+			break
+		}
+	}
+
+	//create final completion-api output
+	output["choices"] = []map[string]interface{}{
+		{
+			"index": 0,
+			"message": map[string]interface{}{
+				"role":    "assistant",
+				"content": finalMessage,
+			},
+			"finish_reason": "stop",
+		},
+	}
+
+	//TODO: create completion-api usage stats
+
+	//serialize completions output to JSON
+	var writer bytes.Buffer
+	encoder := json.NewEncoder(&writer)
+	encoder.SetIndent("", "  ")
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(output)
+	if err != nil {
+		return nil, err
+	}
+	return writer.Bytes(), nil
 }
