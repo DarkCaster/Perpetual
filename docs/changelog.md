@@ -21,7 +21,13 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
-## v6.0.0 (Unreleased)
+## v6.1.0
+
+### Improvements
+
+- Added support for OpenAI `codex-mini-latest` (and potentially other future `codex` models), using OpenAI responses-api. This model can only write code, so it can only be used on stage 4 of `implement` operation, you can enable it in your env file using the following variable: `OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest"`. Using this model with any other operation or stage may result in errors and/or unpredicted behavior. The model does not support JSON-structured output mode and setting any parameters other than token-limit. For now model can't work with partial output, so, make sure you set `OPENAI_MAX_TOKENS` or `OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4` env variable to some reasonably big value.
+
+## v6.0.0
 
 ### New Features
 
