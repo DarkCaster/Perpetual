@@ -246,7 +246,7 @@ func NewOpenAILLMConnectorFromEnv(
 
 	// make some additional tweaks to the schema according to
 	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
-	if outputFormat == OutputJson {
+	if outputFormat == OutputJson && !strings.HasPrefix(model, "codex") {
 		debug.Add("format", "json")
 		jsonSchema := map[string]interface{}{"type": "json_schema"}
 		innerSchema := map[string]interface{}{"strict": true, "name": outputSchemaName, "description": outputSchemaDesc}
@@ -510,6 +510,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		maxCandidates = 1
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
 			"n",
+			"response_format",
 			"presence_penalty",
 			"frequency_penalty",
 			"logprobs",
