@@ -823,6 +823,7 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 	if err := json.Unmarshal([]byte(inputBytes), &input); err != nil {
 		return nil, errors.New("response JSON object is malformed")
 	}
+
 	//generate completions-compatible output
 	output := make(map[string]interface{})
 	output["id"] = input["id"]
@@ -887,7 +888,14 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 		},
 	}
 
-	//TODO: create completion-api usage stats
+	//create usage object
+	usage := make(map[string]interface{})
+	if respUsage, ok := input["usage"].(map[string]interface{}); ok {
+		usage["prompt_tokens"] = respUsage["input_tokens"]
+		usage["completion_tokens"] = respUsage["output_tokens"]
+		usage["total_tokens"] = respUsage["total_tokens"]
+	}
+	output["usage"] = usage
 
 	//serialize completions output to JSON
 	var writer bytes.Buffer
