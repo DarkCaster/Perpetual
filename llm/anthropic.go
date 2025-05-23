@@ -261,19 +261,32 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		}
 	}
 
-	finalContent := []string{}
+	streamFunc := func(ctx context.Context, chunk []byte) error {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+		return nil
+	}
 
+	finalContent := []string{}
 	for i := 0; i < maxCandidates; i++ {
 		//make a pause, if we need to wait to recover from previous error
 		if p.RateLimitDelayS > 0 {
 			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
 		}
 
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
+		}
+
+		finalOptions := utils.NewSlice(p.Options...)
+		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+
 		// Perform LLM query
 		response, err := model.GenerateContent(
 			context.Background(),
 			llmMessages,
-			p.Options...,
+			finalOptions...,
 		)
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
@@ -283,10 +296,6 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			p.RawMessageLogger("AI thinking:\n\n\n")
 			p.RawMessageLogger(thinkingContent)
 			p.RawMessageLogger("\n\n\n")
-		}
-
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
 		}
 
 		// Process status codes
@@ -368,13 +377,12 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			content = response.Choices[0].Content
 		}
 
-		// There was a message received, log it
+		// Add separator and notification for receiving empty response to message log
 		if p.RawMessageLogger != nil {
-			if len(content) > 0 {
-				p.RawMessageLogger(content)
-			} else {
+			if len(content) < 1 {
 				p.RawMessageLogger("<empty response>")
 			}
+			// add separator
 			p.RawMessageLogger("\n\n\n")
 		}
 
