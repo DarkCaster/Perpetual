@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -382,15 +383,6 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			content = response.Choices[0].Content
 		}
 
-		// Add separator and notification for receiving empty response to message log
-		if p.RawMessageLogger != nil {
-			if len(content) < 1 {
-				p.RawMessageLogger("<empty response>")
-			}
-			// add separator
-			p.RawMessageLogger("\n\n\n")
-		}
-
 		// Check for max tokens
 		if stopReason == "max_tokens" {
 			if lastResort {
@@ -494,15 +486,7 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 			}
 		}
 		newEventsPending := len(o.eventQueue) > 0
-		for len(o.eventQueue) > 0 {
-			event := o.eventQueue[0]
-			o.eventQueue = o.eventQueue[1:]
-			//TODO: parse event according to AnthropicAPI
-			//TODO: if event needs special handling - then handle it
-			//TODO: if event not need special handling, then, flush it to o.outer
-			o.outer.Write([]byte(event.eventLine))
-			o.outer.Write([]byte(event.dataLine))
-		}
+		o.ParseAnthropicStreamEvents()
 		//we have events to pass for upstream logic
 		if newEventsPending {
 			break
@@ -515,6 +499,65 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 		return n, o.err
 	}
 	return n, nil
+}
+
+func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
+	writeUpstream := func(event anthropicStreamEvent) error {
+		//write event to outer buffer for handling by upstream logic
+		o.outer.Write([]byte(event.eventLine))
+		o.outer.Write([]byte(event.dataLine))
+		return nil
+	}
+	for len(o.eventQueue) > 0 {
+		//dequeue next event
+		event := o.eventQueue[0]
+		o.eventQueue = o.eventQueue[1:]
+		eventLine := strings.TrimSpace(event.eventLine)
+		//parse event
+		if eventLine == "event: content_block_start" || eventLine == "event: content_block_delta" || eventLine == "event: content_block_stop" {
+			dataLine, ok := strings.CutPrefix(event.dataLine, "data:")
+			if !ok {
+				return fmt.Errorf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
+			}
+			var dataObj map[string]interface{}
+			if err := json.Unmarshal([]byte(dataLine), &dataObj); err != nil {
+				return fmt.Errorf("failed to decode event: %v", err)
+			}
+			if eventLine == "event: content_block_start" {
+				contentBlock, ok := dataObj["content_block"].(map[string]interface{})
+				if ok {
+					if cType, ok := contentBlock["type"].(string); ok && cType == "text" {
+						o.streamingFunc([]byte("AI response:\n\n\n"))
+					}
+					if cType, ok := contentBlock["type"].(string); ok && cType == "thinking" {
+						o.streamingFunc([]byte("AI thinking:\n\n\n"))
+						if cData, ok := contentBlock["thinking"].(string); ok {
+							o.streamingFunc([]byte(cData))
+						}
+						//continue //not forwarding event to upstream
+					}
+				}
+			}
+			if eventLine == "event: content_block_delta" {
+				deltaBlock, ok := dataObj["delta"].(map[string]interface{})
+				if ok {
+					if cType, ok := deltaBlock["type"].(string); ok && cType == "thinking_delta" {
+						if cData, ok := deltaBlock["thinking"].(string); ok {
+							o.streamingFunc([]byte(cData))
+						}
+						continue //not forwarding event to upstream
+					}
+				}
+			}
+			if eventLine == "event: content_block_stop" {
+				o.streamingFunc([]byte("\n\n\n"))
+			}
+		}
+		if err := writeUpstream(event); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (o *anthropicStreamReader) Close() error {
