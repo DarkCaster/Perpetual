@@ -504,8 +504,12 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 	writeUpstream := func(event anthropicStreamEvent) error {
 		//write event to outer buffer for handling by upstream logic
-		o.outer.Write([]byte(event.eventLine))
-		o.outer.Write([]byte(event.dataLine))
+		if _, err := o.outer.Write([]byte(event.eventLine)); err != nil {
+			return fmt.Errorf("writing event type line to outer stream failed: %v", err)
+		}
+		if _, err := o.outer.Write([]byte(event.dataLine)); err != nil {
+			return fmt.Errorf("writing event data line to outer stream failed: %v", err)
+		}
 		return nil
 	}
 	for len(o.eventQueue) > 0 {
@@ -545,6 +549,9 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 						if cData, ok := deltaBlock["thinking"].(string); ok {
 							o.streamingFunc([]byte(cData))
 						}
+						continue //not forwarding event to upstream
+					}
+					if cType, ok := deltaBlock["type"].(string); ok && cType == "signature_delta" {
 						continue //not forwarding event to upstream
 					}
 				}
