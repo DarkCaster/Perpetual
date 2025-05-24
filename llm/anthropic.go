@@ -433,15 +433,17 @@ type anthropicStreamEvent struct {
 // This is a temporary workaround for handling thinking responses,
 // until support for it is not added to upstream langchaingo library
 type anthropicStreamReader struct {
-	inner         io.ReadCloser
-	outer         io.ReadWriter
-	readBuf       []byte
-	runeBuf       []byte
-	lineBuilder   strings.Builder
-	curEvent      anthropicStreamEvent
-	eventQueue    []anthropicStreamEvent
-	err           error
-	streamingFunc func(chunk []byte)
+	inner          io.ReadCloser
+	outer          io.ReadWriter
+	readBuf        []byte
+	runeBuf        []byte
+	lineBuilder    strings.Builder
+	curEvent       anthropicStreamEvent
+	eventQueue     []anthropicStreamEvent
+	err            error
+	skipStopBlocks int
+	blockIndexSkip int
+	streamingFunc  func(chunk []byte)
 }
 
 func (o *anthropicStreamReader) Read(p []byte) (int, error) {
@@ -538,7 +540,9 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 						if cData, ok := contentBlock["thinking"].(string); ok {
 							o.streamingFunc([]byte(cData))
 						}
-						//continue //not forwarding event to upstream
+						o.skipStopBlocks++
+						o.blockIndexSkip++
+						continue //not forwarding event to upstream
 					}
 				}
 			}
@@ -558,6 +562,24 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 			}
 			if eventLine == "event: content_block_stop" {
 				o.streamingFunc([]byte("\n\n\n"))
+				if o.skipStopBlocks > 0 {
+					o.skipStopBlocks--
+					continue //not forwarding event to upstream
+				}
+			}
+			//fix index value and reserialize data
+			if index, ok := dataObj["index"].(float64); ok && o.blockIndexSkip > 0 {
+				index = float64((int(index)) - o.blockIndexSkip)
+				dataObj["index"] = index
+				var writer bytes.Buffer
+				encoder := json.NewEncoder(&writer)
+				encoder.SetIndent("", "")
+				encoder.SetEscapeHTML(false)
+				err := encoder.Encode(dataObj)
+				if err != nil {
+					return fmt.Errorf("failed to reencode data block: %s, error: %v", dataLine, err)
+				}
+				event.dataLine = "data: " + writer.String()
 			}
 		}
 		if err := writeUpstream(event); err != nil {
@@ -573,12 +595,14 @@ func (o *anthropicStreamReader) Close() error {
 
 func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *anthropicStreamReader {
 	return &anthropicStreamReader{
-		inner:         inner,
-		outer:         bytes.NewBuffer(nil),
-		readBuf:       make([]byte, 4096),
-		runeBuf:       make([]byte, 0, 65536),
-		err:           nil,
-		streamingFunc: streamingFunc,
+		inner:          inner,
+		outer:          bytes.NewBuffer(nil),
+		readBuf:        make([]byte, 4096),
+		runeBuf:        make([]byte, 0, 65536),
+		err:            nil,
+		skipStopBlocks: 0,
+		blockIndexSkip: 0,
+		streamingFunc:  streamingFunc,
 	}
 }
 
