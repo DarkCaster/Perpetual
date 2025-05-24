@@ -3,13 +3,14 @@ package llm
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -291,12 +292,12 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
-		thinkingContent := thinkingCollector.GetThinkingContent()
+		/*thinkingContent := thinkingCollector.GetThinkingContent()
 		if thinkingContent != "" && p.RawMessageLogger != nil {
 			p.RawMessageLogger("AI thinking:\n\n\n")
 			p.RawMessageLogger(thinkingContent)
 			p.RawMessageLogger("\n\n\n")
-		}
+		}*/
 
 		// Process status codes
 		switch statusCodeCollector.StatusCode {
@@ -428,109 +429,107 @@ func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionSt
 	return p.VariantStrategy
 }
 
+type anthropicStreamEvent struct {
+	eventLine string
+	dataLine  string
+}
+
 // This is a temporary workaround for handling thinking responses,
 // until support for it is not added to upstream langchaingo library
 type anthropicResponseBodyReader struct {
-	inner    io.ReadCloser
-	outer    io.ReadCloser
-	thinking string
-	done     bool
-	err      error
+	inner       io.ReadCloser
+	outer       io.ReadWriter
+	readBuf     []byte
+	runeBuf     []byte
+	lineBuilder strings.Builder
+	curEvent    anthropicStreamEvent
+	eventQueue  []anthropicStreamEvent
+	err         error
 }
 
 func (o *anthropicResponseBodyReader) Read(p []byte) (int, error) {
-	if !o.done {
-		defer o.inner.Close()
-		//prepare temporary buffers to store, process and validate incoming data
-		readBuf := make([]byte, 4096)
-		tmpBuf := make([]byte, 0, 65536)
-		// Read from o.inner to readBuf, appending data to tmpBuf until hitting an error
-		for o.err == nil {
-			n, err := o.inner.Read(readBuf)
-			if n > 0 {
-				tmpBuf = append(tmpBuf, readBuf[:n]...)
+	//try reading data from outer buffer first
+	if o.err != nil {
+		n, err := o.outer.Read(p)
+		if err != nil {
+			//return inner network reader-error insted of outer reader error
+			return n, o.err
+		}
+		return n, nil
+	}
+	//try to read data from inner reader until we get an error
+	for o.err == nil {
+		n := 0
+		n, o.err = o.inner.Read(o.readBuf)
+		o.runeBuf = append(o.runeBuf, o.readBuf[:n]...)
+		for len(o.runeBuf) > 0 {
+			r, rsz := utf8.DecodeRune(o.runeBuf)
+			if r == utf8.RuneError {
+				//leave partial data as is, we'll need to add more bytes to rubeBuf to get correct rune
+				break
 			}
-			if err != nil {
-				o.err = err
+			//trim data collection buffer from left side
+			o.runeBuf = o.runeBuf[rsz:]
+			o.lineBuilder.WriteRune(r)
+			//process line when EOL detected
+			if r == '\n' {
+				line := strings.TrimLeftFunc(o.lineBuilder.String(), unicode.IsSpace)
+				if strings.HasPrefix(line, "event") {
+					o.curEvent.eventLine = line
+				} else if strings.HasPrefix(line, "data") {
+					o.curEvent.dataLine = line
+				}
+				o.lineBuilder.Reset()
+			}
+			//process event if collected
+			if o.curEvent.eventLine != "" && o.curEvent.dataLine != "" {
+				o.eventQueue = append(o.eventQueue, o.curEvent)
+				o.curEvent.eventLine = ""
+				o.curEvent.dataLine = ""
 			}
 		}
-		// If error is EOF, try deserializing data as JSON
-		if o.err == io.EOF {
-			var jsonMap map[string]interface{}
-			if err := json.Unmarshal(tmpBuf, &jsonMap); err != nil {
-				o.err = fmt.Errorf("failed to parse JSON response: %v", err)
-			} else if contentObjArr, exists := jsonMap["content"].([]interface{}); exists {
-				repackedContentObjArr := []interface{}{}
-				for _, elementObj := range contentObjArr {
-					skipElement := false
-					if elementMap, elementMapExist := elementObj.(map[string]interface{}); elementMapExist {
-						if typeStr, typeExist := elementMap["type"].(string); typeExist && typeStr == "thinking" {
-							if thinkingStr, thinkingExist := elementMap["thinking"].(string); thinkingExist {
-								o.thinking += thinkingStr
-								skipElement = true
-							}
-						}
-					}
-					//Do not add thinking blocks into repacked response
-					if !skipElement {
-						repackedContentObjArr = append(repackedContentObjArr, elementObj)
-					}
-				}
-				//Set repacked content
-				jsonMap["content"] = repackedContentObjArr
-				//Convert updated response to JSON
-				var writer bytes.Buffer
-				encoder := json.NewEncoder(&writer)
-				encoder.SetIndent("", "  ")
-				encoder.SetEscapeHTML(false)
-				o.err = encoder.Encode(jsonMap)
-				if o.err == nil {
-					o.outer = io.NopCloser(bytes.NewReader(writer.Bytes()))
-				} else {
-					o.outer = io.NopCloser(bytes.NewReader(tmpBuf))
-				}
-			} else {
-				o.outer = io.NopCloser(bytes.NewReader(tmpBuf))
-			}
+		newEventsPending := len(o.eventQueue) > 0
+		for len(o.eventQueue) > 0 {
+			event := o.eventQueue[0]
+			o.eventQueue = o.eventQueue[1:]
+			//TODO: parse event according to AnthropicAPI
+			//TODO: if event needs special handling - then handle it
+			//TODO: if event not need special handling, then, flush it to o.outer
+			o.outer.Write([]byte(event.eventLine))
+			o.outer.Write([]byte(event.dataLine))
 		}
-		o.done = true
+		//we have events to pass for upstream logic
+		if newEventsPending {
+			break
+		}
 	}
-	//only attempt to read final repacked result stream if we not encountered an error
-	if o.err != nil && o.err != io.EOF {
-		return 0, o.err
+	//read flushed data from o.outer
+	n, err := o.outer.Read(p)
+	if err != nil {
+		//return inner network reader-error insted of outer reader error
+		return n, o.err
 	}
-	if o.outer == nil {
-		return 0, errors.New("no valid response available to read")
-	}
-	//read final post-processed response
-	return o.outer.Read(p)
+	return n, nil
 }
 
 func (o *anthropicResponseBodyReader) Close() error {
-	if o.outer != nil {
-		return o.outer.Close()
-	}
-	return nil
+	return o.inner.Close()
 }
 
 func newAnthropicResponseBodyReader(inner io.ReadCloser) *anthropicResponseBodyReader {
 	return &anthropicResponseBodyReader{
-		inner:    inner,
-		done:     false,
-		thinking: "",
-		outer:    nil,
-		err:      nil,
+		inner:   inner,
+		outer:   bytes.NewBuffer(nil),
+		readBuf: make([]byte, 4096),
+		runeBuf: make([]byte, 0, 65536),
+		err:     nil,
 	}
 }
 
-type anthropicThinkingCollector struct {
-	reader *anthropicResponseBodyReader
-}
+type anthropicThinkingCollector struct{}
 
 func newAnthropicThinkingCollector() *anthropicThinkingCollector {
-	return &anthropicThinkingCollector{
-		reader: nil,
-	}
+	return &anthropicThinkingCollector{}
 }
 
 func (p *anthropicThinkingCollector) CollectResponse(response *http.Response) error {
@@ -543,14 +542,6 @@ func (p *anthropicThinkingCollector) CollectResponse(response *http.Response) er
 		return errors.New("null response body received")
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
-	p.reader = newAnthropicResponseBodyReader(response.Body)
-	response.Body = p.reader
+	response.Body = newAnthropicResponseBodyReader(response.Body)
 	return nil
-}
-
-func (p *anthropicThinkingCollector) GetThinkingContent() string {
-	if p.reader == nil {
-		return ""
-	}
-	return p.reader.thinking
 }
