@@ -230,7 +230,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
-	thinkingCollector := newAnthropicThinkingCollector()
+	thinkingCollector := newAnthropicStreamCollector(func(chunk []byte) {
+		if p.RawMessageLogger != nil {
+			p.RawMessageLogger(string(chunk))
+		}
+	})
 	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector, thinkingCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
@@ -436,18 +440,19 @@ type anthropicStreamEvent struct {
 
 // This is a temporary workaround for handling thinking responses,
 // until support for it is not added to upstream langchaingo library
-type anthropicResponseBodyReader struct {
-	inner       io.ReadCloser
-	outer       io.ReadWriter
-	readBuf     []byte
-	runeBuf     []byte
-	lineBuilder strings.Builder
-	curEvent    anthropicStreamEvent
-	eventQueue  []anthropicStreamEvent
-	err         error
+type anthropicStreamReader struct {
+	inner         io.ReadCloser
+	outer         io.ReadWriter
+	readBuf       []byte
+	runeBuf       []byte
+	lineBuilder   strings.Builder
+	curEvent      anthropicStreamEvent
+	eventQueue    []anthropicStreamEvent
+	err           error
+	streamingFunc func(chunk []byte)
 }
 
-func (o *anthropicResponseBodyReader) Read(p []byte) (int, error) {
+func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 	//try reading data from outer buffer first
 	if o.err != nil {
 		n, err := o.outer.Read(p)
@@ -512,27 +517,32 @@ func (o *anthropicResponseBodyReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-func (o *anthropicResponseBodyReader) Close() error {
+func (o *anthropicStreamReader) Close() error {
 	return o.inner.Close()
 }
 
-func newAnthropicResponseBodyReader(inner io.ReadCloser) *anthropicResponseBodyReader {
-	return &anthropicResponseBodyReader{
-		inner:   inner,
-		outer:   bytes.NewBuffer(nil),
-		readBuf: make([]byte, 4096),
-		runeBuf: make([]byte, 0, 65536),
-		err:     nil,
+func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *anthropicStreamReader {
+	return &anthropicStreamReader{
+		inner:         inner,
+		outer:         bytes.NewBuffer(nil),
+		readBuf:       make([]byte, 4096),
+		runeBuf:       make([]byte, 0, 65536),
+		err:           nil,
+		streamingFunc: streamingFunc,
 	}
 }
 
-type anthropicThinkingCollector struct{}
-
-func newAnthropicThinkingCollector() *anthropicThinkingCollector {
-	return &anthropicThinkingCollector{}
+type anthropicStreamCollector struct {
+	streamingFunc func(chunk []byte)
 }
 
-func (p *anthropicThinkingCollector) CollectResponse(response *http.Response) error {
+func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) responseCollector {
+	return &anthropicStreamCollector{
+		streamingFunc: streamingFunc,
+	}
+}
+
+func (p *anthropicStreamCollector) CollectResponse(response *http.Response) error {
 	// Not processing null response at all
 	if response == nil {
 		return nil
@@ -542,6 +552,6 @@ func (p *anthropicThinkingCollector) CollectResponse(response *http.Response) er
 		return errors.New("null response body received")
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
-	response.Body = newAnthropicResponseBodyReader(response.Body)
+	response.Body = newAnthropicStreamReader(response.Body, p.streamingFunc)
 	return nil
 }
