@@ -216,9 +216,11 @@ func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []by
 
 type anthropicStreamCollector struct {
 	streamingFunc func(chunk []byte)
+	StatusCode    int
+	ErrorMessage  string
 }
 
-func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) responseCollector {
+func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) *anthropicStreamCollector {
 	return &anthropicStreamCollector{
 		streamingFunc: streamingFunc,
 	}
@@ -232,6 +234,12 @@ func (p *anthropicStreamCollector) CollectResponse(response *http.Response) erro
 	// Basic check
 	if response.Body == nil {
 		return errors.New("null response body received")
+	}
+	p.StatusCode = response.StatusCode
+	if p.StatusCode >= 400 {
+		//TODO: read full-body, try to fetch detailed error-message from it
+		p.ErrorMessage = "some error, lol :("
+		return errors.New(p.ErrorMessage)
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
 	response.Body = newAnthropicStreamReader(response.Body, p.streamingFunc)
