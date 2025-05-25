@@ -33,7 +33,7 @@ type anthropicStreamReader struct {
 	eventQueue     []anthropicStreamEvent
 	err            error
 	skipStopBlocks int
-	blockIndexSkip int
+	blockIndexSub  int
 	streamingFunc  func(chunk []byte)
 }
 
@@ -132,7 +132,6 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 							o.streamingFunc([]byte(cData))
 						}
 						o.skipStopBlocks++
-						o.blockIndexSkip++
 						continue //not forwarding event to upstream
 					}
 				}
@@ -155,12 +154,13 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				o.streamingFunc([]byte("\n\n\n"))
 				if o.skipStopBlocks > 0 {
 					o.skipStopBlocks--
+					o.blockIndexSub++
 					continue //not forwarding event to upstream
 				}
 			}
 			//fix index value and reserialize data
-			if index, ok := dataObj["index"].(float64); ok && o.blockIndexSkip > 0 {
-				index = float64((int(index)) - o.blockIndexSkip)
+			if index, ok := dataObj["index"].(float64); ok && o.blockIndexSub > 0 {
+				index = float64((int(index)) - o.blockIndexSub)
 				dataObj["index"] = index
 				var writer bytes.Buffer
 				encoder := json.NewEncoder(&writer)
@@ -192,7 +192,7 @@ func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []by
 		runeBuf:        make([]byte, 0, 65536),
 		err:            nil,
 		skipStopBlocks: 0,
-		blockIndexSkip: 0,
+		blockIndexSub:  0,
 		streamingFunc:  streamingFunc,
 	}
 }
