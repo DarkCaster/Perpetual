@@ -111,13 +111,16 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 		o.eventQueue = o.eventQueue[1:]
 		eventLine := strings.TrimSpace(event.eventLine)
 		//parse event
-		if eventLine == "event: content_block_start" || eventLine == "event: content_block_delta" || eventLine == "event: content_block_stop" {
-			dataLine, ok := strings.CutPrefix(event.dataLine, "data:")
+		if eventLine == "event: content_block_start" ||
+			eventLine == "event: content_block_delta" ||
+			eventLine == "event: content_block_stop" ||
+			eventLine == "event: error" {
+			dataJson, ok := strings.CutPrefix(event.dataLine, "data:")
 			if !ok {
 				return fmt.Errorf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
 			}
 			var dataObj map[string]interface{}
-			if err := json.Unmarshal([]byte(dataLine), &dataObj); err != nil {
+			if err := json.Unmarshal([]byte(dataJson), &dataObj); err != nil {
 				return fmt.Errorf("failed to decode event: %v", err)
 			}
 			if eventLine == "event: content_block_start" {
@@ -158,6 +161,20 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 					continue //not forwarding event to upstream
 				}
 			}
+			if eventLine == "event: error" {
+				errorBlock, ok := dataObj["error"].(map[string]interface{})
+				if ok {
+					eType := ""
+					if eType, ok = errorBlock["type"].(string); !ok {
+						eType = "<unknown error>"
+					}
+					eMessage := ""
+					if eMessage, ok = errorBlock["message"].(string); !ok {
+						eMessage = "<no message>"
+					}
+					return fmt.Errorf("error received: %s: %s", eType, eMessage)
+				}
+			}
 			//fix index value and reserialize data
 			if index, ok := dataObj["index"].(float64); ok && o.blockIndexSub > 0 {
 				index = float64((int(index)) - o.blockIndexSub)
@@ -168,7 +185,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				encoder.SetEscapeHTML(false)
 				err := encoder.Encode(dataObj)
 				if err != nil {
-					return fmt.Errorf("failed to reencode data block: %s, error: %v", dataLine, err)
+					return fmt.Errorf("failed to reencode data block: %s, error: %v", dataJson, err)
 				}
 				event.dataLine = "data: " + writer.String()
 			}
