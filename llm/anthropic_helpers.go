@@ -35,6 +35,7 @@ type anthropicStreamReader struct {
 	skipStopBlocks int
 	blockIndexSub  int
 	streamingFunc  func(chunk []byte)
+	errorFunc      func(statusCode int, errorMessage string)
 }
 
 func (o *anthropicStreamReader) Read(p []byte) (int, error) {
@@ -79,7 +80,9 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 			}
 		}
 		newEventsPending := len(o.eventQueue) > 0
-		o.ParseAnthropicStreamEvents()
+		if err := o.ParseAnthropicStreamEvents(); err != nil {
+			return 0, err
+		}
 		//we have events to pass for upstream logic
 		if newEventsPending {
 			break
@@ -113,7 +116,8 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 		//parse event
 		if eventLine == "event: content_block_start" ||
 			eventLine == "event: content_block_delta" ||
-			eventLine == "event: content_block_stop" {
+			eventLine == "event: content_block_stop" ||
+			eventLine == "event: error" {
 			dataJson, ok := strings.CutPrefix(event.dataLine, "data:")
 			if !ok {
 				return fmt.Errorf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
@@ -162,6 +166,38 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 					continue //not forwarding event to upstream
 				}
 			}
+			if eventLine == "event: error" {
+				errorBlock, ok := dataObj["error"].(map[string]interface{})
+				if ok {
+					eType := ""
+					if eType, ok = errorBlock["type"].(string); !ok {
+						eType = "<unknown error>"
+					}
+					eMessage := ""
+					if eMessage, ok = errorBlock["message"].(string); !ok {
+						eMessage = "<no message>"
+					}
+					switch eType {
+					case "invalid_request_error":
+						o.errorFunc(400, eMessage)
+					case "authentication_error":
+						o.errorFunc(401, eMessage)
+					case "permission_error":
+						o.errorFunc(403, eMessage)
+					case "not_found_error":
+						o.errorFunc(404, eMessage)
+					case "request_too_large":
+						o.errorFunc(413, eMessage)
+					case "rate_limit_error":
+						o.errorFunc(429, eMessage)
+					case "api_error":
+						o.errorFunc(500, eMessage)
+					case "overloaded_error":
+						o.errorFunc(529, eMessage)
+					}
+					return fmt.Errorf("error received: %s: %s", eType, eMessage)
+				}
+			}
 			//fix index value and reserialize data
 			if index, ok := dataObj["index"].(float64); ok && o.blockIndexSub > 0 {
 				index = float64((int(index)) - o.blockIndexSub)
@@ -188,7 +224,7 @@ func (o *anthropicStreamReader) Close() error {
 	return o.inner.Close()
 }
 
-func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *anthropicStreamReader {
+func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []byte), errorFunc func(statusCode int, errorMessage string)) *anthropicStreamReader {
 	return &anthropicStreamReader{
 		inner:          inner,
 		outer:          bytes.NewBuffer(nil),
@@ -198,6 +234,7 @@ func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []by
 		skipStopBlocks: 0,
 		blockIndexSub:  0,
 		streamingFunc:  streamingFunc,
+		errorFunc:      errorFunc,
 	}
 }
 
@@ -252,6 +289,13 @@ func (p *anthropicStreamCollector) CollectResponse(response *http.Response) erro
 		return errors.New(p.ErrorMessage)
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
-	response.Body = newAnthropicStreamReader(response.Body, p.streamingFunc)
+	response.Body = newAnthropicStreamReader(
+		response.Body,
+		p.streamingFunc,
+		func(statusCode int, errorMessage string) {
+			p.StatusCode = statusCode
+			p.ErrorMessage = errorMessage
+		},
+	)
 	return nil
 }

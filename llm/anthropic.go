@@ -313,6 +313,9 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			if p.RateLimitDelayS > 300 {
 				p.RateLimitDelayS = 300
 			}
+			if responseStreamCollector.ErrorMessage != "" {
+				err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+			}
 			if err == nil {
 				err = errors.New("ratelimit hit")
 			}
@@ -338,6 +341,9 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			// limit the upper limit, so it will not wait forever
 			if p.RateLimitDelayS > 300 {
 				p.RateLimitDelayS = 300
+			}
+			if responseStreamCollector.ErrorMessage != "" {
+				err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
 			}
 			if err == nil {
 				err = errors.New("server overload")
