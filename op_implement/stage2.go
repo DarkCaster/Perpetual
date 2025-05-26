@@ -111,9 +111,9 @@ func Stage2(projectRootDir string,
 			aiResponses, status, err := stage2Connector.Query(1, realMessages...)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
-					logger.Panicln("LLM query failed: ", err)
+					logger.Panicln("LLM query failed:", err)
 				} else {
-					logger.Warnln("LLM query failed, retrying: ", err)
+					logger.Warnln("LLM query failed, retrying:", err)
 				}
 				continue
 			} else if status == llm.QueryMaxTokens {
