@@ -237,8 +237,31 @@ func (p *anthropicStreamCollector) CollectResponse(response *http.Response) erro
 	}
 	p.StatusCode = response.StatusCode
 	if p.StatusCode >= 400 {
-		//TODO: read full-body, try to fetch detailed error-message from it
-		p.ErrorMessage = "some error, lol :("
+		p.ErrorMessage = "<empty error message>"
+		//read the whole request body and try to decode error message from it
+		readBuf := make([]byte, 4096)
+		var dataBuf bytes.Buffer
+		for {
+			n, err := response.Body.Read(readBuf)
+			dataBuf.Write(readBuf[:n])
+			if err != nil {
+				break
+			}
+		}
+		var dataObj map[string]interface{}
+		if err := json.Unmarshal(dataBuf.Bytes(), &dataObj); err != nil {
+			p.ErrorMessage = fmt.Sprintf("failed to decode error response: %v", err)
+			return errors.New(p.ErrorMessage)
+		} else if errObj, ok := dataObj["error"].(map[string]interface{}); ok {
+			if errMessage, ok := errObj["message"].(string); ok {
+				p.ErrorMessage = errMessage
+			} else {
+				p.ErrorMessage = "failed to parse message string from error response"
+			}
+		} else {
+			p.ErrorMessage = "failed to parse message object from error response"
+		}
+		response.Body.Close()
 		return errors.New(p.ErrorMessage)
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api

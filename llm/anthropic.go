@@ -293,7 +293,15 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		// Process status codes
 		switch thinkingCollector.StatusCode {
 		case 400:
-			err = errors.New(thinkingCollector.ErrorMessage)
+			fallthrough
+		case 401:
+			fallthrough
+		case 403:
+			fallthrough
+		case 404:
+			fallthrough
+		case 413:
+			err = fmt.Errorf("%d: %s", thinkingCollector.StatusCode, thinkingCollector.ErrorMessage)
 		case 429:
 			// rate limit hit, calculate the next sleep time before next attempt
 			if p.RateLimitDelayS < 65 {
