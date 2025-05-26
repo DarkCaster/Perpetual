@@ -224,12 +224,12 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
-	thinkingCollector := newAnthropicStreamCollector(func(chunk []byte) {
+	responseStreamCollector := newAnthropicStreamCollector(func(chunk []byte) {
 		if p.RawMessageLogger != nil {
 			p.RawMessageLogger(string(chunk))
 		}
 	})
-	mitmClient := newMitmHTTPClient([]responseCollector{thinkingCollector}, transformers)
+	mitmClient := newMitmHTTPClient([]responseCollector{responseStreamCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
 	// Create backup of env vars and unset them
@@ -291,7 +291,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
 		// Process status codes
-		switch thinkingCollector.StatusCode {
+		switch responseStreamCollector.StatusCode {
 		case 400:
 			fallthrough
 		case 401:
@@ -301,7 +301,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		case 404:
 			fallthrough
 		case 413:
-			err = fmt.Errorf("%d: %s", thinkingCollector.StatusCode, thinkingCollector.ErrorMessage)
+			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
 		case 429:
 			// rate limit hit, calculate the next sleep time before next attempt
 			if p.RateLimitDelayS < 65 {
@@ -346,6 +346,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 				return []string{}, QueryFailed, err
 			}
 			continue
+		}
+
+		// If no http errors at this point, then we have chunks logged, so add separator to the log-file
+		if responseStreamCollector.StatusCode < 400 && p.RawMessageLogger != nil {
+			p.RawMessageLogger("\n\n\n")
 		}
 
 		if err != nil {
