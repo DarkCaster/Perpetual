@@ -126,7 +126,9 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				contentBlock, ok := dataObj["content_block"].(map[string]interface{})
 				if ok {
 					if cType, ok := contentBlock["type"].(string); ok && cType == "text" {
-						o.streamingFunc([]byte("AI response:\n\n\n"))
+						if o.blockIndexSub > 0 {
+							o.streamingFunc([]byte("AI response:\n\n\n"))
+						}
 					}
 					if cType, ok := contentBlock["type"].(string); ok && cType == "thinking" {
 						o.streamingFunc([]byte("AI thinking:\n\n\n"))
@@ -154,8 +156,8 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				}
 			}
 			if eventLine == "event: content_block_stop" {
-				o.streamingFunc([]byte("\n\n\n"))
 				if o.skipStopBlocks > 0 {
+					o.streamingFunc([]byte("\n\n\n"))
 					o.skipStopBlocks--
 					continue //not forwarding event to upstream
 				}
