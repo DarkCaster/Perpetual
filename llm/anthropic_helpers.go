@@ -113,8 +113,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 		//parse event
 		if eventLine == "event: content_block_start" ||
 			eventLine == "event: content_block_delta" ||
-			eventLine == "event: content_block_stop" ||
-			eventLine == "event: error" {
+			eventLine == "event: content_block_stop" {
 			dataJson, ok := strings.CutPrefix(event.dataLine, "data:")
 			if !ok {
 				return fmt.Errorf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
@@ -135,6 +134,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 							o.streamingFunc([]byte(cData))
 						}
 						o.skipStopBlocks++
+						o.blockIndexSub++
 						continue //not forwarding event to upstream
 					}
 				}
@@ -157,22 +157,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				o.streamingFunc([]byte("\n\n\n"))
 				if o.skipStopBlocks > 0 {
 					o.skipStopBlocks--
-					o.blockIndexSub++
 					continue //not forwarding event to upstream
-				}
-			}
-			if eventLine == "event: error" {
-				errorBlock, ok := dataObj["error"].(map[string]interface{})
-				if ok {
-					eType := ""
-					if eType, ok = errorBlock["type"].(string); !ok {
-						eType = "<unknown error>"
-					}
-					eMessage := ""
-					if eMessage, ok = errorBlock["message"].(string); !ok {
-						eMessage = "<no message>"
-					}
-					return fmt.Errorf("error received: %s: %s", eType, eMessage)
 				}
 			}
 			//fix index value and reserialize data
