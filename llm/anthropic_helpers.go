@@ -143,6 +143,12 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 						o.blockIndexSub++
 						continue //not forwarding event to upstream
 					}
+					if cType, ok := contentBlock["type"].(string); ok && cType == "tool_use" {
+						o.streamingFunc([]byte("AI tool use:\n\n\n"))
+						o.skipStopBlocks++
+						o.blockIndexSub++
+						continue //not forwarding event to upstream
+					}
 				}
 			}
 			if eventLine == "event: content_block_delta" {
@@ -155,6 +161,12 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 						continue //not forwarding event to upstream
 					}
 					if cType, ok := deltaBlock["type"].(string); ok && cType == "signature_delta" {
+						continue //not forwarding event to upstream
+					}
+					if cType, ok := deltaBlock["type"].(string); ok && cType == "input_json_delta" {
+						if cData, ok := deltaBlock["partial_json"].(string); ok {
+							o.streamingFunc([]byte(cData))
+						}
 						continue //not forwarding event to upstream
 					}
 				}
