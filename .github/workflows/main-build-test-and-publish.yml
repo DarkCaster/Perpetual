@@ -59,16 +59,17 @@ jobs:
       run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
     - name: Preparing docs (windows)
       if: matrix.target == 'windows'
-      run: find . -type f -name "*.md" -exec unix2dos {} \; && find env_examples -type f -print -exec unix2dos {} \;
+      run: find . -type f -name "*.md" -exec unix2dos {} \; && find env_examples -type f -exec unix2dos {} \;
     - name: Preparing docs (linux)
       if: matrix.target == 'linux'
-      run: find . -type f -name "*.md" -exec dos2unix {} \; && find env_examples -type f -print -exec dos2unix {} \;
+      run: find . -type f -name "*.md" -exec dos2unix {} \; && find env_examples -type f -exec dos2unix {} \;
 
     - name: Upload linux artifacts
       if: matrix.target == 'linux'
       uses: actions/upload-artifact@v4
       with:
         name: linux-binaries
+        include-hidden-files: true
         path: |
           Perpetual_*.bin
           docs
@@ -81,6 +82,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: windows-binaries
+        include-hidden-files: true
         path: |
           Perpetual_*.exe
           docs
