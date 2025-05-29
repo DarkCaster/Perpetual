@@ -117,4 +117,4 @@ jobs:
         omitBodyDuringUpdate: true
         omitNameDuringUpdate: true
         omitPrereleaseDuringUpdate: true
-        artifacts: dist/windows-binaries*,dist/linux-binaries*
+        artifacts: dist/*
