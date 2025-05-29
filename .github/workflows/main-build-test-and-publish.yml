@@ -48,31 +48,44 @@ jobs:
     - name: Build windows x86 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
+
     - name: Refresh example env-files
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
     - name: Preparing docs
-      run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example env_examples && ls -la env_examples
+      run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example env_examples
+    - name: Preparing docs (windows)
+      if: matrix.target == 'windows'
+      run: find . -type f -name "*.md" -print -exec unix2dos {} \; && find env_examples -type f -print -exec unix2dos {} \;
+    - name: Preparing docs (linux)
+      if: matrix.target == 'linux'
+      run: find . -type f -name "*.md" -print -exec dos2unix {} \; && find env_examples -type f -print -exec dos2unix {} \;
+
     - name: Upload linux artifacts
       if: matrix.target == 'linux'
       uses: actions/upload-artifact@v4
       with:
         name: linux-binaries
-        path: |
-          Perpetual_*.bin
+        path:
+          - Perpetual_*.bin
+          - docs
+          - env_examples
+          - README.md
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
       uses: actions/upload-artifact@v4
       with:
         name: windows-binaries
-        path: |
-          Perpetual_*.exe
-
+        path:
+          - Perpetual_*.exe
+          - docs
+          - env_examples
+          - README.md
     - name: Archive windows binaries for release
       if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
-      run: zip Windows_Binaries.zip Perpetual_*.exe
+      run: zip Windows_Binaries.zip Perpetual_*.exe docs env_examples README.md
     - name: Archive linux binaries for release
       if: ${{ (matrix.target == 'linux') && startsWith(github.event.ref, 'refs/tags/v') }}
-      run: zip Linux_Binaries.zip Perpetual_*.bin
+      run: zip Linux_Binaries.zip Perpetual_*.bin docs env_examples README.md
 
     - name: Publish windows release
       if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
