@@ -73,13 +73,13 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to initial value when starting new operation stage.
 # These params may be removed in future when Ollama implement API calls for tokenizer or prompt size statistics
 OLLAMA_CONTEXT_MULT="1.75"
-OLLAMA_CONTEXT_SIZE_LIMIT="65536" # reasonable limit for typical desktop systems
+OLLAMA_CONTEXT_SIZE_LIMIT="49152" # reasonable limit for typical desktop systems with 32G of RAM and 8G of VRAM
 OLLAMA_CONTEXT_ESTIMATE_MULT="0.3"
 
 # Context window sizes for different operations, if set too low, it will be extended automatically when context overflow detected
 # If not set - use default for ollama model, and also disable context overflow detection above
-OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="8192"
-OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="8192"
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE="6144"
+OLLAMA_CONTEXT_SIZE_OP_ANNOTATE_POST="6144"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE1="24576"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE2="24576"
 OLLAMA_CONTEXT_SIZE_OP_IMPLEMENT_STAGE3="24576"
@@ -120,17 +120,17 @@ OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="5" # this number include errors caused by co
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
 OLLAMA_ON_FAIL_RETRIES="3"
 # note: temperature highly depends on model, 0 produces mostly deterministic results
-OLLAMA_TEMPERATURE_OP_ANNOTATE="0.5"
-OLLAMA_TEMPERATURE_OP_ANNOTATE_POST="0"
-OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
+# OLLAMA_TEMPERATURE_OP_ANNOTATE="0.5"
+# OLLAMA_TEMPERATURE_OP_ANNOTATE_POST="0"
+# OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
-OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
+# OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
-OLLAMA_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
-OLLAMA_TEMPERATURE_OP_DOC_STAGE2="0.7"
-OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
-OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
-OLLAMA_TEMPERATURE="0.5"
+# OLLAMA_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
+# OLLAMA_TEMPERATURE_OP_DOC_STAGE2="0.7"
+# OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
+# OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
+# OLLAMA_TEMPERATURE="0.5"
 
 # System prompt role for model, can be configured per operation. Useful if model not supporting system prompt
 # Valid values: system, user. default: system.
@@ -149,51 +149,51 @@ OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE2="system"
 
 # Optional system- and user- prompt prefixes and suffixes.
 # You may need to use it with models like Qwen3 to switch between reasoning / non-reasoning modes
-# Or to perform some other model-specific fine-tuning
+# Or to perform some other model-specific fine-tuning, example below is for Qwen3
 # OLLAMA_SYSTEM_PFX_OP_ANNOTATE=""
 # OLLAMA_SYSTEM_SFX_OP_ANNOTATE=" /no_think"
 # OLLAMA_USER_PFX_OP_ANNOTATE=""
-# OLLAMA_USER_SFX_OP_ANNOTATE=""
+# OLLAMA_USER_SFX_OP_ANNOTATE=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_ANNOTATE_POST=""
 # OLLAMA_SYSTEM_SFX_OP_ANNOTATE_POST=" /no_think"
 # OLLAMA_USER_PFX_OP_ANNOTATE_POST=""
-# OLLAMA_USER_SFX_OP_ANNOTATE_POST=""
+# OLLAMA_USER_SFX_OP_ANNOTATE_POST=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE1=""
 # OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE1=" /no_think"
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE1=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE1=""
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE1=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE2=""
 # OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE2=" /no_think"
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE2=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE2=""
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE2=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE3=""
 # OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE3=" /no_think"
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE3=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE3=""
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE3=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE4=""
 # OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE4=" /no_think"
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE4=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE4=""
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE4=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_DOC_STAGE1=""
 # OLLAMA_SYSTEM_SFX_OP_DOC_STAGE1=" /no_think"
 # OLLAMA_USER_PFX_OP_DOC_STAGE1=""
-# OLLAMA_USER_SFX_OP_DOC_STAGE1=""
+# OLLAMA_USER_SFX_OP_DOC_STAGE1=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_DOC_STAGE2=""
 # OLLAMA_SYSTEM_SFX_OP_DOC_STAGE2=" /no_think"
 # OLLAMA_USER_PFX_OP_DOC_STAGE2=""
-# OLLAMA_USER_SFX_OP_DOC_STAGE2=""
+# OLLAMA_USER_SFX_OP_DOC_STAGE2=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_EXPLAIN_STAGE1=""
 # OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE1=" /no_think"
 # OLLAMA_USER_PFX_OP_EXPLAIN_STAGE1=""
-# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE1=""
+# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE1=" /no_think"
 # OLLAMA_SYSTEM_PFX_OP_EXPLAIN_STAGE2=""
 # OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE2=" /no_think"
 # OLLAMA_USER_PFX_OP_EXPLAIN_STAGE2=""
-# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE2=""
+# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE2=" /no_think"
 # OLLAMA_SYSTEM_PFX=""
-# OLLAMA_SYSTEM_SFX=""
+# OLLAMA_SYSTEM_SFX=" /no_think"
 # OLLAMA_USER_PFX=""
-# OLLAMA_USER_SFX=""
+# OLLAMA_USER_SFX=" /no_think"
 
 # Optional regexps for filtering out responses from reasoning models, like deepseek r1 or qwen3
 # THINK-regexps will be used to remove reasoning part from response L - is for opening tag, R - is for closing tag
@@ -277,17 +277,17 @@ OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE2="system"
 # OLLAMA_SEED_OP_EXPLAIN_STAGE1="42"
 # OLLAMA_SEED_OP_EXPLAIN_STAGE2="42"
 # OLLAMA_SEED="42"
-# note: values slightly more than 1.0 seem to help against problems when LLM starts to generate repeated content indefinitely, without making report to omit important items
+# note: values slightly more than 1.0 seem to help against problems when LLM starts to generate repeated content indefinitely
 OLLAMA_REPEAT_PENALTY_OP_ANNOTATE="1.1"
 OLLAMA_REPEAT_PENALTY_OP_ANNOTATE_POST="1.1"
 OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
-OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.1"
+# OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.1"
 OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE3="1.0"
-OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE4="1.0"
-# OLLAMA_REPEAT_PENALTY_OP_DOC_STAGE1="1.2"
+# OLLAMA_REPEAT_PENALTY_OP_IMPLEMENT_STAGE4="1.0"
+OLLAMA_REPEAT_PENALTY_OP_DOC_STAGE1="1.0"
 # OLLAMA_REPEAT_PENALTY_OP_DOC_STAGE2="1.2"
 OLLAMA_REPEAT_PENALTY_OP_EXPLAIN_STAGE1="1.0"
-OLLAMA_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
+# OLLAMA_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
 # OLLAMA_REPEAT_PENALTY="1.0"
 # OLLAMA_FREQ_PENALTY_OP_ANNOTATE="1.0"
 # OLLAMA_FREQ_PENALTY_OP_ANNOTATE_POST="1.0"
