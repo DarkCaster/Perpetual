@@ -109,10 +109,10 @@ jobs:
         path: dist-linux
     - name: Create zip archive (windows)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      run: cd dist-windows && zip -r Windows_Binaries.zip *
+      run: cd dist-windows && zip -9 -r Windows_Binaries.zip *
     - name: Create zip archive (linux)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      run: cd dist-linux && zip -r Linux_Binaries.zip *
+      run: cd dist-linux && zip -9 -r Linux_Binaries.zip *
     - name: Publish release
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
