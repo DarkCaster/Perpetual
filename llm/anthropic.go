@@ -369,38 +369,30 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		//reset rate limit delay
 		p.RateLimitDelayS = 0
 
-		if len(response.Choices) < 1 {
-			if lastResort {
-				return []string{}, QueryFailed, errors.New("received empty response from model")
-			}
-			continue
-		}
-
 		var content string
-		stopReason := response.Choices[0].StopReason
-		if stopReason == "tool_use" {
-			if len(response.Choices[0].ToolCalls) < 1 {
+		if len(response.Choices) < 1 || responseStreamCollector.ToolResponse != "" {
+			if responseStreamCollector.ToolResponse == "" {
 				if lastResort {
-					return []string{}, QueryFailed, fmt.Errorf("empty tool response from model")
+					return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
 				}
 				continue
 			}
-			content = response.Choices[0].ToolCalls[0].FunctionCall.Arguments
+			content = responseStreamCollector.ToolResponse
 		} else {
 			content = response.Choices[0].Content
+			// Check for max tokens
+			if response.Choices[0].StopReason == "max_tokens" {
+				if lastResort {
+					if p.OutputFormat == OutputJson {
+						//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
+						return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+					}
+					return []string{content}, QueryMaxTokens, nil
+				}
+				continue
+			}
 		}
 
-		// Check for max tokens
-		if stopReason == "max_tokens" {
-			if lastResort {
-				if p.OutputFormat == OutputJson {
-					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
-					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
-				}
-				return []string{content}, QueryMaxTokens, nil
-			}
-			continue
-		}
 		finalContent = append(finalContent, content)
 	}
 
