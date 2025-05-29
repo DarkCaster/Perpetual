@@ -65,21 +65,21 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: linux-binaries
-        path:
-          - Perpetual_*.bin
-          - docs
-          - env_examples
-          - README.md
+        path: |
+          Perpetual_*.bin
+          docs
+          env_examples
+          README.md
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
       uses: actions/upload-artifact@v4
       with:
         name: windows-binaries
-        path:
-          - Perpetual_*.exe
-          - docs
-          - env_examples
-          - README.md
+        path: |
+          Perpetual_*.exe
+          docs
+          env_examples
+          README.md
     - name: Archive windows binaries for release
       if: ${{ (matrix.target == 'windows') && startsWith(github.event.ref, 'refs/tags/v') }}
       run: zip Windows_Binaries.zip Perpetual_*.exe docs env_examples README.md
