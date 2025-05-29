@@ -56,7 +56,7 @@ jobs:
     - name: Refresh example env-files
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
     - name: Preparing docs
-      run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example env_examples
+      run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
     - name: Preparing docs (windows)
       if: matrix.target == 'windows'
       run: find . -type f -name "*.md" -print -exec unix2dos {} \; && find env_examples -type f -print -exec unix2dos {} \;
