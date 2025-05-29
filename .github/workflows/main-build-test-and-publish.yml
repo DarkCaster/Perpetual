@@ -48,6 +48,8 @@ jobs:
     - name: Build windows x86 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
+    - name: Preparing docs
+      run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual\*.env.example env_examples && ls -la env_examples
 
     - name: Upload linux artifacts
       if: matrix.target == 'linux'
