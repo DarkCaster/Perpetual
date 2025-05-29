@@ -101,13 +101,19 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: windows-binaries
-        path: dist
+        path: dist-windows
     - name: Download linux artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
         name: linux-binaries
-        path: dist
+        path: dist-linux
+    - name: Create zip archive (windows)
+      if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
+      run: cd dist-windows && zip Windows_Binaries.zip *
+    - name: Create zip archive (linux)
+      if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
+      run: cd dist-linux && zip Linux_Binaries.zip *
     - name: Publish release
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
@@ -117,4 +123,4 @@ jobs:
         omitBodyDuringUpdate: true
         omitNameDuringUpdate: true
         omitPrereleaseDuringUpdate: true
-        artifacts: dist/*
+        artifacts: dist-windows/*.zip, dist-linux/*.zip
