@@ -17,6 +17,8 @@ jobs:
     strategy:
       matrix:
         target: [linux, windows]
+    permissions:
+      contents: read
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
