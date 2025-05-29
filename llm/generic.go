@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -792,30 +791,4 @@ func (p *GenericLLMConnector) GetVariantCount() int {
 
 func (p *GenericLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
-}
-
-type maxTokensModelTransformer struct{}
-
-func newMaxTokensModelTransformer() requestTransformer {
-	return &maxTokensModelTransformer{}
-}
-
-func (p *maxTokensModelTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
-	defer delete(body, "max_completion_tokens")
-
-	if maxTokens, exist := body["max_completion_tokens"]; exist {
-		body["max_tokens"] = maxTokens
-		return body
-	}
-
-	return body
-}
-
-func (p *maxTokensModelTransformer) ProcessHeader(header http.Header) http.Header {
-	// No header modifications for this transformer
-	return header
-}
-
-func (p *maxTokensModelTransformer) ProcessURL(url string) string {
-	return ""
 }
