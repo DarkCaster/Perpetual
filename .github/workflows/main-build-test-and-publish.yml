@@ -95,16 +95,19 @@ jobs:
     permissions:
       contents: write
     steps:
+    - uses: actions/checkout@v4
     - name: Download windows artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
         name: windows-binaries
+        path: dist
     - name: Download linux artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
         name: linux-binaries
+        path: dist
     - name: Publish release
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
@@ -114,4 +117,4 @@ jobs:
         omitBodyDuringUpdate: true
         omitNameDuringUpdate: true
         omitPrereleaseDuringUpdate: true
-        artifacts: windows-binaries*,linux-binaries*
+        artifacts: dist/windows-binaries*,dist/linux-binaries*
