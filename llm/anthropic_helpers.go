@@ -24,18 +24,20 @@ type anthropicStreamEvent struct {
 }
 
 type anthropicStreamReader struct {
-	inner          io.ReadCloser
-	outer          io.ReadWriter
-	readBuf        []byte
-	runeBuf        []byte
-	lineBuilder    strings.Builder
-	curEvent       anthropicStreamEvent
-	eventQueue     []anthropicStreamEvent
-	err            error
-	skipStopBlocks int
-	blockIndexSub  int
-	streamingFunc  func(chunk []byte)
-	errorFunc      func(statusCode int, errorMessage string)
+	inner               io.ReadCloser
+	outer               io.ReadWriter
+	readBuf             []byte
+	runeBuf             []byte
+	lineBuilder         strings.Builder
+	toolJsonBuiler      strings.Builder
+	curEvent            anthropicStreamEvent
+	eventQueue          []anthropicStreamEvent
+	err                 error
+	skipStopBlocks      int
+	blockIndexSub       int
+	streamingFunc       func(chunk []byte)
+	setToolResponseFunc func(response string)
+	errorFunc           func(statusCode int, errorMessage string)
 }
 
 func (o *anthropicStreamReader) Read(p []byte) (int, error) {
@@ -166,6 +168,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 					if cType, ok := deltaBlock["type"].(string); ok && cType == "input_json_delta" {
 						if cData, ok := deltaBlock["partial_json"].(string); ok {
 							o.streamingFunc([]byte(cData))
+							o.toolJsonBuiler.WriteString(cData)
 						}
 						continue //not forwarding event to upstream
 					}
@@ -173,6 +176,10 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 			}
 			if eventLine == "event: content_block_stop" {
 				if o.skipStopBlocks > 0 {
+					if o.toolJsonBuiler.Len() > 0 {
+						o.setToolResponseFunc(o.toolJsonBuiler.String())
+						o.toolJsonBuiler.Reset()
+					}
 					o.streamingFunc([]byte("\n\n\n"))
 					o.skipStopBlocks--
 					continue //not forwarding event to upstream
@@ -236,17 +243,22 @@ func (o *anthropicStreamReader) Close() error {
 	return o.inner.Close()
 }
 
-func newAnthropicStreamReader(inner io.ReadCloser, streamingFunc func(chunk []byte), errorFunc func(statusCode int, errorMessage string)) *anthropicStreamReader {
+func newAnthropicStreamReader(
+	inner io.ReadCloser,
+	streamingFunc func(chunk []byte),
+	setToolResponseFunc func(response string),
+	errorFunc func(statusCode int, errorMessage string)) *anthropicStreamReader {
 	return &anthropicStreamReader{
-		inner:          inner,
-		outer:          bytes.NewBuffer(nil),
-		readBuf:        make([]byte, 4096),
-		runeBuf:        make([]byte, 0, 65536),
-		err:            nil,
-		skipStopBlocks: 0,
-		blockIndexSub:  0,
-		streamingFunc:  streamingFunc,
-		errorFunc:      errorFunc,
+		inner:               inner,
+		outer:               bytes.NewBuffer(nil),
+		readBuf:             make([]byte, 4096),
+		runeBuf:             make([]byte, 0, 65536),
+		err:                 nil,
+		skipStopBlocks:      0,
+		blockIndexSub:       0,
+		streamingFunc:       streamingFunc,
+		setToolResponseFunc: setToolResponseFunc,
+		errorFunc:           errorFunc,
 	}
 }
 
@@ -254,6 +266,7 @@ type anthropicStreamCollector struct {
 	streamingFunc func(chunk []byte)
 	StatusCode    int
 	ErrorMessage  string
+	ToolResponse  string
 }
 
 func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) *anthropicStreamCollector {
@@ -304,6 +317,9 @@ func (p *anthropicStreamCollector) CollectResponse(response *http.Response) erro
 	response.Body = newAnthropicStreamReader(
 		response.Body,
 		p.streamingFunc,
+		func(response string) {
+			p.ToolResponse = response
+		},
 		func(statusCode int, errorMessage string) {
 			p.StatusCode = statusCode
 			p.ErrorMessage = errorMessage
