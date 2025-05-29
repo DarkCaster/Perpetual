@@ -21,11 +21,21 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v6.2.0 (unreleased)
+
+### Improvements
+
+- Anthropic LLM integration switched to streaming mode for easier debugging in case of slow response from some models during peak load times. Incoming data from Anthropic LLM will be logged immediately when new response tokens are generated. Added more error handling for connection and incoming data in addition to langchain library errors, making work with the Anthropic provider more robust now.
+
+- Updated defaults for env file examples for better support of newer models.
+
+- Docs and all examples are now packed with binary archives on build, so release packages will always contain relevant docs at the date of publishing.
+
 ## v6.1.0
 
 ### Improvements
 
-- Added support for OpenAI `codex-mini-latest` (and potentially other future `codex` models), using OpenAI responses-api. This model can only write code, so it can only be used on stage 4 of `implement` operation, you can enable it in your env file using the following variable: `OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest"`. Using this model with any other operation or stage may result in errors and/or unpredicted behavior. The model does not support JSON-structured output mode and setting any parameters other than token-limit. For now model can't work with partial output, so, make sure you set `OPENAI_MAX_TOKENS` or `OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4` env variable to some reasonably big value.
+- Added support for OpenAI `codex-mini-latest` (and potentially other future `codex` models), using OpenAI responses API. This model can only write code, so it can only be used on stage 4 of the `implement` operation. You can enable it in your env file using the following variable: `OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest"`. Using this model with any other operation or stage may result in errors and/or unpredictable behavior. The model does not support JSON-structured output mode and setting any parameters other than token limit. For now the model can't work with partial output, so make sure you set `OPENAI_MAX_TOKENS` or `OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4` env variable to some reasonably large value.
 
 ## v6.0.0
 
