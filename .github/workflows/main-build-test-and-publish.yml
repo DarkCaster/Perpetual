@@ -22,15 +22,14 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-
+    - name: Install package
+      run: sudo apt-get -y install dos2unix
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
-
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
-
     - name: Run tests
       run: go test -v ./...
 
