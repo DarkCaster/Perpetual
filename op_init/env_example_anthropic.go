@@ -40,7 +40,7 @@ ANTHROPIC_VARIANT_COUNT="1" # will be used as fallback
 ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 
 # Switch to use structured JSON output format for supported operations, supported values: plain, json. Default: plain
-# The "plain" method seems to work better here, since it uses XML-style tags, for which anthropic models were initially better trained than for JSON.
+# Anthropic models works better with plain mode, not recommended to use json output here, it often fails.
 # ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
 # ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
 # ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
