@@ -12,6 +12,7 @@ The program operates strictly inside the user's project directory and it only al
 
 **TL;DR: Go straight to Examples**:
 
+- [Tetris](docs/example_2025_05/tetris.md)
 - [Conway's Game of Life](docs/example_2025_03/game_of_life.md)
 - [Fractal Visualizer](docs/example_2025_02/fractal_visualizer.md)
 
