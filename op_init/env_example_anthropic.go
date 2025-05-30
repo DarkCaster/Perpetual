@@ -88,15 +88,15 @@ ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
 ANTHROPIC_ON_FAIL_RETRIES="3"
 # ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
 # ANTHROPIC_TEMPERATURE_OP_ANNOTATE_POST="0.5"
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1" # temperature 1 needed for thinking model
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
 # ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
-ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
-ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="1" # temperature 1 needed for thinking model
-ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
-ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2="1" # temperature 1 needed for thinking model
-ANTHROPIC_TEMPERATURE="0.5"
+# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE="0.5"
 
 # Advanced options that currently supported with Anthropic. You mostly not need to use them
 # ANTHROPIC_TOP_K_OP_ANNOTATE="40"
