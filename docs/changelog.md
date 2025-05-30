@@ -25,7 +25,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Improvements
 
-- Anthropic LLM integration switched to streaming mode for easier debugging in case of slow response from some models during peak load times. Incoming data from Anthropic LLM will be logged immediately when new response tokens are generated. Added more error handling for connection and incoming data in addition to langchain library errors, making work with the Anthropic provider more robust now.
+- Anthropic LLM integration switched to streaming mode for easier debugging in case of slow response from models during peak load times. Incoming data from Anthropic LLM will be logged immediately when new response tokens are generated. Added more error handling in addition to langchain library errors, making work with the Anthropic provider more robust now. Client disconnects due to network errors now lead to much less wasted tokens than for non-streaming mode.
 
 - Updated defaults for env file examples for better support of newer models.
 
