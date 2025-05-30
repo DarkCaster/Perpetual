@@ -352,6 +352,20 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 				return []string{}, QueryFailed, err
 			}
 			continue
+		case 998:
+			//network error, only stop here if langchain parsing logic also failed
+			if err != nil {
+				if lastResort {
+					return []string{}, QueryFailed, errors.New(responseStreamCollector.ErrorMessage)
+				}
+				continue
+			}
+		case 999:
+			//stream parsing error, this most probably an internal error that needs to be addressed
+			if lastResort {
+				return []string{}, QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
+			}
+			continue
 		}
 
 		// If no http errors at this point, then we have chunks logged, so add separator to the log-file

@@ -42,15 +42,6 @@ type anthropicStreamReader struct {
 }
 
 func (o *anthropicStreamReader) Read(p []byte) (int, error) {
-	//try reading data from outer buffer first
-	if o.err != nil {
-		n, err := o.outer.Read(p)
-		if err != nil {
-			//return inner network reader-error insted of outer reader error
-			return n, o.err
-		}
-		return n, nil
-	}
 	//try to read data from inner reader until we get an error
 	for o.err == nil {
 		n := 0
@@ -82,12 +73,14 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 				o.curEvent.dataLine = ""
 			}
 		}
-		newEventsPending := len(o.eventQueue) > 0
-		if err := o.ParseAnthropicStreamEvents(); err != nil {
-			return 0, err
+		if o.err != nil && o.err != io.EOF {
+			//set error if outer stream indicate something other than EOF, but continue processing in case we already received all needed data
+			o.errorFunc(998, fmt.Sprint(o.err))
 		}
-		//we have events to pass for upstream logic
-		if newEventsPending {
+		if newEventsPending, err := o.ParseAnthropicStreamEvents(); err != nil {
+			return 0, err
+		} else if newEventsPending {
+			//we have events to pass for upstream logic
 			break
 		}
 	}
@@ -100,7 +93,8 @@ func (o *anthropicStreamReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
+func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
+	upstreamWritten := false
 	writeUpstream := func(event anthropicStreamEvent) error {
 		//write event to outer buffer for handling by upstream logic
 		if _, err := o.outer.Write([]byte(event.eventLine)); err != nil {
@@ -109,6 +103,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 		if _, err := o.outer.Write([]byte(event.dataLine)); err != nil {
 			return fmt.Errorf("writing event data line to outer stream failed: %v", err)
 		}
+		upstreamWritten = true
 		return nil
 	}
 	for len(o.eventQueue) > 0 {
@@ -123,11 +118,15 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 			eventLine == "event: error" {
 			dataJson, ok := strings.CutPrefix(event.dataLine, "data:")
 			if !ok {
-				return fmt.Errorf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
+				errStr := fmt.Sprintf("unknown event '%s' data line: '%s'", eventLine, strings.TrimSpace(event.dataLine))
+				o.errorFunc(999, errStr)
+				return false, errors.New(errStr)
 			}
 			var dataObj map[string]interface{}
 			if err := json.Unmarshal([]byte(dataJson), &dataObj); err != nil {
-				return fmt.Errorf("failed to decode event: %v", err)
+				errStr := fmt.Sprintf("failed to decode event: %v", err)
+				o.errorFunc(999, errStr)
+				return false, errors.New(errStr)
 			}
 			if eventLine == "event: content_block_start" {
 				contentBlock, ok := dataObj["content_block"].(map[string]interface{})
@@ -215,7 +214,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 					case "overloaded_error":
 						o.errorFunc(529, eMessage)
 					}
-					return fmt.Errorf("error received: %s: %s", eType, eMessage)
+					return false, fmt.Errorf("error received: %s: %s", eType, eMessage)
 				}
 			}
 			//fix index value and reserialize data
@@ -228,16 +227,19 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() error {
 				encoder.SetEscapeHTML(false)
 				err := encoder.Encode(dataObj)
 				if err != nil {
-					return fmt.Errorf("failed to reencode data block: %s, error: %v", dataJson, err)
+					strErr := fmt.Sprintf("failed to reencode data block: %s, error: %v", dataJson, err)
+					o.errorFunc(999, strErr)
+					return false, errors.New(strErr)
 				}
 				event.dataLine = "data: " + writer.String()
 			}
 		}
 		if err := writeUpstream(event); err != nil {
-			return err
+			o.errorFunc(999, fmt.Sprint(err))
+			return false, err
 		}
 	}
-	return nil
+	return upstreamWritten, nil
 }
 
 func (o *anthropicStreamReader) Close() error {
