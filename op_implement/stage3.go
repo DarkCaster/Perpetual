@@ -1,6 +1,8 @@
 package op_implement
 
 import (
+	"slices"
+
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -174,6 +176,7 @@ func Stage3(projectRootDir string,
 		}
 
 		extra_task_prompt_added := false
+		newFilesIndex := 0
 		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
 		logger.Infoln("Files for processing selected by LLM:")
@@ -236,7 +239,9 @@ func Stage3(projectRootDir string,
 							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 						} else {
-							otherFilesToModify = append(otherFilesToModify, file)
+							//insert new files to the beginning of file-list
+							otherFilesToModify = slices.Insert(otherFilesToModify, newFilesIndex, file)
+							newFilesIndex++
 							logger.Infoln(file, "(new file)")
 						}
 					}
