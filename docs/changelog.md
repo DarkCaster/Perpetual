@@ -43,11 +43,11 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### New Features
 
-- Added the `embed` operation to generate and manage embeddings. Generating and using embeddings is optional and automatic if supported by your LLM provider (you need manually enable it at your `.env` file). Code embeddings are used for local similarity search of relevant source files for the `implement`, `explain`, and `doc` operations, in addition to annotation-based selection.
+- Added the `embed` operation to generate and manage embeddings. Generating and using embeddings is optional and automatic if supported by your LLM provider (you need to manually enable it in your `.env` file). Code embeddings are used for local similarity search of relevant source files for the `implement`, `explain`, and `doc` operations, in addition to annotation-based selection.
 
 ### Improvements
 
-- Reworked loading of `.env` file. Configuration can now be loaded from multiple `*.env` files (with .env extension) in alphabetical order. It first tries to load env files from the project configuration directory, then from the global configuration directory, as before. The examples have been split into multiple env files for each LLM provider. As before, values ​​defined in the system environment override configuration values ​​loaded from `*.env` files, and project-wide values ​​override global ones. The current configuration will continue to work.
+- Reworked loading of `.env` file. Configuration can now be loaded from multiple `*.env` files (with .env extension) in alphabetical order. It first tries to load env files from the project configuration directory, then from the global configuration directory, as before. The examples have been split into multiple env files for each LLM provider. As before, values defined in the system environment override configuration values loaded from `*.env` files, and project-wide values override global ones. The current configuration will continue to work.
 - Added support for system- and user- prompt messages prefixes and suffixes for Ollama. May be needed for switching between reasoning/non-reasoning modes for Qwen3 or for other model fine-tuning.
 
 **NOTE**: There are no incompatible configuration changes, but using the `embed` operation requires adding new parameters to the `*.env` files; it is disabled by default.
