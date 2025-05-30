@@ -290,6 +290,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
+		// If no http errors at this point, then we have chunks logged, so add separator to the log-file
+		if (responseStreamCollector.StatusCode < 400 || responseStreamCollector.StatusCode > 900) && p.RawMessageLogger != nil {
+			p.RawMessageLogger("\n\n\n")
+		}
+
 		// Process status codes
 		switch responseStreamCollector.StatusCode {
 		case 400:
@@ -366,11 +371,6 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 				return []string{}, QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
 			}
 			continue
-		}
-
-		// If no http errors at this point, then we have chunks logged, so add separator to the log-file
-		if responseStreamCollector.StatusCode < 400 && p.RawMessageLogger != nil {
-			p.RawMessageLogger("\n\n\n")
 		}
 
 		if err != nil {
