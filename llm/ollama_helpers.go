@@ -79,7 +79,6 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 								o.streamingFunc([]byte("AI thinking:\n\n\n"))
 								o.stage = 1
 							} else if o.stage == 0 && contentVal != "" {
-								o.streamingFunc([]byte("AI response:\n\n\n"))
 								o.stage = 2
 							}
 							if o.stage == 1 {
