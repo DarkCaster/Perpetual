@@ -110,7 +110,7 @@ OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 # OLLAMA_THINK_OP_DOC_STAGE2="true" # document generation
 # OLLAMA_THINK_OP_EXPLAIN_STAGE1="false"
 # OLLAMA_THINK_OP_EXPLAIN_STAGE2="true" # answer generation
-# OLLAMA_THINK="false" # default value if other values unset
+OLLAMA_THINK="false" # default value, if this value also unset, Ollama will change to old logic, and you may filter content using regexps below
 
 # Options for limiting output tokens for different operations and stages, must be set
 OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
