@@ -268,6 +268,20 @@ func NewOllamaLLMConnectorFromEnv(
 			debug.Add("max tokens", maxTokens)
 		}
 
+		if thinkMode, err := utils.GetEnvString(fmt.Sprintf("%s_THINK_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK", prefix)); err == nil {
+			value := false
+			switch strings.ToUpper(thinkMode) {
+			case "TRUE":
+				value = true
+			case "FALSE":
+				value = false
+			default:
+				return nil, fmt.Errorf("invalid THINK env value: %s", thinkMode)
+			}
+			fieldsToInject["think"] = value
+			debug.Add("think", value)
+		}
+
 		if topK, err := utils.GetEnvInt(fmt.Sprintf("%s_TOP_K_OP_%s", prefix, operation), fmt.Sprintf("%s_TOP_K", prefix)); err == nil {
 			extraOptions = append(extraOptions, llms.WithTopK(topK))
 			debug.Add("top k", topK)
@@ -623,7 +637,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		transformers = append(transformers, newInnerBodyValuesRemover([]string{"options"}, p.OptionsToRemove))
 	}
 
-	if p.OutputFormat == OutputJson {
+	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
 
