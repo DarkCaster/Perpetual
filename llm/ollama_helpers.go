@@ -22,9 +22,10 @@ import (
 type ollamaResponseBodyReader struct {
 	inner         io.ReadCloser
 	outer         io.ReadWriter
+	streamingFunc func(chunk []byte)
+	stage         int
 	done          bool
 	err           error
-	streamingFunc func(chunk []byte)
 }
 
 func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
@@ -71,7 +72,24 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						}
 						//Try reading message object and its content and actually stream it with streaming func
 						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
-							if contentVal, exists := msgObj["content"].(string); exists {
+							contentVal, _ := msgObj["content"].(string)
+							thinking, _ := msgObj["thinking"].(string)
+							// log thinking or contents
+							if o.stage == 0 && thinking != "" {
+								o.streamingFunc([]byte("AI thinking:\n\n\n"))
+								o.stage = 1
+							} else if o.stage == 0 && contentVal != "" {
+								o.streamingFunc([]byte("AI response:\n\n\n"))
+								o.stage = 2
+							}
+							if o.stage == 1 {
+								o.streamingFunc([]byte(thinking))
+							}
+							if o.stage == 1 && contentVal != "" {
+								o.streamingFunc([]byte("\n\n\nAI response:\n\n\n"))
+								o.stage = 2
+							}
+							if o.stage == 2 {
 								o.streamingFunc([]byte(contentVal))
 							}
 						}
@@ -101,10 +119,8 @@ func (o *ollamaResponseBodyReader) Close() error {
 func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *ollamaResponseBodyReader {
 	return &ollamaResponseBodyReader{
 		inner:         inner,
-		done:          false,
 		outer:         bytes.NewBuffer(nil),
 		streamingFunc: streamingFunc,
-		err:           nil,
 	}
 }
 
