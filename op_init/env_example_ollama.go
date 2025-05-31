@@ -112,7 +112,7 @@ OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 # OLLAMA_THINK_OP_EXPLAIN_STAGE2="true" # answer generation
 # OLLAMA_THINK="false" # default value if other values unset
 
-# Options for limiting output tokens for different operations and stages
+# Options for limiting output tokens for different operations and stages, must be set
 OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
 OLLAMA_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
@@ -124,6 +124,8 @@ OLLAMA_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should 
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 OLLAMA_MAX_TOKENS="4096"
+
+# Options to control retries and partial output due to token limit
 OLLAMA_MAX_TOKENS_SEGMENTS="3"
 OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="5" # this number include errors caused by context overflow
 # OLLAMA_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
@@ -135,7 +137,8 @@ OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="5" # this number include errors caused by co
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
 OLLAMA_ON_FAIL_RETRIES="3"
-# note: temperature highly depends on model, 0 produces mostly deterministic results
+
+# note: temperature highly depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # OLLAMA_TEMPERATURE_OP_ANNOTATE="0.5"
 # OLLAMA_TEMPERATURE_OP_ANNOTATE_POST="0"
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
