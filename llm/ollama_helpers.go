@@ -21,7 +21,7 @@ import (
 // https://github.com/tmc/langchaingo/issues/774
 type ollamaResponseBodyReader struct {
 	inner         io.ReadCloser
-	final         io.ReadCloser
+	outer         io.ReadWriter
 	done          bool
 	err           error
 	streamingFunc func(chunk []byte)
@@ -33,7 +33,6 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 		//prepare temporary buffers to store, process and validate incoming data
 		readBuf := make([]byte, 4096)
 		tmpBuf := make([]byte, 0, 65536)
-		finalBuf := make([]byte, 0)
 		var lineBuilder strings.Builder
 		// read all data from inner reader until we stop
 		var readerr error = nil
@@ -76,32 +75,26 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 								o.streamingFunc([]byte(contentVal))
 							}
 						}
+
 						//append valid line to final buffer
-						finalBuf = append(finalBuf, []byte(line)...)
+						o.outer.Write([]byte(line))
 						lineBuilder.Reset()
 					}
 				}
 			}
 		}
 		// depending on capturing final JSON chunk earlier, we either return the full response or empty response
-		if o.done {
-			o.final = io.NopCloser(bytes.NewReader(finalBuf))
-		} else {
-			o.final = io.NopCloser(bytes.NewReader([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}")))
-			// also set error for incomplete responses
-			o.err = readerr
+		if !o.done {
+			o.outer = bytes.NewBuffer([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}"))
+			o.err = readerr // also set error for incomplete responses
 		}
 		o.done = true
 	}
-
 	//read final post-processed response
-	return o.final.Read(p)
+	return o.outer.Read(p)
 }
 
 func (o *ollamaResponseBodyReader) Close() error {
-	if o.final != nil {
-		return o.final.Close()
-	}
 	return nil
 }
 
@@ -109,7 +102,7 @@ func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk [
 	return &ollamaResponseBodyReader{
 		inner:         inner,
 		done:          false,
-		final:         nil,
+		outer:         bytes.NewBuffer(nil),
 		streamingFunc: streamingFunc,
 		err:           nil,
 	}
