@@ -97,14 +97,30 @@ OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
 OLLAMA_FORMAT_OP_DOC_STAGE1="json"
 OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 
-OLLAMA_MAX_TOKENS_OP_ANNOTATE="768"
-OLLAMA_MAX_TOKENS_OP_ANNOTATE_POST="768"
+# Options to enable or disable reasoning/thinking for models that support it (Qwen3, DeepSeek R1).
+# For use with Ollama >= v0.9.0 and models/templates that support it.
+# Supported values: true, false. If unset then default behavior for model will be used.
+# OLLAMA_THINK_OP_ANNOTATE="false"
+# OLLAMA_THINK_OP_ANNOTATE_POST="true"
+# OLLAMA_THINK_OP_IMPLEMENT_STAGE1="false"
+# OLLAMA_THINK_OP_IMPLEMENT_STAGE2="true" # work plan generation
+# OLLAMA_THINK_OP_IMPLEMENT_STAGE3="false"
+# OLLAMA_THINK_OP_IMPLEMENT_STAGE4="false"
+# OLLAMA_THINK_OP_DOC_STAGE1="false"
+# OLLAMA_THINK_OP_DOC_STAGE2="true" # document generation
+# OLLAMA_THINK_OP_EXPLAIN_STAGE1="false"
+# OLLAMA_THINK_OP_EXPLAIN_STAGE2="true" # answer generation
+# OLLAMA_THINK="false" # default value if other values unset
+
+# Options for limiting output tokens for different operations and stages
+OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
+OLLAMA_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
-OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="1536" # work plan also should not be too big
+OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE3="512" # file-list for processing, long list is probably an error
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE4="4096" # generated code output limit should be as big as possible
 OLLAMA_MAX_TOKENS_OP_DOC_STAGE1="768" # file-list for review, long list is probably an error
-OLLAMA_MAX_TOKENS_OP_DOC_STAGE2="4096" # generated document output limit should be as big as possible
+OLLAMA_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should be as big as possible
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 OLLAMA_MAX_TOKENS="4096"
@@ -132,7 +148,7 @@ OLLAMA_ON_FAIL_RETRIES="3"
 # OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
 # OLLAMA_TEMPERATURE="0.5"
 
-# System prompt role for model, can be configured per operation. Useful if model not supporting system prompt
+# System prompt role for model, can be configured per operation. Useful if the model does not support system prompts.
 # Valid values: system, user. default: system.
 # When using "user" role, system prompt will be converted to user-query + ai-acknowledge message sequence
 # OLLAMA_SYSPROMPT_ROLE_OP_ANNOTATE="system"
@@ -143,59 +159,58 @@ OLLAMA_ON_FAIL_RETRIES="3"
 # OLLAMA_SYSPROMPT_ROLE_OP_IMPLEMENT_STAGE4="system"
 # OLLAMA_SYSPROMPT_ROLE_OP_DOC_STAGE1="system"
 # OLLAMA_SYSPROMPT_ROLE_OP_DOC_STAGE2="system"
-OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE1="system"
-OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE2="system"
+# OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE1="system"
+# OLLAMA_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE2="system"
 # OLLAMA_SYSPROMPT_ROLE="system"
 
-# Optional system- and user- prompt prefixes and suffixes.
-# You may need to use it with models like Qwen3 to switch between reasoning / non-reasoning modes
-# Or to perform some other model-specific fine-tuning, example below is for Qwen3
+# Optional system- and user- prompt prefixes and suffixes, added before and after prompts for selected operation/stage.
+# You can use it to perform some model-specific fine-tuning if needed.
 # OLLAMA_SYSTEM_PFX_OP_ANNOTATE=""
-# OLLAMA_SYSTEM_SFX_OP_ANNOTATE=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_ANNOTATE=""
 # OLLAMA_USER_PFX_OP_ANNOTATE=""
-# OLLAMA_USER_SFX_OP_ANNOTATE=" /no_think"
+# OLLAMA_USER_SFX_OP_ANNOTATE=""
 # OLLAMA_SYSTEM_PFX_OP_ANNOTATE_POST=""
-# OLLAMA_SYSTEM_SFX_OP_ANNOTATE_POST=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_ANNOTATE_POST=""
 # OLLAMA_USER_PFX_OP_ANNOTATE_POST=""
-# OLLAMA_USER_SFX_OP_ANNOTATE_POST=" /no_think"
+# OLLAMA_USER_SFX_OP_ANNOTATE_POST=""
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE1=""
-# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE1=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE1=""
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE1=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE1=" /no_think"
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE1=""
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE2=""
-# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE2=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE2=""
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE2=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE2=" /no_think"
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE2=""
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE3=""
-# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE3=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE3=""
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE3=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE3=" /no_think"
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE3=""
 # OLLAMA_SYSTEM_PFX_OP_IMPLEMENT_STAGE4=""
-# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE4=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_IMPLEMENT_STAGE4=""
 # OLLAMA_USER_PFX_OP_IMPLEMENT_STAGE4=""
-# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE4=" /no_think"
+# OLLAMA_USER_SFX_OP_IMPLEMENT_STAGE4=""
 # OLLAMA_SYSTEM_PFX_OP_DOC_STAGE1=""
-# OLLAMA_SYSTEM_SFX_OP_DOC_STAGE1=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_DOC_STAGE1=""
 # OLLAMA_USER_PFX_OP_DOC_STAGE1=""
-# OLLAMA_USER_SFX_OP_DOC_STAGE1=" /no_think"
+# OLLAMA_USER_SFX_OP_DOC_STAGE1=""
 # OLLAMA_SYSTEM_PFX_OP_DOC_STAGE2=""
-# OLLAMA_SYSTEM_SFX_OP_DOC_STAGE2=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_DOC_STAGE2=""
 # OLLAMA_USER_PFX_OP_DOC_STAGE2=""
-# OLLAMA_USER_SFX_OP_DOC_STAGE2=" /no_think"
+# OLLAMA_USER_SFX_OP_DOC_STAGE2=""
 # OLLAMA_SYSTEM_PFX_OP_EXPLAIN_STAGE1=""
-# OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE1=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE1=""
 # OLLAMA_USER_PFX_OP_EXPLAIN_STAGE1=""
-# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE1=" /no_think"
+# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE1=""
 # OLLAMA_SYSTEM_PFX_OP_EXPLAIN_STAGE2=""
-# OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE2=" /no_think"
+# OLLAMA_SYSTEM_SFX_OP_EXPLAIN_STAGE2=""
 # OLLAMA_USER_PFX_OP_EXPLAIN_STAGE2=""
-# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE2=" /no_think"
+# OLLAMA_USER_SFX_OP_EXPLAIN_STAGE2=""
 # OLLAMA_SYSTEM_PFX=""
-# OLLAMA_SYSTEM_SFX=" /no_think"
+# OLLAMA_SYSTEM_SFX=""
 # OLLAMA_USER_PFX=""
-# OLLAMA_USER_SFX=" /no_think"
+# OLLAMA_USER_SFX=""
 
-# Optional regexps for filtering out responses from reasoning models, like deepseek r1 or qwen3
+# Optional regexps for filtering out responses from reasoning models, if using older Ollama (<v0.9.0) or unsupported models/templates
 # THINK-regexps will be used to remove reasoning part from response L - is for opening tag, R - is for closing tag
 # OUT-regexps will be used to extract output part from response after it was filered out with THINK-regexps
 # OLLAMA_THINK_RX_L_OP_ANNOTATE="(?mi)^\\s*<think>\\s*\$"
