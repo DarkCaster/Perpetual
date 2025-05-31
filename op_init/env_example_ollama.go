@@ -139,7 +139,7 @@ OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="5" # this number include errors caused by co
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
 OLLAMA_ON_FAIL_RETRIES="3"
 
-# note: temperature highly depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
+# Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # OLLAMA_TEMPERATURE_OP_ANNOTATE="0.5"
 # OLLAMA_TEMPERATURE_OP_ANNOTATE_POST="0"
 # OLLAMA_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output

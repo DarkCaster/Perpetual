@@ -22,6 +22,8 @@ const anthropicEnvExample = `# Options for Anthropic provider. Below are sane de
 
 ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
+
+# Model selection for different operations and stages
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
 ANTHROPIC_MODEL_OP_ANNOTATE_POST="claude-3-haiku-20240307" # used to process multiple response-variants if any
 # Using different models for different stages to mitigate rate limits on bigger projects
@@ -46,6 +48,7 @@ ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 # ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
 # ANTHROPIC_FORMAT_OP_EXPLAIN_STAGE1="json"
 
+# Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="768"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
@@ -57,7 +60,32 @@ ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="32768" # generated document output limit sho
 ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
 ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="32768" # generated answer output limit
 ANTHROPIC_MAX_TOKENS="4096" # default limit
+
+# Options to control retries and partial output due to token limit
 ANTHROPIC_MAX_TOKENS_SEGMENTS="3"
+ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
+# ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
+ANTHROPIC_ON_FAIL_RETRIES="3"
+
+# Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
+# ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
+# ANTHROPIC_TEMPERATURE_OP_ANNOTATE_POST="0.5"
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
+# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
+# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2="1" # temperature 1 needed for thinking model
+# ANTHROPIC_TEMPERATURE="0.5"
 
 # Extended thinking. Should work with newer models. 1024 is a minimum for claude 3.7 sonnet.
 # May be incompatible with some other parameters (temperature)
@@ -74,29 +102,7 @@ ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan
 ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE2="4096" # document process
 # ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE1="0" # file list
 ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2="4096" # answer generation
-ANTHROPIC_THINK_TOKENS="0"
-
-ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
-# ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
-ANTHROPIC_ON_FAIL_RETRIES="3"
-# ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
-# ANTHROPIC_TEMPERATURE_OP_ANNOTATE_POST="0.5"
-# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
-# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1" # temperature 1 needed for thinking model
-# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
-# ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
-# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
-# ANTHROPIC_TEMPERATURE_OP_DOC_STAGE2="1" # temperature 1 needed for thinking model
-# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
-# ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2="1" # temperature 1 needed for thinking model
-# ANTHROPIC_TEMPERATURE="0.5"
+ANTHROPIC_THINK_TOKENS="0" # default value 0 will disable thinking
 
 # Advanced options that currently supported with Anthropic. You mostly not need to use them
 # ANTHROPIC_TOP_K_OP_ANNOTATE="40"
