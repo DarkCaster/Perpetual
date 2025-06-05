@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -25,6 +27,9 @@ type ollamaResponseBodyReader struct {
 	streamingFunc func(chunk []byte)
 	stage         int
 	done          bool
+	startDelaySec float64
+	eventsPerSec  float64
+	charsPerSec   float64
 	err           error
 }
 
@@ -35,6 +40,11 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 		readBuf := make([]byte, 4096)
 		tmpBuf := make([]byte, 0, 65536)
 		var lineBuilder strings.Builder
+		//performance counters and timer
+		msgCount := 0
+		charCount := 0
+		timer := time.Now()
+		timerStarted := false
 		// read all data from inner reader until we stop
 		var readerr error = nil
 		numRead := 0
@@ -72,8 +82,17 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						}
 						//Try reading message object and its content and actually stream it with streaming func
 						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
+							//start timer on first message
+							if !timerStarted {
+								o.startDelaySec = time.Since(timer).Seconds()
+								timerStarted = true
+								timer = time.Now()
+							}
+							msgCount++
 							contentVal, _ := msgObj["content"].(string)
 							thinking, _ := msgObj["thinking"].(string)
+							charCount += len(contentVal)
+							charCount += len(thinking)
 							// log thinking or contents
 							if o.stage == 0 && thinking != "" {
 								o.streamingFunc([]byte("AI thinking:\n\n\n"))
@@ -92,7 +111,6 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 								o.streamingFunc([]byte(contentVal))
 							}
 						}
-
 						//append valid line to final buffer
 						o.outer.Write([]byte(line))
 						lineBuilder.Reset()
@@ -100,6 +118,11 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 				}
 			}
 		}
+		//do not allow to division by zero
+		durationS := math.Max(time.Since(timer).Seconds(), 0.1)
+		//set performance counters
+		o.charsPerSec = float64(charCount) / durationS
+		o.eventsPerSec = float64(msgCount) / durationS
 		// depending on capturing final JSON chunk earlier, we either return the full response or empty response
 		if !o.done {
 			o.outer = bytes.NewBuffer([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}"))
@@ -126,6 +149,7 @@ func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk [
 type ollamaResponseStreamer struct {
 	streamingFunc     func(chunk []byte)
 	completionErrFunc func() (bool, error)
+	perfReportFunc    func() (float64, float64, float64)
 }
 
 func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) *ollamaResponseStreamer {
@@ -149,6 +173,9 @@ func (p *ollamaResponseStreamer) CollectResponse(response *http.Response) error 
 	p.completionErrFunc = func() (bool, error) {
 		return reader.done, reader.err
 	}
+	p.perfReportFunc = func() (float64, float64, float64) {
+		return reader.startDelaySec, reader.eventsPerSec, reader.charsPerSec
+	}
 	response.Body = reader
 	return nil
 }
@@ -162,4 +189,8 @@ func (p *ollamaResponseStreamer) GetCompletionError() error {
 		return errors.New("response reading incomplete")
 	}
 	return err
+}
+
+func (p *ollamaResponseStreamer) GetPerfReport() (float64, float64, float64) {
+	return p.perfReportFunc()
 }
