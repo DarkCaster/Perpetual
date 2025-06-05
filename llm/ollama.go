@@ -62,6 +62,7 @@ type OllamaLLMConnector struct {
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
 	RateLimitDelayS       int
+	PerfString            string
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -680,6 +681,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	finalContent := []string{}
+	var perfLineBuilder strings.Builder
 
 	for i := 0; i < maxCandidates; i++ {
 		//make a pause, if we need to wait to recover from previous error
@@ -792,6 +794,14 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			}
 			continue
 		}
+
+		startDelay, eventsPS, charsPS := responseStreamer.GetPerfReport()
+		if maxCandidates > 1 {
+			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
+		} else {
+			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
+		}
+		p.PerfString = perfLineBuilder.String()
 
 		//check for context overflow
 		if p.ContextSize > 0 {
