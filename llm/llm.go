@@ -70,6 +70,7 @@ type LLMConnector interface {
 	GetMaxTokensSegments() int
 	GetOnFailureRetryLimit() int
 	GetDebugString() string
+	GetPerfString() string
 	GetOutputFormat() OutputFormat
 	// Results variant-count management.
 	GetVariantCount() int

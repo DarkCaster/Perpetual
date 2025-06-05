@@ -891,3 +891,7 @@ func (p *OllamaLLMConnector) GetVariantCount() int {
 func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
 }
+
+func (p *OllamaLLMConnector) GetPerfString() string {
+	return ""
+}

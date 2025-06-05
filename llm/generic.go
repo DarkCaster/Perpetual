@@ -792,3 +792,7 @@ func (p *GenericLLMConnector) GetVariantCount() int {
 func (p *GenericLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
 }
+
+func (p *GenericLLMConnector) GetPerfString() string {
+	return ""
+}

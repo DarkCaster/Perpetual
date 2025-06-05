@@ -437,3 +437,7 @@ func (p *AnthropicLLMConnector) GetVariantCount() int {
 func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
 }
+
+func (p *AnthropicLLMConnector) GetPerfString() string {
+	return ""
+}

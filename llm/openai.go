@@ -697,3 +697,7 @@ func (p *OpenAILLMConnector) GetVariantCount() int {
 func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
 	return p.VariantStrategy
 }
+
+func (p *OpenAILLMConnector) GetPerfString() string {
+	return ""
+}
