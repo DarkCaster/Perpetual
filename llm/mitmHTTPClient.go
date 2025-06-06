@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"time"
 
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -259,7 +260,7 @@ func (p *systemMessageTransformer) ProcessURL(url string) string {
 }
 
 type responseCollector interface {
-	CollectResponse(response *http.Response) error
+	CollectResponse(requestTime time.Time, response *http.Response) error
 }
 
 type statusCodeCollector struct {
@@ -272,7 +273,7 @@ func newStatusCodeCollector() *statusCodeCollector {
 	}
 }
 
-func (p *statusCodeCollector) CollectResponse(response *http.Response) error {
+func (p *statusCodeCollector) CollectResponse(requestTime time.Time, response *http.Response) error {
 	if response == nil {
 		p.StatusCode = 0
 		return nil
@@ -349,10 +350,11 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Body = io.NopCloser(bytes.NewReader(newBody))
 	req.ContentLength = int64(len(newBody))
 	// Perform actual http request with new body
+	requestTime := time.Now()
 	response, err := t.Transport.RoundTrip(req)
 	cerrs := []error{}
 	for _, collector := range t.Collectors {
-		cerrs = append(cerrs, collector.CollectResponse(response))
+		cerrs = append(cerrs, collector.CollectResponse(requestTime, response))
 	}
 	for _, cerr := range cerrs {
 		if cerr != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -278,7 +279,7 @@ func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) *anthropicStr
 	}
 }
 
-func (p *anthropicStreamCollector) CollectResponse(response *http.Response) error {
+func (p *anthropicStreamCollector) CollectResponse(requestTime time.Time, response *http.Response) error {
 	// Not processing null response at all
 	if response == nil {
 		return nil

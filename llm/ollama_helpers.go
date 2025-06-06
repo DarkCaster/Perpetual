@@ -159,7 +159,7 @@ func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) *ollamaResponse
 	}
 }
 
-func (p *ollamaResponseStreamer) CollectResponse(response *http.Response) error {
+func (p *ollamaResponseStreamer) CollectResponse(requestTime time.Time, response *http.Response) error {
 	// Not processing null response at all
 	if response == nil {
 		return nil

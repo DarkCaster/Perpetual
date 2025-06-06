@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 //###NOUPLOAD###
@@ -67,7 +68,7 @@ func newOpenAIResponsesAPICollector() *openAIResponsesAPICollector {
 	return &openAIResponsesAPICollector{}
 }
 
-func (p *openAIResponsesAPICollector) CollectResponse(response *http.Response) error {
+func (p *openAIResponsesAPICollector) CollectResponse(requestTime time.Time, response *http.Response) error {
 	//not processing null response at all
 	if response == nil {
 		return nil
