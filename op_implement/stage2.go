@@ -21,7 +21,7 @@ func Stage2(projectRootDir string,
 	defer logger.Traceln("Stage2: Finished")
 
 	// Create stage2 llm connector
-	stage2Connector, err := llm.NewLLMConnector(
+	connector, err := llm.NewLLMConnector(
 		OpName+"_stage2",
 		cfg.String(config.K_SystemPrompt),
 		cfg.String(config.K_SystemPromptAck),
@@ -100,15 +100,18 @@ func Stage2(projectRootDir string,
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
 
 		logger.Infoln("Running stage2: generating work plan")
-		logger.Infoln(stage2Connector.GetDebugString())
+		logger.Infoln(connector.GetDebugString())
 
 		// Query LLM to generate reasonings
-		onFailRetriesLeft := stage2Connector.GetOnFailureRetryLimit()
+		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			aiResponses, status, err := stage2Connector.Query(1, realMessages...)
+			aiResponses, status, err := connector.Query(1, realMessages...)
+			if perfString := connector.GetPerfString(); perfString != "" {
+				logger.Traceln(perfString)
+			}
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed:", err)

@@ -298,6 +298,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			variantCount := connector.GetVariantCount()
 			// Perform actual query
 			annotationVariants, status, err := connector.Query(variantCount, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			if perfString := connector.GetPerfString(); perfString != "" {
+				logger.Traceln(perfString)
+			}
 			// Check for general error on query
 			if err != nil {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
@@ -358,6 +361,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				}
 				// Perform the query
 				combinedAnnotation, status, err := connectorPost.Query(1, combinedMessages...)
+				if perfString := connectorPost.GetPerfString(); perfString != "" {
+					logger.Traceln(perfString)
+				}
 				// Check for general error on query, switch for using "short" variant selection strategy on error
 				if err != nil {
 					logger.Warnf("LLM query failed with status %d, error: %s", status, err)

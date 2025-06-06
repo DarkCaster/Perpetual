@@ -115,6 +115,9 @@ func Stage2(projectRootDir string,
 			// Run query
 			continueGeneration = false
 			aiResponses, status, err := connector.Query(1, messagesTry...)
+			if perfString := connector.GetPerfString(); perfString != "" {
+				logger.Traceln(perfString)
+			}
 			if err != nil {
 				// Retry file on LLM error
 				if onFailRetriesLeft < 1 {

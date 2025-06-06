@@ -96,6 +96,9 @@ func Stage1(projectRootDir string,
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		aiResponses, status, err := connector.Query(1, messages...)
+		if perfString := connector.GetPerfString(); perfString != "" {
+			logger.Traceln(perfString)
+		}
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed:", err)

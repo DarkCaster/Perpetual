@@ -23,7 +23,7 @@ func Stage4(projectRootDir string,
 	defer logger.Traceln("Stage4: Finished") // Add trace logging
 
 	// Create stage4 llm connector
-	stage4Connector, err := llm.NewLLMConnector(
+	connector, err := llm.NewLLMConnector(
 		OpName+"_stage4",
 		cfg.String(config.K_SystemPrompt),
 		cfg.String(config.K_SystemPromptAck),
@@ -39,7 +39,7 @@ func Stage4(projectRootDir string,
 	var processedFiles []string
 
 	logger.Infoln("Running stage4: implementing code")
-	logger.Infoln(stage4Connector.GetDebugString())
+	logger.Infoln(connector.GetDebugString())
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
@@ -100,7 +100,7 @@ func Stage4(projectRootDir string,
 		stage4Messages = append(stage4Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessFilePrompt))
 
 		var fileBodies []string
-		onFailRetriesLeft := stage4Connector.GetOnFailureRetryLimit()
+		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 		if onFailRetriesLeft < 1 {
 			onFailRetriesLeft = 1
 		}
@@ -116,7 +116,10 @@ func Stage4(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				aiResponses, status, err := stage4Connector.Query(1, stage4MessagesTry...)
+				aiResponses, status, err := connector.Query(1, stage4MessagesTry...)
+				if perfString := connector.GetPerfString(); perfString != "" {
+					logger.Traceln(perfString)
+				}
 				if err != nil {
 					// Retry file on LLM error
 					if onFailRetriesLeft < 1 {
@@ -128,7 +131,7 @@ func Stage4(projectRootDir string,
 					}
 				} else if status == llm.QueryMaxTokens {
 					// Try to recover other parts of the file if reached max tokens
-					if generateTry >= stage4Connector.GetMaxTokensSegments() {
+					if generateTry >= connector.GetMaxTokensSegments() {
 						logger.Errorln("LLM query reached token limit, and we are reached segment limit, not attempting to continue")
 					} else {
 						logger.Warnln("LLM query reached token limit, attempting to continue and file recover")

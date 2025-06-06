@@ -77,6 +77,9 @@ func Stage1(projectRootDir string,
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		var status llm.QueryStatus
 		aiResponses, status, err := connector.Query(1, projectIndexRequest, projectIndexResponse, analysisRequest)
+		if perfString := connector.GetPerfString(); perfString != "" {
+			logger.Traceln(perfString)
+		}
 		// Handle LLM query errors
 		if err != nil {
 			if onFailRetriesLeft < 1 {

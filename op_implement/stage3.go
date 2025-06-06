@@ -129,6 +129,9 @@ func Stage3(projectRootDir string,
 				targetMessages = jsonModeMessages
 			}
 			aiResponses, status, err := connector.Query(1, targetMessages...)
+			if perfString := connector.GetPerfString(); perfString != "" {
+				logger.Traceln(perfString)
+			}
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed:", err)
