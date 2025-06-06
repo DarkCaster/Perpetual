@@ -27,6 +27,7 @@ type ollamaResponseBodyReader struct {
 	streamingFunc func(chunk []byte)
 	stage         int
 	done          bool
+	requestTime   time.Time
 	startDelaySec float64
 	eventsPerSec  float64
 	charsPerSec   float64
@@ -43,7 +44,6 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 		//performance counters and timer
 		msgCount := 0
 		charCount := 0
-		timer := time.Now()
 		timerStarted := false
 		// read all data from inner reader until we stop
 		var readerr error = nil
@@ -84,9 +84,9 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
 							//start timer on first message
 							if !timerStarted {
-								o.startDelaySec = time.Since(timer).Seconds()
+								o.startDelaySec = time.Since(o.requestTime).Seconds()
 								timerStarted = true
-								timer = time.Now()
+								o.requestTime = time.Now()
 							}
 							msgCount++
 							contentVal, _ := msgObj["content"].(string)
@@ -119,7 +119,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 			}
 		}
 		//do not allow to division by zero
-		durationS := math.Max(time.Since(timer).Seconds(), 0.1)
+		durationS := math.Max(time.Since(o.requestTime).Seconds(), 0.1)
 		//set performance counters
 		o.charsPerSec = float64(charCount) / durationS
 		o.eventsPerSec = float64(msgCount) / durationS
@@ -138,11 +138,12 @@ func (o *ollamaResponseBodyReader) Close() error {
 	return nil
 }
 
-func newOllamaResponseBodyReader(inner io.ReadCloser, streamingFunc func(chunk []byte)) *ollamaResponseBodyReader {
+func newOllamaResponseBodyReader(requestTime time.Time, inner io.ReadCloser, streamingFunc func(chunk []byte)) *ollamaResponseBodyReader {
 	return &ollamaResponseBodyReader{
 		inner:         inner,
 		outer:         bytes.NewBuffer(nil),
 		streamingFunc: streamingFunc,
+		requestTime:   requestTime,
 	}
 }
 
@@ -169,7 +170,7 @@ func (p *ollamaResponseStreamer) CollectResponse(requestTime time.Time, response
 		return errors.New("null response body received")
 	}
 	// Custom reader, that will attempt to fix partial messages as workaround to the bug and stream received tokens in process
-	reader := newOllamaResponseBodyReader(response.Body, p.streamingFunc)
+	reader := newOllamaResponseBodyReader(requestTime, response.Body, p.streamingFunc)
 	p.completionErrFunc = func() (bool, error) {
 		return reader.done, reader.err
 	}
