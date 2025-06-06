@@ -903,5 +903,5 @@ func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrat
 }
 
 func (p *OllamaLLMConnector) GetPerfString() string {
-	return ""
+	return p.PerfString
 }
