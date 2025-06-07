@@ -85,6 +85,7 @@ const K_ExplainOutFilesHeader = "output_files_header"
 const K_ExplainOutFilenameTags = "output_filename_tags"
 const K_ExplainOutFilteredFilenameTags = "output_filtered_filename_tags"
 const K_ExplainOutAnswerHeader = "output_answer_header"
+const K_ExplainOutQuestionHeader = "output_question_header"
 const K_ExplainProjectIndexPrompt = "project_index_prompt"
 const K_ExplainProjectIndexResponse = "project_index_response"
 
