@@ -25,12 +25,12 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-4.1-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-4.1-mini" # used to process multiple response-variants if any
-# OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # uncomment to enable embedding and local similarity search
+OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-4.1"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-4.1"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-4.1"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-4.1"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest" # experimental, do not use it with other operations or stages
+# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest" # highly experimental, may work only on implementation stage 4
 OPENAI_MODEL_OP_DOC_STAGE1="gpt-4.1"
 # OPENAI_MODEL_OP_DOC_STAGE2="gpt-4.1"
 OPENAI_MODEL_OP_DOC_STAGE2="o4-mini" # good for generating initial document structure from your draft
@@ -66,28 +66,28 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 # Options for limiting output tokens for different operations and stages, must be set
 OPENAI_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
 OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="768"
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="1536" # work plan also should not be too big
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="512" # file-list for processing, long list is probably an error
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_DOC_STAGE1="768" # file-list for review, long list is probably an error
+OPENAI_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
 OPENAI_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
 OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 OPENAI_MAX_TOKENS="4096" # default limit
 
-# Options to control retries and partial output due to token limit
+# Options to control retries (including rate-limit hits) and partial output due to token limit
 OPENAI_MAX_TOKENS_SEGMENTS="3"
 OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE="1"
-# OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
-# OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
-# OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
-# OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="3"
-# OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
-# OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
-# OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
-# OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
-OPENAI_ON_FAIL_RETRIES="3"
+OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="2" # better to fail fast here
+OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="7" # may hit token limit on low API usage tiers, so add more retries
+OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="7"
+OPENAI_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="10"
+OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE1="2"
+OPENAI_ON_FAIL_RETRIES_OP_DOC_STAGE2="10" # may hit token limit on low API usage tiers, so add more retries
+OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="2"
+OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10" # may hit token limit on low API usage tiers, so add more retries
+OPENAI_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces more deterministic results.
 # OPENAI_TEMPERATURE_OP_ANNOTATE="0.5"

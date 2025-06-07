@@ -70,17 +70,17 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 # Options for limiting output tokens for different operations and stages, must be set
 GENERIC_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
 GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="1536" # work plan also should not be too big
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="512" # file-list for processing, long list is probably an error
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="8192" # generated code output limit should be as big as possible, works with DeepSeek
-GENERIC_MAX_TOKENS_OP_DOC_STAGE1="768" # file-list for review, longer list is probably an error
+GENERIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, longer list is probably an error
 GENERIC_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should be as big as possible, works with DeepSeek
-GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
+GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
 GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 GENERIC_MAX_TOKENS="4096" # probably should work with most LLMs
 
-# Options to control retries and partial output due to token limit
+# Options to control retries (including rate-limit hits) and partial output due to token limit
 GENERIC_MAX_TOKENS_SEGMENTS="3"
 GENERIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
 # GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
@@ -91,7 +91,7 @@ GENERIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
 # GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
 # GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
 # GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
-GENERIC_ON_FAIL_RETRIES="3"
+GENERIC_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces mostly deterministic results, values provided below seem to work good with DeepSeek
 # GENERIC_TEMPERATURE_OP_ANNOTATE="0.5"
