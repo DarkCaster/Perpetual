@@ -35,6 +35,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Added support for Ollama >= v0.9.0: added new env file parameters to enable or disable reasoning/thinking for supported models. See `ollama.env.example` for more info.
 
+- Minor changes in `stash` operation logging for more clean output.
+
 **NOTE**: There are no incompatible configuration changes, but using options to enable/disable thinking with Ollama requires adding new parameters to the `*.env` files.
 
 ## v6.1.0
