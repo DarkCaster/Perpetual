@@ -244,9 +244,9 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 	}
 
 	if len(stash.OriginalFiles) > 0 {
-		logger.Infoln("Files backed up:")
+		logger.Debugln("Files backed up:")
 		for _, entry := range stash.OriginalFiles {
-			logger.Infoln(entry.Filename)
+			logger.Debugln(entry.Filename)
 		}
 	}
 
