@@ -37,6 +37,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Minor changes in `stash` operation logging for more clean output.
 
+- Output format for `explain` operation was simplified: it will now output answer alone in markdown format. Added extra flags to prepend relevant project file-list and question before the answer.
+
 **NOTE**: There are no incompatible configuration changes, but using options to enable/disable thinking with Ollama requires adding new parameters to the `*.env` files.
 
 ## v6.1.0
