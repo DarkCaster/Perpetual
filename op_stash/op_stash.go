@@ -78,7 +78,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
 	if err != nil {
-		logger.Panicln("Error finding project root directory:", err)
+		outerCallLogger.Panicln("Error finding project root directory:", err)
 	}
 
 	outerCallLogger.Infoln("Project root directory:", projectRootDir)
@@ -89,13 +89,13 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	if _, err := os.Stat(stashDir); os.IsNotExist(err) {
 		err := os.Mkdir(stashDir, 0755)
 		if err != nil {
-			logger.Panicln("Error creating stash directory:", err)
+			outerCallLogger.Panicln("Error creating stash directory:", err)
 		}
 	}
 
 	stashes, err := os.ReadDir(stashDir)
 	if err != nil {
-		logger.Panicln("Error reading stash directory:", err)
+		outerCallLogger.Panicln("Error reading stash directory:", err)
 	}
 
 	fileStashes := make([]os.DirEntry, 0, len(stashes))
@@ -130,12 +130,12 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	}
 	stashFile := filepath.Join(stashDir, name)
 	if _, err := os.Stat(stashFile); os.IsNotExist(err) {
-		logger.Panicln("Stash not found:", name)
+		outerCallLogger.Panicln("Stash not found:", name)
 	}
 	var stash Stash
 	err = utils.LoadJsonFile(stashFile, &stash)
 	if err != nil {
-		logger.Panicln("Error loading stash:", err)
+		outerCallLogger.Panicln("Error loading stash:", err)
 	}
 
 	if listFiles {
@@ -159,7 +159,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 				target = targetFile
 				target, err := utils.MakePathRelative(projectRootDir, target, true)
 				if err != nil {
-					logger.Panicln("Requested file is not inside project root", target)
+					outerCallLogger.Panicln("Requested file is not inside project root", target)
 				}
 			}
 			// Get base dir
@@ -175,14 +175,14 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 				fileDir = filepath.Join(fileDir, dir)
 				err := os.Mkdir(filepath.Join(projectRootDir, fileDir), 0755)
 				if err != nil && !os.IsExist(err) {
-					logger.Errorln("Failed to create directory:", fileDir, err)
+					outerCallLogger.Errorln("Failed to create directory:", fileDir, err)
 				}
 			}
 			// Write file
-			logger.Infoln(target)
+			outerCallLogger.Infoln(target)
 			err := utils.SaveTextFile(filepath.Join(projectRootDir, target), entry.Contents)
 			if err != nil {
-				logger.Errorln("Failed to save file:", err)
+				outerCallLogger.Errorln("Failed to save file:", err)
 			}
 		}
 	}
