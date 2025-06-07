@@ -24,7 +24,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
-	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, addQuestion, includeTests bool
 	var outputFile, inputFile, userFilterFile, contextSaving string
 	var searchLimit int
 
@@ -40,6 +40,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
+	flags.BoolVar(&addQuestion, "q", false, "Include the question text and the list of relevant files in the generated answer")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -268,31 +269,34 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var outputMessage llm.Message
 	outputMessage = llm.NewMessage(llm.UserRequest)
 
-	// Add header for file list
-	if len(requestedFiles) > 0 {
-		outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutFilesHeader))
-	}
-
-	// Add files with status indicators
-	for _, file := range requestedFiles {
-		var isFiltered bool = true
-		for _, filteredFile := range filteredRequestedFiles {
-			if file == filteredFile {
-				isFiltered = false
-				break
+	if addQuestion {
+		// Add question
+		outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutQuestionHeader))
+		outputMessage = llm.AddPlainTextFragment(outputMessage, question)
+		// Add header for file list
+		if len(requestedFiles) > 0 {
+			outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutFilesHeader))
+		}
+		// Add files with status indicators
+		for _, file := range requestedFiles {
+			var isFiltered bool = true
+			for _, filteredFile := range filteredRequestedFiles {
+				if file == filteredFile {
+					isFiltered = false
+					break
+				}
+			}
+			if isFiltered {
+				outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilteredFilenameTags))
+			} else {
+				outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilenameTags))
 			}
 		}
-		if isFiltered {
-			outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilteredFilenameTags))
-		} else {
-			outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.StringArray(config.K_ExplainOutFilenameTags))
-		}
+		// Add header and answer text
+		outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutAnswerHeader))
 	}
 
-	// Add header and answer text
-	outputMessage = llm.AddPlainTextFragment(outputMessage, explainConfig.String(config.K_ExplainOutAnswerHeader))
 	outputMessage = llm.AddPlainTextFragment(outputMessage, answer)
-
 	outputStrings, err := llm.RenderMessagesToAIStrings(projectConfig.StringArray2D(config.K_ProjectMdCodeMappings), []llm.Message{outputMessage})
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)
