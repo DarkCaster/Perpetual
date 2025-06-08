@@ -92,12 +92,14 @@ Perpetual implement [flags]
 **Supported flags:**
 
 - `-h`: Display help information about the `implement` operation.  
+- `-c <mode>`: Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high).  
+- `-f`: Disable 'no-upload' file-filter and upload such files for review and processing if requested.  
+- `-i <file>`: Specify a file from which to read task instructions when in task mode.  
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.  
 - `-p`: Enable extended planning stage. Useful for larger modifications that may create new files. Disabled by default to save tokens.  
 - `-pr`: Enable planning with additional reasoning. May produce improved results for complex or abstractly described tasks but can also lead to flawed reasoning that worsens the final outcome. This flag includes the `-p` flag.  
-- `-t`: Enable task mode. Provide task instructions directly rather than relying solely on implementation comments. When enabled, instructions can be read from standard input or from a file specified with `-i`.  
-- `-i <file>`: Specify a file from which to read task instructions when in task mode.  
 - `-s <n>`: Limit number of files related to the task returned by local search (0 disables local search, only use LLM-requested files). This flag invokes an embedding operation and performs a local similarity search for files related to the implementation context.  
+- `-t`: Enable task mode. Provide task instructions directly rather than relying solely on implementation comments. When enabled, instructions can be read from standard input or from a file specified with `-i`.  
 - `-u`: Include unit-test source code files in processing (by default, these files are excluded).  
 - `-x <file>`: Path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).  
 - `-z`: When using `-p` or `-pr` flags, do not enforce the initial sources to file lists produced by planning.  
@@ -112,11 +114,11 @@ The `implement` operation can be fine-tuned using environment variables in the `
    - `LLM_PROVIDER_OP_IMPLEMENT_STAGE1`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE2`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE3`, `LLM_PROVIDER_OP_IMPLEMENT_STAGE4`: Specify the LLM provider for each stage of the implement operation.
 
 2. **Model Selection**  
-   - `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3`: Anthropic models for each stage.  
+   - `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4`: Anthropic models for each stage.  
    - Similar variables exist for OpenAI and Ollama providers (e.g., `OPENAI_MODEL_OP_IMPLEMENT_STAGE1`, `OLLAMA_MODEL_OP_IMPLEMENT_STAGE1`, etc.)
 
 3. **Token Limits**  
-   - `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3`: Set maximum tokens for each stage.  
+   - `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4`: Set maximum tokens for each stage.  
    - Similar variables exist for OpenAI and Ollama providers.
 
 4. **JSON Structured Output Mode**  
@@ -132,11 +134,11 @@ The `implement` operation can be fine-tuned using environment variables in the `
    ```
 
 5. **Retry Settings**  
-   - `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3`: Specify retry attempts for each stage.  
+   - `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4`: Specify retry attempts for each stage.  
    - Similar variables exist for OpenAI and Ollama providers.
 
 6. **Temperature**  
-   - `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3`: Set temperature for each stage.  
+   - `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4`: Set temperature for each stage.  
    - Similar variables exist for OpenAI and Ollama providers.
 
 7. **Other LLM Parameters**  
@@ -145,23 +147,26 @@ The `implement` operation can be fine-tuned using environment variables in the `
 **Example configuration in `.env` file:**
 
 ```sh
-LLM_PROVIDER="anthropic"
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-3-haiku-20240307"
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-3-5-sonnet-20240620"
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-3-5-sonnet-20240620"
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096"
+LLM_PROVIDER_OP_IMPLEMENT_STAGE1="anthropic"
+LLM_PROVIDER_OP_IMPLEMENT_STAGE2="anthropic"
+LLM_PROVIDER_OP_IMPLEMENT_STAGE3="anthropic"
+LLM_PROVIDER_OP_IMPLEMENT_STAGE4="anthropic"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-4-20250514"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-sonnet-4-20250514"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-4-20250514"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-sonnet-4-20250514"
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096"
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="4096"
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.5"
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
-ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.5"
-ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
-ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
-ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
-
-# Enable JSON-structured output mode
-ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
-ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024"
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="32768"
+ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2"
+ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1"
+ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2"
+ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
+ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="2"
+ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="7"
+ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="7"
+ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="10"
 ```
 
 ## Prompts Configuration
@@ -215,7 +220,7 @@ The `implement` operation is divided into four main stages.
 ### Stage 3: Planning Changes
 
 1. **Query LLM for File Modification**: Determine which files will be modified or created.  
-2. **Parse the LLM’s Response**: Extract a list of files to modify or create, ensuring alignment with project structure.
+2. **Parse the LLM's Response**: Extract a list of files to modify or create, ensuring alignment with project structure.
 
 ### Stage 4: Code Generation
 
@@ -240,4 +245,4 @@ The `implement` operation can consume significant time (when using a locally run
 2. **Do Not Use `-p` or `-pr` Flags Unless Needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags if you believe that the implementation won't produce any new files or cause changes in other files not marked with `###IMPLEMENT###` comments.  
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.  
 4. **Use the `-u` Flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-u` flag to include them in processing (this will disable the filter for such files). This provides additional context for the LLM and allows it to see and modify unit-tests. However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.  
-5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.  
+5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.
