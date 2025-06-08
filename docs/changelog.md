@@ -39,7 +39,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Output format for `explain` operation was simplified: it will now output answer alone in markdown format. Added extra flags to prepend relevant project file-list and question before the answer.
 
-**NOTE**: There are no incompatible configuration changes, but using options to enable/disable thinking with Ollama requires adding new parameters to the `*.env` files.
+**NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for `explain` operation. Using new options to enable/disable thinking with Ollama requires adding new parameters to the `*.env` files, see updated env files examples for more info.
 
 ## v6.1.0
 
