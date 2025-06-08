@@ -37,7 +37,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Minor changes in `stash` operation logging for more clean output.
 
-- Output format for `explain` operation was simplified: it will now output answer alone in markdown format. Added extra flags to prepend relevant project file-list and question before the answer.
+- Output format for `explain` operation was simplified: it will now output answer alone in markdown format. Added `-q` command-line flag to insert relevant project file-list and question before the answer.
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for `explain` operation. Using new options to enable/disable thinking with Ollama requires adding new parameters to the `*.env` files, see updated env files examples for more info.
 
