@@ -26,7 +26,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var forceUpload, help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var taskFile, userFilterFile, contextSaving string
 	var searchLimit int
 
@@ -38,6 +38,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
+	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.BoolVar(&taskMode, "t", false, "Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the -p flag.")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
@@ -306,12 +307,14 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Filter filesToReview files for presence of "no-upload" mark
-	filesToReview = utils.FilterNoUploadProjectFiles(
-		projectRootDir,
-		filesToReview,
-		implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
-		false,
-		logger)
+	if !forceUpload {
+		filesToReview = utils.FilterNoUploadProjectFiles(
+			projectRootDir,
+			filesToReview,
+			implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+			false,
+			logger)
+	}
 
 	// Run stage 2 - create file review, create reasonings
 	messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
@@ -340,12 +343,14 @@ func Run(args []string, logger logging.ILogger) {
 		task,
 		logger)
 
-	otherFilesToModify = utils.FilterNoUploadProjectFiles(
-		projectRootDir,
-		otherFilesToModify,
-		implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
-		true,
-		logger)
+	if !forceUpload {
+		otherFilesToModify = utils.FilterNoUploadProjectFiles(
+			projectRootDir,
+			otherFilesToModify,
+			implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+			true,
+			logger)
+	}
 
 	otherFilesToModify, droppedFiles := utils.FilterFilesWithWhitelist(otherFilesToModify, projectConfig.RegexpArray(config.K_ProjectFilesWhitelist))
 	for _, file := range droppedFiles {
