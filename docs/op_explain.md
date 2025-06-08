@@ -32,6 +32,8 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
 
+- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question.
+
 - `-h`: Display the help message, detailing all available flags and their descriptions.
 
 - `-v`: Enable debug logging to receive detailed output about the operation's execution process.
@@ -74,6 +76,12 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    Perpetual explain -i questions/query.txt -r explanations/full_data_flow.md -f
    ```
 
+6. **Include the question and relevant files list in the answer:**
+
+   ```sh
+   Perpetual explain -i questions/query.txt -r explanations/detailed_answer.md -q
+   ```
+
 ## LLM Configuration
 
 The effectiveness of the `explain` operation relies on the configuration of the underlying LLM. Environment variables defined in the `.env` file dictate the behavior and performance of the LLM during the explanation process. Proper configuration ensures accurate, relevant, and comprehensive explanations tailored to your project's specific needs.
@@ -84,15 +92,15 @@ The effectiveness of the `explain` operation relies on the configuration of the 
    - If not set, both stages default to the general `LLM_PROVIDER`.
 
 2. **Model Selection:**
-   - `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2`: Define the Anthropic models used in each stage (for example, "claude-3-sonnet-20240229" for stage 1 and "claude-3-opus-20240229" for stage 2).
-   - `OPENAI_MODEL_OP_EXPLAIN_STAGE1`, `OPENAI_MODEL_OP_EXPLAIN_STAGE2`: Specify the OpenAI models for each stage.
-   - `OLLAMA_MODEL_OP_EXPLAIN_STAGE1`, `OLLAMA_MODEL_OP_EXPLAIN_STAGE2`: Specify the Ollama models for each stage.
+   - `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2`: Define the Anthropic models used in each stage (for example, "claude-3-7-sonnet-latest" for stage 1 and "claude-sonnet-4-20250514" for stage 2).
+   - `OPENAI_MODEL_OP_EXPLAIN_STAGE1`, `OPENAI_MODEL_OP_EXPLAIN_STAGE2`: Specify the OpenAI models for each stage (for example, "gpt-4.1" for stage 1 and "o4-mini" for stage 2).
+   - `OLLAMA_MODEL_OP_EXPLAIN_STAGE1`, `OLLAMA_MODEL_OP_EXPLAIN_STAGE2`: Specify the Ollama models for each stage (for example, "qwen3:32b" for both stages).
    - `GENERIC_MODEL_OP_EXPLAIN_STAGE1`, `GENERIC_MODEL_OP_EXPLAIN_STAGE2`: Specify the models for the Generic (OpenAI compatible) provider.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of tokens for each stage when using Anthropic.
-   - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using OpenAI.
-   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama.
+   - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of tokens for each stage when using Anthropic (typically 1024 for stage 1 and 32768 for stage 2).
+   - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using OpenAI (typically 1024 for stage 1 and 8192 for stage 2).
+   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama (typically 512 for stage 1 and 8192 for stage 2).
    - `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with the Generic provider.
    - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`, `GENERIC_MAX_TOKENS_SEGMENTS`: Limit the number of continuation segments if token limits are reached, preventing excessive API calls.
 
@@ -108,20 +116,24 @@ The effectiveness of the `explain` operation relies on the configuration of the 
    Ensure that the selected models support JSON-structured output for reliable performance. This setting is somewhat experimental and may improve or worsen the ability to obtain a list of files related to the question, depending on the model used. The Generic (OpenAI compatible) provider profile does not support JSON-structured output mode at this time.
 
 5. **Retry Settings:**
-   - `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define the number of retry attempts on failure for each stage with Anthropic.
-   - `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with OpenAI.
-   - `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Ollama.
+   - `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define the number of retry attempts on failure for each stage with Anthropic (typically 2 for stage 1 and 10 for stage 2).
+   - `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with OpenAI (typically 2 for stage 1 and 10 for stage 2).
+   - `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Ollama (typically 3 for both stages).
    - `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with the Generic provider.
 
 6. **Temperature:**
-   - `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Anthropic.
-   - `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using OpenAI.
-   - `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Ollama.
+   - `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Anthropic (typically 0.2 for stage 1 and 1.0 for stage 2 with thinking models).
+   - `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using OpenAI (typically 0.2 for stage 1 and 0.7 for stage 2).
+   - `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Ollama (typically 0.2 for stage 1 and 0.7 for stage 2).
    - `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using the Generic provider.
 
-   Lower values (e.g., 0.3–0.5) yield more focused and consistent explanations, while higher values (0.5–0.9) can produce more creative and varied outputs.
+   Lower values (e.g., 0.2–0.3) yield more focused and consistent explanations, while higher values (0.7–1.0) can produce more creative and varied outputs.
 
-7. **Other LLM Parameters:**
+7. **Special Features:**
+   - `ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2`: Set thinking token budget for Anthropic models that support extended thinking (typically 4096 for answer generation).
+   - `OLLAMA_THINK_OP_EXPLAIN_STAGE2`: Enable or disable reasoning/thinking for Ollama models that support it (e.g., Qwen3, DeepSeek R1).
+
+8. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: Customize these parameters for each stage by appending `_OP_EXPLAIN_STAGE1` or `_OP_EXPLAIN_STAGE2` to the variable names (for example, `ANTHROPIC_TOP_K_OP_EXPLAIN_STAGE1`). These are particularly useful for fine-tuning outputs from different models.
 
 ### Example Configuration in `.env` File
@@ -131,21 +143,21 @@ LLM_PROVIDER="openai"
 
 ...
 
-OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-4"
-OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-4"
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="2048"
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="4096"
+OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-4.1"
+OPENAI_MODEL_OP_EXPLAIN_STAGE2="o4-mini"
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024"
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192"
 OPENAI_MAX_TOKENS_SEGMENTS="3"
 OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2"
 OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
-OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
-OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="2"
+OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="2"
+OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10"
 
 # Enable JSON-structured output mode
 OPENAI_FORMAT_OP_EXPLAIN_STAGE1="json"
 ```
 
-This configuration sets the `openai` provider with the `gpt-4` model for both stages, defines appropriate token limits, sets temperatures to balance creativity and consistency, enables JSON-structured output mode for stage 1, and allows for retries on failure.
+This configuration sets the `openai` provider with the `gpt-4.1` model for stage 1 and `o4-mini` for stage 2, defines appropriate token limits, sets temperatures to balance creativity and consistency, enables JSON-structured output mode for stage 1, and allows for retries on failure.
 
 ## Prompts Configuration
 
@@ -179,6 +191,10 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 
 - **`noupload_comments_rx`**: Regular expressions to detect `no-upload` comments, marking files that should not be processed for privacy or other reasons.
 
+- **`output_question_header`**, **`output_files_header`**, **`output_answer_header`**: Headers used when the `-q` flag is enabled to structure the output with question, relevant files list, and answer sections.
+
+- **`output_filename_tags`**, **`output_filtered_filename_tags`**: Tags used to format filenames in the output, with special formatting for filtered files when using the `-q` flag.
+
 - **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters that define the schema and structure of stage 1 outputs when JSON-structured output mode is enabled.
 
 ## Workflow
@@ -188,13 +204,15 @@ The `explain` operation is divided into two main stages:
 1. **Stage 1: Index Analysis:**
    - **Project Index Request:** Sends a request to the LLM to analyze the project annotations/index and determine which files are related to the question asked.
    - **Response Handling:** Parses the LLM's response to extract a list of files that require further examination, ensuring they reside within the project's scope and adhere to filtering rules.
+   - **Local Similarity Search:** If embeddings are available and local search is enabled, performs cosine similarity search to find additional relevant files based on semantic similarity to the question.
 
    If the `-l` flag is specified, execution stops at this stage, outputting only the list of files.
 
 2. **Stage 2: Detailed Explanation:**
-   - **Content Compilation:** Aggregates the contents of the identified files, preparing them for detailed analysis by the LLM.
+   - **Content Compilation:** Aggregates the contents of the identified files, preparing them for detailed analysis by the LLM. Files marked with 'no-upload' comments are filtered out unless the `-f` flag is used.
    - **Question Processing:** Sends the main question along with the relevant file contents to the LLM to generate a comprehensive explanation.
    - **Response Handling:** Receives and compiles the LLM's response, handling scenarios where token limits are reached by utilizing continuation segments as configured.
+   - **Output Formatting:** If the `-q` flag is enabled, formats the output to include the original question, list of relevant files (with indicators for filtered files), and the generated answer.
 
 ## Best Practices
 
@@ -206,3 +224,9 @@ The `explain` operation is divided into two main stages:
 
 3. **Enable Verbose Logging During Development:**
    - When setting up or troubleshooting the `explain` operation, enable debug or trace logging to gain insights into the operation's internal processes and to identify potential issues.
+
+4. **Optimize Local Search:**
+   - Use the `-s` parameter to control the number of files returned by local similarity search. Setting it to 0 disables local search entirely, while higher values may include more context but could also introduce noise.
+
+5. **Use Context Saving Mode for Large Projects:**
+   - For large codebases, use the `-c` parameter to control context usage. The `auto` mode automatically balances between aggressive and conservative file selection based on the number of files found in stage 1.
