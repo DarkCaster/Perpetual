@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -40,6 +41,13 @@ type anthropicStreamReader struct {
 	streamingFunc       func(chunk []byte)
 	setToolResponseFunc func(response string)
 	errorFunc           func(statusCode int, errorMessage string)
+	requestTime         time.Time
+	startDelaySec       float64
+	eventsPerSec        float64
+	charsPerSec         float64
+	msgCount            int
+	charCount           int
+	timerStarted        bool
 }
 
 func (o *anthropicStreamReader) Read(p []byte) (int, error) {
@@ -132,15 +140,26 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
 			if eventLine == "event: content_block_start" {
 				contentBlock, ok := dataObj["content_block"].(map[string]interface{})
 				if ok {
+					//start timer on first content block
+					if !o.timerStarted {
+						o.startDelaySec = time.Since(o.requestTime).Seconds()
+						o.timerStarted = true
+						o.requestTime = time.Now()
+					}
+					o.msgCount++
 					if cType, ok := contentBlock["type"].(string); ok && cType == "text" {
 						if o.blockIndexSub > 0 {
 							o.streamingFunc([]byte("AI response:\n\n\n"))
+						}
+						if cData, ok := contentBlock["text"].(string); ok {
+							o.charCount += len(cData)
 						}
 					}
 					if cType, ok := contentBlock["type"].(string); ok && cType == "thinking" {
 						o.streamingFunc([]byte("AI thinking:\n\n\n"))
 						if cData, ok := contentBlock["thinking"].(string); ok {
 							o.streamingFunc([]byte(cData))
+							o.charCount += len(cData)
 						}
 						o.skipStopBlocks++
 						o.blockIndexSub++
@@ -157,9 +176,15 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
 			if eventLine == "event: content_block_delta" {
 				deltaBlock, ok := dataObj["delta"].(map[string]interface{})
 				if ok {
+					if cType, ok := deltaBlock["type"].(string); ok && cType == "text_delta" {
+						if cData, ok := deltaBlock["text"].(string); ok {
+							o.charCount += len(cData)
+						}
+					}
 					if cType, ok := deltaBlock["type"].(string); ok && cType == "thinking_delta" {
 						if cData, ok := deltaBlock["thinking"].(string); ok {
 							o.streamingFunc([]byte(cData))
+							o.charCount += len(cData)
 						}
 						continue //not forwarding event to upstream
 					}
@@ -170,6 +195,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
 						if cData, ok := deltaBlock["partial_json"].(string); ok {
 							o.streamingFunc([]byte(cData))
 							o.toolJsonBuiler.WriteString(cData)
+							o.charCount += len(cData)
 						}
 						continue //not forwarding event to upstream
 					}
@@ -247,7 +273,17 @@ func (o *anthropicStreamReader) Close() error {
 	return o.inner.Close()
 }
 
+func (o *anthropicStreamReader) GetPerfReport() (float64, float64, float64) {
+	//do not allow to division by zero
+	durationS := math.Max(time.Since(o.requestTime).Seconds(), 0.1)
+	//set performance counters
+	o.charsPerSec = float64(o.charCount) / durationS
+	o.eventsPerSec = float64(o.msgCount) / durationS
+	return o.startDelaySec, o.eventsPerSec, o.charsPerSec
+}
+
 func newAnthropicStreamReader(
+	requestTime time.Time,
 	inner io.ReadCloser,
 	streamingFunc func(chunk []byte),
 	setToolResponseFunc func(response string),
@@ -263,14 +299,16 @@ func newAnthropicStreamReader(
 		streamingFunc:       streamingFunc,
 		setToolResponseFunc: setToolResponseFunc,
 		errorFunc:           errorFunc,
+		requestTime:         requestTime,
 	}
 }
 
 type anthropicStreamCollector struct {
-	streamingFunc func(chunk []byte)
-	StatusCode    int
-	ErrorMessage  string
-	ToolResponse  string
+	streamingFunc  func(chunk []byte)
+	StatusCode     int
+	ErrorMessage   string
+	ToolResponse   string
+	perfReportFunc func() (float64, float64, float64)
 }
 
 func newAnthropicStreamCollector(streamingFunc func(chunk []byte)) *anthropicStreamCollector {
@@ -318,7 +356,8 @@ func (p *anthropicStreamCollector) CollectResponse(requestTime time.Time, respon
 		return errors.New(p.ErrorMessage)
 	}
 	// Custom reader, that will attempt to capture and split away thinking content from anthropic api
-	response.Body = newAnthropicStreamReader(
+	reader := newAnthropicStreamReader(
+		requestTime,
 		response.Body,
 		p.streamingFunc,
 		func(response string) {
@@ -329,5 +368,14 @@ func (p *anthropicStreamCollector) CollectResponse(requestTime time.Time, respon
 			p.ErrorMessage = errorMessage
 		},
 	)
+	p.perfReportFunc = reader.GetPerfReport
+	response.Body = reader
 	return nil
+}
+
+func (p *anthropicStreamCollector) GetPerfReport() (float64, float64, float64) {
+	if p.perfReportFunc == nil {
+		return 0, 0, 0
+	}
+	return p.perfReportFunc()
 }
