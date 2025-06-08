@@ -49,7 +49,7 @@ To create initial `task.md` with Claude, in the terminal window inside project d
 echo "I want to create a Tetris game. I need you to create a description of the task for implementing the game: game rules, settings, requirements, etc. The project will be written in .net 8, using wpf and xaml, a desktop application. Do not write any code now, just create me a document with the task." | Perpetual_amd64.exe explain -a -r .\task.md
 ```
 
-You may alter the prompt if you want to. Non-determenistic nature of LLM will produce different results every time. You still will need to revise the `task.md` document - **remove the file-list** at the top of `task.md`, and make document more consise and easy to understand. This is crucial to make LLM to procude decent code.
+You may alter the prompt if you want to. Non-determenistic nature of LLM will produce different results every time. You should revise the `task.md` document to ensure it consise and easy to understand. This is crucial to make LLM to procude decent code.
 
 In my case, after some editing, I end up with the following `task.md` document:
 
