@@ -176,6 +176,7 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
 			if eventLine == "event: content_block_delta" {
 				deltaBlock, ok := dataObj["delta"].(map[string]interface{})
 				if ok {
+					o.msgCount++
 					if cType, ok := deltaBlock["type"].(string); ok && cType == "text_delta" {
 						if cData, ok := deltaBlock["text"].(string); ok {
 							o.charCount += len(cData)

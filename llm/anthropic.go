@@ -37,6 +37,7 @@ type AnthropicLLMConnector struct {
 	FieldsToRemove        []string
 	Debug                 llmDebug
 	RateLimitDelayS       int
+	PerfString            string
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -268,6 +269,8 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	finalContent := []string{}
+	var perfLineBuilder strings.Builder
+
 	for i := 0; i < maxCandidates; i++ {
 		//make a pause, if we need to wait to recover from previous error
 		if p.RateLimitDelayS > 0 {
@@ -383,6 +386,14 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		//reset rate limit delay
 		p.RateLimitDelayS = 0
 
+		startDelay, eventsPS, charsPS := responseStreamCollector.GetPerfReport()
+		if maxCandidates > 1 {
+			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
+		} else {
+			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
+		}
+		p.PerfString = perfLineBuilder.String()
+
 		var content string
 		if len(response.Choices) < 1 || responseStreamCollector.ToolResponse != "" {
 			if responseStreamCollector.ToolResponse == "" {
@@ -439,5 +450,5 @@ func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionSt
 }
 
 func (p *AnthropicLLMConnector) GetPerfString() string {
-	return ""
+	return p.PerfString
 }
