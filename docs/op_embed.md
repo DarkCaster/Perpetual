@@ -126,28 +126,28 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
 - **Ollama Prefixes:**  
   You can optionally set `OLLAMA_EMBED_DOC_PREFIX` and `OLLAMA_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some Ollama embedding models (e.g., `nomic-embed-text-v1.5`) may expect a specific prompt prefix. Refer to the model's documentation or its Hugging Face model card for recommended prefixes. **NOTE:** `snowflake-arctic-embed2` does not require any prefixes to be set.
 
-## Example Configuration in `.env` File
+## Example Configurations in `.env` Files
 
 ```sh
-# Use OpenAI embeddings
+# OpenAI embeddings
 LLM_PROVIDER_OP_EMBED="openai"
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small"
-
 # Document chunk size / overlap (in characters)
 OPENAI_EMBED_DOC_CHUNK_SIZE="1024"
 OPENAI_EMBED_DOC_CHUNK_OVERLAP="64"
-
 # Search query chunk size / overlap (in characters)
 OPENAI_EMBED_SEARCH_CHUNK_SIZE="4096"
 OPENAI_EMBED_SEARCH_CHUNK_OVERLAP="128"
-
+# Set dimension count of generated vectors (optional)
+OPENAI_EMBED_DIMENSIONS="1536"
 # Cosine similarity threshold
 OPENAI_EMBED_SCORE_THRESHOLD="0.0"
-
 # Retry on failure
 OPENAI_ON_FAIL_RETRIES_OP_EMBED="3"
+```
 
-# Or with Ollama:
+```sh
+# Ollama embeddings
 LLM_PROVIDER_OP_EMBED="ollama"
 OLLAMA_MODEL_OP_EMBED="nomic-embed-text-v1.5"
 OLLAMA_EMBED_DOC_CHUNK_SIZE="1024"
@@ -155,8 +155,7 @@ OLLAMA_EMBED_DOC_CHUNK_OVERLAP="64"
 OLLAMA_EMBED_SEARCH_CHUNK_SIZE="1024"
 OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="64"
 OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
-
-# Optional Ollama prefixes for models that require them
+# Optional Ollama prefixes for models that require them (needed for nomic-embed-text)
 OLLAMA_EMBED_DOC_PREFIX="search_document: \n"
 OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
 ```
