@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
@@ -24,14 +25,18 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-	var help, force, dryRun, verbose, trace bool
-	var requestedFile, userFilterFile string
+	var help, force, dryRun, verbose, trace, readQuestion bool
+	var inputFile, requestedFile, userFilterFile string
+	var searchLimit int
 
 	flags := embedFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.BoolVar(&force, "f", false, "Force regeneration of embeddings for all files, even if they are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating embeddings, list of files that will be processed")
 	flags.StringVar(&requestedFile, "r", "", "Only generate embeddings for single file provided with this flag, even if its embedding is already up to date (implies -f flag)")
+	flags.BoolVar(&readQuestion, "q", false, "Read question from stdin and find files relevant to it")
+	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (implies -q flag)")
+	flags.IntVar(&searchLimit, "s", 5, "Limit on the number of files returned that are relevant to the question")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -129,6 +134,30 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	// File names and dir-names must not contain path separators characters
 	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+	}
+
+	// Read input from file or stdin
+	var question string
+	if readQuestion || inputFile != "" {
+		if inputFile != "" {
+			data, err := utils.LoadTextFile(inputFile)
+			if err != nil {
+				logger.Panicln("Error reading input file:", err)
+			}
+			question = data
+		} else {
+			logger.Infoln("Reading question from stdin")
+			data, err := utils.LoadTextStdin()
+			if err != nil {
+				logger.Panicln("Error reading from stdin:", err)
+			}
+			question = string(data)
+		}
+		// Trim excess line breaks at both sides of question, and stop on empty input
+		question = strings.Trim(question, "\n")
+		if len(question) < 1 {
+			logger.Panicln("Question is empty, cannot continue")
+		}
 	}
 
 	logger.Infoln("Calculating checksums for project files")
@@ -287,6 +316,21 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if errorFlag {
 		logger.Panicln("Not all files were successfully processed. Run embed again to process failed files.")
 	}
+
+	if question == "" {
+		return
+	}
+
+	//file-list for search
+	fileNames, droppedFiles = utils.FilterFilesWithBlacklist(fileNames, userBlacklist)
+	if len(droppedFiles) > 0 {
+		logger.Infoln("Number of files to search, filtered by user-provided blacklist:", len(droppedFiles))
+	}
+	for _, file := range droppedFiles {
+		logger.Debugln("Filtered-out:", file)
+	}
+
+	SimilaritySearchStage(0, searchLimit, perpetualDir, []string{question}, []string{"question"}, fileNames, []string{}, logger)
 }
 
 // Called internally to generate embeddings for local similarity search queries
