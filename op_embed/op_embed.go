@@ -24,7 +24,7 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-	var help, force, dryRun, verbose, trace, readQuestion bool
+	var help, force, dryRun, verbose, trace, readQuestion, includeTests bool
 	var inputFile, requestedFile, userFilterFile string
 	var searchLimit int
 
@@ -36,6 +36,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&readQuestion, "q", false, "Read question from stdin and find files relevant to it")
 	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (implies -q flag)")
 	flags.IntVar(&searchLimit, "s", 5, "Limit on the number of files returned that are relevant to the question")
+	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -110,6 +111,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	var userBlacklist []*regexp.Regexp
+	if readQuestion && !includeTests {
+		userBlacklist = append(userBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
+	}
 	if userFilterFile != "" {
 		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
 		if err != nil {
@@ -217,7 +221,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	//filter with user-blacklist, revert checksum for dropped files, so they can be reevaluated next time
 	filesToEmbed, droppedFiles := utils.FilterFilesWithBlacklist(filesToEmbed, userBlacklist)
 	if len(droppedFiles) > 0 {
-		logger.Infoln("Number of files to embed, filtered by user-provided blacklist:", len(droppedFiles))
+		logger.Infoln("Number of files to embed, filtered by blacklists:", len(droppedFiles))
 	}
 	for _, file := range droppedFiles {
 		fileChecksums[file] = oldChecksums[file]
@@ -326,7 +330,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	//file-list for search
 	fileNames, droppedFiles = utils.FilterFilesWithBlacklist(fileNames, userBlacklist)
 	if len(droppedFiles) > 0 {
-		logger.Infoln("Number of files to search, filtered by user-provided blacklist:", len(droppedFiles))
+		logger.Infoln("Number of files to search, filtered by blacklists:", len(droppedFiles))
 	}
 	for _, file := range droppedFiles {
 		logger.Debugln("Filtered-out:", file)
