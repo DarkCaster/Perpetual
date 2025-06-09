@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -42,7 +41,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if dryRun {
+	if inputFile != "" {
+		readQuestion = true
+	}
+	if dryRun || readQuestion {
 		logger = stdErrLogger
 	}
 	if verbose {
@@ -138,7 +140,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Read input from file or stdin
 	var question string
-	if readQuestion || inputFile != "" {
+	if readQuestion {
 		if inputFile != "" {
 			data, err := utils.LoadTextFile(inputFile)
 			if err != nil {
@@ -227,7 +229,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for _, file := range filesToEmbed {
 			fmt.Println(file)
 		}
-		os.Exit(0)
+		return
 	}
 
 	logger.Infoln("Generating embeddings, file count:", len(filesToEmbed))
@@ -330,7 +332,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Debugln("Filtered-out:", file)
 	}
 
-	SimilaritySearchStage(0, searchLimit, perpetualDir, []string{question}, []string{"question"}, fileNames, []string{}, logger)
+	results := SimilaritySearchStage(0, searchLimit, perpetualDir, []string{question}, []string{"question"}, fileNames, []string{}, logger)
+
+	for _, file := range results {
+		fmt.Println(file)
+	}
 }
 
 // Called internally to generate embeddings for local similarity search queries
