@@ -1,6 +1,6 @@
 # Embed Operation
 
-The `embed` operation generates vector embeddings for your project’s source files, enabling local semantic search and similarity queries. By converting file contents into numerical vectors, `embed` allows Perpetual to find files related by meaning rather than just name or pattern, improving search relevance for other operations.
+The `embed` operation generates vector embeddings for your project's source files, enabling local semantic search and similarity queries. By converting file contents into numerical vectors, `embed` allows Perpetual to find files related by meaning rather than just name or pattern, improving search relevance for other operations.
 
 ## Usage
 
@@ -10,7 +10,13 @@ The `embed` operation is optional and will only function when an embedding model
 Perpetual embed [flags]
 ```
 
-When invoked, `embed` processes your project files, detects changes, and regenerates embeddings as needed. It is also called internally by other operations (such as `doc`, `explain`, and `implement`) to complement LLM-driven file selection with local similarity search using the project’s existing embeddings. When properly set up, you generally do not need to run the `embed` operation manually.
+The `embed` operation has two primary modes:
+
+1. **Embedding Generation Mode (default):** Processes your project files, detects changes, and regenerates embeddings as needed.
+
+2. **Question/Search Mode:** Performs semantic search using existing embeddings to find files relevant to a specific question or query.
+
+When invoked without question flags, `embed` processes your project files and is also called internally by other operations (such as `doc`, `explain`, and `implement`) to complement LLM-driven file selection with local similarity search using the project's existing embeddings. When properly set up, you generally do not need to run the `embed` operation manually.
 
 Available flags:
 
@@ -22,6 +28,18 @@ Available flags:
 
 - `-r <file>`  
   Generate embeddings for a single file, even if its embedding already exists (implies `-f`).
+
+- `-q`  
+  Read question from stdin and find files relevant to it using semantic search.
+
+- `-i <file>`  
+  Read question from file (plain text or markdown format) and find relevant files (implies `-q`).
+
+- `-s <limit>`  
+  Limit on the number of files returned that are relevant to the question (default: 5). Only used with `-q` or `-i`.
+
+- `-u`  
+  Do not exclude unit-test source files from processing. Only used with `-q` or `-i`.
 
 - `-x <file>`  
   Path to a JSON file containing regex filters to exclude files from embedding.
@@ -55,7 +73,19 @@ Available flags:
    Perpetual embed -r cmd/main.go
    ```
 
-4. **Exclude tests and generated files via user-supplied filter:**
+4. **Search for files related to a question from stdin:**
+
+   ```sh
+   echo "How does authentication work?" | Perpetual embed -q
+   ```
+
+5. **Search for files related to a question in a file:**
+
+   ```sh
+   Perpetual embed -i question.txt -s 3
+   ```
+
+6. **Exclude files via user-supplied filter:**
 
    ```sh
    Perpetual embed -x filters/skip_patterns.json
@@ -88,10 +118,13 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
   `OPENAI_EMBED_DIMENSIONS`
 
 - **Retries:**  
-  `<PROVIDER>_ON_FAIL_RETRIES_OP_EMBED` (default: 3)
+  `<PROVIDER>_ON_FAIL_RETRIES_OP_EMBED` (fallback to `<PROVIDER>_ON_FAIL_RETRIES`, default: 3)
+
+- **Generic Provider Prefixes:**  
+  You can set `GENERIC_EMBED_DOC_PREFIX` and `GENERIC_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some embedding models may expect a specific prompt prefix. Refer to the model's documentation or its Hugging Face model card for recommended prefixes.
 
 - **Ollama Prefixes:**  
-  You can optionally set `OLLAMA_EMBED_DOC_PREFIX` and `OLLAMA_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some Ollama embedding models (e.g., `nomic-embed-text-v1.5`) may expect a specific prompt prefix. Refer to the model’s documentation or its Hugging Face model card for recommended prefixes. **NOTE:** `snowflake-arctic-embed2` does not require any prefixes to be set.
+  You can optionally set `OLLAMA_EMBED_DOC_PREFIX` and `OLLAMA_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some Ollama embedding models (e.g., `nomic-embed-text-v1.5`) may expect a specific prompt prefix. Refer to the model's documentation or its Hugging Face model card for recommended prefixes. **NOTE:** `snowflake-arctic-embed2` does not require any prefixes to be set.
 
 ## Example Configuration in `.env` File
 
@@ -113,7 +146,6 @@ OPENAI_EMBED_SCORE_THRESHOLD="0.0"
 
 # Retry on failure
 OPENAI_ON_FAIL_RETRIES_OP_EMBED="3"
-OPENAI_MAX_TOKENS_SEGMENTS="3"
 
 # Or with Ollama:
 LLM_PROVIDER_OP_EMBED="ollama"
@@ -124,12 +156,14 @@ OLLAMA_EMBED_SEARCH_CHUNK_SIZE="1024"
 OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="64"
 OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
 
-# Optional Ollama prefixes
+# Optional Ollama prefixes for models that require them
 OLLAMA_EMBED_DOC_PREFIX="search_document: \n"
 OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
 ```
 
 ## Workflow
+
+### Embedding Generation Mode
 
 1. **Project Discovery**  
    Locate the project root and Perpetual directory (`.perpetual`).
@@ -164,8 +198,31 @@ OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
 9. **Save Embeddings**  
    Update the embeddings storage file and checksums if any embeddings changed.
 
-10. **Internal Use for Local Search**  
-    Other operations invoke `embed` internally to perform local similarity search, combining these embeddings with LLM-driven file selection for improved relevance.
+### Question/Search Mode
+
+When using `-q` or `-i` flags:
+
+1. **Read Question**  
+   Load the question from stdin (with `-q`) or from a file (with `-i`).
+
+2. **Apply Test File Filtering**  
+   If `-u` is not specified, exclude test files from the search using project blacklist patterns.
+
+3. **Generate Question Embeddings**  
+   Create embeddings for the input question using the same LLM provider.
+
+4. **Load Project Embeddings**  
+   Read existing project file embeddings from storage.
+
+5. **Perform Similarity Search**  
+   Calculate cosine similarity between the question embedding and all project file embeddings.
+
+6. **Return Results**  
+   Output the top files (limited by `-s` parameter) that exceed the similarity threshold, sorted by relevance score.
+
+### Internal Use for Local Search
+
+Other operations invoke `embed` internally to perform local similarity search, combining these embeddings with LLM-driven file selection for improved relevance.
 
 ## Best Practices
 
