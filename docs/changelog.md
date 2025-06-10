@@ -21,6 +21,12 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v7.1.0
+
+### Improvements
+
+- Added new logic and corresponding flags to `embed` operation to support performing local similarity file-search for provided question, provided either from stdin or from plain text or markdown file.
+
 ## v7.0.0
 
 ### Improvements
