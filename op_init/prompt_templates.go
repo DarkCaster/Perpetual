@@ -172,7 +172,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result := config.GetImplementConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	// stage 1
-	result[config.K_ImplementStage1IndexResponse] = defaultAIAcknowledge
+	result[config.K_ProjectIndexResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage1AnalysisPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the tasks. Place each filename between <filename></filename> tags."
 	result[config.K_ImplementStage1AnalysisJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the tasks."
 	result[config.K_ImplementTaskStage1AnalysisPrompt] = "Below are the tasks that need to be implemented. Review the tasks and the project description that was provided to you and create a list of filenames from the project description that you will need to see to implement the tasks. Place each filename between <filename></filename> tags. The tasks are:"
@@ -230,7 +230,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
 	result[config.K_DocProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
 	result[config.K_DocProjectCodeResponse] = defaultAIAcknowledge
-	result[config.K_DocProjectIndexResponse] = defaultAIAcknowledge
+	result[config.K_ProjectIndexResponse] = defaultAIAcknowledge
 	// stage 1
 	result[config.K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename between <filename></filename> tags. Full text of the document provided below:"
 	result[config.K_DocStage1RefineJsonModePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of files from the project description that you will need to work on the document. Full text of the document provided below:"
@@ -253,7 +253,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result := config.GetExplainConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
-	result[config.K_ExplainProjectIndexResponse] = defaultAIAcknowledge
+	result[config.K_ProjectIndexResponse] = defaultAIAcknowledge
 	result[config.K_ExplainOutFilesHeader] = "# Relevant Files"
 	result[config.K_ExplainOutFilenameTags] = []string{"`", "`"}
 	result[config.K_ExplainOutFilteredFilenameTags] = []string{"~~`", "`~~"}
