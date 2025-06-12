@@ -189,6 +189,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		fileNames,
 		annotations,
+		[]string{}, []string{}, []string{},
 		question,
 		logger)
 

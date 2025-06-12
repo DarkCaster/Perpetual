@@ -59,6 +59,21 @@ func Stage1(projectRootDir string,
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
+	// Create extra history of queries with LLM responses that will be inserted before main query
+	for i := 0; i < len(preQueriesPrompts); i++ {
+		// Create prompt
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
+		if preQueriesBodies[i] != "" {
+			request = llm.AddPlainTextFragment(request, preQueriesBodies[i])
+		}
+		messages = append(messages, request)
+		logger.Debugf("Created pre-request message #%d", i)
+		// Create response
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+		messages = append(messages, response)
+		logger.Debugf("Created simulated response for pre-request message #%d", i)
+	}
+
 	// Create target files analysis request message
 	var analysisRequest llm.Message
 	if query == "" {

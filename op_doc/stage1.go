@@ -17,7 +17,6 @@ func Stage1(projectRootDir string,
 	preQueriesBodies []string,
 	preQueriesResponses []string,
 	query string,
-	docExampleContent string,
 	action string,
 	logger logging.ILogger) []string {
 
@@ -60,17 +59,19 @@ func Stage1(projectRootDir string,
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
-	if docExampleContent != "" {
-		// Create document-example request message
-		exampleDocRequest := llm.AddPlainTextFragment(
-			llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocExamplePrompt)),
-			docExampleContent)
-		messages = append(messages, exampleDocRequest)
-		logger.Debugln("Created document-example request message")
-		// Create document-example simulated response
-		exampleDocResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocExampleResponse))
-		messages = append(messages, exampleDocResponse)
-		logger.Debugln("Created document-example simulated response message")
+	// Create extra history of queries with LLM responses that will be inserted before main query
+	for i := 0; i < len(preQueriesPrompts); i++ {
+		// Create prompt
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
+		if preQueriesBodies[i] != "" {
+			request = llm.AddPlainTextFragment(request, preQueriesBodies[i])
+		}
+		messages = append(messages, request)
+		logger.Debugf("Created pre-request message #%d", i)
+		// Create response
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+		messages = append(messages, response)
+		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
 	// Create project-files analysis request message

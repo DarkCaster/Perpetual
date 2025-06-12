@@ -254,6 +254,7 @@ func Run(args []string, logger logging.ILogger) {
 				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 				fileNames,
 				annotations,
+				[]string{}, []string{}, []string{},
 				task,
 				targetFiles,
 				logger)
