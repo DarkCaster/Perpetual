@@ -13,7 +13,7 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
-	task string,
+	query string,
 	targetFiles []string,
 	logger logging.ILogger) []string {
 
@@ -50,7 +50,7 @@ func Stage1(projectRootDir string,
 
 	// Create target files analysis request message
 	var analysisRequest llm.Message
-	if task == "" {
+	if query == "" {
 		analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
 		if connector.GetOutputFormat() == llm.OutputJson {
 			analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
@@ -62,7 +62,7 @@ func Stage1(projectRootDir string,
 		if connector.GetOutputFormat() == llm.OutputJson {
 			analysisPrompt = cfg.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
 		}
-		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), task)
+		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), query)
 		logger.Debugln("Created task analysis request message")
 	}
 
