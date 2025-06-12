@@ -11,7 +11,7 @@ func Stage1(projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
-	fileNames []string,
+	projectFiles []string,
 	annotations map[string]string,
 	targetFiles []string,
 	task string,
@@ -38,7 +38,7 @@ func Stage1(projectRootDir string,
 	// Create project-index request message
 	projectIndexRequest := llm.ComposeMessageWithAnnotations(
 		cfg.String(config.K_ImplementStage1IndexPrompt),
-		fileNames,
+		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
@@ -127,5 +127,5 @@ func Stage1(projectRootDir string,
 		break
 	}
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, fileNames, logger)
+	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, projectFiles, logger)
 }
