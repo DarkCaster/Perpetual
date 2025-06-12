@@ -13,7 +13,7 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
-	docContent string,
+	query string,
 	docExampleContent string,
 	action string,
 	logger logging.ILogger) []string {
@@ -81,7 +81,7 @@ func Stage1(projectRootDir string,
 		logger.Panicln("Invalid action:", action)
 	}
 
-	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), docContent)
+	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), query)
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
