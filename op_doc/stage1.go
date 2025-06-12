@@ -13,6 +13,9 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
+	preQueriesPrompts []string,
+	preQueriesBodies []string,
+	preQueriesResponses []string,
 	query string,
 	docExampleContent string,
 	action string,
@@ -21,6 +24,11 @@ func Stage1(projectRootDir string,
 	// Add trace and debug logging
 	logger.Traceln("Stage1: Starting")
 	defer logger.Traceln("Stage1: Finished")
+
+	// Some safety checks
+	if len(preQueriesPrompts) != len(preQueriesBodies) || len(preQueriesPrompts) != len(preQueriesResponses) {
+		logger.Panicf("Pre-queries arrays are different length!")
+	}
 
 	// Create stage1 llm connector
 	connector, err := llm.NewLLMConnector(
