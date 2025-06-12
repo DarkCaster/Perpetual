@@ -35,17 +35,20 @@ func Stage1(projectRootDir string,
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
 	}
 
+	var messages []llm.Message
 	// Create project-index request message
-	projectIndexRequest := llm.ComposeMessageWithAnnotations(
+	indexRequest := llm.ComposeMessageWithAnnotations(
 		cfg.String(config.K_ProjectIndexPrompt),
 		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
+	messages = append(messages, indexRequest)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	projectIndexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
+	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analysis request message
@@ -56,15 +59,16 @@ func Stage1(projectRootDir string,
 			analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
 		}
 		analysisRequest = llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
-		logger.Debugln("Created target files analysis request message")
 	} else {
 		analysisPrompt := cfg.String(config.K_ImplementTaskStage1AnalysisPrompt)
 		if connector.GetOutputFormat() == llm.OutputJson {
 			analysisPrompt = cfg.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
 		}
 		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), query)
-		logger.Debugln("Created task analysis request message")
 	}
+
+	messages = append(messages, analysisRequest)
+	logger.Debugln("Created code-analysis request message")
 
 	logger.Infoln("Running stage1: find project files for review")
 	logger.Infoln(connector.GetDebugString())
@@ -75,8 +79,7 @@ func Stage1(projectRootDir string,
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		var status llm.QueryStatus
-		aiResponses, status, err := connector.Query(1, projectIndexRequest, projectIndexResponse, analysisRequest)
+		aiResponses, status, err := connector.Query(1, messages...)
 		if perfString := connector.GetPerfString(); perfString != "" {
 			logger.Traceln(perfString)
 		}
