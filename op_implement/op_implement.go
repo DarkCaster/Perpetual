@@ -254,8 +254,8 @@ func Run(args []string, logger logging.ILogger) {
 				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 				fileNames,
 				annotations,
-				targetFiles,
 				task,
+				targetFiles,
 				logger)
 			// Prepare for local similarity search
 			var searchQueries []string

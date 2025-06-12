@@ -13,8 +13,8 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
-	targetFiles []string,
 	task string,
+	targetFiles []string,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
