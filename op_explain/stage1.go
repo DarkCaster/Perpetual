@@ -13,7 +13,7 @@ func Stage1(projectRootDir string,
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	annotations map[string]string,
-	question string,
+	query string,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -56,7 +56,7 @@ func Stage1(projectRootDir string,
 		prompt = cfg.String(config.K_ExplainStage1QuestionJsonModePrompt)
 	}
 
-	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), question)
+	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), query)
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
