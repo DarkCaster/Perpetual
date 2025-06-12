@@ -74,6 +74,7 @@ func Stage1(projectRootDir string,
 		if perfString := connector.GetPerfString(); perfString != "" {
 			logger.Traceln(perfString)
 		}
+		// Handle LLM query errors
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("LLM query failed:", err)
@@ -119,7 +120,6 @@ func Stage1(projectRootDir string,
 		logger.Debugln("Parsed list of files for review from LLM response")
 		break
 	}
-
 	// Filter all requested files through project file-list, return only files found in project file-list
 	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, []string{}, projectFiles, logger)
 }

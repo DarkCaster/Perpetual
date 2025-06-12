@@ -73,6 +73,7 @@ func Stage1(projectRootDir string,
 	logger.Infoln("Running stage1: find project files for review")
 	logger.Infoln(connector.GetDebugString())
 
+	// Perform LLM query
 	var filesForReviewRaw []string
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
