@@ -37,7 +37,7 @@ func Stage1(projectRootDir string,
 
 	// Create project-index request message
 	projectIndexRequest := llm.ComposeMessageWithAnnotations(
-		cfg.String(config.K_ImplementStage1IndexPrompt),
+		cfg.String(config.K_ProjectIndexPrompt),
 		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
@@ -45,7 +45,7 @@ func Stage1(projectRootDir string,
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	projectIndexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage1IndexResponse))
+	projectIndexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
 	logger.Debugln("Created project-index simulated response message")
 
 	// Create target files analysis request message

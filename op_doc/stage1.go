@@ -39,7 +39,7 @@ func Stage1(projectRootDir string,
 	var messages []llm.Message
 	// Create project-index request message
 	indexRequest := llm.ComposeMessageWithAnnotations(
-		cfg.String(config.K_DocProjectIndexPrompt),
+		cfg.String(config.K_ProjectIndexPrompt),
 		projectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
@@ -48,7 +48,7 @@ func Stage1(projectRootDir string,
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocProjectIndexResponse))
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
