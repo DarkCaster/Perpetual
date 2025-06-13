@@ -93,7 +93,7 @@ func Stage1(projectRootDir string,
 	}
 
 	messages = append(messages, analysisRequest)
-	logger.Debugln("Created code-analysis request message")
+	logger.Debugln("Created main request message")
 
 	logger.Infoln("Running stage1: find project files for review")
 	logger.Infoln(connector.GetDebugString())
