@@ -77,7 +77,6 @@ func Stage1(projectRootDir string,
 		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
-	// Create target files analysis request message
 	prompt := mainPromptPlain
 	if connector.GetOutputFormat() == llm.OutputJson {
 		prompt = mainPromptJson
