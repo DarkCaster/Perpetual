@@ -219,6 +219,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docPromptPlain,
 			docPromptJson,
 			docContent,
+			[]string{},
 			logger)
 
 		searchMode := 0

@@ -19,6 +19,7 @@ func Stage1(projectRootDir string,
 	mainPromptPlain string,
 	mainPromptJson string,
 	mainPromptBody string,
+	targetFiles []string,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -84,7 +85,10 @@ func Stage1(projectRootDir string,
 	if mainPromptBody != "" {
 		analysisRequest = llm.AddPlainTextFragment(analysisRequest, mainPromptBody)
 	}
-	// TODO: add annotations
+	// Add file contents
+	for _, item := range targetFiles {
+		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, cfg.StringArray(config.K_FilenameTags), logger)
+	}
 
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created main request message")

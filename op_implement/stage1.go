@@ -86,21 +86,10 @@ func Stage1(projectRootDir string,
 	if mainPromptBody != "" {
 		analysisRequest = llm.AddPlainTextFragment(analysisRequest, mainPromptBody)
 	}
-	// TODO: add annotations
-
-	/*if mainQuery == "" {
-		analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
-		if connector.GetOutputFormat() == llm.OutputJson {
-			analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
-		}
-		analysisRequest = llm.ComposeMessageWithFiles(projectRootDir, analysisPrompt, targetFiles, cfg.StringArray(config.K_FilenameTags), logger)
-	} else {
-		analysisPrompt := cfg.String(config.K_ImplementTaskStage1AnalysisPrompt)
-		if connector.GetOutputFormat() == llm.OutputJson {
-			analysisPrompt = cfg.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
-		}
-		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), mainQuery)
-	}*/
+	// Add file contents
+	for _, item := range targetFiles {
+		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, cfg.StringArray(config.K_FilenameTags), logger)
+	}
 
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
