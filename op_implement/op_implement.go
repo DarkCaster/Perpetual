@@ -255,6 +255,8 @@ func Run(args []string, logger logging.ILogger) {
 				fileNames,
 				annotations,
 				[]string{}, []string{}, []string{},
+				implementConfig.String(config.K_ImplementTaskStage1AnalysisPrompt),
+				implementConfig.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt),
 				task,
 				targetFiles,
 				logger)

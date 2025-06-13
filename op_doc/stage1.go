@@ -16,8 +16,9 @@ func Stage1(projectRootDir string,
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
 	preQueriesResponses []string,
-	mainQuery string,
-	action string,
+	mainPromptPlain string,
+	mainPromptJson string,
+	mainPromptBody string,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -74,25 +75,19 @@ func Stage1(projectRootDir string,
 		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
-	// Create project-files analysis request message
-	var prompt string
-	if action == "WRITE" {
-		prompt = cfg.String(config.K_DocStage1WritePrompt)
-		if connector.GetOutputFormat() == llm.OutputJson {
-			prompt = cfg.String(config.K_DocStage1WriteJsonModePrompt)
-		}
-	} else if action == "REFINE" {
-		prompt = cfg.String(config.K_DocStage1RefinePrompt)
-		if connector.GetOutputFormat() == llm.OutputJson {
-			prompt = cfg.String(config.K_DocStage1RefineJsonModePrompt)
-		}
-	} else {
-		logger.Panicln("Invalid action:", action)
+	prompt := mainPromptPlain
+	if connector.GetOutputFormat() == llm.OutputJson {
+		prompt = mainPromptJson
 	}
+	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt)
+	// Add main body
+	if mainPromptBody != "" {
+		analysisRequest = llm.AddPlainTextFragment(analysisRequest, mainPromptBody)
+	}
+	// TODO: add annotations
 
-	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), mainQuery)
 	messages = append(messages, analysisRequest)
-	logger.Debugln("Created code-analysis request message")
+	logger.Debugln("Created main request message")
 
 	logger.Infoln("Running stage1: find project files for review")
 	logger.Infoln(connector.GetDebugString())

@@ -16,7 +16,9 @@ func Stage1(projectRootDir string,
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
 	preQueriesResponses []string,
-	mainQuery string,
+	mainPromptPlain string,
+	mainPromptJson string,
+	mainPromptBody string,
 	targetFiles []string,
 	logger logging.ILogger) []string {
 
@@ -75,8 +77,18 @@ func Stage1(projectRootDir string,
 	}
 
 	// Create target files analysis request message
-	var analysisRequest llm.Message
-	if mainQuery == "" {
+	prompt := mainPromptPlain
+	if connector.GetOutputFormat() == llm.OutputJson {
+		prompt = mainPromptJson
+	}
+	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt)
+	// Add main body
+	if mainPromptBody != "" {
+		analysisRequest = llm.AddPlainTextFragment(analysisRequest, mainPromptBody)
+	}
+	// TODO: add annotations
+
+	/*if mainQuery == "" {
 		analysisPrompt := cfg.String(config.K_ImplementStage1AnalysisPrompt)
 		if connector.GetOutputFormat() == llm.OutputJson {
 			analysisPrompt = cfg.String(config.K_ImplementStage1AnalysisJsonModePrompt)
@@ -88,7 +100,7 @@ func Stage1(projectRootDir string,
 			analysisPrompt = cfg.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
 		}
 		analysisRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), analysisPrompt), mainQuery)
-	}
+	}*/
 
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")

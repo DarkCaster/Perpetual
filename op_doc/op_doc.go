@@ -194,6 +194,18 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Error reading annotations:", err)
 		}
 
+		var docPromptPlain string
+		var docPromptJson string
+		if action == "WRITE" {
+			docPromptPlain = docConfig.String(config.K_DocStage1WritePrompt)
+			docPromptJson = docConfig.String(config.K_DocStage1WriteJsonModePrompt)
+		} else if action == "REFINE" {
+			docPromptPlain = docConfig.String(config.K_DocStage1RefinePrompt)
+			docPromptJson = docConfig.String(config.K_DocStage1RefineJsonModePrompt)
+		} else {
+			logger.Panicln("Invalid action:", action)
+		}
+
 		// Run stage1 to find out what project-files contents we need to work on document
 		requestedFiles := Stage1(projectRootDir,
 			perpetualDir,
@@ -204,8 +216,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			[]string{docConfig.String(config.K_DocExamplePrompt)},
 			[]string{docExampleContent},
 			[]string{docConfig.String(config.K_DocExampleResponse)},
+			docPromptPlain,
+			docPromptJson,
 			docContent,
-			action,
 			logger)
 
 		searchMode := 0
