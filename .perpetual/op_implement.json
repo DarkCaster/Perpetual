@@ -18,10 +18,10 @@
   "noupload_comments_rx": [
     "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
   ],
+  "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
+  "project_index_response": "Understood. What's next?",
   "stage1_analysis_json_mode_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the tasks.",
   "stage1_analysis_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of filenames from the project description that you will need to see in addition to this source code to implement the tasks. Place each filename between <filename></filename> tags.",
-  "stage1_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
-  "stage1_index_response": "Understood. What's next?",
   "stage1_output_key": "list_of_files",
   "stage1_output_schema": {
     "properties": {
