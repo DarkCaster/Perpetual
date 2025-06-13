@@ -16,7 +16,7 @@ func Stage1(projectRootDir string,
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
 	preQueriesResponses []string,
-	query string,
+	mainQuery string,
 	action string,
 	logger logging.ILogger) []string {
 
@@ -90,7 +90,7 @@ func Stage1(projectRootDir string,
 		logger.Panicln("Invalid action:", action)
 	}
 
-	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), query)
+	analysisRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), mainQuery)
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created code-analysis request message")
 
