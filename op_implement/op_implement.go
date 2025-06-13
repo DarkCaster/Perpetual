@@ -12,6 +12,7 @@ import (
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_embed"
 	"github.com/DarkCaster/Perpetual/op_stash"
+	"github.com/DarkCaster/Perpetual/stages"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -259,7 +260,8 @@ func Run(args []string, logger logging.ILogger) {
 
 		if nonTargetFilesAnnotationsCount > 0 {
 			// Run stage 1
-			filesToReview = Stage1(
+			filesToReview = stages.Stage1(
+				OpName,
 				projectRootDir,
 				perpetualDir,
 				implementConfig,

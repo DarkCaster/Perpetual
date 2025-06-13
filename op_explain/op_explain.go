@@ -11,6 +11,7 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
 	"github.com/DarkCaster/Perpetual/op_embed"
+	"github.com/DarkCaster/Perpetual/stages"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -183,7 +184,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Run stage 1
-	requestedFiles := Stage1(projectRootDir,
+	requestedFiles := stages.Stage1(
+		OpName,
+		projectRootDir,
 		perpetualDir,
 		explainConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),

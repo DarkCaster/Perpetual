@@ -1,4 +1,4 @@
-package op_explain
+package stages
 
 import (
 	"github.com/DarkCaster/Perpetual/config"
@@ -7,7 +7,9 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Stage1(projectRootDir string,
+func Stage1(
+	opName string,
+	projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
@@ -33,7 +35,7 @@ func Stage1(projectRootDir string,
 
 	// Create stage1 llm connector
 	connector, err := llm.NewLLMConnector(
-		OpName+"_stage1",
+		opName+"_stage1",
 		cfg.String(config.K_SystemPrompt),
 		cfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
