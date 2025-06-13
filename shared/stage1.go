@@ -1,4 +1,4 @@
-package stages
+package shared
 
 import (
 	"github.com/DarkCaster/Perpetual/config"
