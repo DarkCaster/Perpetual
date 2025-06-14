@@ -122,19 +122,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSavingMode := 0
-	if (contextSaving == "AUTO" &&
-		len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount1) &&
-		len(fileNames) < annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount2)) ||
-		contextSaving == "MEDIUM" {
-		logger.Infoln("Medium context saving selected: generating short annotations")
-		contextSavingMode = 1
-	}
-
-	if (contextSaving == "AUTO" &&
-		len(fileNames) >= annotateConfig.Integer(config.K_AnnotateContextSavingFilesCount2)) ||
+	if (contextSaving == "AUTO" && len(fileNames) >= annotateConfig.Integer(config.K_AnnotateShortSummaryFileCount)) ||
+		contextSaving == "MEDIUM" ||
 		contextSaving == "HIGH" {
-		logger.Infoln("Maximum context saving selected: generating tiny annotations")
-		contextSavingMode = 2
+		logger.Infoln("Context saving enabled: generating short annotations")
+		contextSavingMode = 1
 	}
 
 	// Check fileNames array for case collisions

@@ -13,9 +13,9 @@ func (p *bashPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-type-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][4]string{
-		{"(?i)^.*\\.(sh|bash|in)$", defaultAIAnnotatePrompt_Bash, defaultAIAnnotatePrompt_Bash_Short, defaultAIAnnotatePrompt_Bash_Tiny},
-		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short, defaultAIAnnotatePrompt_Generic_Tiny},
+	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*\\.(sh|bash|in)$", defaultAIAnnotatePrompt_Bash, defaultAIAnnotatePrompt_Bash_Short},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
 }

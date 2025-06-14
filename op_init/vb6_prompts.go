@@ -13,11 +13,11 @@ func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][4]string{
-		{"(?i)^.*\\.frm$", defaultAIAnnotatePrompt_VB6_Form, defaultAIAnnotatePrompt_VB6_Form_Short, defaultAIAnnotatePrompt_VB6_Form_Tiny},
-		{"(?i)^.*\\.cls$", defaultAIAnnotatePrompt_VB6_Class, defaultAIAnnotatePrompt_VB6_Class_Short, defaultAIAnnotatePrompt_VB6_Class_Tiny},
-		{"(?i)^.*\\.bas$", defaultAIAnnotatePrompt_VB6_Module, defaultAIAnnotatePrompt_VB6_Module_Short, defaultAIAnnotatePrompt_VB6_Module_Tiny},
-		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short, defaultAIAnnotatePrompt_Generic_Tiny},
+	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*\\.frm$", defaultAIAnnotatePrompt_VB6_Form, defaultAIAnnotatePrompt_VB6_Form_Short},
+		{"(?i)^.*\\.cls$", defaultAIAnnotatePrompt_VB6_Class, defaultAIAnnotatePrompt_VB6_Class_Short},
+		{"(?i)^.*\\.bas$", defaultAIAnnotatePrompt_VB6_Module, defaultAIAnnotatePrompt_VB6_Module_Short},
+		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	return result
