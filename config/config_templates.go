@@ -16,7 +16,6 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
-	result[K_AnnotateShortSummaryFileCount] = templateInteger
 	// ack from AI
 	result[K_AnnotateStage1Prompts] = templateString2DArray
 	result[K_AnnotateStage1Response] = templateString
@@ -155,5 +154,7 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectFilesWhitelist] = templateStringArray
 	result[K_ProjectTestFilesBlacklist] = templateStringArray
 	result[K_ProjectMdCodeMappings] = templateString2DArray
+	result[K_ProjectMediumContextSavingFileCount] = templateInteger
+	result[K_ProjectHighContextSavingFileCount] = templateInteger
 	return result
 }

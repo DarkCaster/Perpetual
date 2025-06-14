@@ -122,7 +122,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSavingMode := 0
-	if (contextSaving == "AUTO" && len(fileNames) >= annotateConfig.Integer(config.K_AnnotateShortSummaryFileCount)) ||
+	if (contextSaving == "AUTO" && len(fileNames) >= projectConfig.Integer(config.K_ProjectMediumContextSavingFileCount)) ||
 		contextSaving == "MEDIUM" ||
 		contextSaving == "HIGH" {
 		logger.Infoln("Context saving enabled: generating short annotations")
