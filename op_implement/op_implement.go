@@ -64,10 +64,7 @@ func Run(args []string, logger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving mode value provided")
-	}
+	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	// Set planning mode
 	planningMode := 0
@@ -210,15 +207,7 @@ func Run(args []string, logger logging.ILogger) {
 		skipStage1 = true
 	} else if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params := []string{}
-		op_embed_params := []string{}
-		if userFilterFile != "" {
-			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
-			op_embed_params = append(op_embed_params, "-x", userFilterFile)
-		}
-		if contextSaving != "AUTO" {
-			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
-		}
+		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving)
 		op_annotate.Run(op_annotate_params, true, logger, logger)
 		op_embed.Run(op_embed_params, true, logger, logger)
 	} else {
@@ -293,25 +282,7 @@ func Run(args []string, logger logging.ILogger) {
 			// Compose list of already requested files
 			requestedFiles := append(utils.NewSlice(filesToReview...), targetFiles...)
 			// Select search mode
-			searchMode := 0
-			switch contextSaving {
-			case "HIGH":
-				searchMode = 1
-			case "MEDIUM":
-				searchMode = 1
-			case "OFF":
-				searchMode = 0
-			case "AUTO":
-				fallthrough
-			default:
-				if len(requestedFiles) <= searchLimit {
-					//for low requested file count - use aggressive search mode
-					searchMode = 0
-				} else {
-					//for high requested file count - use conservative search mode
-					searchMode = 1
-				}
-			}
+			searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
 			if searchLimit > len(requestedFiles) {
 				searchLimit = len(requestedFiles)
 			}

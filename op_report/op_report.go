@@ -9,6 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
+	"github.com/DarkCaster/Perpetual/shared"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -54,10 +55,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving mode value provided")
-	}
+	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
@@ -122,13 +120,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params := []string{}
-		if userFilterFile != "" {
-			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
-		}
-		if contextSaving != "AUTO" {
-			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
-		}
+		op_annotate_params, _ := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving)
 		logger.Debugln("Rotating log file")
 		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
 			logger.Panicln("Failed to rotate log file:", err)

@@ -65,10 +65,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving mode value provided")
-	}
+	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	if searchLimit < 0 {
 		logger.Panicln("Similar files limit parameter cannot be less than 0")
@@ -164,15 +161,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params := []string{}
-		op_embed_params := []string{}
-		if userFilterFile != "" {
-			op_annotate_params = append(op_annotate_params, "-x", userFilterFile)
-			op_embed_params = append(op_embed_params, "-x", userFilterFile)
-		}
-		if contextSaving != "AUTO" {
-			op_annotate_params = append(op_annotate_params, "-c", contextSaving)
-		}
+		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving)
 		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
 		op_embed.Run(op_embed_params, true, logger, stdErrLogger)
 	}
@@ -199,26 +188,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		[]string{},
 		logger)
 
-	searchMode := 0
-	switch contextSaving {
-	case "HIGH":
-		searchMode = 1
-	case "MEDIUM":
-		searchMode = 1
-	case "OFF":
-		searchMode = 0
-	case "AUTO":
-		fallthrough
-	default:
-		if len(requestedFiles) <= searchLimit {
-			//for low requested file count - use aggressive search mode
-			searchMode = 0
-		} else {
-			//for high requested file count - use conservative search mode
-			searchMode = 1
-		}
-	}
-
+	searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
 	if searchLimit > len(requestedFiles) {
 		searchLimit = len(requestedFiles)
 	}

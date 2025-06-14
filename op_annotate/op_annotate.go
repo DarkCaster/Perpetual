@@ -12,6 +12,7 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/shared"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -58,10 +59,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	contextSaving = strings.ToUpper(contextSaving)
-	if contextSaving != "AUTO" && contextSaving != "OFF" && contextSaving != "MEDIUM" && contextSaving != "HIGH" {
-		logger.Panicln("Invalid context saving mode value provided")
-	}
+	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	if requestedFile != "" {
 		force = true
