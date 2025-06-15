@@ -10,6 +10,13 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
+type SimilarFileSelectMode int
+
+const (
+	SelectAggressive SimilarFileSelectMode = iota
+	SelectConservative
+)
+
 func GetQueriesForSimilaritySearch(query string, targetFiles []string, annotations map[string]string) ([]string, []string) {
 	// Prepare for local similarity search
 	var searchQueries []string
@@ -30,7 +37,8 @@ func GetQueriesForSimilaritySearch(query string, targetFiles []string, annotatio
 }
 
 func SimilaritySearchStage(
-	fileSelectMode, limit int,
+	fileSelectMode SimilarFileSelectMode,
+	limit int,
 	perpetualDir string,
 	searchQueries, searchTags, sourceFiles, preSelectedFiles []string,
 	logger logging.ILogger) []string {
@@ -127,7 +135,7 @@ func SimilaritySearchStage(
 	}
 	//file selection
 	selectedFiles := []string{}
-	if fileSelectMode == 0 {
+	if fileSelectMode == SelectAggressive {
 		logger.Infoln("Selecting files (aggressive):")
 		for i, result := range similarityResults {
 			logger.Debugf("Processing scores for vector %d: ", i)

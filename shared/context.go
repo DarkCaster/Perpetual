@@ -5,6 +5,7 @@ import (
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/op_embed"
 )
 
 // This file contain service functions used with various operations to manage context saving measures
@@ -17,24 +18,24 @@ func ValidateContextSavingValue(contextSavingMode string, logger logging.ILogger
 	return contextSavingMode
 }
 
-func GetLocalSearchModeFromContextSavingValue(contextSavingMode string, requestedFilesCount, searchLimit int) int {
-	var searchMode int
+func GetLocalSearchModeFromContextSavingValue(contextSavingMode string, requestedFilesCount, searchLimit int) op_embed.SimilarFileSelectMode {
+	var searchMode op_embed.SimilarFileSelectMode
 	switch contextSavingMode {
 	case "HIGH":
-		searchMode = 1
+		searchMode = op_embed.SelectConservative
 	case "MEDIUM":
-		searchMode = 1
+		searchMode = op_embed.SelectConservative
 	case "OFF":
-		searchMode = 0
+		searchMode = op_embed.SelectAggressive
 	case "AUTO":
 		fallthrough
 	default:
 		if requestedFilesCount <= searchLimit {
 			//for low requested file count - use aggressive search mode
-			searchMode = 0
+			searchMode = op_embed.SelectAggressive
 		} else {
 			//for high requested file count - use conservative search mode
-			searchMode = 1
+			searchMode = op_embed.SelectConservative
 		}
 	}
 	return searchMode
