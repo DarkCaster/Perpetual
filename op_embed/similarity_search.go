@@ -29,7 +29,13 @@ func GetQueriesForSimilaritySearch(query string, targetFiles []string, annotatio
 	return searchQueries, searchTags
 }
 
-func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
+func SimilaritySearchStage(
+	fileSelectMode, limit int,
+	perpetualDir string,
+	searchQueries, searchTags, sourceFiles, preSelectedFiles []string,
+	logger logging.ILogger) []string {
+
+	// Add trace and debug logging
 	logger.Traceln("SimilaritySearchStage: Starting")
 	defer logger.Traceln("SimilaritySearchStage: Finished")
 
