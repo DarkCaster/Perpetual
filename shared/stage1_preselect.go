@@ -44,6 +44,9 @@ func Stage1Preselect(
 
 	// Prepare for local similarity search
 	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(query, targetFiles, annotations)
+	silentLogger := logger.Clone()
+	silentLogger.DisableLevel(logging.InfoLevel)
+
 	similarFiles := op_embed.SimilaritySearchStage(
 		op_embed.SelectAggressive,
 		filesToRequest,
@@ -52,7 +55,7 @@ func Stage1Preselect(
 		searchTags,
 		projectFiles,
 		targetFiles,
-		logger)
+		silentLogger)
 	if len(similarFiles) < 1 {
 		logger.Warnln("Context saving disabled: local search returned no results")
 		return projectFiles
