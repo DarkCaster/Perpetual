@@ -34,24 +34,38 @@ func (l *SimpleLogger) Tracef(format string, args ...any) {
 func (l *SimpleLogger) Debugf(format string, args ...any) {
 	if l.CurLevel&DebugLevel > 0 {
 		l.NormalLogger.Print(l.timer(), "[DBG] ", fmt.Sprintf(format, args...))
+	} else {
+		l.Tracef(format, args...)
 	}
 }
 
 func (l *SimpleLogger) Infof(format string, args ...any) {
 	if l.CurLevel&InfoLevel > 0 {
 		l.NormalLogger.Print(l.timer(), "[INF] ", fmt.Sprintf(format, args...))
+	} else {
+		l.Tracef(format, args...)
 	}
 }
 
 func (l *SimpleLogger) Warnf(format string, args ...any) {
 	if l.CurLevel&WarnLevel > 0 {
 		l.NormalLogger.Print(l.timer(), "[WRN] ", fmt.Sprintf(format, args...))
+	} else {
+		l.Tracef(format, args...)
+	}
+}
+
+func (l *SimpleLogger) tracefErr(format string, args ...any) {
+	if l.CurLevel&TraceLevel > 0 {
+		l.ErrorLogger.Print(l.timer(), "[TRC] ", fmt.Sprintf(format, args...))
 	}
 }
 
 func (l *SimpleLogger) Errorf(format string, args ...any) {
 	if l.CurLevel&ErrorLevel > 0 {
 		l.ErrorLogger.Print(l.timer(), "[ERR] ", fmt.Sprintf(format, args...))
+	} else {
+		l.tracefErr(format, args...)
 	}
 }
 
