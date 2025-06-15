@@ -17,7 +17,7 @@ func GetQueriesForSimilaritySearch(query string, targetFiles []string, annotatio
 	// Compose queries for similarity search
 	if query != "" {
 		searchQueries = append(searchQueries, query)
-		searchTags = append(searchQueries, "query")
+		searchTags = append(searchTags, "query")
 	}
 	for _, file := range targetFiles {
 		annotation, ok := annotations[file]
