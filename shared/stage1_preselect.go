@@ -16,6 +16,11 @@ func Stage1Preselect(
 	targetFiles []string,
 	annotations map[string]string,
 	logger logging.ILogger) []string {
+
+	// Add trace and debug logging
+	logger.Traceln("Stage1Preselect: Starting")
+	defer logger.Traceln("Stage1Preselect: Finished")
+
 	if percentToSelect < 1 {
 		logger.Infof("Context saving disabled, pre-selecting all available project files: %d", len(projectFiles))
 		return projectFiles
@@ -40,6 +45,9 @@ func Stage1Preselect(
 	// Prepare for local similarity search
 	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(query, targetFiles, annotations)
 	similarFiles := op_embed.SimilaritySearchStage(0, filesToRequest, perpetualDir, searchQueries, searchTags, projectFiles, targetFiles, logger)
+	if len(similarFiles) < 1 {
+		return projectFiles
+	}
 
 	// Remove similarFiles and targetFiles from projectFiles slice
 	unusedProjectFiles := []string{}
