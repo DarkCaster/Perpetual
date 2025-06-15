@@ -61,6 +61,14 @@
 			"args": ["explain","-n","-i","question.txt","-vv"],
 		},
 		{
+			"name": "Launch Package: explain -c medium -n -i question.txt",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["explain","-c","medium","-n","-i","question.txt","-vv"],
+		},
+		{
 			"name": "Launch Package: implement",
 			"type": "go",
 			"request": "launch",
