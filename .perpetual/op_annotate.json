@@ -3,8 +3,6 @@
     "(?m)\\s*```[a-zA-Z]+\\n?",
     "(?m)```\\s*($|\\n)"
   ],
-  "context_saving_files_count1": 1000,
-  "context_saving_files_count2": 2000,
   "filename_tags": [
     "<filename>",
     "</filename>"
@@ -13,20 +11,17 @@
     [
       "(?i)^.*_test\\.go$",
       "Create a summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\nThis file contains unit tests for <list of entities the tests target>",
-      "Create a short summary for the GO unit-tests source file in my next message. The summary should be up to 2 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>",
-      "Create a short summary for the GO unit-tests source file in my next message. The summary should be 1 sentence long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, 1 sentence>"
+      "Create a short summary for the GO unit-tests source file in my next message. The summary should be up to 2 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
     ],
     [
       "(?i)^.*\\.go$",
       "Create a summary for the GO source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the package name and a list of top-level entities. Skip entities declared inside functions from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\nThis file provides <description of what this file is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>",
-      "Create a short summary for the GO source file in my next message. The summary should be up to 2 sentences long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>",
-      "Create a short summary for the GO source file in my next message. The summary should be 1 sentence long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, 1 sentence>"
+      "Create a short summary for the GO source file in my next message. The summary should be up to 2 sentences long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
     ],
     [
       "^.*$",
       "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>",
-      "Create a short summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence>",
-      "Create a very brief summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence, as brief as possible>"
+      "Create a short summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence>"
     ]
   ],
   "stage1_response": "Waiting for file contents",
