@@ -247,6 +247,14 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("No task or files with implement-comments provided for processing, cannot continue!")
 		}
 
+		// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+		filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
+		preselectedFileNames := shared.Stage1Preselect(
+			filesPercent,
+			randomizePercent,
+			fileNames,
+			logger)
+
 		if nonTargetFilesAnnotationsCount > 0 {
 			// Run stage 1
 			filesToReview = shared.Stage1(
@@ -255,6 +263,7 @@ func Run(args []string, logger logging.ILogger) {
 				perpetualDir,
 				implementConfig,
 				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+				preselectedFileNames,
 				fileNames,
 				annotations,
 				[]string{}, []string{}, []string{},

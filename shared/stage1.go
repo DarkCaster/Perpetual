@@ -1,6 +1,9 @@
 package shared
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -13,7 +16,8 @@ func Stage1(
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
-	projectFiles []string,
+	preselectedProjectFiles []string,
+	allProjectFiles []string,
 	annotations map[string]string,
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
@@ -51,7 +55,7 @@ func Stage1(
 	// Create project-index request message
 	indexRequest := llm.ComposeMessageWithAnnotations(
 		cfg.String(config.K_ProjectIndexPrompt),
-		projectFiles,
+		preselectedProjectFiles,
 		cfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
@@ -157,5 +161,77 @@ func Stage1(
 		break
 	}
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return utils.FilterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, projectFiles, logger)
+	return filterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, allProjectFiles, logger)
+}
+
+func filterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {
+	var filteredResult []string
+	logger.Debugln("Unfiltered file-list requested by LLM:", llmRequestedFiles)
+	logger.Infoln("Files requested by LLM:")
+	for _, check := range llmRequestedFiles {
+		//Remove new line from the end of filename, if present
+		if check != "" && check[len(check)-1] == '\n' {
+			check = check[:len(check)-1]
+		}
+		//Remove \r from the end of filename, if present
+		if check != "" && check[len(check)-1] == '\r' {
+			check = check[:len(check)-1]
+		}
+		//Replace possibly-invalid path separators
+		check = utils.ConvertFilePathToOSFormat(check)
+		//Make file path relative to project root
+		file, err := utils.MakePathRelative(projectRootDir, check, true)
+		if err != nil {
+			logger.Errorln("Failed to validate filename requested by LLM:", check)
+			continue
+		}
+		//Filter-out file if it is among files reqested by user, also fix case if so
+		file, found := utils.CaseInsensitiveFileSearch(file, userRequestedFiles)
+		if found {
+			logger.Warnln("Filtering-out file, it is already requested by user:", file)
+		} else {
+			file, found := utils.CaseInsensitiveFileSearch(file, filteredResult)
+			if found {
+				logger.Warnln("Filtering-out file, it is already processed or having name-case conflict:", file)
+			} else {
+				file, found := utils.CaseInsensitiveFileSearch(file, projectFiles)
+				if found {
+					filteredResult = append(filteredResult, file)
+					logger.Infoln(file)
+				} else if file, found = tryToSalvageFilename(projectFiles, file, logger); found {
+					_, found1 := utils.CaseInsensitiveFileSearch(file, userRequestedFiles)
+					_, found2 := utils.CaseInsensitiveFileSearch(file, filteredResult)
+					if found1 || found2 {
+						logger.Warnln("Filtering-out salvaged file, because it is already in filtered or user files", file)
+					} else {
+						filteredResult = append(filteredResult, file)
+					}
+				}
+			}
+		}
+	}
+
+	return filteredResult
+}
+
+func tryToSalvageFilename(projectFiles []string, fileToRecover string, logger logging.ILogger) (string, bool) {
+	filename := strings.ToLower(filepath.Base(fileToRecover))
+	var matches []string
+
+	// Find all files that end with the same filename
+	for _, projectFile := range projectFiles {
+		if strings.ToLower(filepath.Base(projectFile)) == filename {
+			matches = append(matches, projectFile)
+		}
+	}
+
+	if len(matches) == 1 {
+		logger.Infoln("Salvaged filename:", matches[0], "from:", fileToRecover)
+		return matches[0], true
+	} else if len(matches) > 1 {
+		logger.Warnln("Multiple matches found while salvaging filename:", fileToRecover)
+	} else {
+		logger.Warnln("No matches found while salvaging filename:", fileToRecover)
+	}
+	return "", false
 }

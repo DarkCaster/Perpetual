@@ -40,6 +40,10 @@ func GetLocalSearchModeFromContextSavingValue(contextSavingMode string, requeste
 	return searchMode
 }
 
+// Get percentage of files to select from project-files for processing at stage 1 to lower LLM context pressure
+// Return 2 values:
+// Percentage of files to select from project-files.
+// Percentage of files that will be randomized on selection in order to mitigate possible selection error.
 func GetLocalSearchLimitsForContextSaving(contextSavingMode string, projectFileCount int, projectConfig config.Config) (float64, float64) {
 	switch contextSavingMode {
 	case "HIGH":

@@ -172,6 +172,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error loading annotations:", err)
 	}
 
+	//TODO: preselect project files
+
 	// Run stage 1
 	requestedFiles := shared.Stage1(
 		OpName,
@@ -179,6 +181,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		perpetualDir,
 		explainConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		fileNames,
 		fileNames,
 		annotations,
 		[]string{}, []string{}, []string{},

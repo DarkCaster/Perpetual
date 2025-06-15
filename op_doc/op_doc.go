@@ -204,6 +204,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docConfig,
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 			fileNames,
+			fileNames,
 			annotations,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},
 			[]string{docExampleContent},
