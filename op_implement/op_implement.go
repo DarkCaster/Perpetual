@@ -2,7 +2,6 @@ package op_implement
 
 import (
 	"flag"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -247,15 +246,17 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Panicln("No task or files with implement-comments provided for processing, cannot continue!")
 		}
 
-		// Perform context saving measures - use local search to select only selected percentage of the most relevant files
-		filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
-		preselectedFileNames := shared.Stage1Preselect(
-			filesPercent,
-			randomizePercent,
-			fileNames,
-			logger)
-
 		if nonTargetFilesAnnotationsCount > 0 {
+			// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+			filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
+			preselectedFileNames := shared.Stage1Preselect(
+				filesPercent,
+				randomizePercent,
+				fileNames,
+				task,
+				targetFiles,
+				logger)
+
 			// Run stage 1
 			filesToReview = shared.Stage1(
 				OpName,
@@ -273,21 +274,7 @@ func Run(args []string, logger logging.ILogger) {
 				targetFiles,
 				logger)
 			// Prepare for local similarity search
-			var searchQueries []string
-			var searchTags []string
-			// Compose queries for similarity search
-			if task != "" {
-				searchQueries = []string{task}
-				searchTags = []string{"task"}
-			} else {
-				for _, file := range targetFiles {
-					annotation, ok := annotations[file]
-					if ok {
-						searchQueries = append(searchQueries, annotation)
-						searchTags = append(searchTags, fmt.Sprintf("annotation:%s", file))
-					}
-				}
-			}
+			searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)
 			// Compose list of already requested files
 			requestedFiles := append(utils.NewSlice(filesToReview...), targetFiles...)
 			// Select search mode

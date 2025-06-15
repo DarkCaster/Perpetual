@@ -196,6 +196,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Invalid action:", action)
 		}
 
+		//TODO: preselect project files
+
 		// Run stage1 to find out what project-files contents we need to work on document
 		requestedFiles := shared.Stage1(
 			OpName,
@@ -221,7 +223,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		// Local similarity search stage
-		similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, []string{docContent}, []string{"document"}, fileNames, requestedFiles, logger)
+		searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(docContent, []string{}, annotations)
+		similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, searchQueries, searchTags, fileNames, requestedFiles, logger)
 		requestedFiles = append(requestedFiles, similarFiles...)
 
 		// Check requested files for no-upload mark and filter it out

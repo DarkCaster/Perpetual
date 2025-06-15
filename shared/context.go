@@ -7,7 +7,7 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 )
 
-// This file contain shared service funcs used with various operations to manage context saving measures
+// This file contain service functions used with various operations to manage context saving measures
 
 func ValidateContextSavingValue(contextSavingMode string, logger logging.ILogger) string {
 	contextSavingMode = strings.ToUpper(contextSavingMode)

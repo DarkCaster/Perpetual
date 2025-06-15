@@ -1,6 +1,7 @@
 package op_embed
 
 import (
+	"fmt"
 	"math"
 	"path/filepath"
 	"sort"
@@ -8,6 +9,25 @@ import (
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
+
+func GetQueriesForSimilaritySearch(query string, targetFiles []string, annotations map[string]string) ([]string, []string) {
+	// Prepare for local similarity search
+	var searchQueries []string
+	var searchTags []string
+	// Compose queries for similarity search
+	if query != "" {
+		searchQueries = append(searchQueries, query)
+		searchTags = append(searchQueries, "query")
+	}
+	for _, file := range targetFiles {
+		annotation, ok := annotations[file]
+		if ok {
+			searchQueries = append(searchQueries, annotation)
+			searchTags = append(searchTags, fmt.Sprintf("annotation:%s", file))
+		}
+	}
+	return searchQueries, searchTags
+}
 
 func SimilaritySearchStage(fileSelectMode, limit int, perpetualDir string, searchQueries, searchTags, sourceFiles, preSelectedFiles []string, logger logging.ILogger) []string {
 	logger.Traceln("SimilaritySearchStage: Starting")
