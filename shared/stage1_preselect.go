@@ -44,9 +44,11 @@ func Stage1Preselect(
 
 	// Prepare for local similarity search
 	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(query, targetFiles, annotations)
+	//TODO: extract tasks as separate queries for targetFiles with implement comments, do not use targetFiles at GetQueriesForSimilaritySearch call
+
+	// make actual similarity search more silent, because it will spam a lot of unneded info
 	silentLogger := logger.Clone()
 	silentLogger.DisableLevel(logging.InfoLevel)
-
 	similarFiles := op_embed.SimilaritySearchStage(
 		op_embed.SelectAggressive,
 		filesToRequest,
