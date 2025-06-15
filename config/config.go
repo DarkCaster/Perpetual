@@ -5,6 +5,7 @@ import (
 )
 
 type Config interface {
+	Float(key string) float64
 	Integer(key string) int
 	String(key string) string
 	Regexp(key string) *regexp.Regexp

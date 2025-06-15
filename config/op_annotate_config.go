@@ -115,3 +115,7 @@ func (o *opAnnotateConfig) StringArray2D(key string) [][]string {
 func (o *opAnnotateConfig) Integer(key string) int {
 	return int(o.cfgValues[key].(float64))
 }
+
+func (o *opAnnotateConfig) Float(key string) float64 {
+	return o.cfgValues[key].(float64)
+}

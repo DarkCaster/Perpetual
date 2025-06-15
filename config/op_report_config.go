@@ -67,3 +67,7 @@ func (o *opReportConfig) StringArray2D(key string) [][]string {
 func (o *opReportConfig) Integer(key string) int {
 	return int(o.cfgValues[key].(float64))
 }
+
+func (o *opReportConfig) Float(key string) float64 {
+	return o.cfgValues[key].(float64)
+}

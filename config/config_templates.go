@@ -7,6 +7,7 @@ package config
 
 const templateString = "TEMPLATE VALUE, MUST BE REDEFINED"
 const templateInteger = 0
+const templateFloat = 0.0
 
 var templateStringArray = [...]string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 var templateString2DArray = [...][]string{{"TEMPLATE VALUE_00", "TEMPLATE VALUE_01"}, {"TEMPLATE VALUE_10", "TEMPLATE VALUE_11"}}
@@ -156,5 +157,9 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectMdCodeMappings] = templateString2DArray
 	result[K_ProjectMediumContextSavingFileCount] = templateInteger
 	result[K_ProjectHighContextSavingFileCount] = templateInteger
+	result[K_ProjectMediumContextSavingSelectPercent] = templateFloat
+	result[K_ProjectMediumContextSavingRandomPercent] = templateFloat
+	result[K_ProjectHighContextSavingSelectPercent] = templateFloat
+	result[K_ProjectHighContextSavingRandomPercent] = templateFloat
 	return result
 }

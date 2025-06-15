@@ -252,5 +252,9 @@ func getDefaultProjectConfigTemplate() map[string]interface{} {
 	result[config.K_ProjectMdCodeMappings] = [][2]string{}
 	result[config.K_ProjectMediumContextSavingFileCount] = 500
 	result[config.K_ProjectHighContextSavingFileCount] = 1000
+	result[config.K_ProjectMediumContextSavingSelectPercent] = 50.0
+	result[config.K_ProjectMediumContextSavingRandomPercent] = 25.0
+	result[config.K_ProjectHighContextSavingSelectPercent] = 25.0
+	result[config.K_ProjectHighContextSavingRandomPercent] = 25.0
 	return result
 }

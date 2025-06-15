@@ -3,6 +3,7 @@ package shared
 import (
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/logging"
 )
 
@@ -37,6 +38,38 @@ func GetLocalSearchModeFromContextSavingValue(contextSavingMode string, requeste
 		}
 	}
 	return searchMode
+}
+
+func GetLocalSearchLimitsForContextSaving(contextSavingMode string, projectFileCount int, projectConfig config.Config) (float64, float64) {
+	switch contextSavingMode {
+	case "HIGH":
+		return projectConfig.Float(config.K_ProjectHighContextSavingSelectPercent),
+			projectConfig.Float(config.K_ProjectHighContextSavingRandomPercent)
+	case "MEDIUM":
+		return projectConfig.Float(config.K_ProjectMediumContextSavingSelectPercent),
+			projectConfig.Float(config.K_ProjectMediumContextSavingRandomPercent)
+	case "OFF":
+		return 0, 0
+	case "AUTO":
+		fallthrough
+	default:
+		if projectFileCount > projectConfig.Integer(config.K_ProjectHighContextSavingFileCount) {
+			return projectConfig.Float(config.K_ProjectHighContextSavingSelectPercent),
+				projectConfig.Float(config.K_ProjectHighContextSavingRandomPercent)
+		} else if projectFileCount > projectConfig.Integer(config.K_ProjectMediumContextSavingFileCount) {
+			return projectConfig.Float(config.K_ProjectMediumContextSavingSelectPercent),
+				projectConfig.Float(config.K_ProjectMediumContextSavingRandomPercent)
+		}
+	}
+
+	if projectFileCount > projectConfig.Integer(config.K_ProjectHighContextSavingFileCount) {
+		return projectConfig.Float(config.K_ProjectHighContextSavingSelectPercent),
+			projectConfig.Float(config.K_ProjectHighContextSavingRandomPercent)
+	} else if projectFileCount > projectConfig.Integer(config.K_ProjectMediumContextSavingFileCount) {
+		return projectConfig.Float(config.K_ProjectMediumContextSavingSelectPercent),
+			projectConfig.Float(config.K_ProjectMediumContextSavingRandomPercent)
+	}
+	return 0, 0
 }
 
 func GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSavingMode string) ([]string, []string) {
