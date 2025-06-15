@@ -196,7 +196,17 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Invalid action:", action)
 		}
 
-		//TODO: preselect project files
+		// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+		filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
+		preselectedFileNames := shared.Stage1Preselect(
+			perpetualDir,
+			filesPercent,
+			randomizePercent,
+			fileNames,
+			docContent,
+			[]string{},
+			annotations,
+			logger)
 
 		// Run stage1 to find out what project-files contents we need to work on document
 		requestedFiles := shared.Stage1(
@@ -205,7 +215,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			perpetualDir,
 			docConfig,
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-			fileNames,
+			preselectedFileNames,
 			fileNames,
 			annotations,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},

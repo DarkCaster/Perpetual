@@ -172,7 +172,17 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error loading annotations:", err)
 	}
 
-	//TODO: preselect project files
+	// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+	filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
+	preselectedFileNames := shared.Stage1Preselect(
+		perpetualDir,
+		filesPercent,
+		randomizePercent,
+		fileNames,
+		question,
+		[]string{},
+		annotations,
+		logger)
 
 	// Run stage 1
 	requestedFiles := shared.Stage1(
@@ -181,7 +191,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		perpetualDir,
 		explainConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		fileNames,
+		preselectedFileNames,
 		fileNames,
 		annotations,
 		[]string{}, []string{}, []string{},
