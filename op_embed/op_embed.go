@@ -336,8 +336,15 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Debugln("Filtered-out:", file)
 	}
 
-	results := SimilaritySearchStage(0, searchLimit, perpetualDir, []string{question}, []string{"question"}, fileNames, []string{}, logger)
-
+	results := SimilaritySearchStage(
+		SelectAggressive,
+		searchLimit,
+		perpetualDir,
+		[]string{question},
+		[]string{"question"},
+		fileNames,
+		[]string{},
+		logger)
 	for _, file := range results {
 		fmt.Println(file)
 	}

@@ -208,7 +208,15 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Local similarity search stage
 	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(question, []string{}, annotations)
-	similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, searchQueries, searchTags, fileNames, requestedFiles, logger)
+	similarFiles := op_embed.SimilaritySearchStage(
+		searchMode,
+		searchLimit,
+		perpetualDir,
+		searchQueries,
+		searchTags,
+		fileNames,
+		requestedFiles,
+		logger)
 	requestedFiles = append(requestedFiles, similarFiles...)
 
 	if listFilesOnly {

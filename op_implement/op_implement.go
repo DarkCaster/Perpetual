@@ -285,7 +285,15 @@ func Run(args []string, logger logging.ILogger) {
 				searchLimit = len(requestedFiles)
 			}
 			// Local similarity search stage
-			similarFiles := op_embed.SimilaritySearchStage(searchMode, searchLimit, perpetualDir, searchQueries, searchTags, fileNames, requestedFiles, logger)
+			similarFiles := op_embed.SimilaritySearchStage(
+				searchMode,
+				searchLimit,
+				perpetualDir,
+				searchQueries,
+				searchTags,
+				fileNames,
+				requestedFiles,
+				logger)
 			filesToReview = append(filesToReview, similarFiles...)
 		} else {
 			logger.Warnln("All source code files already selected for review, no need to run stage1")
