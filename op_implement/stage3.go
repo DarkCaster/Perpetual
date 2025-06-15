@@ -112,7 +112,7 @@ func Stage3(projectRootDir string,
 	// Send request
 	if planningMode > 0 {
 		logger.Infoln("Running stage3: generating list of files for processing")
-		logger.Infoln(connector.GetDebugString())
+		logger.Notifyln(connector.GetDebugString())
 
 		var filesToProcessRaw []string
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()

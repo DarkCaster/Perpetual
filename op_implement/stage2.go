@@ -100,7 +100,7 @@ func Stage2(projectRootDir string,
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
 
 		logger.Infoln("Running stage2: generating work plan")
-		logger.Infoln(connector.GetDebugString())
+		logger.Notifyln(connector.GetDebugString())
 
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()

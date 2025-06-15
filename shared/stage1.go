@@ -101,7 +101,7 @@ func Stage1(
 	logger.Debugln("Created main request message")
 
 	logger.Infoln("Running stage1: find project files for review")
-	logger.Infoln(connector.GetDebugString())
+	logger.Notifyln(connector.GetDebugString())
 
 	// Perform LLM query
 	var filesForReviewRaw []string

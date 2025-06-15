@@ -39,7 +39,7 @@ func Stage4(projectRootDir string,
 	var processedFiles []string
 
 	logger.Infoln("Running stage4: implementing code")
-	logger.Infoln(connector.GetDebugString())
+	logger.Notifyln(connector.GetDebugString())
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {

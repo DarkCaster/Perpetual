@@ -239,7 +239,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	logger.Infoln("Generating embeddings, file count:", len(filesToEmbed))
 
 	if len(filesToEmbed) > 0 {
-		logger.Infoln(connector.GetDebugString())
+		logger.Notifyln(connector.GetDebugString())
 
 		// only rotate logfile for outer call if we have files to proceed
 		if !innerCall {
@@ -380,7 +380,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 
 	logger.Infoln("Generating search query embeddings for:", tag)
 
-	logger.Infoln(connector.GetDebugString())
+	logger.Notifyln(connector.GetDebugString())
 
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {

@@ -40,7 +40,7 @@ func (l *SimpleLogger) Debugf(format string, args ...any) {
 }
 
 func (l *SimpleLogger) Notifyf(format string, args ...any) {
-	if l.CurLevel&InfoLevel > 0 {
+	if l.CurLevel&NotifyLevel > 0 {
 		l.NormalLogger.Print(l.timer(), "[NTF] ", fmt.Sprintf(format, args...))
 	} else {
 		l.Tracef(format, args...)
@@ -103,7 +103,7 @@ func (l *SimpleLogger) Debugln(args ...any) {
 }
 
 func (l *SimpleLogger) Notifyln(args ...any) {
-	if l.CurLevel&InfoLevel > 0 {
+	if l.CurLevel&NotifyLevel > 0 {
 		l.NormalLogger.Print(l.timer(), "[NTF] ", fmt.Sprintln(args...))
 	} else {
 		l.Traceln(args...)

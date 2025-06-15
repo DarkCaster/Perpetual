@@ -84,7 +84,7 @@ func Stage2(projectRootDir string,
 
 	//Make LLM request, process response
 	logger.Infoln("Running stage2: processing question")
-	logger.Infoln(connector.GetDebugString())
+	logger.Notifyln(connector.GetDebugString())
 
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {

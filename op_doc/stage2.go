@@ -96,7 +96,7 @@ func Stage2(projectRootDir string,
 	logger.Debugln("Created document processing request message")
 
 	logger.Infoln("Running stage2: processing document")
-	logger.Infoln(connector.GetDebugString())
+	logger.Notifyln(connector.GetDebugString())
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()

@@ -222,9 +222,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
 		logger.Infoln("Annotate LLM config for generating summary variants:")
-		logger.Infoln(connector.GetDebugString())
+		logger.Notifyln(connector.GetDebugString())
 		logger.Infoln("Annotate LLM config for post-processing:")
-		logger.Infoln(connectorPost.GetDebugString())
+		logger.Notifyln(connectorPost.GetDebugString())
 	}
 
 	if !innerCall && len(filesToAnnotate) > 0 {
