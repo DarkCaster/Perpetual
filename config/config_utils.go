@@ -49,7 +49,7 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 				if fNum != float64(int64(fNum)) {
 					return fmt.Errorf("config key '%s' must be an integer number", key)
 				}
-			} else if _, isInteger := templateVal.(float64); isInteger {
+			} else if _, isFloat := templateVal.(float64); isFloat {
 				// Validate value is an integer
 				_, ok := value.(float64)
 				if !ok {

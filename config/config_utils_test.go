@@ -64,12 +64,52 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "wrong type for integer value",
+			template: map[string]interface{}{
+				"key": 1,
+			},
+			config: map[string]interface{}{
+				"key": 1.1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "wrong type for float value",
+			template: map[string]interface{}{
+				"key": 1.1,
+			},
+			config: map[string]interface{}{
+				"key": 1,
+			},
+			wantErr: true,
+		},
+		{
 			name: "wrong type for object value",
 			template: map[string]interface{}{
 				"key": map[string]interface{}{},
 			},
 			config: map[string]interface{}{
 				"key": "not an object",
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil type for integer value",
+			template: map[string]interface{}{
+				"key": 1,
+			},
+			config: map[string]interface{}{
+				"key": nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil type for float value",
+			template: map[string]interface{}{
+				"key": 1.1,
+			},
+			config: map[string]interface{}{
+				"key": nil,
 			},
 			wantErr: true,
 		},
@@ -149,8 +189,8 @@ func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 		{
 			name: "valid structure",
 			value: []interface{}{
-				[]interface{}{"prompt1", "response1", "response1short", "response1tiny"},
-				[]interface{}{"prompt2", "response2", "response2short", "response2tiny"},
+				[]interface{}{"prompt1", "response1", "response1short"},
+				[]interface{}{"prompt2", "response2", "response2short"},
 			},
 			wantErr: false,
 		},
