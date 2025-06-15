@@ -9,17 +9,19 @@ import (
 type LogLevel int
 
 const (
-	ErrorLevel LogLevel = 0b00001
-	WarnLevel  LogLevel = 0b00010
-	InfoLevel  LogLevel = 0b00100
-	DebugLevel LogLevel = 0b01000
-	TraceLevel LogLevel = 0b10000
+	ErrorLevel  LogLevel = 0b000001
+	WarnLevel   LogLevel = 0b000010
+	NotifyLevel LogLevel = 0b000100
+	InfoLevel   LogLevel = 0b001000
+	DebugLevel  LogLevel = 0b010000
+	TraceLevel  LogLevel = 0b100000
 )
 
 type ILogger interface {
 	Tracef(format string, args ...any)
 	Debugf(format string, args ...any)
 	Infof(format string, args ...any)
+	Notifyf(format string, args ...any)
 	Warnf(format string, args ...any)
 	Errorf(format string, args ...any)
 	Panicf(format string, args ...any)
@@ -27,6 +29,7 @@ type ILogger interface {
 	Traceln(args ...any)
 	Debugln(args ...any)
 	Infoln(args ...any)
+	Notifyln(args ...any)
 	Warnln(args ...any)
 	Errorln(args ...any)
 	Panicln(args ...any)
@@ -48,6 +51,9 @@ func initLogLevels(maxLevel LogLevel) LogLevel {
 	}
 	if maxLevel > InfoLevel {
 		result |= InfoLevel
+	}
+	if maxLevel > NotifyLevel {
+		result |= NotifyLevel
 	}
 	if maxLevel > DebugLevel {
 		result |= DebugLevel
