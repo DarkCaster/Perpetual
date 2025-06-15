@@ -250,11 +250,13 @@ func Run(args []string, logger logging.ILogger) {
 			// Perform context saving measures - use local search to select only selected percentage of the most relevant files
 			filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
 			preselectedFileNames := shared.Stage1Preselect(
+				perpetualDir,
 				filesPercent,
 				randomizePercent,
 				fileNames,
 				task,
 				targetFiles,
+				annotations,
 				logger)
 
 			// Run stage 1
