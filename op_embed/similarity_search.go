@@ -51,7 +51,7 @@ func SimilaritySearchStage(
 		logger.Infoln("Local similarity search is disabled")
 		return []string{}
 	}
-	logger.Infoln("Attempting local similarity search")
+	logger.Notifyln("Attempting local similarity search")
 
 	//generate embeddings for search queries
 	searchVectors := [][]float32{}
@@ -63,7 +63,7 @@ func SimilaritySearchStage(
 		}
 		if err != nil {
 			logger.Debugln("Failed to generate embeddings for search queries:", err)
-			logger.Infoln("LLM embeddings for local similarity search not configured or failed")
+			logger.Notifyln("LLM embeddings for local similarity search not configured or failed")
 			return []string{}
 		}
 		if len(vectors) > 1 {

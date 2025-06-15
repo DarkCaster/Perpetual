@@ -378,7 +378,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 		return [][]float32{}, 0, err
 	}
 
-	logger.Infoln("Generating search query embeddings for:", tag)
+	logger.Notifyln("Generating search query embeddings for:", tag)
 
 	logger.Notifyln(connector.GetDebugString())
 
