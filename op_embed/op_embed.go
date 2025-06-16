@@ -239,8 +239,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	logger.Infoln("Generating embeddings, file count:", len(filesToEmbed))
 
 	if len(filesToEmbed) > 0 {
-		logger.Notifyln(connector.GetDebugString())
-
 		// only rotate logfile for outer call if we have files to proceed
 		if !innerCall {
 			logger.Debugln("Rotating log file")
@@ -248,6 +246,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Failed to rotate log file:", err)
 			}
 		}
+		debugString := connector.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Embed (files): %s\n\n\n", debugString))
 	}
 
 	errorFlag := false
@@ -380,7 +381,9 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 
 	logger.Notifyln("Generating search query embeddings for:", tag)
 
-	logger.Notifyln(connector.GetDebugString())
+	debugString := connector.GetDebugString()
+	logger.Notifyln(debugString)
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Embed (search query): %s\n\n\n", debugString))
 
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
