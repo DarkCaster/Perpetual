@@ -95,20 +95,12 @@ func Stage1Preselect(
 		if filesToRandomize > len(unusedProjectFiles) {
 			filesToRandomize = len(unusedProjectFiles)
 		}
-		// Create a copy of indices to shuffle
-		indices := make([]int, len(unusedProjectFiles))
-		for i := range indices {
-			indices[i] = i
-		}
-		// Shuffle indices using Fisher-Yates algorithm
-		for i := len(indices) - 1; i > 0; i-- {
-			j := rand.Intn(i + 1)
-			indices[i], indices[j] = indices[j], indices[i]
-		}
+		// Shuffle unusedProjectFiles array
+		rand.Shuffle(len(unusedProjectFiles), func(i, j int) {
+			unusedProjectFiles[i], unusedProjectFiles[j] = unusedProjectFiles[j], unusedProjectFiles[i]
+		})
 		// Select first filesToRandomize files
-		for i := 0; i < filesToRandomize; i++ {
-			randomFiles = append(randomFiles, unusedProjectFiles[indices[i]])
-		}
+		randomFiles = unusedProjectFiles[:filesToRandomize]
 	}
 
 	logger.Infof("Context saving enabled, pre-selected %d files and %d random files (%d in total)",
