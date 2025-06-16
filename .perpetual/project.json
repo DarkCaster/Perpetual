@@ -1,11 +1,11 @@
 {
   "files_to_md_code_mappings": [],
   "high_context_saving_file_count": 1000,
-  "high_context_saving_random_percent": 25,
-  "high_context_saving_select_percent": 25,
+  "high_context_saving_random_percent": 20,
+  "high_context_saving_select_percent": 50,
   "medium_context_saving_file_count": 500,
   "medium_context_saving_random_percent": 25,
-  "medium_context_saving_select_percent": 50,
+  "medium_context_saving_select_percent": 60,
   "project_files_blacklist": [
     "(?i)^vendor(\\\\|\\/).*"
   ],
