@@ -111,7 +111,10 @@ func Stage1Preselect(
 		}
 	}
 
-	logger.Infof("Context saving enabled, pre-selected %d files using local search and %d random files", len(similarFiles), len(randomFiles))
+	logger.Infof("Context saving enabled, pre-selected %d files and %d random files (%d in total)",
+		len(similarFiles),
+		len(randomFiles),
+		len(similarFiles)+len(randomFiles))
 
 	// Sort and return result
 	result := append(similarFiles, randomFiles...)

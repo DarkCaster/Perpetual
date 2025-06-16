@@ -23,12 +23,10 @@ func GetLocalSearchModeFromContextSavingValue(contextSavingMode string, requeste
 	switch contextSavingMode {
 	case "HIGH":
 		searchMode = op_embed.SelectConservative
-	case "MEDIUM":
-		searchMode = op_embed.SelectConservative
 	case "OFF":
 		searchMode = op_embed.SelectAggressive
+	case "MEDIUM":
 	case "AUTO":
-		fallthrough
 	default:
 		if requestedFilesCount <= searchLimit {
 			//for low requested file count - use aggressive search mode
