@@ -1,6 +1,8 @@
 package op_implement
 
 import (
+	"fmt"
+
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
@@ -100,7 +102,9 @@ func Stage2(projectRootDir string,
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
 
 		logger.Infoln("Running stage2: generating work plan")
-		logger.Notifyln(connector.GetDebugString())
+		debugString := connector.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 2): %s\n\n\n", debugString))
 
 		// Query LLM to generate reasonings
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()

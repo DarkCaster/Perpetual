@@ -1,6 +1,7 @@
 package op_implement
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -112,7 +113,9 @@ func Stage3(projectRootDir string,
 	// Send request
 	if planningMode > 0 {
 		logger.Infoln("Running stage3: generating list of files for processing")
-		logger.Notifyln(connector.GetDebugString())
+		debugString := connector.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 3): %s\n\n\n", debugString))
 
 		var filesToProcessRaw []string
 		onFailRetriesLeft := connector.GetOnFailureRetryLimit()

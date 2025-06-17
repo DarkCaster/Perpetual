@@ -226,18 +226,18 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	if len(filesToAnnotate) > 0 && connector.GetVariantCount() <= 1 {
 		debugString := connector.GetDebugString()
 		logger.Notifyln(debugString)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate: %s\n\n\n", debugString))
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", debugString))
 	}
 
 	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
 		logger.Infoln("Annotate LLM config for generating summary variants:")
 		debugString := connector.GetDebugString()
 		logger.Notifyln(debugString)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate (1-st pass): %s\n", debugString))
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate (1-st pass): %s\n", debugString))
 		logger.Infoln("Annotate LLM config for post-processing:")
 		debugString = connectorPost.GetDebugString()
 		logger.Notifyln(debugString)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate (2-nd pass): %s\n\n\n", debugString))
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate (2-nd pass): %s\n\n\n", debugString))
 	}
 
 	logger.Debugln("Sorting files according to sizes")
@@ -286,6 +286,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			filePath,
 			fileContents,
 			annotateConfig.StringArray(config.K_FilenameTags))
+
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
 
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {

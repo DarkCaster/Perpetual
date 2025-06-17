@@ -1,6 +1,7 @@
 package op_explain
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -84,7 +85,9 @@ func Stage2(projectRootDir string,
 
 	//Make LLM request, process response
 	logger.Infoln("Running stage2: processing question")
-	logger.Notifyln(connector.GetDebugString())
+	debugString := connector.GetDebugString()
+	logger.Notifyln(debugString)
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Explain (stage 2): %s\n\n\n", debugString))
 
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {

@@ -106,7 +106,7 @@ func Stage1(
 	logger.Infoln("Running stage1: find project files for review")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
-	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("%s (stage 1): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== %s (stage 1): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
 
 	// Perform LLM query
 	var filesForReviewRaw []string

@@ -1,6 +1,7 @@
 package op_implement
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -39,7 +40,9 @@ func Stage4(projectRootDir string,
 	var processedFiles []string
 
 	logger.Infoln("Running stage4: implementing code")
-	logger.Notifyln(connector.GetDebugString())
+	debugString := connector.GetDebugString()
+	logger.Notifyln(debugString)
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", debugString))
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
@@ -85,6 +88,8 @@ func Stage4(projectRootDir string,
 		}
 
 		logger.Infoln(pendingFile)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", pendingFile))
+
 		// Create prompt from stage4ProcessFilePromptTemplate
 		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
 			cfg.String(config.K_ImplementStage4ProcessPrompt),

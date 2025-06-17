@@ -1,6 +1,7 @@
 package op_doc
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -96,7 +97,9 @@ func Stage2(projectRootDir string,
 	logger.Debugln("Created document processing request message")
 
 	logger.Infoln("Running stage2: processing document")
-	logger.Notifyln(connector.GetDebugString())
+	debugString := connector.GetDebugString()
+	logger.Notifyln(debugString)
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Doc (stage 2, %s): %s\n\n\n", strings.ToLower(action), debugString))
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
