@@ -216,22 +216,28 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
 
-	if len(filesToAnnotate) > 0 && connector.GetVariantCount() <= 1 {
-		logger.Infoln(connector.GetDebugString())
-	}
-
-	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
-		logger.Infoln("Annotate LLM config for generating summary variants:")
-		logger.Notifyln(connector.GetDebugString())
-		logger.Infoln("Annotate LLM config for post-processing:")
-		logger.Notifyln(connectorPost.GetDebugString())
-	}
-
 	if !innerCall && len(filesToAnnotate) > 0 {
 		logger.Debugln("Rotating log file")
 		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
 			logger.Panicln("Failed to rotate log file:", err)
 		}
+	}
+
+	if len(filesToAnnotate) > 0 && connector.GetVariantCount() <= 1 {
+		debugString := connector.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate: %s\n\n\n", debugString))
+	}
+
+	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
+		logger.Infoln("Annotate LLM config for generating summary variants:")
+		debugString := connector.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate (1-st pass): %s\n", debugString))
+		logger.Infoln("Annotate LLM config for post-processing:")
+		debugString = connectorPost.GetDebugString()
+		logger.Notifyln(debugString)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("Annotate (2-nd pass): %s\n\n\n", debugString))
 	}
 
 	logger.Debugln("Sorting files according to sizes")
