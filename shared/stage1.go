@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -8,6 +9,8 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func Stage1(
@@ -101,7 +104,9 @@ func Stage1(
 	logger.Debugln("Created main request message")
 
 	logger.Infoln("Running stage1: find project files for review")
-	logger.Notifyln(connector.GetDebugString())
+	debugString := connector.GetDebugString()
+	logger.Notifyln(debugString)
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("%s (stage 1): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
 
 	// Perform LLM query
 	var filesForReviewRaw []string
