@@ -92,9 +92,7 @@ func Stage1Preselect(
 	randomFiles := []string{}
 	if filesToRandomize > 0 && len(unusedProjectFiles) > 0 {
 		// Don't request more files than available
-		if filesToRandomize > len(unusedProjectFiles) {
-			filesToRandomize = len(unusedProjectFiles)
-		}
+		filesToRandomize = min(filesToRandomize, len(unusedProjectFiles))
 		// Shuffle unusedProjectFiles array
 		rand.Shuffle(len(unusedProjectFiles), func(i, j int) {
 			unusedProjectFiles[i], unusedProjectFiles[j] = unusedProjectFiles[j], unusedProjectFiles[i]
