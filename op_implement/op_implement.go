@@ -28,7 +28,7 @@ func implementFlags() *flag.FlagSet {
 func Run(args []string, logger logging.ILogger) {
 	var forceUpload, help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var taskFile, userFilterFile, contextSaving string
-	var searchLimit int
+	var searchLimit, selectionPasses int
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
@@ -40,6 +40,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&reasonings, "pr", false, "Enables planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files)")
+	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
 	flags.BoolVar(&taskMode, "t", false, "Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the -p flag.")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -64,6 +65,13 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
+
+	if searchLimit < 0 {
+		logger.Panicln("Search limit (-s flag) value is invalid", searchLimit)
+	}
+	if selectionPasses < 1 {
+		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
+	}
 
 	// Set planning mode
 	planningMode := 0

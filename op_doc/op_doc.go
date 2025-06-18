@@ -26,7 +26,7 @@ func docFlags() *flag.FlagSet {
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var docFile, docExample, action, userFilterFile, contextSaving string
-	var searchLimit int
+	var searchLimit, selectionPasses int
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
@@ -37,6 +37,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.IntVar(&searchLimit, "s", 7, "Limit number of files related to target document returned by local search (0 = disable local search, only use LLM-requested files)")
+	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -70,7 +71,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	if searchLimit < 0 {
-		logger.Panicln("Similar files limit parameter cannot be less than 0")
+		logger.Panicln("Search limit (-s flag) value is invalid", searchLimit)
+	}
+	if selectionPasses < 1 {
+		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
 	}
 
 	// Find project root and perpetual directories
