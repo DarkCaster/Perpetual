@@ -206,6 +206,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docContent,
 			[]string{},
 			annotations,
+			1,
 			logger)
 
 		// Run stage1 to find out what project-files contents we need to work on document
@@ -215,7 +216,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			perpetualDir,
 			docConfig,
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-			preselectedFileNames,
+			preselectedFileNames[0],
 			fileNames,
 			annotations,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},

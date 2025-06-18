@@ -2,10 +2,12 @@ package shared
 
 import (
 	"math/rand"
+	"slices"
 	"sort"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_embed"
+	"github.com/DarkCaster/Perpetual/utils"
 )
 
 func Stage1Preselect(
@@ -15,7 +17,16 @@ func Stage1Preselect(
 	query string,
 	targetFiles []string,
 	annotations map[string]string,
-	logger logging.ILogger) []string {
+	passCount int,
+	logger logging.ILogger) [][]string {
+
+	createErrorResult := func() [][]string {
+		results := [][]string{}
+		for range passCount {
+			results = append(results, projectFiles)
+		}
+		return results
+	}
 
 	// Add trace and debug logging
 	logger.Traceln("Stage1Preselect: Starting")
@@ -23,14 +34,14 @@ func Stage1Preselect(
 
 	if percentToSelect < 1 {
 		logger.Infof("Context saving disabled, pre-selecting all available project files: %d", len(projectFiles))
-		return projectFiles
+		return createErrorResult()
 	}
 
 	// Calculate how many files we need
 	filesToRequest := int((float64(len(projectFiles)) / 100.0) * percentToSelect)
 	if filesToRequest < 10 {
 		logger.Warnf("File pre-selection percentage is too low for the count of project-files: %f%", percentToSelect)
-		return projectFiles
+		return createErrorResult()
 	}
 
 	// Files to randomize
@@ -60,54 +71,39 @@ func Stage1Preselect(
 		silentLogger)
 	if len(similarFiles) < 1 {
 		logger.Warnln("Context saving disabled: local search returned no results")
-		return projectFiles
+		return createErrorResult()
 	}
 
 	// Remove similarFiles and targetFiles from projectFiles slice
 	unusedProjectFiles := []string{}
 	for _, file := range projectFiles {
-		found := false
-		for _, similarFile := range similarFiles {
-			if file == similarFile {
-				found = true
-				break
-			}
+		if !slices.Contains(similarFiles, file) && !slices.Contains(targetFiles, file) {
+			unusedProjectFiles = append(unusedProjectFiles, file)
 		}
-		if found {
-			continue
-		}
-		for _, targetFile := range targetFiles {
-			if file == targetFile {
-				found = true
-				break
-			}
-		}
-		if found {
-			continue
-		}
-		unusedProjectFiles = append(unusedProjectFiles, file)
 	}
 
-	// Get filesToRandomize random files from unusedProjectFiles
-	randomFiles := []string{}
-	if filesToRandomize > 0 && len(unusedProjectFiles) > 0 {
-		// Don't request more files than available
-		filesToRandomize = min(filesToRandomize, len(unusedProjectFiles))
-		// Shuffle unusedProjectFiles array
-		rand.Shuffle(len(unusedProjectFiles), func(i, j int) {
-			unusedProjectFiles[i], unusedProjectFiles[j] = unusedProjectFiles[j], unusedProjectFiles[i]
-		})
-		// Select first filesToRandomize files
-		randomFiles = unusedProjectFiles[:filesToRandomize]
-	}
-
-	logger.Infof("Context saving enabled, pre-selected %d files and %d random files (%d in total)",
+	// Make slices with different set of random files
+	results := [][]string{}
+	// Don't request more files than available
+	filesToRandomize = min(filesToRandomize, len(unusedProjectFiles))
+	logger.Infof("Context saving enabled, pre-selecting %d files and %d random files (%d in total) for %d passes",
 		len(similarFiles),
-		len(randomFiles),
-		len(similarFiles)+len(randomFiles))
+		filesToRandomize,
+		len(similarFiles)+filesToRandomize,
+		passCount)
 
-	// Sort and return result
-	result := append(similarFiles, randomFiles...)
-	sort.Strings(result)
-	return result
+	for range passCount {
+		// Shuffle unusedProjectFiles array
+		if filesToRandomize > 0 {
+			rand.Shuffle(len(unusedProjectFiles), func(i, j int) {
+				unusedProjectFiles[i], unusedProjectFiles[j] = unusedProjectFiles[j], unusedProjectFiles[i]
+			})
+		}
+		// Create final result for use with stage 1 pass
+		result := append(utils.NewSlice(similarFiles...), utils.NewSlice(unusedProjectFiles[:filesToRandomize]...)...)
+		sort.Strings(result)
+		results = append(results, result)
+	}
+
+	return results
 }

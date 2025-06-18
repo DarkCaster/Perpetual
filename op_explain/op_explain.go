@@ -182,6 +182,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question,
 		[]string{},
 		annotations,
+		1,
 		logger)
 
 	// Run stage 1
@@ -191,7 +192,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		perpetualDir,
 		explainConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		preselectedFileNames,
+		preselectedFileNames[0],
 		fileNames,
 		annotations,
 		[]string{}, []string{}, []string{},

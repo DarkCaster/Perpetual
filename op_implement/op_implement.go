@@ -257,6 +257,7 @@ func Run(args []string, logger logging.ILogger) {
 				task,
 				targetFiles,
 				annotations,
+				1,
 				logger)
 
 			// Run stage 1
@@ -266,7 +267,7 @@ func Run(args []string, logger logging.ILogger) {
 				perpetualDir,
 				implementConfig,
 				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-				preselectedFileNames,
+				preselectedFileNames[0],
 				fileNames,
 				annotations,
 				[]string{}, []string{}, []string{},
