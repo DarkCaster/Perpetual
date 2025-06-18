@@ -100,7 +100,7 @@ func Stage1Preselect(
 			})
 		}
 		// Create final result for use with stage 1 pass
-		result := append(utils.NewSlice(similarFiles...), utils.NewSlice(unusedProjectFiles[:filesToRandomize]...)...)
+		result := append(utils.NewSlice(similarFiles...), unusedProjectFiles[:filesToRandomize]...)
 		sort.Strings(result)
 		results = append(results, result)
 	}
