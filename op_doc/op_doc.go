@@ -210,45 +210,56 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docContent,
 			[]string{},
 			annotations,
-			1,
+			selectionPasses,
 			logger)
-
-		// Run stage1 to find out what project-files contents we need to work on document
-		requestedFiles := shared.Stage1(
-			OpName,
-			projectRootDir,
-			perpetualDir,
-			docConfig,
-			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-			preselectedFileNames[0],
-			fileNames,
-			annotations,
-			[]string{docConfig.String(config.K_DocExamplePrompt)},
-			[]string{docExampleContent},
-			[]string{docConfig.String(config.K_DocExampleResponse)},
-			docPromptPlain,
-			docPromptJson,
-			docContent,
-			[]string{},
-			logger)
-
-		searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
-		if searchLimit > len(requestedFiles) {
-			searchLimit = len(requestedFiles)
+		// Prepare for multi-pass stage 1
+		selectionPasses = len(preselectedFileNames)
+		stage1Logger := logger.Clone()
+		if selectionPasses > 1 {
+			stage1Logger.DisableLevel(logging.InfoLevel)
 		}
-
-		// Local similarity search stage
-		searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(docContent, []string{}, annotations)
-		similarFiles := op_embed.SimilaritySearchStage(
-			searchMode,
-			searchLimit,
-			perpetualDir,
-			searchQueries,
-			searchTags,
-			fileNames,
-			requestedFiles,
-			logger)
-		requestedFiles = append(requestedFiles, similarFiles...)
+		fileLists := make([][]string, selectionPasses)
+		for pass := range selectionPasses {
+			// Run stage1 to find out what project-files contents we need to work on document
+			fileLists[pass] = shared.Stage1(
+				OpName,
+				projectRootDir,
+				perpetualDir,
+				docConfig,
+				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+				preselectedFileNames[pass],
+				fileNames,
+				annotations,
+				[]string{docConfig.String(config.K_DocExamplePrompt)},
+				[]string{docExampleContent},
+				[]string{docConfig.String(config.K_DocExampleResponse)},
+				docPromptPlain,
+				docPromptJson,
+				docContent,
+				[]string{},
+				stage1Logger)
+			// Prepare for local similarity search
+			searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)
+			// Local similarity search stage
+			searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(docContent, []string{}, annotations)
+			similarFiles := op_embed.SimilaritySearchStage(
+				searchMode,
+				min(searchLimit, len(fileLists[pass])),
+				perpetualDir,
+				searchQueries,
+				searchTags,
+				fileNames,
+				fileLists[pass],
+				logger)
+			fileLists[pass] = append(fileLists[pass], similarFiles...)
+		}
+		// Merge fileLists together
+		if selectionPasses > 1 {
+			stage1Logger.EnableLevel(logging.InfoLevel)
+		} else {
+			stage1Logger.DisableLevel(logging.InfoLevel)
+		}
+		requestedFiles := shared.MergeFileLists(fileLists, stage1Logger)
 
 		// Check requested files for no-upload mark and filter it out
 		var filteredRequestedFiles []string

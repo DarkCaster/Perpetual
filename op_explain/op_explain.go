@@ -176,7 +176,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Error loading annotations:", err)
 	}
 
-	// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+	// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
 	filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
 	preselectedFileNames := shared.Stage1Preselect(
 		perpetualDir,
@@ -186,43 +186,54 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question,
 		[]string{},
 		annotations,
-		1,
+		selectionPasses,
 		logger)
-
-	// Run stage 1
-	requestedFiles := shared.Stage1(
-		OpName,
-		projectRootDir,
-		perpetualDir,
-		explainConfig,
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		preselectedFileNames[0],
-		fileNames,
-		annotations,
-		[]string{}, []string{}, []string{},
-		explainConfig.String(config.K_ExplainStage1QuestionPrompt),
-		explainConfig.String(config.K_ExplainStage1QuestionJsonModePrompt),
-		question,
-		[]string{},
-		logger)
-
-	searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
-	if searchLimit > len(requestedFiles) {
-		searchLimit = len(requestedFiles)
+	// Prepare for multi-pass stage 1
+	selectionPasses = len(preselectedFileNames)
+	stage1Logger := logger.Clone()
+	if selectionPasses > 1 {
+		stage1Logger.DisableLevel(logging.InfoLevel)
 	}
-
-	// Local similarity search stage
-	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(question, []string{}, annotations)
-	similarFiles := op_embed.SimilaritySearchStage(
-		searchMode,
-		searchLimit,
-		perpetualDir,
-		searchQueries,
-		searchTags,
-		fileNames,
-		requestedFiles,
-		logger)
-	requestedFiles = append(requestedFiles, similarFiles...)
+	fileLists := make([][]string, selectionPasses)
+	for pass := range selectionPasses {
+		// Run stage 1
+		fileLists[pass] = shared.Stage1(
+			OpName,
+			projectRootDir,
+			perpetualDir,
+			explainConfig,
+			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+			preselectedFileNames[pass],
+			fileNames,
+			annotations,
+			[]string{}, []string{}, []string{},
+			explainConfig.String(config.K_ExplainStage1QuestionPrompt),
+			explainConfig.String(config.K_ExplainStage1QuestionJsonModePrompt),
+			question,
+			[]string{},
+			stage1Logger)
+		// Prepare for local similarity search
+		searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)
+		// Local similarity search stage
+		searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(question, []string{}, annotations)
+		similarFiles := op_embed.SimilaritySearchStage(
+			searchMode,
+			min(searchLimit, len(fileLists[pass])),
+			perpetualDir,
+			searchQueries,
+			searchTags,
+			fileNames,
+			fileLists[pass],
+			stage1Logger)
+		fileLists[pass] = append(fileLists[pass], similarFiles...)
+	}
+	// Merge fileLists together
+	if selectionPasses > 1 {
+		stage1Logger.EnableLevel(logging.InfoLevel)
+	} else {
+		stage1Logger.DisableLevel(logging.InfoLevel)
+	}
+	requestedFiles := shared.MergeFileLists(fileLists, stage1Logger)
 
 	if listFilesOnly {
 		// for this mode, just list files one file per line for easier parsing with 3-rd party tool

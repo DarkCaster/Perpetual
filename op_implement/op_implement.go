@@ -255,7 +255,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		if nonTargetFilesAnnotationsCount > 0 {
-			// Perform context saving measures - use local search to select only selected percentage of the most relevant files
+			// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
 			filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
 			preselectedFileNames := shared.Stage1Preselect(
 				perpetualDir,
@@ -265,45 +265,57 @@ func Run(args []string, logger logging.ILogger) {
 				task,
 				targetFiles,
 				annotations,
-				1,
+				selectionPasses,
 				logger)
-
-			// Run stage 1
-			filesToReview = shared.Stage1(
-				OpName,
-				projectRootDir,
-				perpetualDir,
-				implementConfig,
-				projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-				preselectedFileNames[0],
-				fileNames,
-				annotations,
-				[]string{}, []string{}, []string{},
-				promptPlain,
-				promptJson,
-				task,
-				targetFiles,
-				logger)
-			// Prepare for local similarity search
-			searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)
-			// Compose list of already requested files
-			requestedFiles := append(utils.NewSlice(filesToReview...), targetFiles...)
-			// Select search mode
-			searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
-			if searchLimit > len(requestedFiles) {
-				searchLimit = len(requestedFiles)
+			// Prepare for multi-pass stage 1
+			selectionPasses = len(preselectedFileNames)
+			stage1Logger := logger.Clone()
+			if selectionPasses > 1 {
+				stage1Logger.DisableLevel(logging.InfoLevel)
 			}
-			// Local similarity search stage
-			similarFiles := op_embed.SimilaritySearchStage(
-				searchMode,
-				searchLimit,
-				perpetualDir,
-				searchQueries,
-				searchTags,
-				fileNames,
-				requestedFiles,
-				logger)
-			filesToReview = append(filesToReview, similarFiles...)
+			fileLists := make([][]string, selectionPasses)
+			for pass := range selectionPasses {
+				// Run stage 1
+				fileLists[pass] = shared.Stage1(
+					OpName,
+					projectRootDir,
+					perpetualDir,
+					implementConfig,
+					projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+					preselectedFileNames[pass],
+					fileNames,
+					annotations,
+					[]string{}, []string{}, []string{},
+					promptPlain,
+					promptJson,
+					task,
+					targetFiles,
+					stage1Logger)
+				// Prepare for local similarity search
+				searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)
+				// Compose list of already requested files
+				requestedFiles := append(utils.NewSlice(fileLists[pass]...), targetFiles...)
+				// Select search mode
+				searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
+				// Local similarity search stage
+				similarFiles := op_embed.SimilaritySearchStage(
+					searchMode,
+					min(searchLimit, len(fileLists[pass])),
+					perpetualDir,
+					searchQueries,
+					searchTags,
+					fileNames,
+					requestedFiles,
+					stage1Logger)
+				fileLists[pass] = append(fileLists[pass], similarFiles...)
+			}
+			// Merge fileLists together
+			if selectionPasses > 1 {
+				stage1Logger.EnableLevel(logging.InfoLevel)
+			} else {
+				stage1Logger.DisableLevel(logging.InfoLevel)
+			}
+			filesToReview = shared.MergeFileLists(fileLists, stage1Logger)
 		} else {
 			logger.Warnln("All source code files already selected for review, no need to run stage1")
 		}
