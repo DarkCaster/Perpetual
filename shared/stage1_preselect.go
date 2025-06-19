@@ -107,3 +107,19 @@ func Stage1Preselect(
 
 	return results
 }
+
+func MergeFileLists(fileLists [][]string) []string {
+	result := []string{}
+	resultMap := make(map[string]bool)
+	for _, fileList := range fileLists {
+		for _, file := range fileList {
+			if resultMap[file] {
+				continue
+			}
+			resultMap[file] = true
+			result = append(result, file)
+		}
+	}
+	sort.Strings(result)
+	return result
+}
