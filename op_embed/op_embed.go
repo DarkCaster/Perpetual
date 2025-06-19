@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
@@ -351,6 +352,30 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 }
 
+var searchCacheLock sync.Mutex // Just as precaution for future
+var searchVectorsCache map[string][][]float32 = map[string][][]float32{}
+
+func TryReadFromCache(data string) [][]float32 {
+	searchCacheLock.Lock()
+	defer searchCacheLock.Unlock()
+	if result, ok := searchVectorsCache[data]; ok {
+		return result
+	}
+	return nil
+}
+
+func ClearCache() {
+	searchCacheLock.Lock()
+	defer searchCacheLock.Unlock()
+	searchVectorsCache = map[string][][]float32{}
+}
+
+func WriteToCache(data string, vectors [][]float32) {
+	searchCacheLock.Lock()
+	defer searchCacheLock.Unlock()
+	searchVectorsCache[data] = vectors
+}
+
 // Called internally to generate embeddings for local similarity search queries
 func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float32, float32, error) {
 	logger.Debugln("Running GenerateVectors")
@@ -385,6 +410,14 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 	logger.Notifyln(debugString)
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Embed (search query): %s\n\n\n", debugString))
 
+	// Try cached vectors first
+	if cachedVectors := TryReadFromCache(content); cachedVectors != nil {
+		logger.Notifyln("Using cached search query embeddings for:", tag)
+		llm.GetSimpleRawMessageLogger(perpetualDir)(
+			fmt.Sprintf("Using cached search query embeddings for %s, chunk/vector count: %d\n\n\n", tag, len(cachedVectors)))
+		return cachedVectors, connector.GetEmbedScoreThreshold(), nil
+	}
+
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		vectors, status, err := connector.CreateEmbeddings(llm.SearchEmbed, tag, content)
@@ -402,6 +435,8 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 			logger.Errorf(err)
 			return [][]float32{}, 0, errors.New(err)
 		}
+		// Save search query vectors to cache
+		WriteToCache(content, vectors)
 		return vectors, connector.GetEmbedScoreThreshold(), nil
 	}
 
