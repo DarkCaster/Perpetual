@@ -108,7 +108,7 @@ func Stage1Preselect(
 	return results
 }
 
-func MergeFileLists(fileLists [][]string) []string {
+func MergeFileLists(fileLists [][]string, logger logging.ILogger) []string {
 	result := []string{}
 	resultMap := make(map[string]bool)
 	for _, fileList := range fileLists {
@@ -121,5 +121,9 @@ func MergeFileLists(fileLists [][]string) []string {
 		}
 	}
 	sort.Strings(result)
+	logger.Infoln("Files requested by LLM (merged list):")
+	for _, file := range result {
+		logger.Infoln(file)
+	}
 	return result
 }
