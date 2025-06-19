@@ -40,7 +40,7 @@ func Stage1Preselect(
 	// Calculate how many files we need
 	filesToRequest := int((float64(len(projectFiles)) / 100.0) * percentToSelect)
 	if filesToRequest < 10 {
-		logger.Warnf("File pre-selection percentage is too low for the count of project-files: %f%", percentToSelect)
+		logger.Warnf("File pre-selection percentage is too low for the count of project-files: %0.1f%%", percentToSelect)
 		return createErrorResult()
 	}
 
@@ -48,7 +48,7 @@ func Stage1Preselect(
 	filesToRandomize := int((float64(filesToRequest) / 100.0) * percentToRandomize)
 	filesToRequest -= filesToRandomize
 	if filesToRequest < 5 {
-		logger.Warnf("File randomization percentage is too big for the count of project-files: %f%", percentToRandomize)
+		logger.Warnf("File randomization percentage is too big for the count of project-files: %0.1f%%", percentToRandomize)
 		filesToRequest += filesToRandomize
 		filesToRandomize = 0
 	}
