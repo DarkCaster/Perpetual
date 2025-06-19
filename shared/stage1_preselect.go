@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"math/rand"
 	"slices"
 	"sort"
@@ -54,8 +55,19 @@ func Stage1Preselect(
 	}
 
 	// Prepare for local similarity search
-	searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(query, targetFiles, annotations)
-	//TODO: extract tasks as separate queries for targetFiles with implement comments, do not use targetFiles at GetQueriesForSimilaritySearch call
+	var searchQueries []string
+	var searchTags []string
+	// Compose query
+	if query != "" {
+		searchQueries = append(searchQueries, query)
+		searchTags = append(searchTags, "query")
+	}
+	// Compose task annotations
+	taskAnnotations := TaskAnnotate(perpetualDir, targetFiles, passCount, logger)
+	for i, task := range taskAnnotations {
+		searchQueries = append(searchQueries, task)
+		searchTags = append(searchTags, fmt.Sprintf("task:%d", i))
+	}
 
 	// make actual similarity search more silent, because it will spam a lot of unneded info
 	silentLogger := logger.Clone()
