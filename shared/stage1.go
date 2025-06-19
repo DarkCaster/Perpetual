@@ -103,7 +103,7 @@ func Stage1(
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created main request message")
 
-	logger.Infoln("Running stage1: find project files for review")
+	logger.Notifyln("Running stage1: find project files for review")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== %s (stage 1): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
