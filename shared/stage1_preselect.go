@@ -55,6 +55,8 @@ func Stage1Preselect(
 		filesToRandomize = 0
 	}
 
+	logger.Notifyf("Running pre-select stage: picking %0.1f%% of project-files (%0.1f%% of them randomly selected)", percentToSelect, percentToRandomize)
+
 	// Prepare for local similarity search
 	var searchQueries []string
 	var searchTags []string
@@ -99,12 +101,6 @@ func Stage1Preselect(
 	results := [][]string{}
 	// Don't request more files than available
 	filesToRandomize = min(filesToRandomize, len(unusedProjectFiles))
-	logger.Infof("Context saving enabled, pre-selecting %d files and %d random files (%d in total) for %d passes",
-		len(similarFiles),
-		filesToRandomize,
-		len(similarFiles)+filesToRandomize,
-		passCount)
-
 	for range passCount {
 		// Shuffle unusedProjectFiles array
 		if filesToRandomize > 0 {
@@ -117,6 +113,12 @@ func Stage1Preselect(
 		sort.Strings(result)
 		results = append(results, result)
 	}
+
+	logger.Infof("Context saving enabled: pre-selected %d files and %d random files (%d in total) for %d passes",
+		len(similarFiles),
+		filesToRandomize,
+		len(similarFiles)+filesToRandomize,
+		passCount)
 
 	return results
 }
