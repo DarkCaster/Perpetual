@@ -443,10 +443,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 	return [][]float32{}, 0, errors.New("unknown error")
 }
 
-func CheckEmbedSupport(projectConfig config.Config) bool {
-	_, err := llm.NewLLMConnector(OpName, "", "",
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{}, "", "",
-		func(v ...any) {})
+func CheckEmbedSupport() bool {
+	_, err := llm.NewLLMConnector(OpName, "", "", [][]string{}, map[string]interface{}{}, "", "", func(v ...any) {})
 	return err == nil
 }
