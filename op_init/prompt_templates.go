@@ -119,7 +119,7 @@ const defaultListOfFilesOutputSchemaDesc = "Creates a list of files according to
 func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := config.GetAnnotateConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
-	result[config.K_AnnotateTaskPrompt] = "Create detailed summary of the tasks marked with ###IMPLEMENT### comments in the source code file provided in my next message. They should be easy to read but detailed. Also provide keywords that describe the tasks, areas, and dependent entities that can be traced in the source code file. In addition to the code, the file name is also provided between the <filename></filename> tags. When creating summary follow this template strictly:\n\nTasks:\n- <task description>\n- <task description>\n\nKeywords: <comma separated list of keywords>"
+	result[config.K_AnnotateTaskPrompt] = "Create detailed summary of the tasks marked with \"###IMPLEMENT###\" comments in the source code file provided in my next message. Also provide keywords that describe the tasks, areas, and dependent entities that can be traced in the source code file. In addition to the code, the file name is also provided between the <filename></filename> tags. When creating summary follow this template strictly:\n\nTasks:\n- <task description>\n- <task description>\n\nKeywords: <comma separated list of keywords>"
 	result[config.K_AnnotateTaskResponse] = "Waiting for file contents"
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
