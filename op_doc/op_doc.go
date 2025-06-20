@@ -204,6 +204,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
 		preselectedFileNames := shared.Stage1Preselect(
 			perpetualDir,
+			projectRootDir,
 			filesPercent,
 			randomizePercent,
 			fileNames,

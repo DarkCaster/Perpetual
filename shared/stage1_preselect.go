@@ -13,6 +13,7 @@ import (
 
 func Stage1Preselect(
 	perpetualDir string,
+	projectRootDir string,
 	percentToSelect, percentToRandomize float64,
 	projectFiles []string,
 	query string,
@@ -63,10 +64,10 @@ func Stage1Preselect(
 		searchTags = append(searchTags, "query")
 	}
 	// Compose task annotations
-	taskAnnotations := TaskAnnotate(perpetualDir, targetFiles, passCount, logger)
+	taskAnnotations := TaskAnnotate(perpetualDir, projectRootDir, targetFiles, logger)
 	for i, task := range taskAnnotations {
 		searchQueries = append(searchQueries, task)
-		searchTags = append(searchTags, fmt.Sprintf("task:%d", i))
+		searchTags = append(searchTags, fmt.Sprintf("task:%s", targetFiles[i]))
 	}
 
 	// make actual similarity search more silent, because it will spam a lot of unneded info
