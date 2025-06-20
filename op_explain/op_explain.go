@@ -212,6 +212,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			explainConfig.String(config.K_ExplainStage1QuestionJsonModePrompt),
 			question,
 			[]string{},
+			pass+1,
 			stage1Logger)
 		// Prepare for local similarity search
 		searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)

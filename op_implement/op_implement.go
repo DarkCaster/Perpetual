@@ -291,6 +291,7 @@ func Run(args []string, logger logging.ILogger) {
 					promptJson,
 					task,
 					targetFiles,
+					pass+1,
 					stage1Logger)
 				// Prepare for local similarity search
 				searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)

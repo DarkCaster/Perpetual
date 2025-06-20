@@ -238,6 +238,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				docPromptJson,
 				docContent,
 				[]string{},
+				pass+1,
 				stage1Logger)
 			// Prepare for local similarity search
 			searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)
