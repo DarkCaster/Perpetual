@@ -11,8 +11,21 @@ import (
 )
 
 // This func used to extract `IMPLEMENT` comments from source code file,
-// and create short task-annotation from it that will be used to pre-select files using local similarity search.
-func TaskAnnotate(perpetualDir string, projectRootDir string, targetFiles []string, logger logging.ILogger) []string {
+// and create short task-annotation from it that will be used later to pre-select files using local similarity search.
+func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
+	// Add trace and debug logging
+	logger.Traceln("TaskAnnotate: Starting")
+	defer logger.Traceln("TaskAnnotate: Finished")
+
+	silentLogger := logger.Clone()
+	silentLogger.DisableLevel(logging.ErrorLevel)
+	silentLogger.DisableLevel(logging.WarnLevel)
+	silentLogger.DisableLevel(logging.InfoLevel)
+
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(silentLogger)
+	if err != nil {
+		logger.Panicln("Error finding project root directory:", err)
+	}
 
 	projectConfig, err := config.LoadProjectConfig(perpetualDir)
 	if err != nil {

@@ -39,6 +39,11 @@ func Stage1Preselect(
 		return createErrorResult()
 	}
 
+	if !op_embed.CheckEmbedSupport() {
+		logger.Infof("Context saving disabled: embeddings not available, pre-selecting all available project files: %d", len(projectFiles))
+		return createErrorResult()
+	}
+
 	// Calculate how many files we need
 	filesToRequest := int((float64(len(projectFiles)) / 100.0) * percentToSelect)
 	if filesToRequest < 10 {
@@ -65,11 +70,14 @@ func Stage1Preselect(
 		searchQueries = append(searchQueries, query)
 		searchTags = append(searchTags, "query")
 	}
+
 	// Compose task annotations
-	taskAnnotations := TaskAnnotate(perpetualDir, projectRootDir, targetFiles, logger)
-	for i, task := range taskAnnotations {
-		searchQueries = append(searchQueries, task)
-		searchTags = append(searchTags, fmt.Sprintf("task:%s", targetFiles[i]))
+	if len(targetFiles) > 0 {
+		taskAnnotations := TaskAnnotate(targetFiles, logger)
+		for i, task := range taskAnnotations {
+			searchQueries = append(searchQueries, task)
+			searchTags = append(searchTags, fmt.Sprintf("task:%s", targetFiles[i]))
+		}
 	}
 
 	// make actual similarity search more silent, because it will spam a lot of unneded info
