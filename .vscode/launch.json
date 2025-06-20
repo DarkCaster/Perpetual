@@ -77,6 +77,14 @@
 			"args": ["implement","-vv"],
 		},
 		{
+			"name": "Launch Package: implement -pr -sp 2 -c medium -vv",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["implement","-pr","-sp","2","-c","medium","-vv"],
+		},
+		{
 			"name": "Launch Package: stash",
 			"type": "go",
 			"request": "launch",
