@@ -25,6 +25,8 @@ const K_Stage3OutputSchemaName = "stage3_output_schema_name"
 const K_Stage3OutputSchemaDesc = "stage3_output_schema_desc"
 const K_Stage3OutputKey = "stage3_output_key"
 
+const K_AnnotateTaskPrompt = "annotate_task_prompt"
+const K_AnnotateTaskResponse = "annotate_task_response"
 const K_AnnotateStage1Prompts = "stage1_prompts"
 const K_AnnotateStage1Response = "stage1_response"
 const K_AnnotateStage2PromptVariant = "stage2_prompt_variant"
