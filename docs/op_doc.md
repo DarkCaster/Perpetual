@@ -17,14 +17,16 @@ Available flags:
 - `-e <file>`  
   Example/reference document for style, structure, and format (not content).
 - `-a <action>`  
-  Action to perform:  
+  Action to perform (default: `write`):  
   - `draft`  Create an initial draft template.  
-  - `write`  Write or complete an existing document (default).  
+  - `write`  Write or complete an existing document.  
   - `refine` Refine and update an existing document.
 - `-c <mode>`  
-  Context saving mode: `auto`, `off`, `medium`, or `high`. Controls how aggressively LLM context is reduced on large projects.
+  Context saving mode: `auto` (default), `off`, `medium`, or `high`. Controls how aggressively LLM context usage is reduced on large projects.
 - `-s <limit>`  
-  Limit number of files for local similarity search via embeddings (0 disables local search; only uses LLM-requested files).
+  Limit number of files for local similarity search via embeddings (default: 7; 0 disables local search and only uses LLM-requested files).
+- `-sp <count>`  
+  Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.
 - `-f`  
   Disable the `no-upload` file filter and include such files for review if requested.
 - `-n`  
@@ -48,7 +50,7 @@ Available flags:
    Perpetual doc -r docs/new_feature.md -a draft
    ```
 
-   Then, Edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`.
+   Then, edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`.
 
 2. **Write or complete a draft:**
 
@@ -103,8 +105,8 @@ The `doc` operation can be configured using environment variables defined in the
    - `GENERIC_MODEL_OP_DOC_STAGE1`, `GENERIC_MODEL_OP_DOC_STAGE2`: Specify the models to use for each stage when using the Generic provider (OpenAI compatible).
 
 3. **Token Limits:**
-   - `*_MAX_TOKENS_OP_DOC_STAGE1`, `*_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response (replace * with the provider name).
-   - `*_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached.
+   - `<PROVIDER>_MAX_TOKENS_OP_DOC_STAGE1`, `<PROVIDER>_MAX_TOKENS_OP_DOC_STAGE2`: Set the maximum number of tokens for each stage of the documentation response (replace `<PROVIDER>` with `ANTHROPIC`, `OPENAI`, `OLLAMA`, or `GENERIC`).
+   - `<PROVIDER>_MAX_TOKENS_SEGMENTS`: Specify the maximum number of continuation segments allowed when the LLM token limit is reached.
 
    For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if supported by your model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If generating a smaller document, it is generally better to set a larger token limit and limit document size with embedded instructions (starting with `Notes on implementation:`) inside the document.
 
@@ -133,17 +135,17 @@ The `doc` operation can be configured using environment variables defined in the
    Similar authentication options exist for the Ollama provider, for use with public instances wrapped with an HTTPS reverse proxy.
 
 6. **Common Parameters for all Providers:**
-   - `*_ON_FAIL_RETRIES_OP_DOC_STAGE*`: Number of retries on failure.
-   - `*_TEMPERATURE_OP_DOC_STAGE*`: Temperature setting (0.0–1.0).
-   - `*_TOP_K_OP_DOC_STAGE*`: Top-K sampling parameter.
-   - `*_TOP_P_OP_DOC_STAGE*`: Top-P sampling parameter.
-   - `*_SEED_OP_DOC_STAGE*`: Random seed for reproducibility.
-   - `*_REPEAT_PENALTY_OP_DOC_STAGE*`: Penalty for repeated tokens.
-   - `*_FREQ_PENALTY_OP_DOC_STAGE*`: Frequency penalty.
-   - `*_PRESENCE_PENALTY_OP_DOC_STAGE*`: Presence penalty.
-   - `*_REASONING_EFFORT_OP_DOC_STAGE*`: Reasoning effort ("low", "medium", "high").
+   - `<PROVIDER>_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `<PROVIDER>_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Number of retries on failure.
+   - `<PROVIDER>_TEMPERATURE_OP_DOC_STAGE1`, `<PROVIDER>_TEMPERATURE_OP_DOC_STAGE2`: Temperature setting (0.0–1.0).
+   - `<PROVIDER>_TOP_K_OP_DOC_STAGE1`, `<PROVIDER>_TOP_K_OP_DOC_STAGE2`: Top-K sampling parameter.
+   - `<PROVIDER>_TOP_P_OP_DOC_STAGE1`, `<PROVIDER>_TOP_P_OP_DOC_STAGE2`: Top-P sampling parameter.
+   - `<PROVIDER>_SEED_OP_DOC_STAGE1`, `<PROVIDER>_SEED_OP_DOC_STAGE2`: Random seed for reproducibility.
+   - `<PROVIDER>_REPEAT_PENALTY_OP_DOC_STAGE1`, `<PROVIDER>_REPEAT_PENALTY_OP_DOC_STAGE2`: Penalty for repeated tokens.
+   - `<PROVIDER>_FREQ_PENALTY_OP_DOC_STAGE1`, `<PROVIDER>_FREQ_PENALTY_OP_DOC_STAGE2`: Frequency penalty.
+   - `<PROVIDER>_PRESENCE_PENALTY_OP_DOC_STAGE1`, `<PROVIDER>_PRESENCE_PENALTY_OP_DOC_STAGE2`: Presence penalty.
+   - `<PROVIDER>_REASONING_EFFORT_OP_DOC_STAGE1`, `<PROVIDER>_REASONING_EFFORT_OP_DOC_STAGE2`: Reasoning effort ("low", "medium", "high").
 
-   Replace * with the provider name. Not all parameters are supported by all providers.
+   Replace `<PROVIDER>` with `ANTHROPIC`, `OPENAI`, `OLLAMA`, or `GENERIC`. Not all parameters are supported by all providers.
 
 ### Example Configuration in `.env` File
 
