@@ -4,7 +4,7 @@ The `embed` operation generates vector embeddings for your project's source file
 
 ## Usage
 
-The `embed` operation is optional and will only function when an embedding model is configured via environment variables in your `.env` file. It is not supported with the Anthropic provider.
+The `embed` operation is optional and will only function when an embedding model is configured via environment variables in your `.env` file. It is supported with OpenAI, Ollama, and Generic providers but not with the Anthropic provider.
 
 ```sh
 Perpetual embed [flags]
@@ -93,7 +93,7 @@ Available flags:
 
 ## LLM Configuration
 
-To enable embeddings, set the appropriate model and parameters in your `.perpetual/.env` or global `.env` file. Embedding is supported for OpenAI, Ollama, and Generic providers; Anthropic does not support embeddings.
+To enable embeddings, set the appropriate model and parameters in your `.perpetual/.env` or global `.env` file. Embedding is supported for OpenAI, Ollama, and Generic providers (depending on the specific provider's capabilities); Anthropic does not support embeddings.
 
 ### Key Environment Variables
 
