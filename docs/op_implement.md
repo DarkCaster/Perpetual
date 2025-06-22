@@ -53,7 +53,7 @@ To effectively use the `implement` operation, follow this typical workflow:
      ```
 
    - The operation will process all files with `###IMPLEMENT###` comments by default.  
-   - **Task Mode**: Enable task mode with `-t`. Instructions can be provided through standard input or by specifying a file with `-i`. This bypasses the usual search for implementation comments.
+   - **Task Mode**: Enable task mode with `-t`. Instructions can be provided through standard input or by specifying a file with `-i`. This bypasses the usual search for implementation comments and automatically enables planning mode.
 
 4. **Reviewing and Iterating**  
    - Review the generated code for accuracy and consistency.  
@@ -94,17 +94,18 @@ Perpetual implement [flags]
 - `-h`: Display help information about the `implement` operation.  
 - `-c <mode>`: Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high).  
 - `-f`: Disable 'no-upload' file-filter and upload such files for review and processing if requested.  
-- `-i <file>`: Specify a file from which to read task instructions when in task mode.  
+- `-i <file>`: When using task mode (-t flag), read task instructions from file, plain text or markdown format.  
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.  
-- `-p`: Enable extended planning stage. Useful for larger modifications that may create new files. Disabled by default to save tokens.  
-- `-pr`: Enable planning with additional reasoning. May produce improved results for complex or abstractly described tasks but can also lead to flawed reasoning that worsens the final outcome. This flag includes the `-p` flag.  
-- `-s <n>`: Limit number of files related to the task returned by local search (0 disables local search, only use LLM-requested files). This flag invokes an embedding operation and performs a local similarity search for files related to the implementation context.  
-- `-t`: Enable task mode. Provide task instructions directly rather than relying solely on implementation comments. When enabled, instructions can be read from standard input or from a file specified with `-i`.  
-- `-u`: Include unit-test source code files in processing (by default, these files are excluded).  
+- `-p`: Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.  
+- `-pr`: Enable planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.  
+- `-s <n>`: Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files). This flag invokes an embedding operation and performs a local similarity search for files related to the implementation context.  
+- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.  
+- `-t`: Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the `-p` flag.  
+- `-u`: Do not exclude unit-tests source files from processing.  
 - `-x <file>`: Path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).  
-- `-z`: When using `-p` or `-pr` flags, do not enforce the initial sources to file lists produced by planning.  
+- `-z`: When using `-p` or `-pr` flags, do not enforce initial sources to file-lists produced by planning.  
 - `-v`: Enable debug logging for more detailed output.  
-- `-vv`: Enable both debug and trace logging for maximum verbosity.
+- `-vv`: Enable debug and trace logging for maximum verbosity.
 
 ## LLM Configuration
 
