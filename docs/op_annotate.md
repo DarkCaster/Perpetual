@@ -14,7 +14,7 @@ Perpetual annotate [flags]
 
 The `annotate` operation supports several command-line flags to customize its behavior:
 
-- `-c <mode>`: Context saving mode, reduce LLM context use for large projects. Valid values are: `auto`, `off`, `medium`, `high`. The default is `auto`, which automatically determines the appropriate context saving level based on project size.
+- `-c <mode>`: Context saving mode, reduce LLM context use for large projects. Valid values are: `auto`, `off`, `medium`, `high`. The default is `auto`, which automatically determines the appropriate context saving level based on project size. When context saving is activated, `annotate` generates shorter file annotations to save tokens on stage 1 for other operations.
 
 - `-f`: Force annotation of all files, even for files whose annotations are up to date. This flag is useful when you want to regenerate all annotations, regardless of whether the files have changed since the last annotation.
 
@@ -68,7 +68,7 @@ The `annotate` operation can be configured using environment variables defined i
 
 1. **LLM Provider:**
    - `LLM_PROVIDER_OP_ANNOTATE`: Specifies the LLM provider to use for the `annotate` operation. If not set, it falls back to the general `LLM_PROVIDER`.
-   - `LLM_PROVIDER_OP_ANNOTATE_POST`: Specifies the LLM provider for post-annotation processing. If not set, it falls back to the general `LLM_PROVIDER`.
+   - `LLM_PROVIDER_OP_ANNOTATE_POST`: Specifies the LLM provider for post-annotation processing when multiple variants are generated. If not set, it falls back to the general `LLM_PROVIDER`.
 
 2. **Model Selection:**
    - `ANTHROPIC_MODEL_OP_ANNOTATE`: Specifies the Anthropic model to use for annotation (e.g., "claude-3-haiku-20240307").
@@ -119,15 +119,23 @@ Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are n
 
 Customization of LLM prompts for the `annotate` operation is handled through the `.perpetual/op_annotate.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. The key parameters within this configuration file include:
 
-- **`stage1_prompts`**: An array of file patterns and corresponding prompts for generating annotations. Each entry contains a regular expression to match file names and a prompt template for that file type.
+- **`system_prompt`**: The system prompt that establishes the LLM's role and instructions for the annotation task.
+
+- **`system_prompt_ack`**: The acknowledgment message that the LLM should use to confirm understanding of the system prompt.
+
+- **`stage1_prompts`**: An array of file patterns and corresponding prompts for generating annotations. Each entry contains three elements: a regular expression to match file names, a prompt template for normal annotations, and a prompt template for context-saving mode (shorter annotations).
 
 - **`stage1_response`**: The acknowledgment message used by the LLM after receiving the file to annotate.
 
-- **`stage2_prompt_variant`**: Prompt used to request additional annotation variants.
+- **`stage2_prompt_variant`**: Prompt used to request additional annotation variants when multiple variants are being generated.
 
 - **`stage2_prompt_combine`**: Prompt used to combine multiple annotation variants into a final version.
 
-- **`stage2_prompt_best`**: Prompt used to select the best annotation variant.
+- **`stage2_prompt_best`**: Prompt used to select the best annotation variant from multiple options.
+
+- **`annotate_task_prompt`**: Prompt used for generating task annotations from `###IMPLEMENT###` comments in source files.
+
+- **`annotate_task_response`**: Acknowledgment message for the task annotation prompt.
 
 - **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations.
 
@@ -139,14 +147,18 @@ When using OpenAI or Anthropic LLMs, you typically don't need to modify the `cod
 
 ```json
 {
+  "system_prompt": "You are a highly skilled technical documentation writer...",
+  "system_prompt_ack": "I understand...",
   "stage1_prompts": [
-    ["(?i)^.*\\.go$", "Create a summary for the GO source file in my next message..."],
-    ["(?i)^.*_test\\.go$", "Create a summary for the GO unit-tests source file in my next message..."]
+    ["(?i)^.*\\.go$", "Create a summary for the GO source file...", "Create a short summary for the GO source file..."],
+    ["(?i)^.*_test\\.go$", "Create a summary for the GO unit-tests source file...", "Create a short summary for the GO unit-tests source file..."]
   ],
   "stage1_response": "Waiting for file contents",
   "stage2_prompt_variant": "Create another summary variant",
   "stage2_prompt_combine": "Evaluate the summaries you have created and rework them into a final summary...",
   "stage2_prompt_best": "Evaluate the summaries you have created and choose summary variant that better matches...",
+  "annotate_task_prompt": "Extract and summarize implementation tasks from the following source file...",
+  "annotate_task_response": "Waiting for file contents to analyze for implementation tasks",
   "filename_tags": ["<filename>", "</filename>"],
   "code_tags_rx": ["(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"]
 }
@@ -170,7 +182,7 @@ When using OpenAI or Anthropic LLMs, you typically don't need to modify the `cod
 
 4. **Annotation Generation:**
    - For each selected file, the operation:
-     - Selects an appropriate prompt from `stage1_prompts` based on the file type
+     - Selects an appropriate prompt from `stage1_prompts` based on the file type and context saving mode
      - Sends the prompt and file content to the LLM
      - Optionally generates multiple variants if configured
      - Processes variants according to the selected strategy (combine, select best, etc.)
