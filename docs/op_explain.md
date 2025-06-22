@@ -32,6 +32,8 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
 
+- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.
+
 - `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question.
 
 - `-h`: Display the help message, detailing all available flags and their descriptions.
