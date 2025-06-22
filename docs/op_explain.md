@@ -12,35 +12,21 @@ Perpetual explain [flags]
 
 The `explain` operation offers a range of command-line flags to tailor its functionality to your specific needs:
 
-- `-i <file>`: Specify the input file containing the question to be answered. If omitted, the operation reads the question from standard input (stdin).
-
-- `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.
-
-- `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are `auto`, `off`, `medium`, or `high` (default: `auto`).
-
-- `-a`: Enable the addition of full project annotations in the request along with the files requested by the LLM for analysis. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. It is disabled by default to save tokens and reduce the context window size requirement.
-
-- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). This mode may be useful when performing simple semantic file-search queries. Note that the file-search task is always performed during stage 1 of a full explanation.
-
-- `-n`: Enable "No Annotate" mode, which skips the re-annotation of changed files and utilizes existing annotations if available. This can reduce API calls but may lower the quality of the explanations.
-
-- `-f`: Override the 'no-upload' file filter to include files marked as 'no-upload' for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.
-
-- `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded to focus on primary source code.
-
-- `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).
-
-- `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
-
-- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.
-
-- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question.
-
-- `-h`: Display the help message, detailing all available flags and their descriptions.
-
-- `-v`: Enable debug logging to receive detailed output about the operation's execution process.
-
-- `-vv`: Activate both debug and trace logging for the highest level of verbosity, offering an in-depth view of the operation's internal workings.
+- `-i <file>`: Specify the input file containing the question to be answered. If omitted, the operation reads the question from standard input (stdin).  
+- `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.  
+- `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are `auto`, `off`, `medium`, or `high` (default: `auto`).  
+- `-a`: Enable the addition of full project annotations in the request along with the files requested by the LLM for analysis. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. It is disabled by default to save tokens and reduce the context window size requirement.  
+- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). This mode may be useful when performing simple semantic file-search queries. Note that the file-search task is always performed during stage 1 of a full explanation.  
+- `-n`: Enable "No Annotate" mode, which skips the re-annotation of changed files and utilizes existing annotations if available. This can reduce API calls but may lower the quality of the explanations.  
+- `-f`: Override the 'no-upload' file filter to include files marked as 'no-upload' for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.  
+- `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded to focus on primary source code.  
+- `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).  
+- `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.  
+- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.  
+- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question.  
+- `-h`: Display the help message, detailing all available flags and their descriptions.  
+- `-v`: Enable debug logging to receive detailed output about the operation's execution process.  
+- `-vv`: Activate both debug and trace logging for the highest level of verbosity, offering an in-depth view of the operation's internal workings.  
 
 ### Examples
 
