@@ -14,6 +14,8 @@ Perpetual annotate [flags]
 
 The `annotate` operation supports several command-line flags to customize its behavior:
 
+- `-c <mode>`: Context saving mode, reduce LLM context use for large projects. Valid values are: `auto`, `off`, `medium`, `high`. The default is `auto`, which automatically determines the appropriate context saving level based on project size.
+
 - `-f`: Force annotation of all files, even for files whose annotations are up to date. This flag is useful when you want to regenerate all annotations, regardless of whether the files have changed since the last annotation.
 
 - `-d`: Perform a dry run without actually generating annotations. This flag will list the files that would be annotated without making LLM requests and updating annotations.
@@ -75,7 +77,7 @@ The `annotate` operation can be configured using environment variables defined i
    - `GENERIC_MODEL_OP_ANNOTATE`: Specifies the Generic provider (OpenAI compatible) model to use for annotation.
 
 3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`, `GENERIC_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 512 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 512 is a reasonable limit. So when hitting the token limit, this indicates that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
+   - `ANTHROPIC_MAX_TOKENS_OP_ANNOTATE`, `OPENAI_MAX_TOKENS_OP_ANNOTATE`, `OLLAMA_MAX_TOKENS_OP_ANNOTATE`, `GENERIC_MAX_TOKENS_OP_ANNOTATE`: Set the maximum number of tokens for the annotation response. The default is often set to 768 for annotations. Consider not using large values here because annotations from all files are joined together into the larger project index. Therefore, individual file annotations should remain small, and 768 is a reasonable limit. When hitting the token limit, this indicates that the source code file is too complex and you need to add some notes for summarization to make the annotation for this file smaller.
 
 4. **Retry Settings:**
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE`, `OPENAI_ON_FAIL_RETRIES_OP_ANNOTATE`, `OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE`, `GENERIC_ON_FAIL_RETRIES_OP_ANNOTATE`: Specify the number of retries on failure for the `annotate` operation.
@@ -85,7 +87,7 @@ The `annotate` operation can be configured using environment variables defined i
 
 6. **Variant Generation and Selection:**
    - `ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE`, `OPENAI_VARIANT_COUNT_OP_ANNOTATE`, `OLLAMA_VARIANT_COUNT_OP_ANNOTATE`, `GENERIC_VARIANT_COUNT_OP_ANNOTATE`: Number of annotation variants to generate.
-   - `ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE`, `OPENAI_VARIANT_SELECTION_OP_ANNOTATE`, `OLLAMA_VARIANT_SELECTION_OP_ANNOTATE`, `GENERIC_VARIANT_SELECTION_OP_ANNOTATE`: Strategy for selecting or combining variants ("SHORT", "LONG", "COMBINE", "BEST").
+   - `ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE`, `OPENAI_VARIANT_SELECTION_OP_ANNOTATE`, `OLLAMA_VARIANT_SELECTION_OP_ANNOTATE`, `GENERIC_VARIANT_SELECTION_OP_ANNOTATE`: Strategy for selecting or combining variants ("short", "long", "combine", "best").
 
 7. **Other LLM Parameters:**
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: These parameters can be set specifically for the `annotate` operation by appending `_OP_ANNOTATE` to the variable name (e.g., `ANTHROPIC_TOP_K_OP_ANNOTATE`). They are mostly useful for the local Ollama provider and are not needed for OpenAI or Anthropic models.
@@ -99,16 +101,15 @@ LLM_PROVIDER_OP_ANNOTATE_POST="anthropic"
 
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
 ANTHROPIC_MODEL_OP_ANNOTATE_POST="claude-3-haiku-20240307"
-ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="512"
+ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="768"
+ANTHROPIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
 ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
-ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="3"
-ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE="3"
-ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE="COMBINE"
-ANTHROPIC_TOP_K_OP_ANNOTATE="40"
-ANTHROPIC_TOP_P_OP_ANNOTATE="0.9"
+ANTHROPIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
+ANTHROPIC_VARIANT_COUNT_OP_ANNOTATE="1"
+ANTHROPIC_VARIANT_SELECTION_OP_ANNOTATE="short"
 ```
 
-This configuration uses the Anthropic provider with the Claude 3 Haiku model, sets a maximum of 512 tokens for annotations, uses a temperature of 0.5, and allows up to 3 retries on failure. It also generates 3 annotation variants and combines them for the best result.
+This configuration uses the Anthropic provider with the Claude 3 Haiku model, sets a maximum of 768 tokens for annotations, uses a temperature of 0.5, and allows 1 retry on failure. It generates 1 annotation variant with the "short" selection strategy.
 
 Note that if operation-specific variables (with the `_OP_ANNOTATE` suffix) are not set, the `annotate` operation will fall back to the general variables for the chosen LLM provider. This allows for flexible configuration where you can set general defaults and override them specifically for the `annotate` operation if needed.
 
