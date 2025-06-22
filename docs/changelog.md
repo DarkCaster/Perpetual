@@ -27,7 +27,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Introduced new context saving measures for stage 1 of `implement`, `explain` and `doc` operations using local similarity search: limiting context-window use by preliminary filtering of project files reducing number of annotations sent to stage 1. Helps to improve quality or mitigate errors when trying to work with big projects (like 500-1000 files or more) and using LLM with context-window size not big enough (deepseek, or local models).
 - Introduced multi-pass support for stage 1 of `implement`, `explain` and `doc` operations in order to select more relevant files, useful for big projects, or complex tasks, or when using smaller/local LLMs.
 - Reworked stage 1 and stage 2 logic for `implement`, `explain` and `doc` operations, using more shared code.
-- Renamed some stage 1 json configs key-names for `implement`, `explain` and `doc` operations.
+- Renamed some stage 1 JSON config key-names for `implement`, `explain` and `doc` operations.
 - Minor improvements for local similarity search
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for the operations.
