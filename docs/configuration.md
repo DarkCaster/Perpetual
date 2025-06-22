@@ -20,27 +20,26 @@ LLM settings are read from environment variables and from `.env` files loaded by
    Variables already set in your shell or operating system take highest priority.
 
 2. **Project `*.env` Files**  
-   All files ending in `.env` located in the project’s `.perpetual` directory. They are loaded in alphabetical order; a variable already set by the system or by an earlier file is not overridden.
+   All files ending in `.env` located in the project's `.perpetual` directory. They are loaded in alphabetical order; a variable already set by the system or by an earlier file is not overridden.
 
-3. **Global `.env` Files**  
+3. **Global `*.env` Files**  
    All files ending in `.env` in your global Perpetual config directory:
    - Unix/Linux: `$HOME/.config/Perpetual/`
-   - Windows: `%AppData%\Perpetual\`
+   - Windows: `%AppData%\Roaming\Perpetual\`
 
-When you run `perpetual init -l <lang>`, an example files named `*.env.example` are created in `.perpetual` as a reference. **`*.env.example` files are not loaded** by Perpetual.
+When you run `perpetual init -l <lang>`, example files named `*.env.example` are created in `.perpetual` as a reference. **`*.env.example` files are not loaded** by Perpetual.
 
 ### Key Environment Variables
 
-Use `*.env.example` as a templates. Common settings include:
+Use `*.env.example` as templates. Common settings include:
 
 - **Provider Selection**  
   - `LLM_PROVIDER`: Default provider profile, e.g. `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g. `openai1`) to maintain multiple configurations.
   - `LLM_PROVIDER_OP_<OPERATION>`: Operation-specific provider override (e.g. `LLM_PROVIDER_OP_ANNOTATE`).
 
-- **Authentication**  
-  - `<PROFILE>_API_KEY`: API key for the provider.
+- **Authentication** (options depend on selected provider)  
+  - `<PROFILE>_API_KEY` or `<PROFILE>_AUTH`: API key, token or `login:password` for the provider
   - `<PROFILE>_AUTH_TYPE`: `"Bearer"` (API key/token) or `"Basic"` (login:password).
-  - `<PROFILE>_AUTH`: Credential string, either the token or `login:password`.
 
 - **Model and Parameters**  
   - `<PROFILE>_MODEL`: Default model name (e.g. `OPENAI_MODEL="gpt-4.1"`).
@@ -57,12 +56,12 @@ Refer to the comments within `*.env.example` files for detailed defaults. You ma
 
 ## Project Configuration
 
-Project configuration files allow you to customize Perpetual’s behavior on a per-project basis. They are stored in JSON files under the `.perpetual` directory.
+Project configuration files allow you to customize Perpetual's behavior on a per-project basis. They are stored in JSON files under the `.perpetual` directory.
 
 ### Configuration Files
 
 - **Global Project Settings**  
-  - `project.json`: Defines file-selection filters and Markdown code-block mappings.
+  - `project.json`: Defines file-selection filters, Markdown code-block mappings, and context saving parameters.
 
 - **Operation-Specific Settings**  
   - `op_annotate.json`: Prompts and templates for file annotation.
@@ -73,12 +72,18 @@ Project configuration files allow you to customize Perpetual’s behavior on a p
 
 ### `project.json` Parameters
 
-Controls which files are included or excluded and how code is mapped to Markdown:
+Controls which files are included or excluded, how code is mapped to Markdown, and context saving behavior:
 
 - `project_files_whitelist`: Array of regex patterns for files to include.
 - `project_files_blacklist`: Array of regex patterns for files to exclude.
 - `project_test_files_blacklist`: Regex patterns to exclude test files.
 - `files_to_md_code_mappings`: A 2D array of `[pattern, language]` mappings for Markdown code blocks.
+- `medium_context_saving_file_count`: File count threshold for medium context saving mode.
+- `high_context_saving_file_count`: File count threshold for high context saving mode.
+- `medium_context_saving_select_percent`: Percentage of files to select in medium context saving.
+- `medium_context_saving_random_percent`: Percentage of random files in medium context saving (calculated relative to the previous value).
+- `high_context_saving_select_percent`: Percentage of files to select in high context saving.
+- `high_context_saving_random_percent`: Percentage of random files in high context saving (calculated relative to the previous value).
 
 Example:
 
@@ -91,7 +96,13 @@ Example:
     [".*\\.go$", "go"],
     [".*\\.py$", "python"],
     [".*\\.md$", "markdown"]
-  ]
+  ],
+  "medium_context_saving_file_count": 500,
+  "high_context_saving_file_count": 1000,
+  "medium_context_saving_select_percent": 60.0,
+  "medium_context_saving_random_percent": 25.0,
+  "high_context_saving_select_percent": 50.0,
+  "high_context_saving_random_percent": 20.0
 }
 ```
 
@@ -112,7 +123,7 @@ Example:
 - `filename_tags`: Tags used when embedding filenames in LLM prompts.
 - `filename_tags_rx`: Regex to recognize tagged filenames in LLM responses.
 - `code_tags_rx`: Regex to identify code blocks in responses.
-- `noupload_comments_rx`: Regex for comments that mark files as “no-upload.”
+- `noupload_comments_rx`: Regex for comments that mark files as "no-upload."
 
 **Version Control**: Operation configs in `.perpetual` should be committed to ensure consistency across environments.  
-**Customization**: Feel free to adjust prompts, regexes, and schemas to fit your project’s needs.
+**Customization**: Feel free to adjust prompts, regexes, and schemas to fit your project's needs.
