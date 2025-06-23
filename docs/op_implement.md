@@ -174,18 +174,7 @@ Context saving is automatically triggered based on project file count:
 
 ### Configuration
 
-Context saving thresholds and percentages can be customized in your `project.json` configuration file:
-
-```json
-{
-  "project_medium_context_saving_file_count": 500,
-  "project_high_context_saving_file_count": 1000,
-  "project_medium_context_saving_select_percent": 60.0,
-  "project_medium_context_saving_random_percent": 25.0,
-  "project_high_context_saving_select_percent": 50.0,
-  "project_high_context_saving_random_percent": 20.0
-}
-```
+For details, see the `project.json` configuration file description below.
 
 ## LLM Configuration
 
@@ -319,6 +308,34 @@ System-level configuration options that apply across all stages:
 ## Project Configuration
 
 Global project configuration is handled through the `.perpetual/project.json` configuration file. It defines which source code files are targets for processing with Perpetual and which are not. Update the paths and regex patterns used for project file selection to fit your specific project requirements.
+
+### File Selection Configuration
+
+The following configuration keys control which files are included or excluded from processing:
+
+- **`project_files_whitelist`**: An array of regular expressions that define which files should be included for processing. Only files matching these patterns will be considered by Perpetual operations. This allows you to focus on specific file types or directories.
+
+- **`project_files_blacklist`**: An array of regular expressions that define which files should be excluded from processing. Files matching these patterns will be filtered out even if they match the whitelist patterns. Use this to exclude configuration files, build artifacts, or other files that shouldn't be processed.
+
+- **`project_test_files_blacklist`**: An array of regular expressions specifically for identifying unit test files. These files will be excluded from processing by default unless the `-u` flag is used. This helps keep test files separate from main source code during analysis.
+
+- **`files_to_md_code_mappings`**: A 2D array that maps file extensions to markdown code block language identifiers. This helps the LLM properly format code blocks when presenting source code. For example, `[".go", "go"]` maps Go files to the "go" language identifier in markdown.
+
+### Context Saving Configuration
+
+Context saving thresholds and percentages can be customized in your `project.json` configuration file:
+
+- **`project_medium_context_saving_file_count`**: The threshold number of files that triggers medium context saving mode automatically when using the `auto` context saving setting.
+
+- **`project_high_context_saving_file_count`**: The threshold number of files that triggers high context saving mode automatically when using the `auto` context saving setting.
+
+- **`project_medium_context_saving_select_percent`**: Percentage of project files to select during medium context saving mode (default: 60%).
+
+- **`project_medium_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during medium context saving mode (default: 25%).
+
+- **`project_high_context_saving_select_percent`**: Percentage of project files to select during high context saving mode (default: 50%).
+
+- **`project_high_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during high context saving mode (default: 20%).
 
 ## Best Practices
 
