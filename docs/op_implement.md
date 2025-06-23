@@ -32,7 +32,7 @@ To effectively use the `implement` operation, follow this typical workflow:
 1. **Project Setup**  
    - Create the basic structure of your project, including main files and directories.  
    - Initialize your project for use with the Perpetual tool by using the `init` operation.  
-   - Create a local `.env` configuration file at `<project_root>/.perpetual/.env` and/or a global configuration file at `~/.config/Perpetual/.env` on Linux or `<User profile dir>\AppData\Roaming\Perpetual\.env` on Windows. Settings from the local project configuration file take precedence over global configuration settings.
+   - Create a local `.env` configuration file(s) at `<project_root>/.perpetual/*.env` and/or a global configuration file(s) at `~/.config/Perpetual/*.env` on Linux or `<User profile dir>\AppData\Roaming\Perpetual\*.env` on Windows. Settings from the local project configuration file take precedence over global configuration settings. Use example `*.env` files from `<project_root>/.perpetual/*.env.example` as reference.
 
 2. **Marking Implementation Points**  
    - In your source files, use `###IMPLEMENT###` comments to indicate where you want code to be generated or modified.  
@@ -174,8 +174,59 @@ ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="10"
 
 Customization of LLM prompts for the `implement` operation is handled through the `.perpetual/op_implement.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. You may modify it in case of problems, but normally you should not change it unless you are adapting prompts for a programming language or project type not supported by Perpetual.
 
-**Special Options:**
+The prompt configuration is organized by stages, with each stage having specific prompts for different scenarios. The configuration allows for fine-tuning how the LLM processes requests at each stage of the implementation workflow.
 
+### Stage 1 Prompts
+
+Stage 1 is responsible for analyzing the project context and identifying relevant files for code implementation. It creates a project index using file annotations and determines which additional files should be reviewed to provide proper context for the implementation task.
+
+- **`project_index_prompt`**: Initial prompt that presents the project file index with annotations to give the LLM an overview of the project structure and content.
+- **`project_index_response`**: Simulated LLM response acknowledging receipt of the project index.
+- **`stage1_analysis_prompt`**: Main prompt for regular mode that asks the LLM to identify which project files are relevant for implementing the specified tasks.
+- **`stage1_analysis_json_mode_prompt`**: Alternative version of the analysis prompt designed for JSON structured output mode, providing the same functionality with formatted output.
+- **`stage1_task_analysis_prompt`**: Analysis prompt specifically for task mode when implementation instructions are provided directly rather than through `###IMPLEMENT###` comments.
+- **`stage1_task_analysis_json_mode_prompt`**: JSON-formatted version of the task analysis prompt for structured output in task mode.
+
+### Stage 2 Prompts
+
+Stage 2 handles the gathering of source code context and, optionally, the generation of implementation reasoning or work plans. This stage prepares the foundation for subsequent stages by organizing relevant information and creating detailed plans when needed.
+
+- **`stage2_code_prompt`**: Prompt for reviewing and analyzing the source code files identified in Stage 1, providing context for implementation decisions.
+- **`stage2_code_response`**: Simulated response acknowledging the code review completion.
+- **`stage2_noplanning_prompt`**: Prompt used when planning mode is disabled (`-p` and `-pr` flags not used), requesting direct implementation without detailed planning.
+- **`stage2_noplanning_response`**: Simulated response for the no-planning mode.
+- **`stage2_reasonings_prompt`**: Prompt for generating detailed reasoning and work plans when planning with reasoning mode is enabled (`-pr` flag).
+- **`stage2_reasonings_prompt_final`**: Final prompt used after reasoning generation to prepare for subsequent stages. This is a simplified version of previous prompt that actually used in LLM message history on next stages instead of full prompt to draw LLM attention away from unneeded instructions.
+- **`stage2_task_reasonings_prompt`**: Reasoning prompt specifically for task mode implementations.
+- **`stage2_task_reasonings_prompt_final`**: Final reasoning prompt for task mode. This is a simplified version of previous prompt that actually used in LLM message history on next stages instead of full prompt to draw LLM attention away from unneeded instructions.
+
+### Stage 3 Prompts
+
+Stage 3 determines which files will be modified or created during the implementation process. This stage analyzes the requirements and work plan to produce a comprehensive list of files that need changes.
+
+- **`stage3_planning_prompt`**: Main prompt for determining file modifications when using planning mode with full file content analysis.
+- **`stage3_planning_json_mode_prompt`**: JSON-structured version of the planning prompt for providers that support structured output.
+- **`stage3_planning_lite_prompt`**: Simplified planning prompt used when reasoning has already been generated in Stage 2, requiring less detailed analysis.
+- **`stage3_planning_lite_json_mode_prompt`**: JSON version of the simplified planning prompt.
+- **`stage3_task_planning_prompt`**: Planning prompt specifically designed for task mode implementations.
+- **`stage3_task_planning_json_mode_prompt`**: JSON-structured version of the task planning prompt.
+- **`stage3_task_extra_files_prompt`**: Additional prompt used in task mode when extra files need to be included in the context to prevent overwriting existing code.
+
+### Stage 4 Prompts
+
+Stage 4 performs the actual code implementation, processing each target file individually and generating the final code based on all previous analysis and planning.
+
+- **`stage4_changes_done_prompt`**: Prompt that provides context about previously implemented files during iterative processing.
+- **`stage4_changes_done_response`**: Simulated response acknowledging the completed changes.
+- **`stage4_continue_prompt`**: Prompt used when the LLM response reaches token limits and needs to continue generating the remaining code.
+- **`stage4_process_prompt`**: Main prompt for implementing code in a specific file, with placeholders for file-specific information.
+
+### Other Options
+
+System-level configuration options that apply across all stages:
+
+- **`system_prompt`**: The primary system prompt that establishes the LLM's role and general behavior for the implement operation.
+- **`system_prompt_ack`**: Acknowledgment response that the LLM should provide to confirm understanding of the system prompt.
 - **`code_tags_rx`**: Regular expressions to identify code blocks in responses.  
 - **`filename_embed_rx`**: Regular expression to embed the filename into a file implementation request.  
 - **`filename_tags`**: Tags used to denote filenames in messages.  
