@@ -137,6 +137,56 @@ The `implement` operation is divided into four main stages.
    - Parse and store the generated code for each file.  
 3. **Integration**: Integrate the generated code into the appropriate files, replacing `###IMPLEMENT###` comments and ensuring seamless incorporation.
 
+## Working with Large Projects
+
+When working with large projects, Perpetual employs several context saving measures to manage LLM context limits. This is mainly needed to make annotations/tasks/source-code analysis API calls to fit LLM-model context window size limits on stage 1 when working with large projects.
+
+### Context Saving Modes
+
+The `-c` flag allows you to control context saving behavior:
+
+- **`auto`** (default): Automatically enables context saving based on project file count thresholds  
+- **`off`**: Disables all context saving measures  
+- **`medium`**: Enables moderate context saving regardless of project size  
+- **`high`**: Enables aggressive context saving regardless of project size  
+
+### File Count Thresholds
+
+Context saving is automatically triggered based on project file count:
+
+- **Medium Context Saving**: Activated when project exceeds 500 files (configurable via `project_medium_context_saving_file_count` in `project.json`)
+- **High Context Saving**: Activated when project exceeds 1000 files (configurable via `project_high_context_saving_file_count` in `project.json`)
+
+### Context Saving Measures
+
+1. **Shorter Annotations**: When context saving is enabled, the `annotate` operation generates shorter, more concise file summaries to reduce context usage. **Important**: If you change context saving settings, you may need to manually regenerate annotations using `Perpetual annotate -f` to ensure consistency.
+
+2. **Project File Pre-selection**: Uses local similarity search with embeddings to pre-select the most relevant files for processing:
+   - **Medium Context Saving**: Selects 60% of project files, with 25% randomized (configurable via `project_medium_context_saving_select_percent` and `project_medium_context_saving_random_percent`)
+   - **High Context Saving**: Selects 50% of project files, with 20% randomized (configurable via `project_high_context_saving_select_percent` and `project_high_context_saving_random_percent`)
+
+3. **Multi-pass File Selection**: The `-sp` flag enables multiple passes of file selection at Stage 1, helping compensate for potential LLM errors in identifying relevant files. Works with or without context saving measures enabled, however it will cost you more API calls and may lead to higher token usage.
+
+### Requirements for Context Saving
+
+- **Embeddings Support**: Context saving features require an embedding model to be configured in your `*.env` files for local similarity search functionality
+- **Annotation Updates**: Ensure your project annotations are current when using context saving, as these are used for file relevance calculations. Annotations are not rebuilt automatically when starting to use context saving measures, so you need to rebuild them with `annotate` operation using `-f` flag to make all current annotations smaller (not only for the new or modified files)
+
+### Configuration
+
+Context saving thresholds and percentages can be customized in your `project.json` configuration file:
+
+```json
+{
+  "project_medium_context_saving_file_count": 500,
+  "project_high_context_saving_file_count": 1000,
+  "project_medium_context_saving_select_percent": 60.0,
+  "project_medium_context_saving_random_percent": 25.0,
+  "project_high_context_saving_select_percent": 50.0,
+  "project_high_context_saving_random_percent": 20.0
+}
+```
+
 ## LLM Configuration
 
 The `implement` operation can be fine-tuned using environment variables in the `.env` file. These variables allow you to customize the behavior of the LLM used for code implementation. Key configuration options include:
