@@ -107,6 +107,36 @@ Perpetual implement [flags]
 - `-v`: Enable debug logging for more detailed output.  
 - `-vv`: Enable debug and trace logging for maximum verbosity.
 
+## Implementation Details
+
+The `implement` operation is divided into four main stages.
+
+### Stage 1: Context Gathering
+
+1. **Run `annotate` and `embed`** to update project source code annotations and vector embeddings.  
+2. **Generate a project index** containing filenames and their annotations.  
+3. **Create a request for files** with `###IMPLEMENT###` comments. Query the LLM to identify which project source code files are relevant, also perform a local vector search to determine the relevant files that LLM may miss.  
+4. **Return the list of files** to review.
+
+### Stage 2: Generating Work Plan
+
+1. **Gathering Source Code**: Collect source code from the files identified for review.  
+2. **Generating Reasonings**: If enabled via `-pr`, the LLM produces a detailed work plan outlining the steps required.
+
+### Stage 3: Planning Changes
+
+1. **Query LLM for File Modification**: Determine which files will be modified or created.  
+2. **Parse the LLM's Response**: Extract a list of files to modify or create, ensuring alignment with project structure.
+
+### Stage 4: Code Generation
+
+1. **Gather Source Code and Work Plan**: Use the relevant files and work plan as guidance.  
+2. **Iterative Processing of Each File**:  
+   - Query the LLM to produce implemented code.  
+   - Handle partial responses and continue if token limits are reached.  
+   - Parse and store the generated code for each file.  
+3. **Integration**: Integrate the generated code into the appropriate files, replacing `###IMPLEMENT###` comments and ensuring seamless incorporation.
+
 ## LLM Configuration
 
 The `implement` operation can be fine-tuned using environment variables in the `.env` file. These variables allow you to customize the behavior of the LLM used for code implementation. Key configuration options include:
@@ -252,36 +282,6 @@ Global project configuration is handled through the `.perpetual/project.json` co
 8. **Use `###NOUPLOAD###` with Awareness**: Prevent large or sensitive files from being uploaded, but configure `project.json` to fully exclude files if needed.  
 9. **Iterative Refinement**: Refine comments or task instructions and re-run the operation as needed.  
 10. **Fine-tune LLM Settings**: Experiment with environment settings for your LLM provider, consult the `*.env.example` files at `<project_root>/.perpetual/*.env.example`.
-
-## Implementation Details
-
-The `implement` operation is divided into four main stages.
-
-### Stage 1: Context Gathering
-
-1. **Run `annotate` and `embed`** to update project source code annotations and vector embeddings.  
-2. **Generate a project index** containing filenames and their annotations.  
-3. **Create a request for files** with `###IMPLEMENT###` comments. Query the LLM to identify which project source code files are relevant, also perform a local vector search to determine the relevant files that LLM may miss.  
-4. **Return the list of files** to review.
-
-### Stage 2: Generating Work Plan
-
-1. **Gathering Source Code**: Collect source code from the files identified for review.  
-2. **Generating Reasonings**: If enabled via `-pr`, the LLM produces a detailed work plan outlining the steps required.
-
-### Stage 3: Planning Changes
-
-1. **Query LLM for File Modification**: Determine which files will be modified or created.  
-2. **Parse the LLM's Response**: Extract a list of files to modify or create, ensuring alignment with project structure.
-
-### Stage 4: Code Generation
-
-1. **Gather Source Code and Work Plan**: Use the relevant files and work plan as guidance.  
-2. **Iterative Processing of Each File**:  
-   - Query the LLM to produce implemented code.  
-   - Handle partial responses and continue if token limits are reached.  
-   - Parse and store the generated code for each file.  
-3. **Integration**: Integrate the generated code into the appropriate files, replacing `###IMPLEMENT###` comments and ensuring seamless incorporation.
 
 ## Error Handling and Retries
 
