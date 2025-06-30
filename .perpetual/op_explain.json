@@ -21,6 +21,8 @@
     "`~~"
   ],
   "output_question_header": "# Question",
+  "project_code_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
+  "project_code_response": "Understood. What's next?",
   "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
   "project_index_response": "Understood. What's next?",
   "stage1_output_key": "list_of_files",
@@ -44,8 +46,6 @@
   "stage1_question_json_mode_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of files from the project description that you will need to see to answer this question. The question is:",
   "stage1_question_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and the project description that was provided earlier and create a list of filenames from the project description that you will need to see to answer the question. Place each filename between <filename></filename> tags. The question is:",
   "stage2_continue_prompt": "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response.",
-  "stage2_files_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
-  "stage2_files_response": "Understood. What's next?",
   "stage2_question_prompt": "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:",
   "system_prompt": "You are a highly skilled Go programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent.",
   "system_prompt_ack": "Understood. I will respond accordingly in my subsequent replies."
