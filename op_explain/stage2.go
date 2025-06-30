@@ -49,6 +49,7 @@ func Stage2(projectRootDir string,
 			logger)
 		messages = append(messages, indexRequest)
 		logger.Debugln("Created project-index request message")
+
 		// Create project-index simulated response
 		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
 		messages = append(messages, indexResponse)
@@ -89,6 +90,7 @@ func Stage2(projectRootDir string,
 	logger.Notifyln(debugString)
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Explain (stage 2): %s\n\n\n", debugString))
 
+	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
 	if onFailRetriesLeft < 1 {
 		onFailRetriesLeft = 1
@@ -136,7 +138,7 @@ func Stage2(projectRootDir string,
 		if fileRetry {
 			continue
 		}
-		// Join responses together to form the final answer
+		// Join responses together to form the final result
 		return strings.Join(responses, "")
 	}
 	return ""

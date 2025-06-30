@@ -149,7 +149,7 @@ func Stage2(projectRootDir string,
 		if fileRetry {
 			continue
 		}
-		// Join responses together to form the final document contents
+		// Join responses together to form the final result
 		return strings.Join(responses, "")
 	}
 	return ""
