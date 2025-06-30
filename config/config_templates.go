@@ -91,8 +91,8 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_SystemPromptAck] = templateString
 	result[K_DocExamplePrompt] = templateString
 	result[K_DocExampleResponse] = templateString
-	result[K_DocProjectCodePrompt] = templateString
-	result[K_DocProjectCodeResponse] = templateString
+	result[K_ProjectCodePrompt] = templateString
+	result[K_ProjectCodeResponse] = templateString
 	result[K_ProjectIndexPrompt] = templateString
 	result[K_ProjectIndexResponse] = templateString
 	// stage 1
@@ -102,7 +102,7 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_DocStage1WriteJsonModePrompt] = templateString
 	result[K_DocStage2RefinePrompt] = templateString
 	result[K_DocStage2WritePrompt] = templateString
-	result[K_DocStage2ContinuePrompt] = templateString
+	result[K_Stage2ContinuePrompt] = templateString
 	result[K_Stage1OutputSchema] = templateObject
 	result[K_Stage1OutputKey] = templateString
 	result[K_Stage1OutputSchemaName] = templateString
@@ -133,10 +133,10 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_Stage1OutputSchemaName] = templateString
 	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
-	result[K_ExplainStage2FilesPrompt] = templateString
-	result[K_ExplainStage2FilesResponse] = templateString
+	result[K_ProjectCodePrompt] = templateString
+	result[K_ProjectCodeResponse] = templateString
 	result[K_ExplainStage2QuestionPrompt] = templateString
-	result[K_ExplainStage2ContinuePrompt] = templateString
+	result[K_Stage2ContinuePrompt] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[K_FilenameTags] = templateStringArray
 	result[K_FilenameTagsRx] = templateStringArray

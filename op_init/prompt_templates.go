@@ -190,8 +190,8 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
-	result[config.K_DocProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
-	result[config.K_DocProjectCodeResponse] = defaultAIAcknowledge
+	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
+	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
 	result[config.K_ProjectIndexResponse] = defaultAIAcknowledge
 	// stage 1
 	result[config.K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename between <filename></filename> tags. Full text of the document provided below:"
@@ -205,7 +205,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	// stage 2
 	result[config.K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project description and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"
 	result[config.K_DocStage2WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. The project description and relevant source code needed to work on the document have been provided to you previously. Complete the document from its curent state: write the required sections, improve already written text if needed. Use the notes across the document for instructions, be creative. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. The text of the document in its current state provided below:"
-	result[config.K_DocStage2ContinuePrompt] = "You previous response hit token limit. Continue writing document right from the point where it stopped. Do not repeat already completed fragment in your response."
+	result[config.K_Stage2ContinuePrompt] = "You previous response hit token limit. Continue writing document right from the point where it stopped. Do not repeat already completed fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
@@ -229,10 +229,10 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 	// stage 2
-	result[config.K_ExplainStage2FilesPrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
-	result[config.K_ExplainStage2FilesResponse] = defaultAIAcknowledge
+	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
+	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
 	result[config.K_ExplainStage2QuestionPrompt] = "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:"
-	result[config.K_ExplainStage2ContinuePrompt] = "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response."
+	result[config.K_Stage2ContinuePrompt] = "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response."
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
 	result[config.K_FilenameTags] = defaultFileNameTags
 	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps

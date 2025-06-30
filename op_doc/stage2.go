@@ -60,14 +60,14 @@ func Stage2(projectRootDir string,
 		// Create request with file-contents
 		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
-			cfg.String(config.K_DocProjectCodePrompt),
+			cfg.String(config.K_ProjectCodePrompt),
 			filesForReview,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
 		messages = append(messages, requestMessage)
 		logger.Debugln("Project source code message created")
 		// Create simulated response
-		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_DocProjectCodeResponse))
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse))
 		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
@@ -141,7 +141,7 @@ func Stage2(projectRootDir string,
 				}
 				// Add partial response to stage2 messages, with request to continue
 				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
-				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_DocStage2ContinuePrompt)))
+				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_Stage2ContinuePrompt)))
 			}
 			// Append response fragment
 			responses = append(responses, aiResponses[0])
