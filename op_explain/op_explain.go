@@ -271,7 +271,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Run stage2 to generate answer to requested question
-	answer := Stage2(
+	answer := shared.Stage2(
 		OpName,
 		projectRootDir,
 		perpetualDir,

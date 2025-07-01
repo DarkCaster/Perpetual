@@ -13,6 +13,7 @@ import (
 	"golang.org/x/text/language"
 )
 
+// Shared stage 1, used by `doc`, `explain` and `implement` operations
 func Stage1(
 	opName string,
 	projectRootDir string,

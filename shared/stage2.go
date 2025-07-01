@@ -1,4 +1,4 @@
-package op_doc
+package shared
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 	"golang.org/x/text/language"
 )
 
+// Shared stage 2, used by `doc` and `explain` operations, `implement` operation using it's own stage 2 implementation
 func Stage2(
 	opName string,
 	projectRootDir string,
@@ -34,7 +35,7 @@ func Stage2(
 
 	// Create stage2 llm connector
 	connector, err := llm.NewLLMConnector(
-		OpName+"_stage2",
+		opName+"_stage2",
 		cfg.String(config.K_SystemPrompt),
 		cfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
