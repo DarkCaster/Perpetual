@@ -21,6 +21,9 @@ func Stage2(
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,
+	preQueriesPrompts []string,
+	preQueriesBodies []string,
+	preQueriesResponses []string,
 	mainPrompt string,
 	mainPromptBody string,
 	addAnnotations bool,
@@ -80,6 +83,22 @@ func Stage2(
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
+	}
+
+	// Create extra history of queries with LLM responses that will be inserted before main query
+	for i := range preQueriesPrompts {
+		if preQueriesBodies[i] == "" {
+			continue
+		}
+		// Create prompt
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
+		request = llm.AddPlainTextFragment(request, preQueriesBodies[i])
+		messages = append(messages, request)
+		logger.Debugf("Created pre-request message #%d", i)
+		// Create response
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+		messages = append(messages, response)
+		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
 	// Create query-processing request message

@@ -282,9 +282,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 
-		prompt := docConfig.String(config.K_DocStage2WritePrompt)
+		docPrompt := docConfig.String(config.K_DocStage2WritePrompt)
 		if action == "REFINE" {
-			prompt = docConfig.String(config.K_DocStage2RefinePrompt)
+			docPrompt = docConfig.String(config.K_DocStage2RefinePrompt)
 		}
 
 		// Run stage2 to make changes to the document and save it to docContent
@@ -297,8 +297,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			fileNames,
 			filteredRequestedFiles,
 			annotations,
-			docExampleContent,
-			prompt,
+			[]string{docConfig.String(config.K_DocExamplePrompt)},
+			[]string{docExampleContent},
+			[]string{docConfig.String(config.K_DocExampleResponse)},
+			docPrompt,
 			docContent,
 			true,
 			logger)
