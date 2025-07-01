@@ -21,8 +21,9 @@ func Stage2(
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,
-	docContent string,
 	docExampleContent string,
+	mainPrompt string,
+	mainPromptBody string,
 	addAnnotations bool,
 	logger logging.ILogger) string {
 
@@ -95,14 +96,10 @@ func Stage2(
 		logger.Debugln("Created document-example simulated response message")
 	}
 
-	// Create document-processing request message
-	prompt := cfg.String(config.K_DocStage2WritePrompt)
-	if action == "REFINE" {
-		prompt = cfg.String(config.K_DocStage2RefinePrompt)
-	}
-	documentRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt), docContent)
-	messages = append(messages, documentRequest)
-	logger.Debugln("Created document processing request message")
+	// Create query-processing request message
+	mainRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), mainPromptBody)
+	messages = append(messages, mainRequest)
+	logger.Debugln("Created query processing request message")
 
 	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()

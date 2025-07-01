@@ -282,6 +282,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 
+		prompt := docConfig.String(config.K_DocStage2WritePrompt)
+		if action == "REFINE" {
+			prompt = docConfig.String(config.K_DocStage2RefinePrompt)
+		}
+
 		// Run stage2 to make changes to the document and save it to docContent
 		docContent = Stage2(
 			OpName,
@@ -292,8 +297,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			fileNames,
 			filteredRequestedFiles,
 			annotations,
-			docContent,
 			docExampleContent,
+			prompt,
+			docContent,
 			true,
 			logger)
 	}

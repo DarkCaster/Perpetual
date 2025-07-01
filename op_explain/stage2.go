@@ -21,7 +21,8 @@ func Stage2(
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,
-	question string,
+	mainPrompt string,
+	mainPromptBody string,
 	addAnnotations bool,
 	logger logging.ILogger) string {
 
@@ -81,14 +82,11 @@ func Stage2(
 		logger.Infoln("Not creating extra source-code review")
 	}
 
-	// Create question-processing request message
-	explainRequest := llm.AddPlainTextFragment(
-		llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ExplainStage2QuestionPrompt)),
-		question)
-	messages = append(messages, explainRequest)
-	logger.Debugln("Created question processing request message")
+	// Create query-processing request message
+	mainRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), mainPromptBody)
+	messages = append(messages, mainRequest)
+	logger.Debugln("Created query processing request message")
 
-	//Make LLM request, process response
 	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
