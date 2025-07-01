@@ -8,9 +8,13 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-func Stage2(projectRootDir string,
+func Stage2(
+	opName string,
+	projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
@@ -19,7 +23,7 @@ func Stage2(projectRootDir string,
 	annotations map[string]string,
 	docContent string,
 	docExampleContent string,
-	action string,
+	addAnnotations bool,
 	logger logging.ILogger) string {
 
 	logger.Traceln("Stage2: Starting")
@@ -40,20 +44,24 @@ func Stage2(projectRootDir string,
 
 	var messages []llm.Message
 
-	// Create project-index request message
-	indexRequest := llm.ComposeMessageWithAnnotations(
-		cfg.String(config.K_ProjectIndexPrompt),
-		projectFiles,
-		cfg.StringArray(config.K_FilenameTags),
-		annotations,
-		logger)
-	messages = append(messages, indexRequest)
-	logger.Debugln("Created project-index request message")
+	if addAnnotations {
+		// Create project-index request message
+		indexRequest := llm.ComposeMessageWithAnnotations(
+			cfg.String(config.K_ProjectIndexPrompt),
+			projectFiles,
+			cfg.StringArray(config.K_FilenameTags),
+			annotations,
+			logger)
+		messages = append(messages, indexRequest)
+		logger.Debugln("Created project-index request message")
 
-	// Create project-index simulated response
-	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
-	messages = append(messages, indexResponse)
-	logger.Debugln("Created project-index simulated response message")
+		// Create project-index simulated response
+		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
+		messages = append(messages, indexResponse)
+		logger.Debugln("Created project-index simulated response message")
+	} else {
+		logger.Infoln("Not adding project-annotations")
+	}
 
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
@@ -96,10 +104,10 @@ func Stage2(projectRootDir string,
 	messages = append(messages, documentRequest)
 	logger.Debugln("Created document processing request message")
 
-	logger.Infoln("Running stage2: processing document")
+	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
-	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Doc (stage 2, %s): %s\n\n\n", strings.ToLower(action), debugString))
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== %s (stage 2): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()

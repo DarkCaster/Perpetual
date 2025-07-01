@@ -271,7 +271,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Run stage2 to generate answer to requested question
-	answer := Stage2(projectRootDir,
+	answer := Stage2(
+		OpName,
+		projectRootDir,
 		perpetualDir,
 		explainConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),

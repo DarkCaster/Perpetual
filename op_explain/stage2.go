@@ -8,9 +8,13 @@ import (
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-func Stage2(projectRootDir string,
+func Stage2(
+	opName string,
+	projectRootDir string,
 	perpetualDir string,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
@@ -85,10 +89,10 @@ func Stage2(projectRootDir string,
 	logger.Debugln("Created question processing request message")
 
 	//Make LLM request, process response
-	logger.Infoln("Running stage2: processing question")
+	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
-	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Explain (stage 2): %s\n\n\n", debugString))
+	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== %s (stage 2): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
 
 	//Make LLM request, process response
 	onFailRetriesLeft := connector.GetOnFailureRetryLimit()

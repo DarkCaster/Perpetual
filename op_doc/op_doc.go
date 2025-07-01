@@ -283,7 +283,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		// Run stage2 to make changes to the document and save it to docContent
-		docContent = Stage2(projectRootDir,
+		docContent = Stage2(
+			OpName,
+			projectRootDir,
 			perpetualDir,
 			docConfig,
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
@@ -292,7 +294,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			annotations,
 			docContent,
 			docExampleContent,
-			action,
+			true,
 			logger)
 	}
 
