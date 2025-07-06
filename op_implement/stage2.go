@@ -35,27 +35,25 @@ func Stage2(projectRootDir string,
 		logger.Panicln("Failed to create stage2 LLM connector:", err)
 	}
 
-	// This will store message history to re-use on this and next stages
 	var messages []llm.Message
 
-	// Generate messages with listing of source files requested for review at stage 1, if any
+	// Add files requested by LLM
 	if len(filesForReview) > 0 {
-		// Create target files analysis request message
+		// Create request with file-contents
 		realRequestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ImplementStage2CodePrompt),
 			filesForReview,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		// Add message to history
 		messages = append(messages, realRequestMessage)
 		logger.Debugln("Project source code message created")
-		// Create simulated response and add message to history
+		// Create simulated response
 		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage2CodeResponse))
 		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
-		logger.Infoln("Not adding any source code files for review")
+		logger.Infoln("Not creating extra source-code review")
 	}
 
 	var msgIndexToAddExtraFiles int
