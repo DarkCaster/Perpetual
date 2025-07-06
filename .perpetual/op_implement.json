@@ -18,6 +18,8 @@
   "noupload_comments_rx": [
     "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
   ],
+  "project_code_prompt": "Here are the contents of my project's source code files.",
+  "project_code_response": "Understood. What's next?",
   "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
   "project_index_response": "Understood. What's next?",
   "stage1_analysis_json_mode_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and the project description that was provided earlier and create a list of files from the project description that you will need to see in addition to this source code to implement the tasks.",
@@ -42,8 +44,6 @@
   "stage1_output_schema_name": "get_files",
   "stage1_task_analysis_json_mode_prompt": "Below are the tasks that need to be implemented. Review the tasks and the project description that was provided to you and create a list of files from the project description that you will need to see to implement the tasks. The tasks are:",
   "stage1_task_analysis_prompt": "Below are the tasks that need to be implemented. Review the tasks and the project description that was provided to you and create a list of filenames from the project description that you will need to see to implement the tasks. Place each filename between <filename></filename> tags. The tasks are:",
-  "stage2_code_prompt": "Here are the contents of my project's source code files.",
-  "stage2_code_response": "Understood. What's next?",
   "stage2_noplanning_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the tasks, one file at a time.",
   "stage2_noplanning_response": "I have carefully studied all the code provided to me, and I am ready to implement the tasks.",
   "stage2_reasonings_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the source code provided to you and create a work plan indicating what changes to the code base need to be made to complete the tasks. Work plan should only contain steps about code base modification. Do not write any code or examples, deployment or code-review steps in your work plan.",
