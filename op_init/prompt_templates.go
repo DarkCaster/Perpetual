@@ -146,8 +146,8 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 
 	// stage 2
-	result[config.K_ImplementStage2CodePrompt] = "Here are the contents of my project's source code files."
-	result[config.K_ImplementStage2CodeResponse] = defaultAIAcknowledge
+	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the tasks, one file at a time."
 	result[config.K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the tasks."
 	//TODO: Provide work-plan template to follow, as we do for annotate operation.

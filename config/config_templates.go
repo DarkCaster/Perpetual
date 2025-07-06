@@ -49,8 +49,8 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_Stage1OutputSchemaName] = templateString
 	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
-	result[K_ImplementStage2CodePrompt] = templateString
-	result[K_ImplementStage2CodeResponse] = templateString
+	result[K_ProjectCodePrompt] = templateString
+	result[K_ProjectCodeResponse] = templateString
 	result[K_ImplementStage2NoPlanningPrompt] = templateString
 	result[K_ImplementStage2NoPlanningResponse] = templateString
 	result[K_ImplementStage2ReasoningsPrompt] = templateString

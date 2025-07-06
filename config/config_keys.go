@@ -49,8 +49,6 @@ const K_ImplementStage1AnalysisJsonModePrompt = "stage1_analysis_json_mode_promp
 const K_ImplementTaskStage1AnalysisPrompt = "stage1_task_analysis_prompt"
 const K_ImplementTaskStage1AnalysisJsonModePrompt = "stage1_task_analysis_json_mode_prompt"
 
-const K_ImplementStage2CodePrompt = "stage2_code_prompt"
-const K_ImplementStage2CodeResponse = "stage2_code_response"
 const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
 const K_ImplementStage2NoPlanningResponse = "stage2_noplanning_response"
 const K_ImplementStage2ReasoningsPrompt = "stage2_reasonings_prompt"

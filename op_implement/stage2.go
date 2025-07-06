@@ -42,14 +42,14 @@ func Stage2(projectRootDir string,
 		// Create request with file-contents
 		realRequestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
-			cfg.String(config.K_ImplementStage2CodePrompt),
+			cfg.String(config.K_ProjectCodePrompt),
 			filesForReview,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
 		messages = append(messages, realRequestMessage)
 		logger.Debugln("Project source code message created")
 		// Create simulated response
-		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ImplementStage2CodeResponse))
+		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse))
 		messages = append(messages, responseMessage)
 		logger.Debugln("Project source code simulated response added")
 	} else {
