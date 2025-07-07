@@ -334,7 +334,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Run stage 2 - create file review, create reasonings
-	messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
+	_, messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
 		perpetualDir,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),

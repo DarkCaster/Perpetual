@@ -28,7 +28,7 @@ func Stage2(
 	mainPrompt string,
 	mainPromptBody string,
 	addAnnotations bool,
-	logger logging.ILogger) string {
+	logger logging.ILogger) (string, []llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -161,7 +161,7 @@ func Stage2(
 			continue
 		}
 		// Join responses together to form the final result
-		return strings.Join(responses, "")
+		return strings.Join(responses, ""), messages, 0
 	}
-	return ""
+	return "", messages, 0
 }

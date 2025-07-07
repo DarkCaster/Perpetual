@@ -17,7 +17,7 @@ func Stage2(projectRootDir string,
 	filesForReview []string,
 	targetFiles []string,
 	task string,
-	logger logging.ILogger) ([]llm.Message, int) {
+	logger logging.ILogger) (string, []llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
 	defer logger.Traceln("Stage2: Finished")
@@ -172,5 +172,5 @@ func Stage2(projectRootDir string,
 			break
 		}
 	}
-	return messages, msgIndexToAddExtraFiles
+	return "", messages, msgIndexToAddExtraFiles
 }
