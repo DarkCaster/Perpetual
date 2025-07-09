@@ -40,13 +40,13 @@ func Stage2(projectRootDir string,
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents
-		realRequestMessage := llm.ComposeMessageWithFiles(
+		requestMessage := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ProjectCodePrompt),
 			filesForReview,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		messages = append(messages, realRequestMessage)
+		messages = append(messages, requestMessage)
 		logger.Debugln("Project source code message created")
 		// Create simulated response
 		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse))
