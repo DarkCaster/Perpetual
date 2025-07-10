@@ -333,6 +333,26 @@ func Run(args []string, logger logging.ILogger) {
 			logger)
 	}
 
+	if planningMode == 0 {
+		logger.Infoln("Running stage2: planning disabled, not generating work plan")
+		shared.Stage2(OpName,
+			projectRootDir,
+			perpetualDir,
+			implementConfig,
+			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+			[]string{},
+			filesToReview,
+			map[string]string{},
+			[]string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)},
+			[]interface{}{targetFiles},
+			[]string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)},
+			"",
+			"",
+			false,
+			logger,
+		)
+	}
+
 	// Run stage 2 - create file review, create reasonings
 	_, messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
 		perpetualDir,
