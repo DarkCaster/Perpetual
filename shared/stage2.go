@@ -23,7 +23,7 @@ func Stage2(
 	filesForReview []string,
 	annotations map[string]string,
 	preQueriesPrompts []string,
-	preQueriesBodies []string,
+	preQueriesBodies []interface{},
 	preQueriesResponses []string,
 	mainPrompt string,
 	mainPromptBody string,
@@ -86,20 +86,44 @@ func Stage2(
 		logger.Infoln("Not creating extra source-code review")
 	}
 
+	// Contain index of the last pre-query message, can be used as quick way to insert or modify stage 2 message-history before LLM request on next stages:
+	// lastPreQueryMessageIndex is the last stage 2 pre-request message index,
+	// lastPreQueryMessageIndex + 1 is response message index for the last stage 2 pre-request message
+	// lastPreQueryMessageIndex + 2 is main stage 2 request message index
+	// lastPreQueryMessageIndex + 3 is main stage 2 response message index
+	lastPreQueryMessageIndex := 0
+
 	// Create extra history of queries with LLM responses that will be inserted before main query
 	for i := range preQueriesPrompts {
-		if preQueriesBodies[i] == "" {
-			continue
+		//check body type, it can be either text content (string) or list of filenames ([]string)
+		if text, isText := preQueriesBodies[i].(string); isText {
+			if text == "" {
+				continue
+			}
+			// Create prompt with query + text content
+			request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
+			request = llm.AddPlainTextFragment(request, text)
+			messages = append(messages, request)
+			lastPreQueryMessageIndex = len(messages) - 1
+			logger.Debugf("Created pre-request message #%d (with text)", i)
+			// Create response
+			response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+			messages = append(messages, response)
+			logger.Debugf("Created simulated response for pre-request message #%d", i)
+		} else if fileNames, isFnList := preQueriesBodies[i].([]string); isFnList {
+			if len(fileNames) < 1 {
+				continue
+			}
+			// Create prompt with query + files' contents
+			request := llm.ComposeMessageWithFiles(projectRootDir, preQueriesPrompts[i], fileNames, cfg.StringArray(config.K_FilenameTags), logger)
+			messages = append(messages, request)
+			lastPreQueryMessageIndex = len(messages) - 1
+			logger.Debugf("Created pre-request message #%d (with files)", i)
+			// Create simulated response and add it to history
+			response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+			messages = append(messages, response)
+			logger.Debugf("Created simulated response for pre-request message #%d", i)
 		}
-		// Create prompt
-		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
-		request = llm.AddPlainTextFragment(request, preQueriesBodies[i])
-		messages = append(messages, request)
-		logger.Debugf("Created pre-request message #%d", i)
-		// Create response
-		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
-		messages = append(messages, response)
-		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
 	// Create query-processing request message
@@ -163,5 +187,5 @@ func Stage2(
 		// Join responses together to form the final result
 		return strings.Join(responses, ""), messages, 0
 	}
-	return "", messages, 0
+	return "", messages, lastPreQueryMessageIndex
 }

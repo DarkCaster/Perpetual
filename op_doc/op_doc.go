@@ -298,7 +298,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			filteredRequestedFiles,
 			annotations,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},
-			[]string{docExampleContent},
+			[]interface{}{docExampleContent},
 			[]string{docConfig.String(config.K_DocExampleResponse)},
 			docPrompt,
 			docContent,

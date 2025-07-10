@@ -281,7 +281,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		filteredRequestedFiles,
 		annotations,
 		[]string{},
-		[]string{},
+		[]interface{}{},
 		[]string{},
 		explainConfig.String(config.K_ExplainStage2QuestionPrompt),
 		question,
