@@ -126,6 +126,12 @@ func Stage2(
 		}
 	}
 
+	// Exit here if no main LLM request present
+	if mainPrompt == "" {
+		// Just return generated message-history from annotations, files for review list and pre-request messages if present for later use
+		return "", messages, lastPreQueryMessageIndex
+	}
+
 	// Create query-processing request message
 	mainRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), mainPromptBody)
 	messages = append(messages, mainRequest)
