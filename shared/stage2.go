@@ -130,18 +130,16 @@ func Stage2(
 	}
 
 	// Create query-processing request message
-	var mainRequest llm.Message
+	var requestMessage llm.Message
 	if text, isText := mainPromptBody.(string); isText {
-		mainRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), text)
+		requestMessage = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), text)
 	} else if fileNames, isFnList := mainPromptBody.([]string); isFnList {
-		mainRequest = llm.ComposeMessageWithFiles(projectRootDir, mainPrompt, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
+		requestMessage = llm.ComposeMessageWithFiles(projectRootDir, mainPrompt, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
 	} else {
 		logger.Panicln("Unsupported main query body type")
 	}
 
-	messages = append(messages, mainRequest)
-	logger.Debugln("Created query processing request message")
-
+	realMessages := append(utils.NewSlice(messages...), requestMessage)
 	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
@@ -153,8 +151,8 @@ func Stage2(
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		// Work with a copy of message-chain, to discard it on retry
-		messagesTry := utils.NewSlice(messages...)
+		// Work with a copy of message-chain, to discard it on full retry, append it with temporary response on partial answer
+		messagesTry := utils.NewSlice(realMessages...)
 		// Initialize temporary variables for handling partial answers
 		var responses []string
 		continueGeneration := true
