@@ -95,37 +95,32 @@ func Stage2(
 
 	// Create extra history of queries with LLM responses that will be inserted before main query
 	for i := range preQueriesPrompts {
+		var request llm.Message
 		//check body type, it can be either text content (string) or list of filenames ([]string)
 		if text, isText := preQueriesBodies[i].(string); isText {
 			if text == "" {
 				continue
 			}
 			// Create prompt with query + text content
-			request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
+			request = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
 			request = llm.AddPlainTextFragment(request, text)
-			messages = append(messages, request)
-			lastPreQueryMessageIndex = len(messages) - 1
 			logger.Debugf("Created pre-request message #%d (with text)", i)
-			// Create response
-			response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
-			messages = append(messages, response)
-			logger.Debugf("Created simulated response for pre-request message #%d", i)
 		} else if fileNames, isFnList := preQueriesBodies[i].([]string); isFnList {
 			if len(fileNames) < 1 {
 				continue
 			}
 			// Create prompt with query + files' contents
-			request := llm.ComposeMessageWithFiles(projectRootDir, preQueriesPrompts[i], fileNames, cfg.StringArray(config.K_FilenameTags), logger)
-			messages = append(messages, request)
-			lastPreQueryMessageIndex = len(messages) - 1
+			request = llm.ComposeMessageWithFiles(projectRootDir, preQueriesPrompts[i], fileNames, cfg.StringArray(config.K_FilenameTags), logger)
 			logger.Debugf("Created pre-request message #%d (with files)", i)
-			// Create simulated response and add it to history
-			response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
-			messages = append(messages, response)
-			logger.Debugf("Created simulated response for pre-request message #%d", i)
 		} else {
 			logger.Panicln("Unsupported pre-query body type, index:", i)
 		}
+		messages = append(messages, request)
+		lastPreQueryMessageIndex = len(messages) - 1
+		// Create simulated response and add it to history
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
+		messages = append(messages, response)
+		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
 	// Exit here if no main LLM request present
