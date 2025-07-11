@@ -96,7 +96,7 @@ func Stage2(projectRootDir string,
 					cfg.String(config.K_ImplementTaskStage2ReasoningsPrompt)),
 				task)
 		}
-		// realMessages message-history will be used for actual LLM prompt
+		// realMessages message-history will be used for actual LLM prompt, it will be replaced with simplified prompts at the end
 		realMessages := append(utils.NewSlice(messages...), requestMessage)
 
 		logger.Infoln("Running stage2: generating work plan")
@@ -115,6 +115,7 @@ func Stage2(projectRootDir string,
 				logger.Traceln(perfString)
 			}
 			if err != nil {
+				// Retry file on LLM error
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed:", err)
 				} else {

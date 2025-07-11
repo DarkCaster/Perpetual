@@ -138,8 +138,9 @@ func Stage2(
 	} else {
 		logger.Panicln("Unsupported main query body type")
 	}
-
+	// realMessages message-history will be used for actual LLM prompt, it will be replaced with simplified prompts at the end
 	realMessages := append(utils.NewSlice(messages...), requestMessage)
+
 	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
