@@ -390,12 +390,12 @@ func Run(args []string, logger logging.ILogger) {
 		[]string{},
 		filesToReview,
 		map[string]string{},
+		false,
 		stage2TargetFilesPrompts,
 		stage2TargetFilesNames,
 		stage2TargetFilesResponses,
 		stage2MainPrompt,
 		stage2MainPromptBody,
-		false,
 		logger,
 	)
 

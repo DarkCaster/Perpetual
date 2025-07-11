@@ -22,12 +22,12 @@ func Stage2(
 	projectFiles []string,
 	filesForReview []string,
 	annotations map[string]string,
+	addAnnotations bool,
 	preQueriesPrompts []string,
 	preQueriesBodies []interface{},
 	preQueriesResponses []string,
 	mainPrompt string,
 	mainPromptBody interface{},
-	addAnnotations bool,
 	logger logging.ILogger) (string, []llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")

@@ -280,12 +280,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		fileNames,
 		filteredRequestedFiles,
 		annotations,
+		addAnnotations,
 		[]string{},
 		[]interface{}{},
 		[]string{},
 		explainConfig.String(config.K_ExplainStage2QuestionPrompt),
 		question,
-		addAnnotations,
 		logger)
 
 	// Here we proposing that LLM returned markdown-formatted content, so format file-list and the rest of the answer accordingly

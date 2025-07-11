@@ -297,12 +297,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			fileNames,
 			filteredRequestedFiles,
 			annotations,
+			true,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},
 			[]interface{}{docExampleContent},
 			[]string{docConfig.String(config.K_DocExampleResponse)},
 			docPrompt,
 			docContent,
-			true,
 			logger)
 	}
 
