@@ -337,13 +337,13 @@ func Run(args []string, logger logging.ILogger) {
 	stage2TargetFilesNames := []interface{}{}
 	stage2TargetFilesResponses := []string{}
 
-	stage2MainPrompt := ""
+	var stage2MainPrompt string
 	var stage2MainPromptBody interface{}
 
 	// planning entirely disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled, not generating work plan")
-		// generate messages with target file-list + related file-list + instructions for further processing on next stages
+		// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
 		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
 		stage2TargetFilesNames = []interface{}{targetFiles}
 		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
@@ -355,7 +355,7 @@ func Run(args []string, logger logging.ILogger) {
 	// basic planning mode - not generating workplan, but LLM can modify other files and create new
 	if planningMode == 1 {
 		logger.Infoln("Running stage2: using basic planning, not generating work plan")
-		// generate messages only with related file-list
+		// this will produce messages only with related file-list
 		stage2TargetFilesPrompts = []string{}
 		stage2TargetFilesNames = []interface{}{}
 		stage2TargetFilesResponses = []string{}
@@ -367,11 +367,11 @@ func Run(args []string, logger logging.ILogger) {
 	// extended planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: using extended planning, generating work plan")
-		// generate messages only with related file-list
+		// this will produce messages with related file-list
 		stage2TargetFilesPrompts = []string{}
 		stage2TargetFilesNames = []interface{}{}
 		stage2TargetFilesResponses = []string{}
-		// main prompt for work plan generation
+		// fill-up main prompts to generate workplan
 		if task == "" {
 			stage2MainPrompt = implementConfig.String(config.K_ImplementStage2ReasoningsPrompt)
 			stage2MainPromptBody = targetFiles
@@ -381,28 +381,26 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	if planningMode == 0 {
-		logger.Infoln("Running stage2: planning disabled, not generating work plan")
-		shared.Stage2(OpName,
-			projectRootDir,
-			perpetualDir,
-			implementConfig,
-			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-			[]string{},
-			filesToReview,
-			map[string]string{},
-			[]string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)},
-			[]interface{}{targetFiles},
-			[]string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)},
-			"",
-			"",
-			false,
-			logger,
-		)
-	}
-
 	// Run stage 2 - create file review, create reasonings
-	_, messages, msgIndexToAddExtraFiles := Stage2(projectRootDir,
+	_, messages, msgIndexToAddExtraFiles := shared.Stage2(OpName,
+		projectRootDir,
+		perpetualDir,
+		implementConfig,
+		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		[]string{},
+		filesToReview,
+		map[string]string{},
+		stage2TargetFilesPrompts,
+		stage2TargetFilesNames,
+		stage2TargetFilesResponses,
+		stage2MainPrompt,
+		stage2MainPromptBody,
+		false,
+		logger,
+	)
+
+	//TODO: remove old stage 2
+	_, messages, msgIndexToAddExtraFiles = Stage2(projectRootDir,
 		perpetualDir,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
