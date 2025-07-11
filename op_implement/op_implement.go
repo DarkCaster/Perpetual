@@ -333,6 +333,54 @@ func Run(args []string, logger logging.ILogger) {
 			logger)
 	}
 
+	stage2TargetFilesPrompts := []string{}
+	stage2TargetFilesNames := []interface{}{}
+	stage2TargetFilesResponses := []string{}
+
+	stage2MainPrompt := ""
+	var stage2MainPromptBody interface{}
+
+	// planning entirely disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
+	if planningMode == 0 {
+		logger.Infoln("Running stage2: planning disabled, not generating work plan")
+		// generate messages with target file-list + related file-list + instructions for further processing on next stages
+		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
+		stage2TargetFilesNames = []interface{}{targetFiles}
+		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
+		// make main prompt empty to skip workplan generation
+		stage2MainPrompt = ""
+		stage2MainPromptBody = ""
+	}
+
+	// basic planning mode - not generating workplan, but LLM can modify other files and create new
+	if planningMode == 1 {
+		logger.Infoln("Running stage2: using basic planning, not generating work plan")
+		// generate messages only with related file-list
+		stage2TargetFilesPrompts = []string{}
+		stage2TargetFilesNames = []interface{}{}
+		stage2TargetFilesResponses = []string{}
+		// make main prompt empty to skip workplan generation
+		stage2MainPrompt = ""
+		stage2MainPromptBody = ""
+	}
+
+	// extended planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
+	if planningMode == 2 {
+		logger.Infoln("Running stage2: using extended planning, generating work plan")
+		// generate messages only with related file-list
+		stage2TargetFilesPrompts = []string{}
+		stage2TargetFilesNames = []interface{}{}
+		stage2TargetFilesResponses = []string{}
+		// main prompt for work plan generation
+		if task == "" {
+			stage2MainPrompt = implementConfig.String(config.K_ImplementStage2ReasoningsPrompt)
+			stage2MainPromptBody = targetFiles
+		} else {
+			stage2MainPrompt = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPrompt)
+			stage2MainPromptBody = task
+		}
+	}
+
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled, not generating work plan")
 		shared.Stage2(OpName,
