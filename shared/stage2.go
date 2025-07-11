@@ -26,7 +26,7 @@ func Stage2(
 	preQueriesBodies []interface{},
 	preQueriesResponses []string,
 	mainPrompt string,
-	mainPromptBody string,
+	mainPromptBody interface{},
 	addAnnotations bool,
 	logger logging.ILogger) (string, []llm.Message, int) {
 
@@ -123,6 +123,8 @@ func Stage2(
 			response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
 			messages = append(messages, response)
 			logger.Debugf("Created simulated response for pre-request message #%d", i)
+		} else {
+			logger.Panicln("Unsupported pre-query body type, index:", i)
 		}
 	}
 
@@ -133,7 +135,15 @@ func Stage2(
 	}
 
 	// Create query-processing request message
-	mainRequest := llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), mainPromptBody)
+	var mainRequest llm.Message
+	if text, isText := mainPromptBody.(string); isText {
+		mainRequest = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), text)
+	} else if fileNames, isFnList := mainPromptBody.([]string); isFnList {
+		mainRequest = llm.ComposeMessageWithFiles(projectRootDir, mainPrompt, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
+	} else {
+		logger.Panicln("Unsupported main query body type")
+	}
+
 	messages = append(messages, mainRequest)
 	logger.Debugln("Created query processing request message")
 
