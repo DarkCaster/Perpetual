@@ -29,6 +29,7 @@ func Stage2(
 	mainPrompt string,
 	mainPromptBody interface{},
 	continueOnMaxTokens bool,
+	filterResponseWithCodeRx bool,
 	logger logging.ILogger) (string, []llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
@@ -203,8 +204,23 @@ func Stage2(
 		if fileRetry {
 			continue
 		}
+		var response = strings.Join(responses, "")
+		if filterResponseWithCodeRx {
+			// Filter-out code blocks from response
+			filteredResponses := utils.FilterAndTrimResponses([]string{response}, cfg.RegexpArray(config.K_CodeTagsRx), logger)
+			if len(filteredResponses) < 1 || filteredResponses[0] == "" {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("Filtered reasonings response from AI is empty or invalid")
+				} else {
+					logger.Warnln("Filtered reasonings response from AI is empty or invalid, retrying")
+				}
+				continue
+			}
+			response = filteredResponses[0]
+		}
+
 		// Join responses together to form the final result
-		return strings.Join(responses, ""), messages, 0
+		return response, messages, 0
 	}
 	return "", messages, lastPreQueryMessageIndex
 }

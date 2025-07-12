@@ -304,6 +304,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			docPrompt,
 			docContent,
 			true,
+			false,
 			logger)
 	}
 
