@@ -93,30 +93,20 @@ func Stage2(
 
 	// Create extra history of queries with LLM responses that will be inserted before main query
 	for i := range preQueriesPrompts {
-		var request llm.Message
-		//check body type, it can be either text content (string) or list of filenames ([]string)
-		if text, isText := preQueriesBodies[i].(string); isText {
-			if text == "" {
-				continue
-			}
-			// Create prompt with query + text content
-			request = llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), preQueriesPrompts[i])
-			request = llm.AddPlainTextFragment(request, text)
-			logger.Debugf("Created pre-request message #%d (with text)", i)
-		} else if fileNames, isFnList := preQueriesBodies[i].([]string); isFnList {
-			if len(fileNames) < 1 {
-				continue
-			}
-			// Create prompt with query + files' contents
-			request = llm.ComposeMessageWithFiles(projectRootDir, preQueriesPrompts[i], fileNames, cfg.StringArray(config.K_FilenameTags), logger)
-			logger.Debugf("Created pre-request message #%d (with files)", i)
+		if request, ok := llm.ComposeMessageWithFilesOrText(projectRootDir,
+			preQueriesPrompts[i],
+			preQueriesBodies[i],
+			cfg.StringArray(config.K_FilenameTags),
+			logger,
+		); ok {
+			messages = append(messages, request)
+			logger.Debugf("Created pre-request message #%d", i)
+			// Create simulated response and add it to history
+			messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
+			logger.Debugf("Created simulated response for pre-request message #%d", i)
 		} else {
-			logger.Panicln("Unsupported pre-query body type, index:", i)
+			continue
 		}
-		messages = append(messages, request)
-		// Create simulated response and add it to history
-		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
-		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
 	// Exit here if no main LLM request present
@@ -126,13 +116,9 @@ func Stage2(
 	}
 
 	// Create query-processing request message
-	var requestMessage llm.Message
-	if text, isText := mainPromptBody.(string); isText {
-		requestMessage = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt), text)
-	} else if fileNames, isFnList := mainPromptBody.([]string); isFnList {
-		requestMessage = llm.ComposeMessageWithFiles(projectRootDir, mainPrompt, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
-	} else {
-		logger.Panicln("Unsupported main query body type")
+	requestMessage, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, cfg.StringArray(config.K_FilenameTags), logger)
+	if !ok {
+		logger.Panicln("Failed to create main prompt message")
 	}
 
 	// realMessages message-history will be used for actual LLM prompt, it will be replaced with simplified prompts at the end
