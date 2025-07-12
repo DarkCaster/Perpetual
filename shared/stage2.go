@@ -76,30 +76,30 @@ func Stage2(
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents
-		requestMessage := llm.ComposeMessageWithFiles(
+		reviewRequest := llm.ComposeMessageWithFiles(
 			projectRootDir,
 			cfg.String(config.K_ProjectCodePrompt),
 			filesForReview,
 			cfg.StringArray(config.K_FilenameTags),
 			logger)
-		messages = append(messages, requestMessage)
-		logger.Debugln("Project source code message created")
+		messages = append(messages, reviewRequest)
+		logger.Debugln("Created source code review request message")
 		// Create simulated response
 		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse)))
-		logger.Debugln("Project source code simulated response added")
+		logger.Debugln("Created source code review simulated response message")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
 	}
 
 	// Create extra history of queries with LLM responses that will be inserted before main query
 	for i := range preQueriesPrompts {
-		if request, ok := llm.ComposeMessageWithFilesOrText(projectRootDir,
+		if preRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir,
 			preQueriesPrompts[i],
 			preQueriesBodies[i],
 			cfg.StringArray(config.K_FilenameTags),
 			logger,
 		); ok {
-			messages = append(messages, request)
+			messages = append(messages, preRequest)
 			logger.Debugf("Created pre-request message #%d", i)
 			// Create simulated response and add it to history
 			messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
@@ -115,14 +115,14 @@ func Stage2(
 		return "", messages
 	}
 
-	// Create query-processing request message
-	requestMessage, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, cfg.StringArray(config.K_FilenameTags), logger)
+	// Create query-processing mainRequest message
+	mainRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, cfg.StringArray(config.K_FilenameTags), logger)
 	if !ok {
 		logger.Panicln("Failed to create main prompt message")
 	}
 
 	// realMessages message-history will be used for actual LLM prompt, it will be replaced with simplified prompts at the end
-	realMessages := append(utils.NewSlice(messages...), requestMessage)
+	realMessages := append(utils.NewSlice(messages...), mainRequest)
 	response := ""
 
 	logger.Infoln("Running stage2: processing query")
@@ -202,18 +202,14 @@ func Stage2(
 		}
 		if mainPromptFinal == "" {
 			// Add request message to history
-			messages = append(messages, requestMessage)
+			messages = append(messages, mainRequest)
 		} else {
-			var finalRequestMessage llm.Message
 			// Add final request message to history - it use simplier instructions that will less likely affect next stages
-			if text, isText := mainPromptBody.(string); isText {
-				finalRequestMessage = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPromptFinal), text)
-			} else if fileNames, isFnList := mainPromptBody.([]string); isFnList {
-				finalRequestMessage = llm.ComposeMessageWithFiles(projectRootDir, mainPromptFinal, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
-			} else {
-				logger.Panicln("Unsupported main query body type")
+			finalRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPromptFinal, mainPromptBody, cfg.StringArray(config.K_FilenameTags), logger)
+			if !ok {
+				logger.Panicln("Failed to create final main prompt message")
 			}
-			messages = append(messages, finalRequestMessage)
+			messages = append(messages, finalRequest)
 		}
 		logger.Debugln("Created final request message")
 		// Add response to message-history
