@@ -285,6 +285,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		[]interface{}{},
 		[]string{},
 		explainConfig.String(config.K_ExplainStage2QuestionPrompt),
+		"",
 		question,
 		true,
 		false,

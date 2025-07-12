@@ -338,6 +338,7 @@ func Run(args []string, logger logging.ILogger) {
 	stage2TargetFilesResponses := []string{}
 
 	var stage2MainPrompt string
+	var stage2MainPromptFinal string
 	var stage2MainPromptBody interface{}
 
 	// planning entirely disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
@@ -349,6 +350,7 @@ func Run(args []string, logger logging.ILogger) {
 		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
 		// make main prompt empty to skip workplan generation
 		stage2MainPrompt = ""
+		stage2MainPromptFinal = ""
 		stage2MainPromptBody = ""
 	}
 
@@ -361,6 +363,7 @@ func Run(args []string, logger logging.ILogger) {
 		stage2TargetFilesResponses = []string{}
 		// make main prompt empty to skip workplan generation
 		stage2MainPrompt = ""
+		stage2MainPromptFinal = ""
 		stage2MainPromptBody = ""
 	}
 
@@ -374,9 +377,11 @@ func Run(args []string, logger logging.ILogger) {
 		// fill-up main prompts to generate workplan
 		if task == "" {
 			stage2MainPrompt = implementConfig.String(config.K_ImplementStage2ReasoningsPrompt)
+			stage2MainPromptFinal = implementConfig.String(config.K_ImplementStage2ReasoningsPromptFinal)
 			stage2MainPromptBody = targetFiles
 		} else {
 			stage2MainPrompt = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPrompt)
+			stage2MainPromptFinal = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPromptFinal)
 			stage2MainPromptBody = task
 		}
 	}
@@ -395,6 +400,7 @@ func Run(args []string, logger logging.ILogger) {
 		stage2TargetFilesNames,
 		stage2TargetFilesResponses,
 		stage2MainPrompt,
+		stage2MainPromptFinal,
 		stage2MainPromptBody,
 		false,
 		true,

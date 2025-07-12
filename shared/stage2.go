@@ -27,6 +27,7 @@ func Stage2(
 	preQueriesBodies []interface{},
 	preQueriesResponses []string,
 	mainPrompt string,
+	mainPromptFinal string,
 	mainPromptBody interface{},
 	continueOnMaxTokens bool,
 	filterResponseWithCodeRx bool,
@@ -81,8 +82,7 @@ func Stage2(
 		messages = append(messages, requestMessage)
 		logger.Debugln("Project source code message created")
 		// Create simulated response
-		responseMessage := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse))
-		messages = append(messages, responseMessage)
+		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectCodeResponse)))
 		logger.Debugln("Project source code simulated response added")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
@@ -120,8 +120,7 @@ func Stage2(
 		messages = append(messages, request)
 		lastPreQueryMessageIndex = len(messages) - 1
 		// Create simulated response and add it to history
-		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i])
-		messages = append(messages, response)
+		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
 		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
@@ -140,8 +139,10 @@ func Stage2(
 	} else {
 		logger.Panicln("Unsupported main query body type")
 	}
+
 	// realMessages message-history will be used for actual LLM prompt, it will be replaced with simplified prompts at the end
 	realMessages := append(utils.NewSlice(messages...), requestMessage)
+	response := ""
 
 	logger.Infoln("Running stage2: processing query")
 	debugString := connector.GetDebugString()
@@ -204,7 +205,7 @@ func Stage2(
 		if fileRetry {
 			continue
 		}
-		var response = strings.Join(responses, "")
+		response = strings.Join(responses, "")
 		if filterResponseWithCodeRx {
 			// Filter-out code blocks from response
 			filteredResponses := utils.FilterAndTrimResponses([]string{response}, cfg.RegexpArray(config.K_CodeTagsRx), logger)
@@ -218,9 +219,26 @@ func Stage2(
 			}
 			response = filteredResponses[0]
 		}
-
-		// Join responses together to form the final result
-		return response, messages, 0
+		if mainPromptFinal == "" {
+			// Add request message to history
+			messages = append(messages, requestMessage)
+		} else {
+			var finalRequestMessage llm.Message
+			// Add final request message to history - it use simplier instructions that will less likely affect next stages
+			if text, isText := mainPromptBody.(string); isText {
+				finalRequestMessage = llm.AddPlainTextFragment(llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPromptFinal), text)
+			} else if fileNames, isFnList := mainPromptBody.([]string); isFnList {
+				finalRequestMessage = llm.ComposeMessageWithFiles(projectRootDir, mainPromptFinal, fileNames, cfg.StringArray(config.K_FilenameTags), logger)
+			} else {
+				logger.Panicln("Unsupported main query body type")
+			}
+			messages = append(messages, finalRequestMessage)
+		}
+		lastPreQueryMessageIndex = len(messages) - 1
+		logger.Debugln("Created final request message")
+		// Add response to message-history
+		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), response))
+		logger.Debugln("Created final response message")
 	}
-	return "", messages, lastPreQueryMessageIndex
+	return response, messages, lastPreQueryMessageIndex
 }
