@@ -88,12 +88,10 @@ func Stage2(
 		logger.Infoln("Not creating extra source-code review")
 	}
 
-	// Contain index of the last pre-query message, can be used as quick way to insert or modify stage 2 message-history before LLM request on next stages:
-	// lastPreQueryMessageIndex is the last stage 2 pre-request message index,
-	// lastPreQueryMessageIndex + 1 is response message index for the last stage 2 pre-request message
-	// lastPreQueryMessageIndex + 2 is main stage 2 request message index
-	// lastPreQueryMessageIndex + 3 is main stage 2 response message index
-	lastPreQueryMessageIndex := 0
+	// Contain index of the last LLM query message, can be used as quick way to insert or modify stage 2 message-history before LLM request on next stages:
+	// lastQueryMessageIndex is the last stage 2 request-message index,
+	// lastQueryMessageIndex + 1 is response-message index for the last stage 2 request message
+	lastQueryMessageIndex := 0
 
 	// Create extra history of queries with LLM responses that will be inserted before main query
 	for i := range preQueriesPrompts {
@@ -118,7 +116,7 @@ func Stage2(
 			logger.Panicln("Unsupported pre-query body type, index:", i)
 		}
 		messages = append(messages, request)
-		lastPreQueryMessageIndex = len(messages) - 1
+		lastQueryMessageIndex = len(messages) - 1
 		// Create simulated response and add it to history
 		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
 		logger.Debugf("Created simulated response for pre-request message #%d", i)
@@ -127,7 +125,7 @@ func Stage2(
 	// Exit here if no main LLM request present
 	if mainPrompt == "" {
 		// Just return generated message-history from annotations, files for review list and pre-request messages if present for later use
-		return "", messages, lastPreQueryMessageIndex
+		return "", messages, lastQueryMessageIndex
 	}
 
 	// Create query-processing request message
@@ -234,11 +232,12 @@ func Stage2(
 			}
 			messages = append(messages, finalRequestMessage)
 		}
-		lastPreQueryMessageIndex = len(messages) - 1
+		lastQueryMessageIndex = len(messages) - 1
 		logger.Debugln("Created final request message")
 		// Add response to message-history
 		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), response))
 		logger.Debugln("Created final response message")
+		break
 	}
-	return response, messages, lastPreQueryMessageIndex
+	return response, messages, lastQueryMessageIndex
 }
