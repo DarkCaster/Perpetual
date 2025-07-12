@@ -407,17 +407,6 @@ func Run(args []string, logger logging.ILogger) {
 		logger,
 	)
 
-	//TODO: remove old stage 2
-	_, messages, msgIndexToAddExtraFiles = Stage2(projectRootDir,
-		perpetualDir,
-		implementConfig,
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
-		planningMode,
-		filesToReview,
-		targetFiles,
-		task,
-		logger)
-
 	// Run stage 3 - get list of files to modify
 	messages, otherFilesToModify, targetFilesToModify := Stage3(
 		projectRootDir,
