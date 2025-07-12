@@ -387,7 +387,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Run stage 2 - create file review, create reasonings
-	_, messages, msgIndexToAddExtraFiles := shared.Stage2(OpName,
+	_, messages := shared.Stage2(OpName,
 		projectRootDir,
 		perpetualDir,
 		implementConfig,
@@ -419,7 +419,6 @@ func Run(args []string, logger logging.ILogger) {
 		targetFiles,
 		notEnforceTargetFiles,
 		messages,
-		msgIndexToAddExtraFiles,
 		task,
 		logger)
 

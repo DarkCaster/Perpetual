@@ -288,7 +288,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		// Run stage2 to make changes to the document and save it to docContent
-		docContent, _, _ = shared.Stage2(
+		docContent, _ = shared.Stage2(
 			OpName,
 			projectRootDir,
 			perpetualDir,

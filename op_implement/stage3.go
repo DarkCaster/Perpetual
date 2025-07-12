@@ -20,7 +20,6 @@ func Stage3(projectRootDir string,
 	targetFiles []string,
 	notEnforceTargetFiles bool,
 	messages []llm.Message,
-	msgIndexToAddExtraFiles int,
 	task string,
 	logger logging.ILogger) ([]llm.Message, []string, []string) {
 
@@ -40,6 +39,9 @@ func Stage3(projectRootDir string,
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
 	}
+
+	// Initial position in message history to append content of extra target-files found out at this stage
+	msgIndexToAddExtraFiles := max(len(messages)-2, 0)
 
 	// Resulted filenames
 	var targetFilesToModify []string
