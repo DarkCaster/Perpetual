@@ -12,9 +12,10 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Shared stage 2, used by `doc`, `explain` and `implement` operation
-// It main purpose is to process query and generate response based on files selected on stage 1,
-// Depending on what operation use stage 2 - this response may be a document content, or answer on project-related question, or work-plan for code implementation
+// Shared stage 2, used by `doc`, `explain` and `implement` operations.
+// Main purpose of stage 2 is to process query and generate response based on project-files selected on stage 1.
+// Depending on what operation using stage 2 - this query may be a document content generation task, project-related question,
+// or query for generating workplan for further code implementation.
 func Stage2(
 	opName string,
 	projectRootDir string,
