@@ -25,16 +25,6 @@ func AppendFileToMessage(message Message, projectRootDir, file string, filenameT
 	return AddFileFragment(message, file, text, filenameTags)
 }
 
-func ComposeMessageFromPromptAndTextFile(projectRootDir, prompt, targetFile string, logger logging.ILogger) Message {
-	result := AddPlainTextFragment(NewMessage(UserRequest), prompt)
-	text, err := utils.LoadTextFile(filepath.Join(projectRootDir, targetFile))
-	if err != nil {
-		logger.Panicln("Failed to load document:", err)
-	}
-	result = AddPlainTextFragment(result, text)
-	return result
-}
-
 func ComposeMessageWithAnnotations(prompt string, targetFiles, filenameTags []string, annotations map[string]string, logger logging.ILogger) Message {
 	request := AddPlainTextFragment(NewMessage(UserRequest), prompt)
 	for _, item := range targetFiles {
@@ -46,4 +36,23 @@ func ComposeMessageWithAnnotations(prompt string, targetFiles, filenameTags []st
 		}
 	}
 	return request
+}
+
+func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body interface{}, filenameTags []string, logger logging.ILogger) (Message, bool) {
+	if text, isText := body.(string); isText {
+		if text == "" {
+			return NewMessage(UserRequest), false
+		}
+		logger.Debugf("Creating message with text")
+		return AddPlainTextFragment(AddPlainTextFragment(NewMessage(UserRequest), prompt), text), true
+	} else if fileNames, isFnList := body.([]string); isFnList {
+		if len(fileNames) < 1 {
+			return NewMessage(UserRequest), false
+		}
+		logger.Debugf("Creating message with files")
+		return ComposeMessageWithFiles(projectRootDir, prompt, fileNames, filenameTags, logger), true
+	}
+
+	logger.Panicln("Unsupported message body type")
+	return NewMessage(UserRequest), false
 }
