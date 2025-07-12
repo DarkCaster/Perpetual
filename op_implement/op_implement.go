@@ -396,6 +396,7 @@ func Run(args []string, logger logging.ILogger) {
 		stage2TargetFilesResponses,
 		stage2MainPrompt,
 		stage2MainPromptBody,
+		true,
 		logger,
 	)
 

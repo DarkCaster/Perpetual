@@ -286,6 +286,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		[]string{},
 		explainConfig.String(config.K_ExplainStage2QuestionPrompt),
 		question,
+		true,
 		logger)
 
 	// Here we proposing that LLM returned markdown-formatted content, so format file-list and the rest of the answer accordingly

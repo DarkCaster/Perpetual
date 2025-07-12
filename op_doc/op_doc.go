@@ -303,6 +303,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			[]string{docConfig.String(config.K_DocExampleResponse)},
 			docPrompt,
 			docContent,
+			true,
 			logger)
 	}
 

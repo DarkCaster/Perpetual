@@ -28,6 +28,7 @@ func Stage2(
 	preQueriesResponses []string,
 	mainPrompt string,
 	mainPromptBody interface{},
+	continueOnMaxTokens bool,
 	logger logging.ILogger) (string, []llm.Message, int) {
 
 	logger.Traceln("Stage2: Starting")
@@ -172,10 +173,10 @@ func Stage2(
 					logger.Panicln("LLM query failed:", err)
 				} else {
 					logger.Warnln("LLM query failed, retrying:", err)
-					fileRetry = true
-					break
 				}
-			} else if status == llm.QueryMaxTokens {
+				fileRetry = true
+				break
+			} else if status == llm.QueryMaxTokens && continueOnMaxTokens {
 				// Try to recover other parts of the file if reached max tokens
 				if generateTry >= connector.GetMaxTokensSegments() {
 					logger.Errorln("LLM query reached token limit, and we are reached segment limit, not attempting to continue")
@@ -187,6 +188,14 @@ func Stage2(
 				// Add partial response to stage2 messages, with request to continue
 				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
 				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_Stage2ContinuePrompt)))
+			} else if status == llm.QueryMaxTokens {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("LLM query reached token limit")
+				} else {
+					logger.Warnln("LLM query reached token limit, retrying")
+				}
+				fileRetry = true
+				break
 			}
 			// Append response fragment
 			responses = append(responses, aiResponses[0])
