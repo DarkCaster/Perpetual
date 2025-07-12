@@ -12,7 +12,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Shared stage 2, used by `doc` and `explain` operations, `implement` operation using it's own stage 2 implementation
+// Shared stage 2, used by `doc`, `explain` and `implement` operation
+// It main purpose is to process query and generate response based on files selected on stage 1,
+// Depending on what operation use stage 2 - this response may be a document content, or answer on project-related question, or work-plan for code implementation
 func Stage2(
 	opName string,
 	projectRootDir string,
@@ -88,6 +90,7 @@ func Stage2(
 		logger.Infoln("Not creating extra source-code review")
 	}
 
+	// TODO: consider removing this variable and not return it, seem it can be independently calculated on stage 3
 	// Contain index of the last LLM query message, can be used as quick way to insert or modify stage 2 message-history before LLM request on next stages:
 	// lastQueryMessageIndex is the last stage 2 request-message index,
 	// lastQueryMessageIndex + 1 is response-message index for the last stage 2 request message
