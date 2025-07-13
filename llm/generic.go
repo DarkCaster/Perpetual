@@ -41,6 +41,7 @@ type GenericLLMConnector struct {
 	Streaming             bool
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
+	UrlQueriesToInject    map[string]string
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -90,11 +91,12 @@ func NewGenericLLMConnectorFromEnv(
 	authType := Bearer
 	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix), fmt.Sprintf("%s_API_KEY", prefix)); err == nil {
 		debug.Add("auth type", curAuthType)
-		if curAuthType == "BASIC" {
+		switch curAuthType {
+		case "BASIC":
 			authType = Basic
-		} else if curAuthType == "BEARER" {
+		case "BEARER":
 			authType = Bearer
-		} else {
+		default:
 			return nil, fmt.Errorf("invalid auth type provided for %s profile", prefix)
 		}
 	}
@@ -133,6 +135,7 @@ func NewGenericLLMConnectorFromEnv(
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
 	fieldsToInject := map[string]interface{}{}
+	urlQueriesToInject := map[string]string{}
 
 	var streaming int = 0
 	var docChunk int = 1024
@@ -154,6 +157,11 @@ func NewGenericLLMConnectorFromEnv(
 
 	if operation == "EMBED" {
 		fieldsToRemove = append(fieldsToRemove, "temperature")
+
+		if apiVersion, err := utils.GetEnvString(fmt.Sprintf("%s_API_VERSION_OP_%s", prefix, operation), fmt.Sprintf("%s_API_VERSION", prefix)); err == nil {
+			urlQueriesToInject["api-version"] = apiVersion
+			debug.Add("api-version", apiVersion)
+		}
 
 		docChunk, err = utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DOC_CHUNK_SIZE", prefix))
 		if err != nil || docChunk < 1 {
@@ -210,7 +218,7 @@ func NewGenericLLMConnectorFromEnv(
 		}
 	} else {
 		if apiVersion, err := utils.GetEnvString(fmt.Sprintf("%s_API_VERSION_OP_%s", prefix, operation), fmt.Sprintf("%s_API_VERSION", prefix)); err == nil {
-			fieldsToInject["api_version"] = apiVersion
+			urlQueriesToInject["api-version"] = apiVersion
 			debug.Add("api-version", apiVersion)
 		}
 
@@ -374,6 +382,7 @@ func NewGenericLLMConnectorFromEnv(
 		Streaming:             streaming > 0,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
+		UrlQueriesToInject:    urlQueriesToInject,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -426,6 +435,10 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 
 	if len(p.FieldsToRemove) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
+	}
+
+	if len(p.UrlQueriesToInject) > 0 {
+		transformers = append(transformers, newUrlQueriesInjector(p.UrlQueriesToInject))
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
@@ -489,6 +502,9 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 
 	// Process status codes
 	switch statusCodeCollector.StatusCode {
+	//we may not know exact error because of API difference on various providers, act as if we hit rate-limit
+	case 400:
+		fallthrough
 	case 429:
 		// rate limit hit, calculate the next sleep time before next attempt
 		if p.RateLimitDelayS < 65 {
@@ -504,6 +520,7 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 			err = errors.New("ratelimit hit")
 		}
 		return [][]float32{}, QueryFailed, err
+	//we may not know exact error because of API difference on various providers, act as if we hit server overload
 	case 500:
 		fallthrough
 	case 501:
@@ -580,6 +597,10 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
+	if len(p.UrlQueriesToInject) > 0 {
+		transformers = append(transformers, newUrlQueriesInjector(p.UrlQueriesToInject))
+	}
+
 	if p.SystemPromptRole == DeveloperRole {
 		transformers = append(transformers, newSystemMessageTransformer("developer", ""))
 	}
@@ -653,6 +674,9 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 
 		// Process status codes
 		switch statusCodeCollector.StatusCode {
+		//we may not know exact error because of API difference on various providers, act as if we hit rate-limit
+		case 400:
+			fallthrough
 		case 429:
 			// rate limit hit, calculate the next sleep time before next attempt
 			if p.RateLimitDelayS < 65 {
@@ -671,6 +695,7 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 				return []string{}, QueryFailed, err
 			}
 			continue
+		//we may not know exact error because of API difference on various providers, act as if we hit server overload
 		case 500:
 			fallthrough
 		case 501:
