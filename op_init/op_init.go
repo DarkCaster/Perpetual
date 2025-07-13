@@ -58,6 +58,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 		logger.Panicln("Error getting current working directory:", err)
 	}
 
+	//TODO: support perpetual directory from ENV var
 	perpetualDir := filepath.Join(cwd, ".perpetual")
 	_, err = os.Stat(perpetualDir)
 	if err == nil {
