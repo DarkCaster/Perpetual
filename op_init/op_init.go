@@ -58,11 +58,19 @@ func Run(version string, args []string, logger logging.ILogger) {
 		logger.Panicln("Error getting current working directory:", err)
 	}
 
-	//TODO: support perpetual directory from ENV var
-	perpetualDir := filepath.Join(cwd, ".perpetual")
-	_, err = os.Stat(perpetualDir)
+	perpetualDir := ""
+	if envDir, errEnv := utils.GetEnvString("PERPETUAL_DIR"); errEnv == nil {
+		perpetualDir = envDir
+	} else {
+		perpetualDir = filepath.Join(cwd, ".perpetual")
+	}
+
+	info, err := os.Stat(perpetualDir)
 	if err == nil {
-		logger.Warnln("Directory .perpetual already exists")
+		if !info.IsDir() {
+			logger.Panicln(".perpetual already exists and it is not a directory!")
+		}
+		logger.Warnln("Directory .perpetual already exists:", perpetualDir)
 	} else if !os.IsNotExist(err) {
 		logger.Panicln("Error checking for .perpetual directory:", err)
 	} else {
