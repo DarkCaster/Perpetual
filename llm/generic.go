@@ -209,7 +209,7 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
-		if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_MAXTOKENS_FORMAT", prefix)); err == nil {
+		if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_MAXTOKENS_FORMAT_OP_%s", prefix, operation), fmt.Sprintf("%s_MAXTOKENS_FORMAT", prefix)); err == nil {
 			switch format {
 			case "OLD":
 				maxTokensFormat = MaxTokensOld
@@ -221,7 +221,7 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("max-tokens format", format)
 		}
 
-		streaming, err = utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
+		streaming, err = utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING_OP_%s", prefix, operation), fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
 		if err == nil {
 			debug.Add("streaming", streaming > 0)
 		} else {
