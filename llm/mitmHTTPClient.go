@@ -142,6 +142,42 @@ func (p *bodyValuesInjector) ProcessURL(url string) string {
 	return ""
 }
 
+type urlQueriesInjector struct {
+	QueriesToInject map[string]string
+}
+
+func newUrlQueriesInjector(queriesToInject map[string]string) requestTransformer {
+	return &urlQueriesInjector{
+		QueriesToInject: queriesToInject,
+	}
+}
+
+func (p *urlQueriesInjector) ProcessBody(body map[string]interface{}) map[string]interface{} {
+	// No body modifications for this transformer
+	return body
+}
+
+func (p *urlQueriesInjector) ProcessHeader(header http.Header) http.Header {
+	// No header modifications for this transformer
+	return header
+}
+
+func (p *urlQueriesInjector) ProcessURL(strUrl string) string {
+	if strUrl == "" {
+		return ""
+	}
+	parsedUrl, err := url.Parse(strUrl)
+	if err != nil {
+		return ""
+	}
+	queries := parsedUrl.Query()
+	for key, value := range p.QueriesToInject {
+		queries.Add(key, value)
+	}
+	parsedUrl.RawQuery = queries.Encode()
+	return parsedUrl.String()
+}
+
 type basicAuthTransformer struct {
 	Auth string
 }
