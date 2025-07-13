@@ -209,6 +209,11 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
+		if apiVersion, err := utils.GetEnvString(fmt.Sprintf("%s_API_VERSION_OP_%s", prefix, operation), fmt.Sprintf("%s_API_VERSION", prefix)); err == nil {
+			fieldsToInject["api_version"] = apiVersion
+			debug.Add("api-version", apiVersion)
+		}
+
 		if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_MAXTOKENS_FORMAT_OP_%s", prefix, operation), fmt.Sprintf("%s_MAXTOKENS_FORMAT", prefix)); err == nil {
 			switch format {
 			case "OLD":
