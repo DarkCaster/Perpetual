@@ -279,13 +279,14 @@ func NewGenericLLMConnectorFromEnv(
 
 		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
 			debug.Add("reasoning effort", reasoning)
-			if reasoning == "LOW" {
+			switch reasoning {
+			case "LOW":
 				fieldsToInject["reasoning_effort"] = "low"
-			} else if reasoning == "MEDIUM" {
+			case "MEDIUM":
 				fieldsToInject["reasoning_effort"] = "medium"
-			} else if reasoning == "HIGH" {
+			case "HIGH":
 				fieldsToInject["reasoning_effort"] = "high"
-			} else {
+			default:
 				return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
 			}
 		}
