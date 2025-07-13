@@ -25,6 +25,7 @@ const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults
 
 OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
+# NOTE: OPENAI_API_BASE and OPENAI_ORGANIZATION env vars are not supported or tested, but may work if used
 
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-4.1-mini"
