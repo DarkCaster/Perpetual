@@ -11,7 +11,6 @@ const genericEnvExampleFileName = "generic.env.example"
 
 const genericEnvExample = `# Options for generic provider with OpenAI compatible API
 # JSON structured output mode is not supported for now, embeddings support depends on the provider.
-# Below is example for deepseek (https://www.deepseek.com/)
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:
 # Project local config: <Project root>/.perpetual/*.env
@@ -22,7 +21,7 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # LLM_PROVIDER="generic"
 
 # Base url is a required parameter for generic provider, below are examples for tested providers:
-# GENERIC_BASE_URL="https://api.deepseek.com/v1" # official deep-seek
+# GENERIC_BASE_URL="https://api.deepseek.com/v1" # official deep-seek (https://www.deepseek.com/)
 # GENERIC_BASE_URL="https://<your-resource-name>.services.ai.azure.com/models" # Azure AI Foundry / Azure OpenAI
 # GENERIC_BASE_URL="https://<your-resource-name>.cognitiveservices.azure.com/models" # Azure AI Foundry / Azure OpenAI
 
@@ -34,9 +33,51 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # Deprecated:
 # GENERIC_API_KEY="<token>" # will work same as GENERIC_AUTH
 
-# Some system parameters, provider and/or model dependent:
-# GENERIC_ENABLE_STREAMING="0" # 0 - disabled (default), 1 - enabled. Best value depends on provider support, may affect costs and/or timeouts.
-# GENERIC_MAXTOKENS_FORMAT="old" # values: old, new. Old is "max_tokens=<value>" (default), New is "max_completion_tokens=<value>"
+# Streaming support: 0 - disabled (default), 1 - enabled. Best value depends on provider support and/or model.
+# May affect error-handling, timeouts and costs.
+# GENERIC_ENABLE_STREAMING_OP_ANNOTATE="0"
+# GENERIC_ENABLE_STREAMING_OP_ANNOTATE_POST="0"
+# GENERIC_ENABLE_STREAMING_OP_EMBED="0"
+# GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE1="0"
+# GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE2="0"
+# GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE3="0"
+# GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE4="0"
+# GENERIC_ENABLE_STREAMING_OP_DOC_STAGE1="0"
+# GENERIC_ENABLE_STREAMING_OP_DOC_STAGE2="0"
+# GENERIC_ENABLE_STREAMING_OP_EXPLAIN_STAGE1="0"
+# GENERIC_ENABLE_STREAMING_OP_EXPLAIN_STAGE2="0"
+# GENERIC_ENABLE_STREAMING="0"
+
+# Format of max-tokens API parameter: old (default), new. Best value depends on provider support and/or model.
+# Old is "max_tokens=<value>", New is "max_completion_tokens=<value>"
+# GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE_POST="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_EMBED="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE1="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE2="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE3="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE4="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_DOC_STAGE1="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_DOC_STAGE2="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_EXPLAIN_STAGE1="old"
+# GENERIC_MAXTOKENS_FORMAT_OP_EXPLAIN_STAGE2="old"
+# GENERIC_MAXTOKENS_FORMAT="old"
+
+# API version parameter (api_version), may be required by your provider or model
+# See valid Azure OpenAI api_version values here: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/api-version-lifecycle?tabs=key
+# Not used by default
+# GENERIC_API_VERSION_OP_ANNOTATE="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_ANNOTATE_POST="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_EMBED="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_IMPLEMENT_STAGE1="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_IMPLEMENT_STAGE2="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_IMPLEMENT_STAGE3="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_IMPLEMENT_STAGE4="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_DOC_STAGE1="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_DOC_STAGE2="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_EXPLAIN_STAGE1="2025-04-01-preview"
+# GENERIC_API_VERSION_OP_EXPLAIN_STAGE2="2025-04-01-preview"
+# GENERIC_API_VERSION="2025-04-01-preview"
 
 # Model selection for different operations and stages
 # GENERIC_MODEL_OP_ANNOTATE="deepseek-chat"
