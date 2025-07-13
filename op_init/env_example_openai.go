@@ -11,6 +11,10 @@ const openAiEnvExampleFileName = "openai.env.example"
 
 const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
 
+# Note: this config should only be used with original OpenAI provider.
+# It use some API fixes depending on model name and other parameters.
+# If you want to use any other OpenAI API compatible provider (including Azure OpenAI), please use "generic" provider instead (see generic.env.example for details)
+
 # Configuration files should have ".env" extensions and it can be placed to the following locations:
 # Project local config: <Project root>/.perpetual/*.env
 # Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
