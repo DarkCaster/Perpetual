@@ -117,13 +117,13 @@ OLLAMA_THINK="false" # default value, if this value also unset, Ollama will chan
 # Options for limiting output tokens for different operations and stages, must be set
 OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
 OLLAMA_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
-OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="512" # file-list for review, long list is probably an error
+OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
-OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE3="512" # file-list for processing, long list is probably an error
+OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE4="4096" # generated code output limit should be as big as possible
-OLLAMA_MAX_TOKENS_OP_DOC_STAGE1="768" # file-list for review, long list is probably an error
+OLLAMA_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
 OLLAMA_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should be as big as possible
-OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="512" # file-list for review
+OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 OLLAMA_MAX_TOKENS="4096"
 

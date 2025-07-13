@@ -68,10 +68,10 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 # OPENAI_FORMAT_OP_EXPLAIN_STAGE1="json"
 
 # Options for limiting output tokens for different operations and stages, must be set
-OPENAI_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
-OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="768"
+OPENAI_MAX_TOKENS_OP_ANNOTATE="768" # you shoud keep the summary short.
+OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big as possible
 OPENAI_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
@@ -93,18 +93,18 @@ OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="2"
 OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10" # may hit token limit on low API usage tiers, so add more retries
 OPENAI_ON_FAIL_RETRIES="5"
 
-# Options to set temperature. Depends on model, 0 produces more deterministic results.
+# Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # OPENAI_TEMPERATURE_OP_ANNOTATE="0.5"
 # OPENAI_TEMPERATURE_OP_ANNOTATE_POST="0.5"
-OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
+# OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
-OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
+# OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
 # OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
-OPENAI_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
-OPENAI_TEMPERATURE_OP_DOC_STAGE2="0.7" # more creative when writing documentation
-OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
-OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
-OPENAI_TEMPERATURE="0.5"
+# OPENAI_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
+# OPENAI_TEMPERATURE_OP_DOC_STAGE2="0.7" # more creative when writing documentation
+# OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
+# OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
+# OPENAI_TEMPERATURE="0.5"
 
 # Advanced options for finetuning. Generally you do not need them.
 # OPENAI_TOP_P_OP_ANNOTATE="0.9"

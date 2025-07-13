@@ -74,14 +74,14 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 # GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
 # Options for limiting output tokens for different operations and stages, must be set
-GENERIC_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
-GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="768"
+GENERIC_MAX_TOKENS_OP_ANNOTATE="768" # you shoud keep the summary short.
+GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="8192" # generated code output limit should be as big as possible, works with DeepSeek
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big as possible, works with DeepSeek
 GENERIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, longer list is probably an error
-GENERIC_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should be as big as possible, works with DeepSeek
+GENERIC_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be as big as possible, works with DeepSeek
 GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
 GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
 GENERIC_MAX_TOKENS="4096" # probably should work with most LLMs
@@ -89,28 +89,28 @@ GENERIC_MAX_TOKENS="4096" # probably should work with most LLMs
 # Options to control retries (including rate-limit hits) and partial output due to token limit
 GENERIC_MAX_TOKENS_SEGMENTS="3"
 GENERIC_ON_FAIL_RETRIES_OP_ANNOTATE="1"
-# GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="3"
-# GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="3"
-# GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="3"
-# GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="3"
-# GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="3"
-# GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
-# GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
-# GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
+GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1="2"
+GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2="7"
+GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3="7"
+GENERIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4="10"
+GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE1="2"
+GENERIC_ON_FAIL_RETRIES_OP_DOC_STAGE2="10"
+GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="2"
+GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10"
 GENERIC_ON_FAIL_RETRIES="5"
 
-# Options to set temperature. Depends on model, 0 produces mostly deterministic results, values provided below seem to work good with DeepSeek
+# Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # GENERIC_TEMPERATURE_OP_ANNOTATE="0.5"
 # GENERIC_TEMPERATURE_OP_ANNOTATE_POST="0.5"
-GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
+# GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
-GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
+# GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
 # GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE4="0.5"
-GENERIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
-GENERIC_TEMPERATURE_OP_DOC_STAGE2="0.7" # more creative when writing documentation
-GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
-GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
-GENERIC_TEMPERATURE="0.5"
+# GENERIC_TEMPERATURE_OP_DOC_STAGE1="0.2" # less creative for file-list output
+# GENERIC_TEMPERATURE_OP_DOC_STAGE2="0.7" # more creative when writing documentation
+# GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
+# GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
+# GENERIC_TEMPERATURE="0.5"
 
 # System prompt role for model, can be configured per operation. Useful for reasoning models without system prompt, like deepseek-reasoner
 # Valid values: system, developer, user. default: system.
