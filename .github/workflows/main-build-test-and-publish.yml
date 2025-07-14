@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [linux, windows, windows7]
+        target: [linux, windows, windows-7]
     permissions:
       contents: read
 
@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install package
-      run: sudo apt-get -y install dos2unix
+      run: sudo apt-get -y install dos2unix wget
 
     - name: Set up Go
       if: ${{ matrix.target == 'windows' || matrix.value == 'linux' }}
@@ -33,24 +33,13 @@ jobs:
       with:
         go-version-file: go.mod
 
-    - name: Set up Go for windows 7
-      if: matrix.target == 'windows7'
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.20.14'
-
-    - name: Patch go.mod for windows 7
-      if: matrix.target == 'windows7'
+    - name: Set up Go for Windows 7 Target
       run: >
-        sed -i '/^toolchain/d' go.mod &&
-        sed -i '/^go/d' go.mod &&
-        go mod edit -go=1.20 &&
-        go mod download github.com/google/go-cmp@v0.6.0 &&
-        chmod a+rw -R "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0" &&
-        sed -i -e 's|^module github.com/google/go-cmp|module cmp|' "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0/go.mod" &&
-        mv "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0" "$HOME/go/pkg/mod/cmp@v0.6.0" &&
-        go get golang.org/x/exp/slices &&
-        go get golang.org/x/exp/slog
+        cd "$HOME" &&
+        wget "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.24.5-2/go1.24.5-2.linux-amd64.zip" &&
+        unzip *.zip &&
+        rm *.zip &&
+        ls -la .
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
