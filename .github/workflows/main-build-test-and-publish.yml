@@ -45,7 +45,8 @@ jobs:
         sed -i '/^toolchain/d' go.mod &&
         sed -i '/^go/d' go.mod &&
         go mod edit -go=1.20 &&
-        GOPATH=$HOME/gocmpdl go mod download github.com/google/go-cmp@v0.6.0 &&
+        GOPATH="$HOME/gocmpdl" go mod download github.com/google/go-cmp@v0.6.0 &&
+        chmod a+rw -R "$HOME/gocmpdl" &&
         sed -i -e 's|^module github.com/google/go-cmp|module cmp|' "$HOME/gocmpdl/pkg/mod/github.com/google/go-cmp@v0.6.0/go.mod" &&
         mv "$HOME/gocmp/pkg/mod/github.com/google/go-cmp@v0.6.0" "$HOME/gocmp" &&
         echo "replace cmp => $HOME/gocmp" >> go.mod &&
