@@ -45,7 +45,7 @@ jobs:
         echo "$HOME/go/bin" >> $GITHUB_PATH
 
     - name: Go Env
-      run: echo "PATH=$PATH" && which go && go env
+      run: echo "PATH=$PATH" && echo "go location:" && which go && echo "go env:" && go env
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
@@ -76,6 +76,10 @@ jobs:
     - name: Build windows x86 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
+
+    - name: Build windows-7 x86 binaries
+      if: matrix.target == 'windows-7'
+      run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_win7_x86.exe github.com/DarkCaster/Perpetual
 
     - name: Refresh example env-files
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
@@ -119,6 +123,15 @@ jobs:
           CONTRIBUTORS.md
           LICENSE
 
+    - name: Upload windows-7 binary
+      if: matrix.target == 'windows-7'
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows7-binaries
+        include-hidden-files: false
+        path: |
+          Perpetual_*.exe
+
   release:
     needs: [build]
     runs-on: ubuntu-latest
@@ -130,7 +143,7 @@ jobs:
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
-        name: windows-binaries
+        pattern: windows*-binaries
         path: dist-windows
 
     - name: Download linux artefacts
