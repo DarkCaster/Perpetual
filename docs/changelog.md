@@ -31,6 +31,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Reworked stage 1 and stage 2 logic for `implement`, `explain` and `doc` operations, now both stages using unidfied shared logic.
 - Renamed some stage 1 and 2 JSON config key-names for `implement`, `explain` and `doc` operations.
 - Minor improvements for local similarity search
+- Build and package binary for Windows 7 32bit, using GoLang patched for Windows 7 target supoport, temporary solution, will be removed in future.
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for the operations.
 
