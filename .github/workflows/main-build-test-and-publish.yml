@@ -16,29 +16,43 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [linux, windows]
+        target: [linux, windows, windows7]
     permissions:
       contents: read
+
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+
     - name: Install package
       run: sudo apt-get -y install dos2unix
+
     - name: Set up Go
+      if: ${{ matrix.target == 'windows' || matrix.value == 'linux' }}
       uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
+
+    - name: Set up Go for windows 7
+      if: matrix.target == 'windows7'
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.20.14'
+
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
+
     - name: Run tests
       run: go test -v ./...
 
     - name: Build linux amd64 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_amd64.bin github.com/DarkCaster/Perpetual
+
     - name: Build linux arm64 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_arm64.bin github.com/DarkCaster/Perpetual
+
     - name: Build linux x86 binaries
       if: matrix.target == 'linux'
       run: env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.bin github.com/DarkCaster/Perpetual
@@ -46,20 +60,25 @@ jobs:
     - name: Build windows amd64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_amd64.exe github.com/DarkCaster/Perpetual
+
     - name: Build windows arm64 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_arm64.exe github.com/DarkCaster/Perpetual
+
     - name: Build windows x86 binaries
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
 
     - name: Refresh example env-files
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
+
     - name: Preparing docs
       run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
+
     - name: Preparing docs (windows)
       if: matrix.target == 'windows'
       run: find . -type f -name "*.md" -exec unix2dos {} \; && find env_examples -type f -exec unix2dos {} \;
+
     - name: Preparing docs (linux)
       if: matrix.target == 'linux'
       run: find . -type f -name "*.md" -exec dos2unix {} \; && find env_examples -type f -exec dos2unix {} \;
@@ -77,6 +96,7 @@ jobs:
           README.md
           CONTRIBUTORS.md
           LICENSE
+
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
       uses: actions/upload-artifact@v4
@@ -97,24 +117,29 @@ jobs:
     permissions:
       contents: write
     steps:
+
     - name: Download windows artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
         name: windows-binaries
         path: dist-windows
+
     - name: Download linux artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v4
       with:
         name: linux-binaries
         path: dist-linux
+
     - name: Create zip archive (windows)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       run: cd dist-windows && zip -9 -r Windows_Binaries.zip *
+
     - name: Create zip archive (linux)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       run: cd dist-linux && zip -9 -r Linux_Binaries.zip *
+
     - name: Publish release
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: ncipollo/release-action@v1
