@@ -79,7 +79,7 @@ jobs:
 
     - name: Build windows-7 x86 binaries
       if: matrix.target == 'windows-7'
-      run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_win7_x86.exe github.com/DarkCaster/Perpetual
+      run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_win7_x86.exe github.com/DarkCaster/Perpetual
 
     - name: Refresh example env-files
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
