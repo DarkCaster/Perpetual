@@ -37,9 +37,9 @@ jobs:
       if: matrix.target == 'windows-7'
       run: >
         cd "$HOME" &&
-        wget -q "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.24.5-2/go1.24.5-2.linux-amd64.zip" &&
-        unzip *.zip &&
-        rm *.zip &&
+        wget -q "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.24.5-3/go1.24.5-3.linux-amd64.tar.gz" &&
+        tar -xf *.tar.gz &&
+        rm *.tar.gz &&
         echo "GOROOT=$HOME/go" >> $GITHUB_ENV &&
         echo "GOPATH=$HOME/go_workspace" >> $GITHUB_ENV &&
         echo "$HOME/go/bin" >> $GITHUB_PATH
