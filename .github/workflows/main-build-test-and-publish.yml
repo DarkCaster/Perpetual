@@ -83,9 +83,11 @@ jobs:
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_win7_x86.exe github.com/DarkCaster/Perpetual
 
     - name: Refresh example env-files
+      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       run: go build -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
 
     - name: Preparing docs
+      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
 
     - name: Preparing docs (windows)
