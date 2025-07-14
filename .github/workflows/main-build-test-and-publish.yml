@@ -41,7 +41,7 @@ jobs:
 
     - name: Patch go.mod for windows 7
       if: matrix.target == 'windows7'
-      run: sed -i '/^toolchain/d' go.mod && sed -i '/^go/d' go.mod && go mod edit -go=1.20
+      run: sed -i '/^toolchain/d' go.mod && sed -i '/^go/d' go.mod && go mod edit -go=1.20 && go get golang.org/x/exp/slog
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
