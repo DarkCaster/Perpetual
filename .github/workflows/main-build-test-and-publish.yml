@@ -45,11 +45,11 @@ jobs:
         sed -i '/^toolchain/d' go.mod &&
         sed -i '/^go/d' go.mod &&
         go mod edit -go=1.20 &&
-        GOPATH="/tmp/go-cmp" go mod download github.com/google/go-cmp@v0.6.0 &&
-        chmod a+rw -R "/tmp/go-cmp" &&
-        sed -i -e 's|^module github.com/google/go-cmp|module cmp|' "/tmp/go-cmp/pkg/mod/github.com/google/go-cmp@v0.6.0/go.mod" &&
-        mv "/tmp/go-cmp/pkg/mod/github.com/google/go-cmp@v0.6.0" "$HOME/go-cmp" &&
-        echo "replace cmp => $HOME/go-cmp" >> go.mod &&
+        go mod download github.com/google/go-cmp@v0.6.0 &&
+        chmod a+rw -R "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0" &&
+        sed -i -e 's|^module github.com/google/go-cmp|module cmp|' "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0/go.mod" &&
+        mv "$HOME/go/pkg/mod/github.com/google/go-cmp@v0.6.0" "$HOME/go/pkg/mod/cmp@v0.6.0" &&
+        echo "require cmp v0.6.0" >> go.mod &&
         go get golang.org/x/exp/slices &&
         go get golang.org/x/exp/slog
 
