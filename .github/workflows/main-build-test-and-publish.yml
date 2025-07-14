@@ -28,7 +28,7 @@ jobs:
       run: sudo apt-get -y install dos2unix wget
 
     - name: Set up Go
-      if: ${{ matrix.target == 'windows' || matrix.value == 'linux' }}
+      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
