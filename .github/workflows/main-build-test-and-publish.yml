@@ -158,7 +158,11 @@ jobs:
 
     - name: Create zip archive (windows)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      run: cd dist-windows && zip -9 -r Windows_Binaries.zip *
+      run: >
+        cd dist-windows &&
+        mv windows7-binaries/*.exe windows-binaries &&
+        rm -rf windows7-binaries &&
+        zip -9 -r Windows_Binaries.zip *
 
     - name: Create zip archive (linux)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
