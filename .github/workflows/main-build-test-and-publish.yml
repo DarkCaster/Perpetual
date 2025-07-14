@@ -34,12 +34,17 @@ jobs:
         go-version-file: go.mod
 
     - name: Set up Go for Windows 7 Target
+      if: matrix.target == 'windows-7'
       run: >
         cd "$HOME" &&
-        wget "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.24.5-2/go1.24.5-2.linux-amd64.zip" &&
+        wget -q "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.24.5-2/go1.24.5-2.linux-amd64.zip" &&
         unzip *.zip &&
         rm *.zip &&
-        ls -la .
+        echo "GOROOT=$HOME/go" >> $GITHUB_ENV &&
+        echo "$HOME/go/bin" >> $GITHUB_PATH
+
+    - name: Go Env
+      run: go env
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
