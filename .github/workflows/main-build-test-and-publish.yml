@@ -45,7 +45,7 @@ jobs:
         echo "$HOME/go/bin" >> $GITHUB_PATH
 
     - name: Go Env
-      run: which go && go env
+      run: echo "PATH=$PATH" && which go && go env
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
