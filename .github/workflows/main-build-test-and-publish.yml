@@ -43,10 +43,10 @@ jobs:
         echo "GOROOT=$HOME/go" >> $GITHUB_ENV &&
         echo "GOPATH=$HOME/go_workspace" >> $GITHUB_ENV &&
         echo "GOTOOLCHAIN=local" >> $GITHUB_ENV &&
-        echo "$HOME/go/bin" >> $GITHUB_PATH &&
-        echo "PATH=$PATH" &&
-        echo "go location:" && which go &&
-        echo "go env:" && go env
+        echo "$HOME/go/bin" >> $GITHUB_PATH
+
+    - name: Go Env
+      run: echo "PATH=$PATH" && echo "go location:" && which go && echo "go env:" && go env
 
     - name: Set version
       run: echo "BUILD_VERSION=$(git describe --tags --long || TZ=UTC0 git show -s --date='format-local:%Y%m%d-%H%M' --format='%cd-%h')" >> $GITHUB_ENV
