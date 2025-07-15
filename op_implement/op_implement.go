@@ -34,7 +34,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
-	flags.StringVar(&taskFile, "i", "", "When using task mode (-t flag), read task instructions from file, plain text or markdown format")
+	flags.StringVar(&taskFile, "i", "", "Implement the task directly from instructions read from file (plain text or markdown). This flag includes the -t flag.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&planning, "p", false, "Enable planning, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables extended planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
@@ -73,6 +73,11 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
 	}
 
+	// Enable task mode if task file provided
+	if taskFile != "" {
+		taskMode = true
+	}
+
 	// Set planning mode
 	planningMode := 0
 	if planning {
@@ -83,11 +88,6 @@ func Run(args []string, logger logging.ILogger) {
 	}
 	if taskMode && planningMode < 1 {
 		planningMode = 1
-	}
-
-	// task file checks
-	if taskFile != "" && !taskMode {
-		logger.Panicln("Cannot read task from file without enabling task mode (-t flag)")
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
