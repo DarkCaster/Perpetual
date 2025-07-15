@@ -23,6 +23,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ## v8.0.0 (Unreleased, work in progress)
 
+### Improvements
+
 - Added option to manually set `.perpetual` directory location with `PERPETUAL_DIR` env variable instead of autodetecting it inside project directory.
 - Improved Generic LLM provider for better support working with Azure AI Foundry models.
 - Removed the shortest annotations for `annotate` operation used with `high` context saving measures, as it was deemed not effective enough to lower LLM context-window use on stage 1, when working with really big projects (more than 1500-2000 files)
