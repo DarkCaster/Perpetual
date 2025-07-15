@@ -155,8 +155,26 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Trim excess line breaks at both sides of question, and stop on empty input
 	question = strings.Trim(question, "\n")
-	if len(question) < 1 {
+	if question == "" {
 		logger.Panicln("Question is empty, cannot continue")
+	}
+
+	// Read extra file with stage 1 instructions
+	var stage1query string
+	if extraFile != "" {
+		data, err := utils.LoadTextFile(extraFile)
+		if err != nil {
+			logger.Panicln("Error reading extra instructions file:", err)
+		}
+		stage1query = strings.Trim(data, "\n")
+		logger.Infoln("Using stage 1 instructions from file:", extraFile)
+	} else {
+		stage1query = question
+		logger.Debugln("Using question as stage 1 instructions")
+	}
+
+	if stage1query == "" {
+		logger.Panicln("Extra stage 1 instructions query is empty, cannot continue")
 	}
 
 	logger.Debugln("Rotating log file")
@@ -185,7 +203,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		filesPercent,
 		randomizePercent,
 		fileNames,
-		question,
+		stage1query,
 		[]string{},
 		annotations,
 		selectionPasses,
@@ -211,14 +229,14 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			[]string{}, []string{}, []string{},
 			explainConfig.String(config.K_ExplainStage1QuestionPrompt),
 			explainConfig.String(config.K_ExplainStage1QuestionJsonModePrompt),
-			question,
+			stage1query,
 			[]string{},
 			pass+1,
 			stage1Logger)
 		// Prepare for local similarity search
 		searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)
 		// Local similarity search stage
-		searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(question, []string{}, annotations)
+		searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(stage1query, []string{}, annotations)
 		similarFiles := op_embed.SimilaritySearchStage(
 			searchMode,
 			min(searchLimit, len(fileLists[pass])),
