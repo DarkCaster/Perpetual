@@ -27,6 +27,8 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.(cpp|cxx|c\\+\\+|cppm)$", defaultAIAnnotatePrompt_CPP, defaultAIAnnotatePrompt_CPP_Short},
 		{"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$", defaultAIAnnotatePrompt_H_CPP, defaultAIAnnotatePrompt_H_CPP_Short},
 		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short},
+		{"(?i)^.*\\.rc$", defaultAIAnnotatePrompt_CPP_Windows_RC, defaultAIAnnotatePrompt_CPP_Windows_RC_Short},
+		{"(?i)^.*\\.exe\\.manifest$", defaultAIAnnotatePrompt_EXE_Manifest_Windows, defaultAIAnnotatePrompt_EXE_Manifest_Windows_short},
 
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}

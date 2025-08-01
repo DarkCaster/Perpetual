@@ -29,6 +29,14 @@ const defaultAIAnnotatePrompt_ARB = "Create a summary for the Application Resour
 
 const defaultAIAnnotatePrompt_ARB_Short = "Create a summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 1 sentence long, and should indicate the localization language for which it is intended"
 
+const defaultAIAnnotatePrompt_CPP_Windows_RC = "Create a summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info"
+
+const defaultAIAnnotatePrompt_CPP_Windows_RC_Short = "Create a summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info"
+
+const defaultAIAnnotatePrompt_EXE_Manifest_Windows = "Create a summary for the XML application manifest file, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info"
+
+const defaultAIAnnotatePrompt_EXE_Manifest_Windows_short = "Create a summary for the XML application manifest file, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info"
+
 const defaultAIAnnotatePrompt_Bash = "Create a summary for the Bash script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, declared functions (if any) with one-sentence descriptions, main operations, and dependencies. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_Bash_Short = "Create a short summary for the Bash script in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
