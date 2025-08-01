@@ -37,6 +37,8 @@ func newPrompts(targetLang string) (prompts, error) {
 		return &cppPrompts{}, nil
 	case "ARDUINO":
 		return &arduinoPrompts{}, nil
+	case "FLUTTER":
+		return &flutterPrompts{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", targetLang)
 	}
