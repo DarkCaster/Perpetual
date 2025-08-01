@@ -22,7 +22,6 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.arb$", defaultAIAnnotatePrompt_ARB, defaultAIAnnotatePrompt_ARB_Short},
 		{"(?i)^.*\\.l10n\\.yaml$", defaultAIAnnotatePrompt_Flutter_l10n_YAML, defaultAIAnnotatePrompt_Flutter_l10n_YAML_Short},
 		{"(?i)^.*\\.pubspec\\.yaml$", defaultAIAnnotatePrompt_Flutter_Pubspec_YAML, defaultAIAnnotatePrompt_Flutter_Pubspec_YAML_Short},
-
 		// C, C++ files for native windows or linux builds
 		//TODO: blacklist linux/flutter/ephemeral/
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake, defaultAIAnnotatePrompt_Cmake_Short},
@@ -32,7 +31,11 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short},
 		{"(?i)^.*\\.rc$", defaultAIAnnotatePrompt_CPP_Windows_RC, defaultAIAnnotatePrompt_CPP_Windows_RC_Short},
 		{"(?i)^.*\\.exe\\.manifest$", defaultAIAnnotatePrompt_EXE_Manifest_Windows, defaultAIAnnotatePrompt_EXE_Manifest_Windows_short},
-
+		// files for android build
+		//TODO: blacklist android/app/src/main/java/io/flutter/plugins
+		{"(?i)^.*\\.java$", defaultAIAnnotatePrompt_Flutter_Java, defaultAIAnnotatePrompt_Flutter_Java_Short},
+		{"(?i)^.*\\.kt$", defaultAIAnnotatePrompt_Flutter_Kotlin, defaultAIAnnotatePrompt_Flutter_Kotlin_Short},
+		//TODO: source files for mac, ios and web builds support
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
