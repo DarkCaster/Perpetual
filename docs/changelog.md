@@ -35,6 +35,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Added an additional `-e` flag to the `explain` operation to provide an additional file with instructions on how to select project files relevant to your question. This can be used to provide simpler and clearer instructions for the LLM if the original question is too complex for the LLM to use to select the files correctly.
 - Minor improvements for local similarity search.
 - Build and package binary for Windows 7 32bit, using GoLang patched for Windows 7 target supoport, temporary solution, will be removed in future.
+- Added support for initializing default prompts for Flutter/Dart projects and language
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for the operations.
 
