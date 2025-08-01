@@ -21,21 +21,29 @@ const defaultAIAnnotatePrompt_Flutter = "Create a summary for the Flutter/Dart s
 
 const defaultAIAnnotatePrompt_Flutter_Short = "Create a short summary for the Flutter/Dart source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."
 
-const defaultAIAnnotatePrompt_Flutter_Tests = "Create a summary for the Flutter/Dart unit-tests source file in my next message. The summary should be up to 3 sentences long. Use the following template for the summary:\n\nThis file contains unit tests for <list of entities the tests target>"
+const defaultAIAnnotatePrompt_Flutter_Tests = "Create a summary for the Flutter/Dart unit-tests source file in my next message. The summary should be up to 3 sentences long. Use the following template for the summary:\n\nThis file contains unit tests for <list of entities the tests target>."
 
-const defaultAIAnnotatePrompt_Flutter_Tests_Short = "Create a short summary for the Flutter/Dart unit-tests source file in my next message. The summary should be up to 2 sentences long. Use the following template for the summary:\n\n<Description of what this file is used for, up to 2 sentences>"
+const defaultAIAnnotatePrompt_Flutter_Tests_Short = "Create a short summary for the Flutter/Dart unit-tests source file in my next message. The summary should be up to 2 sentences long. Use the following template for the summary:\n\n<Description of what this file is used for, up to 2 sentences>."
 
-const defaultAIAnnotatePrompt_ARB = "Create a summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 2 sentences long, and should indicate the localization language for which it is intended"
+const defaultAIAnnotatePrompt_Flutter_l10n_YAML = "Create a summary for the Flutter/Dart l10n.yaml file that configures auto-generation of localization. The summary should only include localization dir and .arb file location, localization language - if you can get it reliably. The summary should be up to 2 sentences long."
 
-const defaultAIAnnotatePrompt_ARB_Short = "Create a summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 1 sentence long, and should indicate the localization language for which it is intended"
+const defaultAIAnnotatePrompt_Flutter_l10n_YAML_Short = "Create a short summary for the Flutter/Dart l10n.yaml file that configures auto-generation of localization. The summary should only include localization dir and .arb file location, localization language - if you can get it reliably. The summary should be up to 1 sentence long."
 
-const defaultAIAnnotatePrompt_CPP_Windows_RC = "Create a summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info"
+const defaultAIAnnotatePrompt_Flutter_Pubspec_YAML = "Create a summary for the Flutter/Dart pubspec.yaml file that defines the Flutter packages used in the project. The summary should only include the most basic info. Do not include package-list and its' versions, only write the areas for which the packages are intended in your opinion. The whole should be up to 3 sentences long."
 
-const defaultAIAnnotatePrompt_CPP_Windows_RC_Short = "Create a summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info"
+const defaultAIAnnotatePrompt_Flutter_Pubspec_YAML_Short = "Create a short summary for the Flutter/Dart pubspec.yaml file that defines the Flutter packages used in the project. The summary should only include the most basic info. Do not include package-list and its' versions, only write the areas for which the packages are intended in your opinion. The whole should be up to 2 sentences long."
 
-const defaultAIAnnotatePrompt_EXE_Manifest_Windows = "Create a summary for the XML application manifest file, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info"
+const defaultAIAnnotatePrompt_ARB = "Create a summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 2 sentences long, and should indicate the localization language for which it is intended."
 
-const defaultAIAnnotatePrompt_EXE_Manifest_Windows_short = "Create a summary for the XML application manifest file, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info"
+const defaultAIAnnotatePrompt_ARB_Short = "Create a short summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 1 sentence long, and should indicate the localization language for which it is intended."
+
+const defaultAIAnnotatePrompt_CPP_Windows_RC = "Create a summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info."
+
+const defaultAIAnnotatePrompt_CPP_Windows_RC_Short = "Create a short summary for the Microsoft Visual C++ resource script, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info."
+
+const defaultAIAnnotatePrompt_EXE_Manifest_Windows = "Create a summary for the XML application manifest file, in my next message. The summary should be up to 2 sentences long, and should only include the most basic info."
+
+const defaultAIAnnotatePrompt_EXE_Manifest_Windows_short = "Create a short summary for the XML application manifest file, in my next message. The summary should be up to 1 sentence long, and should only include the most basic info."
 
 const defaultAIAnnotatePrompt_Bash = "Create a summary for the Bash script in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key variables, declared functions (if any) with one-sentence descriptions, main operations, and dependencies. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 

@@ -20,6 +20,9 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 		// main dart-flutter files
 		{"(?i)^.*\\.dart$", defaultAIAnnotatePrompt_Flutter, defaultAIAnnotatePrompt_Flutter_Short},
 		{"(?i)^.*\\.arb$", defaultAIAnnotatePrompt_ARB, defaultAIAnnotatePrompt_ARB_Short},
+		{"(?i)^.*\\.l10n\\.yaml$", defaultAIAnnotatePrompt_Flutter_l10n_YAML, defaultAIAnnotatePrompt_Flutter_l10n_YAML_Short},
+		{"(?i)^.*\\.pubspec\\.yaml$", defaultAIAnnotatePrompt_Flutter_Pubspec_YAML, defaultAIAnnotatePrompt_Flutter_Pubspec_YAML_Short},
+
 		// C, C++ files for native windows or linux builds
 		//TODO: blacklist linux/flutter/ephemeral/
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", defaultAIAnnotatePrompt_Cmake, defaultAIAnnotatePrompt_Cmake_Short},
