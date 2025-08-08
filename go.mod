@@ -8,7 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/tmc/langchaingo v0.1.13
 	github.com/vmihailenco/msgpack/v5 v5.4.1
-	golang.org/x/text v0.27.0
+	golang.org/x/text v0.28.0
 )
 
 require (
