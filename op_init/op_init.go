@@ -130,6 +130,11 @@ func Run(version string, args []string, logger logging.ILogger) {
 		}
 	}
 
+	logger.Tracef("Creating %s file", descriptionTemplateFileName)
+	if err = utils.SaveTextFile(filepath.Join(perpetualDir, descriptionTemplateFileName), descriptionTemplate); err != nil {
+		logger.Panicf("Error creating %s file: %v", descriptionTemplateFileName, err)
+	}
+
 	// Create a prompt-files based on the selected language
 	logger.Debugln("Creating prompt-files")
 	promptsObj, err := newPrompts(lang)
