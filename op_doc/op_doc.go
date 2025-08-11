@@ -293,6 +293,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			OpName,
 			projectRootDir,
 			perpetualDir,
+			projectConfig,
 			docConfig,
 			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 			fileNames,

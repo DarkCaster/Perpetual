@@ -391,6 +391,7 @@ func Run(args []string, logger logging.ILogger) {
 	_, messages := shared.Stage2(OpName,
 		projectRootDir,
 		perpetualDir,
+		projectConfig,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		[]string{},
