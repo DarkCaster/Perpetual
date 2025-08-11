@@ -6,6 +6,8 @@
   "medium_context_saving_file_count": 400,
   "medium_context_saving_random_percent": 25,
   "medium_context_saving_select_percent": 60,
+  "project_description_prompt": "Primary tasks will follow shortly. For your awareness, project description is provided:",
+  "project_description_response": "I have carefully studied the information provided and will take it into account when working on the project tasks.",
   "project_files_blacklist": [
     "(?i)^vendor(\\\\|\\/).*"
   ],
