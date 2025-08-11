@@ -18,7 +18,7 @@ func Stage1(
 	opName string,
 	projectRootDir string,
 	perpetualDir string,
-	cfg config.Config,
+	opCfg config.Config,
 	filesToMdLangMappings [][]string,
 	preselectedProjectFiles []string,
 	allProjectFiles []string,
@@ -45,12 +45,12 @@ func Stage1(
 	// Create stage1 llm connector
 	connector, err := llm.NewLLMConnector(
 		opName+"_stage1",
-		cfg.String(config.K_SystemPrompt),
-		cfg.String(config.K_SystemPromptAck),
+		opCfg.String(config.K_SystemPrompt),
+		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		cfg.Object(config.K_Stage1OutputSchema),
-		cfg.String(config.K_Stage1OutputSchemaName),
-		cfg.String(config.K_Stage1OutputSchemaDesc),
+		opCfg.Object(config.K_Stage1OutputSchema),
+		opCfg.String(config.K_Stage1OutputSchemaName),
+		opCfg.String(config.K_Stage1OutputSchemaDesc),
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
@@ -59,16 +59,16 @@ func Stage1(
 	var messages []llm.Message
 	// Create project-index request message
 	indexRequest := llm.ComposeMessageWithAnnotations(
-		cfg.String(config.K_ProjectIndexPrompt),
+		opCfg.String(config.K_ProjectIndexPrompt),
 		preselectedProjectFiles,
-		cfg.StringArray(config.K_FilenameTags),
+		opCfg.StringArray(config.K_FilenameTags),
 		annotations,
 		logger)
 	messages = append(messages, indexRequest)
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), cfg.String(config.K_ProjectIndexResponse))
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_ProjectIndexResponse))
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
@@ -99,7 +99,7 @@ func Stage1(
 	}
 	// Add file contents
 	for _, item := range targetFiles {
-		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, cfg.StringArray(config.K_FilenameTags), logger)
+		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, opCfg.StringArray(config.K_FilenameTags), logger)
 	}
 
 	messages = append(messages, analysisRequest)
@@ -148,12 +148,12 @@ func Stage1(
 		}
 		if connector.GetOutputFormat() == llm.OutputJson {
 			// Use json-mode parsing
-			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponses[0], cfg.String(config.K_Stage1OutputKey))
+			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_Stage1OutputKey))
 		} else {
 			// Use regular parsing to extract file-list
 			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
-				cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-				cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+				opCfg.RegexpArray(config.K_FilenameTagsRx)[0],
+				opCfg.RegexpArray(config.K_FilenameTagsRx)[1],
 				false)
 		}
 		if err != nil {
