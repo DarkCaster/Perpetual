@@ -27,7 +27,6 @@ func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
@@ -37,7 +36,6 @@ func (p *arduinoPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -46,7 +44,6 @@ func (p *arduinoPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -68,6 +65,7 @@ func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^(data\\\\|data\\/)",
 	}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}
+	result[config.K_ProjectIndexPrompt] = "Here is a description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result
 }
 

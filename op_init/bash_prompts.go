@@ -24,7 +24,6 @@ func (p *bashPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$"}
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
@@ -34,7 +33,6 @@ func (p *bashPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -43,7 +41,6 @@ func (p *bashPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Bash scripting expert with extensive knowledge of various Linux distributions. You are an expert in studying bash scripts and finding solutions to questions related to writing scripts in Linux. Your answers are detailed and consistent."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -56,6 +53,8 @@ func (p *bashPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 	}
+	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+
 	return result
 }
 

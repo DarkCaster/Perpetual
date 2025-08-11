@@ -42,7 +42,6 @@ func (p *flutterPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Dart programming language and Flutter SDK. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
@@ -52,7 +51,6 @@ func (p *flutterPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. You write and refine technical documentation based on detailed study of the source code."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Dart programming language and Flutter SDK. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -61,7 +59,6 @@ func (p *flutterPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	// redefine language-dependent prompt
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Dart programming language and Flutter SDK. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	result[config.K_NoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
 }
@@ -114,6 +111,7 @@ func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.dart$",
 		"(?i)^test(\\\\|\\/).*\\.dart$",
 	}
+	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Dart programming language and Flutter SDK. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result
 }
 

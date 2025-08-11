@@ -38,8 +38,6 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
 	// stage 1
-	result[K_ProjectIndexPrompt] = templateString
-	result[K_ProjectIndexResponse] = templateString
 	result[K_ImplementStage1AnalysisPrompt] = templateString
 	result[K_ImplementStage1AnalysisJsonModePrompt] = templateString
 	result[K_ImplementTaskStage1AnalysisPrompt] = templateString
@@ -93,8 +91,6 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_DocExampleResponse] = templateString
 	result[K_ProjectCodePrompt] = templateString
 	result[K_ProjectCodeResponse] = templateString
-	result[K_ProjectIndexPrompt] = templateString
-	result[K_ProjectIndexResponse] = templateString
 	// stage 1
 	result[K_DocStage1RefinePrompt] = templateString
 	result[K_DocStage1RefineJsonModePrompt] = templateString
@@ -123,8 +119,6 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_ExplainOutFilteredFilenameTags] = templateStringArray
 	result[K_ExplainOutAnswerHeader] = templateString
 	result[K_ExplainOutQuestionHeader] = templateString
-	result[K_ProjectIndexPrompt] = templateString
-	result[K_ProjectIndexResponse] = templateString
 	// stage 1
 	result[K_ExplainStage1QuestionPrompt] = templateString
 	result[K_ExplainStage1QuestionJsonModePrompt] = templateString
@@ -166,5 +160,7 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectHighContextSavingRandomPercent] = templateFloat
 	result[K_ProjectDescriptionPrompt] = templateString
 	result[K_ProjectDescriptionResponse] = templateString
+	result[K_ProjectIndexPrompt] = templateString
+	result[K_ProjectIndexResponse] = templateString
 	return result
 }
