@@ -164,5 +164,7 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectMediumContextSavingRandomPercent] = templateFloat
 	result[K_ProjectHighContextSavingSelectPercent] = templateFloat
 	result[K_ProjectHighContextSavingRandomPercent] = templateFloat
+	result[K_ProjectDescriptionPrompt] = templateString
+	result[K_ProjectDescriptionResponse] = templateString
 	return result
 }

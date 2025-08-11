@@ -11,6 +11,8 @@ const K_ProjectIndexPrompt = "project_index_prompt"
 const K_ProjectIndexResponse = "project_index_response"
 const K_ProjectCodePrompt = "project_code_prompt"
 const K_ProjectCodeResponse = "project_code_response"
+const K_ProjectDescriptionPrompt = "project_description_prompt"
+const K_ProjectDescriptionResponse = "project_description_response"
 
 const K_ProjectMediumContextSavingFileCount = "medium_context_saving_file_count"
 const K_ProjectHighContextSavingFileCount = "high_context_saving_file_count"

@@ -294,5 +294,8 @@ func getDefaultProjectConfigTemplate() map[string]interface{} {
 	result[config.K_ProjectMediumContextSavingRandomPercent] = 25.0
 	result[config.K_ProjectHighContextSavingSelectPercent] = 30.0
 	result[config.K_ProjectHighContextSavingRandomPercent] = 20.0
+	// optional project description
+	result[config.K_ProjectDescriptionPrompt] = "Primary tasks will follow shortly. For your awareness, project description is provided:"
+	result[config.K_ProjectDescriptionResponse] = "I have carefully studied the information provided and will take it into account when working on the project tasks."
 	return result
 }
