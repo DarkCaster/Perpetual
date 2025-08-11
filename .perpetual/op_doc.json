@@ -14,8 +14,6 @@
   ],
   "project_code_prompt": "Here are the contents of my project's source code files that are relevant to the document you will be working on.",
   "project_code_response": "Understood. What's next?",
-  "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
-  "project_index_response": "Understood. What's next?",
   "stage1_output_key": "list_of_files",
   "stage1_output_schema": {
     "properties": {
