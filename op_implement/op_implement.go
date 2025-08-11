@@ -281,6 +281,7 @@ func Run(args []string, logger logging.ILogger) {
 					OpName,
 					projectRootDir,
 					perpetualDir,
+					projectConfig,
 					implementConfig,
 					projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 					preselectedFileNames[pass],

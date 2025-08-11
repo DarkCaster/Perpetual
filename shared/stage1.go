@@ -18,6 +18,7 @@ func Stage1(
 	opName string,
 	projectRootDir string,
 	perpetualDir string,
+	prCfg config.Config,
 	opCfg config.Config,
 	filesToMdLangMappings [][]string,
 	preselectedProjectFiles []string,
