@@ -52,7 +52,7 @@ const K_AnnotateStage2PromptCombine = "stage2_prompt_combine"
 const K_AnnotateStage2PromptBest = "stage2_prompt_best"
 
 // Keys for implement operation config file
-const K_FilenameEmbedRx = "filename_embed_rx"
+const K_ImplementFilenameEmbedRx = "filename_embed_rx"
 const K_ImplementCommentsRx = "implement_comments_rx"
 
 // Implement stage 1

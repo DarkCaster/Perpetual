@@ -70,7 +70,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage4ProcessPrompt] = templateString
 	result[K_ImplementStage4ContinuePrompt] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameEmbedRx] = templateString
+	result[K_ImplementFilenameEmbedRx] = templateString
 	result[K_ImplementCommentsRx] = templateStringArray
 	return result
 }

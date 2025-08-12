@@ -94,7 +94,7 @@ func Stage4(projectRootDir string,
 		// Create prompt from stage4ProcessFilePromptTemplate
 		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
 			cfg.String(config.K_ImplementStage4ProcessPrompt),
-			cfg.Regexp(config.K_FilenameEmbedRx),
+			cfg.Regexp(config.K_ImplementFilenameEmbedRx),
 			pendingFile)
 
 		if err != nil {

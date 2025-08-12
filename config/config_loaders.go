@@ -164,10 +164,10 @@ func processOpImplementConfig(cfg map[string]interface{}) error {
 	} else {
 		cfg[K_ImplementCommentsRx] = rxArr
 	}
-	if rx, err := regexp.Compile(cfg[K_FilenameEmbedRx].(string)); err != nil {
-		return fmt.Errorf("%s must be a valid regexp: %s", K_FilenameEmbedRx, err)
+	if rx, err := regexp.Compile(cfg[K_ImplementFilenameEmbedRx].(string)); err != nil {
+		return fmt.Errorf("%s must be a valid regexp: %s", K_ImplementFilenameEmbedRx, err)
 	} else {
-		cfg[K_FilenameEmbedRx] = rx
+		cfg[K_ImplementFilenameEmbedRx] = rx
 	}
 	return nil
 }

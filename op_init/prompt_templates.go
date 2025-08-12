@@ -209,7 +209,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage4ChangesDoneResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage4ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
 	result[config.K_ImplementStage4ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
-	result[config.K_FilenameEmbedRx] = "###FILENAME###"
+	result[config.K_ImplementFilenameEmbedRx] = "###FILENAME###"
 	return result
 }
 
