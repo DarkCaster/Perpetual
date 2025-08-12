@@ -1,4 +1,16 @@
 {
+  "code_tags_rx": [
+    "(?m)\\s*```[a-zA-Z]+\\n?",
+    "(?m)```\\s*($|\\n)"
+  ],
+  "filename_tags": [
+    "<filename>",
+    "</filename>"
+  ],
+  "filename_tags_rx": [
+    "(?m)\\s*<filename>\\n?",
+    "(?m)<\\/filename>\\s*$?"
+  ],
   "files_to_md_code_mappings": [],
   "high_context_saving_file_count": 1200,
   "high_context_saving_random_percent": 20,
@@ -6,6 +18,9 @@
   "medium_context_saving_file_count": 400,
   "medium_context_saving_random_percent": 25,
   "medium_context_saving_select_percent": 60,
+  "noupload_comments_rx": [
+    "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
+  ],
   "project_description_prompt": "Primary tasks will follow shortly. For your awareness, project description is provided:",
   "project_description_response": "I have carefully studied the information provided and will take it into account when working on the project tasks.",
   "project_files_blacklist": [

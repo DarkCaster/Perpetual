@@ -1,15 +1,6 @@
 {
-  "filename_tags": [
-    "<filename>",
-    "</filename>"
-  ],
-  "filename_tags_rx": [
-    "(?m)\\s*<filename>\\n?",
-    "(?m)<\\/filename>\\s*$?"
-  ],
-  "noupload_comments_rx": [
-    "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
-  ],
+  "code_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
+  "code_response": "Understood. What's next?",
   "output_answer_header": "# Answer",
   "output_filename_tags": [
     "`",
@@ -21,8 +12,6 @@
     "`~~"
   ],
   "output_question_header": "# Question",
-  "project_code_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
-  "project_code_response": "Understood. What's next?",
   "stage1_output_key": "list_of_files",
   "stage1_output_schema": {
     "properties": {
