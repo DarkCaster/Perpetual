@@ -91,15 +91,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 	}
 
-	projectConfig, err := config.LoadProjectConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading project config: %s", err)
-	}
-
-	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading op_annotate config: %s", err)
-	}
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
+	annotateConfig := config.LoadOpAnnotateConfig(perpetualDir, logger)
 
 	var userBlacklist []*regexp.Regexp
 	if userFilterFile != "" {

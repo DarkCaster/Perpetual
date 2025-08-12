@@ -27,15 +27,8 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 		logger.Panicln("Error finding project root directory:", err)
 	}
 
-	projectConfig, err := config.LoadProjectConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading project config: %s", err)
-	}
-
-	annotateConfig, err := config.LoadOpAnnotateConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading op_annotate config: %s", err)
-	}
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
+	annotateConfig := config.LoadOpAnnotateConfig(perpetualDir, logger)
 
 	// Create llm connector for annotate stage1
 	connector, err := llm.NewLLMConnector("annotate",

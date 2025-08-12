@@ -99,15 +99,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	if action == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
-		docConfig, err := config.LoadOpDocConfig(perpetualDir)
-		if err != nil {
-			logger.Panicf("Error loading op_doc config: %s", err)
-		}
-
-		projectConfig, err := config.LoadProjectConfig(perpetualDir)
-		if err != nil {
-			logger.Panicf("Error loading project config: %s", err)
-		}
+		docConfig := config.LoadOpDocConfig(perpetualDir, logger)
+		projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 
 		projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
 

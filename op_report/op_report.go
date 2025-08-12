@@ -73,15 +73,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 
-	reportConfig, err := config.LoadOpReportConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading op_report config: %s", err)
-	}
-
-	projectConfig, err := config.LoadProjectConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading project config: %s", err)
-	}
+	reportConfig := config.LoadOpReportConfig(perpetualDir, logger)
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 
 	projectFilesBlacklist := projectConfig.RegexpArray(config.K_ProjectFilesBlacklist)
 

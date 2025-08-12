@@ -90,10 +90,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 	}
 
-	projectConfig, err := config.LoadProjectConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading project config: %s", err)
-	}
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 
 	// Create llm connector for generating embeddings early
 	// So we can stop right here if embeddings not supported or disabled
@@ -390,10 +387,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 		logger.Panicln("Error finding project root directory:", err)
 	}
 
-	projectConfig, err := config.LoadProjectConfig(perpetualDir)
-	if err != nil {
-		logger.Panicf("Error loading project config: %s", err)
-	}
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 
 	// Create llm connector for generating embeddings
 	connector, err := llm.NewLLMConnector(OpName, "", "",

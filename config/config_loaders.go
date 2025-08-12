@@ -5,109 +5,134 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-type opConfig struct {
+type configStorage struct {
+	fileName  string
 	cfgValues map[string]interface{}
+	logger    logging.ILogger
 }
 
-func (o *opConfig) Object(key string) map[string]interface{} {
-	return o.cfgValues[key].(map[string]interface{})
+type configValue struct {
+	config *configStorage
+	value  interface{}
+	key    string
 }
 
-func (o *opConfig) Regexp(key string) *regexp.Regexp {
-	return o.cfgValues[key].(*regexp.Regexp)
+func (o *configStorage) get(key string) configValue {
+	v, exist := o.cfgValues[key]
+	if !exist {
+		o.logger.Panicf("Config %s do not have value with key %s", o.fileName, key)
+	}
+	return configValue{config: o, value: v, key: key}
 }
 
-func (o *opConfig) RegexpArray(key string) []*regexp.Regexp {
-	return utils.NewSlice(o.cfgValues[key].([]*regexp.Regexp)...)
+func as[T any](v configValue) T {
+	r, ok := v.value.(T)
+	if !ok {
+		v.config.logger.Panicf("Config %s: failed to represent key %s as type %T", v.config.fileName, v.key, *new(T))
+	}
+	return r
 }
 
-func (o *opConfig) String(key string) string {
-	return o.cfgValues[key].(string)
+func (o *configStorage) Object(key string) map[string]interface{} {
+	return as[map[string]interface{}](o.get(key))
 }
 
-func (o *opConfig) StringArray(key string) []string {
-	return interfaceToStringArray(o.cfgValues[key])
+func (o *configStorage) Regexp(key string) *regexp.Regexp {
+	return as[*regexp.Regexp](o.get(key))
 }
 
-func (o *opConfig) StringArray2D(key string) [][]string {
-	return interfaceTo2DStringArray(o.cfgValues[key])
+func (o *configStorage) RegexpArray(key string) []*regexp.Regexp {
+	return utils.NewSlice(as[[]*regexp.Regexp](o.get(key))...)
 }
 
-func (o *opConfig) Integer(key string) int {
-	return int(o.cfgValues[key].(float64))
+func (o *configStorage) String(key string) string {
+	return as[string](o.get(key))
 }
 
-func (o *opConfig) Float(key string) float64 {
-	return o.cfgValues[key].(float64)
+func (o *configStorage) StringArray(key string) []string {
+	return interfaceToStringArray(o.get(key).value)
 }
 
-func LoadOpAnnotateConfig(baseDir string) (Config, error) {
+func (o *configStorage) StringArray2D(key string) [][]string {
+	return interfaceTo2DStringArray(o.get(key).value)
+}
+
+func (o *configStorage) Integer(key string) int {
+	return int(as[float64](o.get(key)))
+}
+
+func (o *configStorage) Float(key string) float64 {
+	return as[float64](o.get(key))
+}
+
+func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpAnnotateConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading op_annotate config:", err)
 	}
 	if err := processOpAnnotateConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing op_annotate config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_annotate.json"}
 }
 
-func LoadProjectConfig(baseDir string) (Config, error) {
+func LoadProjectConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, ProjectConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading project config:", err)
 	}
 	if err := processProjectConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing project config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "project.json"}
 }
 
-func LoadOpDocConfig(baseDir string) (Config, error) {
+func LoadOpDocConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpDocConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading op_doc config:", err)
 	}
 	if err := processOpDocConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing op_doc config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_doc.json"}
 }
 
-func LoadOpExplainConfig(baseDir string) (Config, error) {
+func LoadOpExplainConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpExplainConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading op_explain config:", err)
 	}
 	if err := processOpExplainConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing op_explain config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_explain.json"}
 }
 
-func LoadOpImplementConfig(baseDir string) (Config, error) {
+func LoadOpImplementConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpImplementConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading op_implement config:", err)
 	}
 	if err := processOpImplementConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing op_implement config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_implement.json"}
 }
 
-func LoadOpReportConfig(baseDir string) (Config, error) {
+func LoadOpReportConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpReportConfigFile), &storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error loading op_report config:", err)
 	}
 	if err := processOpReportConfig(storageObject); err != nil {
-		return nil, err
+		logger.Panicln("Error processing op_report config:", err)
 	}
-	return &opConfig{cfgValues: storageObject}, nil
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_report.json"}
 }
 
 func processOpReportConfig(cfg map[string]interface{}) error {
