@@ -25,6 +25,7 @@ func Stage2(
 	filesToMdLangMappings [][]string,
 	projectFiles []string,
 	filesForReview []string,
+	projectDesc string,
 	annotations map[string]string,
 	addAnnotations bool,
 	preQueriesPrompts []string,
@@ -54,7 +55,19 @@ func Stage2(
 	}
 
 	var messages []llm.Message
-
+	// Create project description request message
+	if projectDesc != "" {
+		// Create prompt
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prCfg.String(config.K_ProjectDescriptionPrompt))
+		request = llm.AddPlainTextFragment(request, projectDesc)
+		messages = append(messages, request)
+		logger.Debugln("Created project description request")
+		// Create response
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectDescriptionResponse))
+		messages = append(messages, response)
+		logger.Debugln("Created simulated project description response")
+	}
+	// Add annotations
 	if addAnnotations {
 		// Create project-index request message
 		indexRequest := llm.ComposeMessageWithAnnotations(
@@ -73,7 +86,6 @@ func Stage2(
 	} else {
 		logger.Infoln("Not adding project-annotations")
 	}
-
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents

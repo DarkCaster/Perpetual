@@ -23,6 +23,7 @@ func Stage1(
 	filesToMdLangMappings [][]string,
 	preselectedProjectFiles []string,
 	allProjectFiles []string,
+	projectDesc string,
 	annotations map[string]string,
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
@@ -58,6 +59,18 @@ func Stage1(
 	}
 
 	var messages []llm.Message
+	// Create project description request message
+	if projectDesc != "" {
+		// Create prompt
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prCfg.String(config.K_ProjectDescriptionPrompt))
+		request = llm.AddPlainTextFragment(request, projectDesc)
+		messages = append(messages, request)
+		logger.Debugln("Created project description request")
+		// Create response
+		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectDescriptionResponse))
+		messages = append(messages, response)
+		logger.Debugln("Created simulated project description response")
+	}
 	// Create project-index request message
 	indexRequest := llm.ComposeMessageWithAnnotations(
 		prCfg.String(config.K_ProjectIndexPrompt),
