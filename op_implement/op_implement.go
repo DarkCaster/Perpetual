@@ -329,7 +329,7 @@ func Run(args []string, logger logging.ILogger) {
 		filesToReview = utils.FilterNoUploadProjectFiles(
 			projectRootDir,
 			filesToReview,
-			implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+			projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
 			false,
 			logger)
 	}
@@ -413,6 +413,7 @@ func Run(args []string, logger logging.ILogger) {
 	messages, otherFilesToModify, targetFilesToModify := Stage3(
 		projectRootDir,
 		perpetualDir,
+		projectConfig,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		planningMode,
@@ -428,7 +429,7 @@ func Run(args []string, logger logging.ILogger) {
 		otherFilesToModify = utils.FilterNoUploadProjectFiles(
 			projectRootDir,
 			otherFilesToModify,
-			implementConfig.RegexpArray(config.K_NoUploadCommentsRx),
+			projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
 			true,
 			logger)
 	}
@@ -446,6 +447,7 @@ func Run(args []string, logger logging.ILogger) {
 	results := Stage4(
 		projectRootDir,
 		perpetualDir,
+		projectConfig,
 		implementConfig,
 		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
 		messages,

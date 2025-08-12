@@ -12,7 +12,8 @@ import (
 
 func Stage3(projectRootDir string,
 	perpetualDir string,
-	cfg config.Config,
+	prCfg config.Config,
+	opCfg config.Config,
 	filesToMdLangMappings [][]string,
 	planningMode int,
 	allFileNames []string,
@@ -29,12 +30,12 @@ func Stage3(projectRootDir string,
 	// Create stage3 llm connector
 	connector, err := llm.NewLLMConnector(
 		OpName+"_stage3",
-		cfg.String(config.K_SystemPrompt),
-		cfg.String(config.K_SystemPromptAck),
+		opCfg.String(config.K_SystemPrompt),
+		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		cfg.Object(config.K_Stage3OutputSchema),
-		cfg.String(config.K_Stage3OutputSchemaName),
-		cfg.String(config.K_Stage3OutputSchemaDesc),
+		opCfg.Object(config.K_Stage3OutputSchema),
+		opCfg.String(config.K_Stage3OutputSchemaName),
+		opCfg.String(config.K_Stage3OutputSchemaDesc),
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
@@ -67,15 +68,15 @@ func Stage3(projectRootDir string,
 		if task == "" {
 			request = llm.ComposeMessageWithFiles(
 				projectRootDir,
-				cfg.String(config.K_ImplementStage3PlanningPrompt),
+				opCfg.String(config.K_ImplementStage3PlanningPrompt),
 				targetFiles,
-				cfg.StringArray(config.K_FilenameTags),
+				prCfg.StringArray(config.K_ProjectFilenameTags),
 				logger)
 		} else {
 			request = llm.AddPlainTextFragment(
 				llm.AddPlainTextFragment(
 					llm.NewMessage(llm.UserRequest),
-					cfg.String(config.K_ImplementTaskStage3PlanningPrompt)),
+					opCfg.String(config.K_ImplementTaskStage3PlanningPrompt)),
 				task)
 		}
 		messages = append(messages, request)
@@ -86,15 +87,15 @@ func Stage3(projectRootDir string,
 		if task == "" {
 			jsonModeRequest = llm.ComposeMessageWithFiles(
 				projectRootDir,
-				cfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
+				opCfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
 				targetFiles,
-				cfg.StringArray(config.K_FilenameTags),
+				prCfg.StringArray(config.K_ProjectFilenameTags),
 				logger)
 		} else {
 			jsonModeRequest = llm.AddPlainTextFragment(
 				llm.AddPlainTextFragment(
 					llm.NewMessage(llm.UserRequest),
-					cfg.String(config.K_ImplementTaskStage3PlanningJsonModePrompt)),
+					opCfg.String(config.K_ImplementTaskStage3PlanningJsonModePrompt)),
 				task)
 		}
 		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
@@ -104,10 +105,10 @@ func Stage3(projectRootDir string,
 	// When using planning WITH reasoning, create request that will only ask to create list of files to be changed
 	if planningMode == 2 {
 		// Create normal mode request and add it to history
-		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningLitePrompt))
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningLitePrompt))
 		messages = append(messages, request)
 		// Create json mode request and add it to json mode history
-		jsonModeRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), cfg.String(config.K_ImplementStage3PlanningLiteJsonModePrompt))
+		jsonModeRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningLiteJsonModePrompt))
 		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (simplified)")
 	}
@@ -163,13 +164,13 @@ func Stage3(projectRootDir string,
 			// Process response, parse files that will be created
 			if connector.GetOutputFormat() == llm.OutputJson {
 				// Use json-mode parsing
-				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], cfg.String(config.K_Stage3OutputKey))
+				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_Stage3OutputKey))
 			} else {
 				// Use regular parsing to extract file-list
 				filesToProcessRaw, err = utils.ParseTaggedTextRx(
 					aiResponses[0],
-					cfg.RegexpArray(config.K_FilenameTagsRx)[0],
-					cfg.RegexpArray(config.K_FilenameTagsRx)[1],
+					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
+					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
 					false)
 			}
 			if err != nil {
@@ -235,14 +236,14 @@ func Stage3(projectRootDir string,
 								extra_task_prompt_added = true
 								messages[msgIndexToAddExtraFiles] = llm.AddPlainTextFragment(
 									messages[msgIndexToAddExtraFiles],
-									cfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
+									opCfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
 							}
 							// Add the file contents so that LLM doesn't overwrite it from scratch, thus destroying it.
 							messages[msgIndexToAddExtraFiles] = llm.AppendFileToMessage(
 								messages[msgIndexToAddExtraFiles],
 								projectRootDir,
 								file,
-								cfg.StringArray(config.K_FilenameTags),
+								prCfg.StringArray(config.K_ProjectFilenameTags),
 								logger)
 							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
@@ -261,10 +262,10 @@ func Stage3(projectRootDir string,
 		// Generate simulated AI message, with list of files
 		response := llm.NewMessage(llm.SimulatedAIResponse)
 		for _, item := range otherFilesToModify {
-			response = llm.AddTaggedFragment(response, item, cfg.StringArray(config.K_FilenameTags))
+			response = llm.AddTaggedFragment(response, item, prCfg.StringArray(config.K_ProjectFilenameTags))
 		}
 		for _, item := range targetFilesToModify {
-			response = llm.AddTaggedFragment(response, item, cfg.StringArray(config.K_FilenameTags))
+			response = llm.AddTaggedFragment(response, item, prCfg.StringArray(config.K_ProjectFilenameTags))
 		}
 		// Add response to the normal-mode message history, because it better aligns with tags used to denote the filenames
 		messages = append(messages, response)

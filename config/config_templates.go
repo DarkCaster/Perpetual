@@ -27,9 +27,6 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	result[K_AnnotateStage2PromptVariant] = templateString
 	result[K_AnnotateStage2PromptCombine] = templateString
 	result[K_AnnotateStage2PromptBest] = templateString
-	// tags for providing filename to LLM
-	result[K_FilenameTags] = templateStringArray
-	result[K_CodeTagsRx] = templateStringArray
 	return result
 }
 
@@ -47,8 +44,8 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_Stage1OutputSchemaName] = templateString
 	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
-	result[K_ProjectCodePrompt] = templateString
-	result[K_ProjectCodeResponse] = templateString
+	result[K_CodePrompt] = templateString
+	result[K_CodeResponse] = templateString
 	result[K_ImplementStage2NoPlanningPrompt] = templateString
 	result[K_ImplementStage2NoPlanningResponse] = templateString
 	result[K_ImplementStage2ReasoningsPrompt] = templateString
@@ -73,13 +70,8 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementStage4ProcessPrompt] = templateString
 	result[K_ImplementStage4ContinuePrompt] = templateString
 	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameTags] = templateStringArray
-	result[K_FilenameTagsRx] = templateStringArray
 	result[K_FilenameEmbedRx] = templateString
-	result[K_NoUploadCommentsRx] = templateStringArray
 	result[K_ImplementCommentsRx] = templateStringArray
-	result[K_CodeTagsRx] = templateStringArray
-
 	return result
 }
 
@@ -89,24 +81,21 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_SystemPromptAck] = templateString
 	result[K_DocExamplePrompt] = templateString
 	result[K_DocExampleResponse] = templateString
-	result[K_ProjectCodePrompt] = templateString
-	result[K_ProjectCodeResponse] = templateString
 	// stage 1
 	result[K_DocStage1RefinePrompt] = templateString
 	result[K_DocStage1RefineJsonModePrompt] = templateString
 	result[K_DocStage1WritePrompt] = templateString
 	result[K_DocStage1WriteJsonModePrompt] = templateString
-	result[K_DocStage2RefinePrompt] = templateString
-	result[K_DocStage2WritePrompt] = templateString
-	result[K_Stage2ContinuePrompt] = templateString
 	result[K_Stage1OutputSchema] = templateObject
 	result[K_Stage1OutputKey] = templateString
 	result[K_Stage1OutputSchemaName] = templateString
 	result[K_Stage1OutputSchemaDesc] = templateString
-	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameTags] = templateStringArray
-	result[K_FilenameTagsRx] = templateStringArray
-	result[K_NoUploadCommentsRx] = templateStringArray
+	// stage 2
+	result[K_CodePrompt] = templateString
+	result[K_CodeResponse] = templateString
+	result[K_DocStage2RefinePrompt] = templateString
+	result[K_DocStage2WritePrompt] = templateString
+	result[K_Stage2ContinuePrompt] = templateString
 	return result
 }
 
@@ -127,14 +116,10 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_Stage1OutputSchemaName] = templateString
 	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
-	result[K_ProjectCodePrompt] = templateString
-	result[K_ProjectCodeResponse] = templateString
+	result[K_CodePrompt] = templateString
+	result[K_CodeResponse] = templateString
 	result[K_ExplainStage2QuestionPrompt] = templateString
 	result[K_Stage2ContinuePrompt] = templateString
-	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[K_FilenameTags] = templateStringArray
-	result[K_FilenameTagsRx] = templateStringArray
-	result[K_NoUploadCommentsRx] = templateStringArray
 	return result
 }
 
@@ -142,7 +127,7 @@ func GetReportConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
 	result[K_ReportBriefPrompt] = templateString
 	result[K_ReportCodePrompt] = templateString
-	result[K_FilenameTags] = templateStringArray
+	result[K_ReportFilenameTags] = templateStringArray
 	return result
 }
 
@@ -162,5 +147,10 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectDescriptionResponse] = templateString
 	result[K_ProjectIndexPrompt] = templateString
 	result[K_ProjectIndexResponse] = templateString
+	// tags for providing filenames to LLM, parsing filenames and code-blocks from LLM response,
+	result[K_ProjectFilenameTags] = templateStringArray
+	result[K_ProjectFilenameTagsRx] = templateStringArray
+	result[K_ProjectCodeTagsRx] = templateStringArray
+	result[K_ProjectNoUploadCommentsRx] = templateStringArray
 	return result
 }

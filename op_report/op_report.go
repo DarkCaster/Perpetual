@@ -135,7 +135,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		reportMessage = llm.ComposeMessageWithAnnotations(
 			reportConfig.String(config.K_ReportBriefPrompt),
 			fileNames,
-			reportConfig.StringArray(config.K_FilenameTags),
+			reportConfig.StringArray(config.K_ReportFilenameTags),
 			annotations,
 			logger)
 	} else if strings.ToUpper(reportType) == "CODE" {
@@ -144,7 +144,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			projectRootDir,
 			reportConfig.String(config.K_ReportCodePrompt),
 			fileNames,
-			reportConfig.StringArray(config.K_FilenameTags),
+			reportConfig.StringArray(config.K_ReportFilenameTags),
 			logger)
 	} else {
 		logger.Panicln("Invalid report type:", reportType)

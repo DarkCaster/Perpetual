@@ -285,7 +285,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			annotateConfig.StringArray(config.K_FilenameTags))
+			projectConfig.StringArray(config.K_ProjectFilenameTags))
 
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
 
@@ -319,7 +319,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				continue
 			}
 			// Some final filtering and preparations of produced annotation variants
-			finalVariants := utils.FilterAndTrimResponses(annotationVariants, annotateConfig.RegexpArray(config.K_CodeTagsRx), logger)
+			finalVariants := utils.FilterAndTrimResponses(annotationVariants, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
 			if len(finalVariants) < 1 {
 				logger.Errorln("No LLM responses available")
@@ -371,8 +371,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 					variantSelectionStrategy = llm.Short
 				} else if blocks, err := utils.ParseMultiTaggedTextRx(
 					combinedAnnotation[0],
-					utils.GetEvenRegexps(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
-					utils.GetOddRegexps(annotateConfig.RegexpArray(config.K_CodeTagsRx)),
+					utils.GetEvenRegexps(projectConfig.RegexpArray(config.K_ProjectCodeTagsRx)),
+					utils.GetOddRegexps(projectConfig.RegexpArray(config.K_ProjectCodeTagsRx)),
 					true); err != nil || len(blocks) > 0 {
 					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
 					variantSelectionStrategy = llm.Short

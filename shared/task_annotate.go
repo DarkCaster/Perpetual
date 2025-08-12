@@ -73,7 +73,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			annotateConfig.StringArray(config.K_FilenameTags))
+			projectConfig.StringArray(config.K_ProjectFilenameTags))
 
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate task: %s\n\n\n", filePath))
 		logger.Infoln("Creating task summary for:", filePath)
@@ -102,7 +102,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 				continue
 			}
 			// Some final filtering and preparations of produced annotation variants
-			finalVariants := utils.FilterAndTrimResponses(annotationVariants, annotateConfig.RegexpArray(config.K_CodeTagsRx), logger)
+			finalVariants := utils.FilterAndTrimResponses(annotationVariants, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
 			if len(finalVariants) < 1 {
 				if onFailRetriesLeft < 1 {

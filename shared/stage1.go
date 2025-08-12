@@ -60,9 +60,9 @@ func Stage1(
 	var messages []llm.Message
 	// Create project-index request message
 	indexRequest := llm.ComposeMessageWithAnnotations(
-		opCfg.String(config.K_ProjectIndexPrompt),
+		prCfg.String(config.K_ProjectIndexPrompt),
 		preselectedProjectFiles,
-		opCfg.StringArray(config.K_FilenameTags),
+		prCfg.StringArray(config.K_ProjectFilenameTags),
 		annotations,
 		logger)
 	messages = append(messages, indexRequest)
@@ -100,7 +100,7 @@ func Stage1(
 	}
 	// Add file contents
 	for _, item := range targetFiles {
-		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, opCfg.StringArray(config.K_FilenameTags), logger)
+		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
 	}
 
 	messages = append(messages, analysisRequest)
@@ -153,8 +153,8 @@ func Stage1(
 		} else {
 			// Use regular parsing to extract file-list
 			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
-				opCfg.RegexpArray(config.K_FilenameTagsRx)[0],
-				opCfg.RegexpArray(config.K_FilenameTagsRx)[1],
+				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
+				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
 				false)
 		}
 		if err != nil {

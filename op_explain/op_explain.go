@@ -280,7 +280,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			if found, err := utils.FindInRelativeFile(
 				projectRootDir,
 				file,
-				explainConfig.RegexpArray(config.K_NoUploadCommentsRx)); err == nil && !found {
+				projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx)); err == nil && !found {
 				filteredRequestedFiles = append(filteredRequestedFiles, file)
 			} else if found {
 				logger.Warnln("Skipping file marked with 'no-upload' comment:", file)

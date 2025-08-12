@@ -161,8 +161,6 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
 	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
 	result[config.K_AnnotateStage2PromptBest] = "Evaluate the summaries you have created and choose summary variant that better matches the original instructions. Output the text of the selected summary variant in the response, nothing more."
-	result[config.K_FilenameTags] = defaultFileNameTags
-	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
 	return result
 }
 
@@ -181,8 +179,8 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 
 	// stage 2
-	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files."
-	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
+	result[config.K_CodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_CodeResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the tasks, one file at a time."
 	result[config.K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the tasks."
 	//TODO: Provide work-plan template to follow, as we do for annotate operation.
@@ -211,12 +209,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_ImplementStage4ChangesDoneResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage4ProcessPrompt] = "Implement the required code for the following file: \"###FILENAME###\". Output the entire file with the code you implemented. The response must only contain that file with implemented code as code-block and nothing else."
 	result[config.K_ImplementStage4ContinuePrompt] = "You previous response hit token limit. Continue generating code right from the point where it stopped. Do not repeat already generated fragment in your response."
-	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[config.K_FilenameTags] = defaultFileNameTags
-	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
 	result[config.K_FilenameEmbedRx] = "###FILENAME###"
-	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps
-
 	return result
 }
 
@@ -225,8 +218,8 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
-	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
-	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
+	result[config.K_CodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
+	result[config.K_CodeResponse] = defaultAIAcknowledge
 	// stage 1
 	result[config.K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of filenames from the project description that you will need to work on the document. Place each filename between <filename></filename> tags. Full text of the document provided below:"
 	result[config.K_DocStage1RefineJsonModePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and the project description that was provided earlier and create a list of files from the project description that you will need to work on the document. Full text of the document provided below:"
@@ -240,9 +233,6 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project description and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"
 	result[config.K_DocStage2WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. The project description and relevant source code needed to work on the document have been provided to you previously. Complete the document from its curent state: write the required sections, improve already written text if needed. Use the notes across the document for instructions, be creative. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. The text of the document in its current state provided below:"
 	result[config.K_Stage2ContinuePrompt] = "You previous response hit token limit. Continue writing document right from the point where it stopped. Do not repeat already completed fragment in your response."
-	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[config.K_FilenameTags] = defaultFileNameTags
-	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
 	return result
 }
 
@@ -262,21 +252,17 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 	// stage 2
-	result[config.K_ProjectCodePrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
-	result[config.K_ProjectCodeResponse] = defaultAIAcknowledge
+	result[config.K_CodePrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
+	result[config.K_CodeResponse] = defaultAIAcknowledge
 	result[config.K_ExplainStage2QuestionPrompt] = "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:"
 	result[config.K_Stage2ContinuePrompt] = "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response."
-	// tags for providing filenames to LLM, parsing filenames from response, parsing output code, etc
-	result[config.K_FilenameTags] = defaultFileNameTags
-	result[config.K_FilenameTagsRx] = defaultFileNameTagsRegexps
-	result[config.K_NoUploadCommentsRx] = defaultOutputTagsRegexps
 	return result
 }
 
 func getDefaultReportConfigTemplate() map[string]interface{} {
 	result := config.GetReportConfigTemplate()
 	result[config.K_ReportCodePrompt] = "This document contains the project's source code files."
-	result[config.K_FilenameTags] = []string{"### File: ", ""}
+	result[config.K_ReportFilenameTags] = []string{"### File: ", ""}
 	return result
 }
 
@@ -295,5 +281,10 @@ func getDefaultProjectConfigTemplate() map[string]interface{} {
 	// optional project description
 	result[config.K_ProjectDescriptionPrompt] = "Primary tasks will follow shortly. For your awareness, project description is provided:"
 	result[config.K_ProjectDescriptionResponse] = "I have carefully studied the information provided and will take it into account when working on the project tasks."
+	// tags for providing filenames to LLM, parsing filenames and code-blocks back from LLM response
+	result[config.K_ProjectFilenameTags] = defaultFileNameTags
+	result[config.K_ProjectFilenameTagsRx] = defaultFileNameTagsRegexps
+	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps
+	result[config.K_ProjectNoUploadCommentsRx] = defaultOutputTagsRegexps
 	return result
 }

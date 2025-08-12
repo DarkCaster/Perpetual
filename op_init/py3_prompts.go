@@ -20,7 +20,6 @@ func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.(sh|bash)(\\.in)?$", defaultAIAnnotatePrompt_Bash, defaultAIAnnotatePrompt_Bash_Short},
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
-	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 
@@ -28,25 +27,19 @@ func (p *py3Prompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. When you write code, you output the entire file with your changes without truncating it."
 	// redefine language-dependent prompt
-	result[config.K_CodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
-	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *py3Prompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You write and refine technical documentation based on detailed study of the source code."
-	// redefine language-dependent prompt
-	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
 func (p *py3Prompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
-	// redefine language-dependent prompt
-	result[config.K_NoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	return result
 }
 
@@ -73,6 +66,9 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^pytest(\\\\|\\/).*\\.py$",
 	}
 	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	// redefine language-dependent prompt
+	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	return result
 }
 

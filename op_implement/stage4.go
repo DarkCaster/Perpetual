@@ -13,6 +13,7 @@ import (
 // Perform the actual code implementation process based on the Stage 2 and 3 answers, which includes the contents of other files related to the files for which we need to implement the code and extra reasonings (if enabled).
 func Stage4(projectRootDir string,
 	perpetualDir string,
+	prCfg config.Config,
 	cfg config.Config,
 	filesToMdLangMappings [][]string,
 	stage2Messages []llm.Message,
@@ -62,7 +63,7 @@ func Stage4(projectRootDir string,
 					stage4ChangesDoneMessage,
 					item,
 					contents,
-					cfg.StringArray(config.K_FilenameTags))
+					prCfg.StringArray(config.K_ProjectFilenameTags))
 			}
 		}
 
@@ -162,7 +163,7 @@ func Stage4(projectRootDir string,
 			// Remove extra output tag from the start from non first response-fragments
 			for i := range responses {
 				if i > 0 {
-					responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
+					responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
 				}
 			}
 
@@ -170,8 +171,8 @@ func Stage4(projectRootDir string,
 			combinedResponse := strings.Join(responses, "")
 			fileBodies, err = utils.ParseMultiTaggedTextRx(
 				combinedResponse,
-				utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)),
-				utils.GetOddRegexps(cfg.RegexpArray(config.K_CodeTagsRx)),
+				utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
+				utils.GetOddRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
 				ignoreUnclosedTagErrors)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
@@ -181,7 +182,7 @@ func Stage4(projectRootDir string,
 					continue
 				}
 				// Try to remove only first match then, last resort
-				fileBody := utils.GetTextAfterFirstMatchesRx(combinedResponse, utils.GetEvenRegexps(cfg.RegexpArray(config.K_CodeTagsRx)))
+				fileBody := utils.GetTextAfterFirstMatchesRx(combinedResponse, utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
 				fileBodies = []string{fileBody}
 			}
 

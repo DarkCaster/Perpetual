@@ -58,16 +58,16 @@ func Stage2(
 	if addAnnotations {
 		// Create project-index request message
 		indexRequest := llm.ComposeMessageWithAnnotations(
-			opCfg.String(config.K_ProjectIndexPrompt),
+			prCfg.String(config.K_ProjectIndexPrompt),
 			projectFiles,
-			opCfg.StringArray(config.K_FilenameTags),
+			prCfg.StringArray(config.K_ProjectFilenameTags),
 			annotations,
 			logger)
 		messages = append(messages, indexRequest)
 		logger.Debugln("Created project-index request message")
 
 		// Create project-index simulated response
-		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_ProjectIndexResponse))
+		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectIndexResponse))
 		messages = append(messages, indexResponse)
 		logger.Debugln("Created project-index simulated response message")
 	} else {
@@ -79,14 +79,14 @@ func Stage2(
 		// Create request with file-contents
 		reviewRequest := llm.ComposeMessageWithFiles(
 			projectRootDir,
-			opCfg.String(config.K_ProjectCodePrompt),
+			opCfg.String(config.K_CodePrompt),
 			filesForReview,
-			opCfg.StringArray(config.K_FilenameTags),
+			prCfg.StringArray(config.K_ProjectFilenameTags),
 			logger)
 		messages = append(messages, reviewRequest)
 		logger.Debugln("Created source code review request message")
 		// Create simulated response
-		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_ProjectCodeResponse)))
+		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_CodeResponse)))
 		logger.Debugln("Created source code review simulated response message")
 	} else {
 		logger.Infoln("Not creating extra source-code review")
@@ -97,7 +97,7 @@ func Stage2(
 		if preRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir,
 			preQueriesPrompts[i],
 			preQueriesBodies[i],
-			opCfg.StringArray(config.K_FilenameTags),
+			prCfg.StringArray(config.K_ProjectFilenameTags),
 			logger,
 		); ok {
 			messages = append(messages, preRequest)
@@ -117,7 +117,7 @@ func Stage2(
 	}
 
 	// Create query-processing mainRequest message
-	mainRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, opCfg.StringArray(config.K_FilenameTags), logger)
+	mainRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
 	if !ok {
 		logger.Panicln("Failed to create main prompt message")
 	}
@@ -190,7 +190,7 @@ func Stage2(
 		response = strings.Join(responses, "")
 		if filterResponseWithCodeRx {
 			// Filter-out code blocks from response
-			filteredResponses := utils.FilterAndTrimResponses([]string{response}, opCfg.RegexpArray(config.K_CodeTagsRx), logger)
+			filteredResponses := utils.FilterAndTrimResponses([]string{response}, prCfg.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			if len(filteredResponses) < 1 || filteredResponses[0] == "" {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Filtered reasonings response from AI is empty or invalid")
@@ -206,7 +206,7 @@ func Stage2(
 			messages = append(messages, mainRequest)
 		} else {
 			// Add final request message to history - it use simplier instructions that will less likely affect next stages
-			finalRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPromptFinal, mainPromptBody, opCfg.StringArray(config.K_FilenameTags), logger)
+			finalRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPromptFinal, mainPromptBody, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
 			if !ok {
 				logger.Panicln("Failed to create final main prompt message")
 			}
