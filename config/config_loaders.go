@@ -72,67 +72,67 @@ func (o *configStorage) Float(key string) float64 {
 func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpAnnotateConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading op_annotate config:", err)
+		logger.Panicf("Error loading %s config: %v", OpAnnotateConfigFile, err)
 	}
 	if err := processOpAnnotateConfig(storageObject); err != nil {
-		logger.Panicln("Error processing op_annotate config:", err)
+		logger.Panicf("Error processing %s config: %v", OpAnnotateConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_annotate.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpAnnotateConfigFile}
 }
 
 func LoadProjectConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, ProjectConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading project config:", err)
+		logger.Panicf("Error loading %s config: %v", ProjectConfigFile, err)
 	}
 	if err := processProjectConfig(storageObject); err != nil {
-		logger.Panicln("Error processing project config:", err)
+		logger.Panicf("Error processing %s config: %v", ProjectConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "project.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: ProjectConfigFile}
 }
 
 func LoadOpDocConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpDocConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading op_doc config:", err)
+		logger.Panicf("Error loading %s config: %v", OpDocConfigFile, err)
 	}
 	if err := processOpDocConfig(storageObject); err != nil {
-		logger.Panicln("Error processing op_doc config:", err)
+		logger.Panicf("Error processing %s config: %v", OpDocConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_doc.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpDocConfigFile}
 }
 
 func LoadOpExplainConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpExplainConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading op_explain config:", err)
+		logger.Panicf("Error loading %s config: %v", OpExplainConfigFile, err)
 	}
 	if err := processOpExplainConfig(storageObject); err != nil {
-		logger.Panicln("Error processing op_explain config:", err)
+		logger.Panicf("Error processing %s config: %v", OpExplainConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_explain.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpExplainConfigFile}
 }
 
 func LoadOpImplementConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpImplementConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading op_implement config:", err)
+		logger.Panicf("Error loading %s config: %v", OpImplementConfigFile, err)
 	}
 	if err := processOpImplementConfig(storageObject); err != nil {
-		logger.Panicln("Error processing op_implement config:", err)
+		logger.Panicf("Error processing %s config: %v", OpImplementConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_implement.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpImplementConfigFile}
 }
 
 func LoadOpReportConfig(baseDir string, logger logging.ILogger) Config {
 	storageObject := map[string]interface{}{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpReportConfigFile), &storageObject); err != nil {
-		logger.Panicln("Error loading op_report config:", err)
+		logger.Panicf("Error loading %s config: %v", OpReportConfigFile, err)
 	}
 	if err := processOpReportConfig(storageObject); err != nil {
-		logger.Panicln("Error processing op_report config:", err)
+		logger.Panicf("Error processing %s config: %v", OpReportConfigFile, err)
 	}
-	return &configStorage{cfgValues: storageObject, logger: logger, fileName: "op_report.json"}
+	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpReportConfigFile}
 }
 
 func processOpReportConfig(cfg map[string]interface{}) error {
