@@ -2,6 +2,7 @@ package op_doc
 
 import (
 	"flag"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -25,13 +26,14 @@ func docFlags() *flag.FlagSet {
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
-	var docFile, docExample, action, userFilterFile, contextSaving string
+	var docFile, docExample, descFile, action, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
+	flags.StringVar(&descFile, "d", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&docFile, "r", "", "Target documentation file for processing (if omited, read from stdin and write result to stdout)")
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
 	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
@@ -81,6 +83,25 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
+	}
+
+	projectDesc := ""
+	if descFile == "" {
+		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		if err != nil {
+			if os.IsNotExist(err) {
+				logger.Infoln("Not loading missing project description file (description.md)")
+			} else {
+				logger.Panicln("Failed to load project description file:", err)
+			}
+		}
+	} else if strings.ToLower(descFile) != "disabled" {
+		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		if err != nil {
+			logger.Panicln("Failed to load project description file:", err)
+		}
+	} else {
+		logger.Infoln("Loading of project description file (description.md) is disabled")
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
