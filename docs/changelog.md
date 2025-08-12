@@ -33,7 +33,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Reworked stage 1 and stage 2 logic for `implement`, `explain` and `doc` operations, now both stages using unidfied shared logic.
 - Renamed some stage 1 and 2 JSON config key-names for `implement`, `explain` and `doc` operations.
 - (TODO) Added support for providing optional user-generated project description that will added to the LLM context for better understanding of project structure. This should improve LLM performance for `implement`, `explain` and `doc` operations for bigger and more complex projects.
-- (TODO) Move similar config records defining tags and regexps used to decorate and parse code from LLM requests and responses into project config.
+- Move similar config records defining tags and regexps used to decorate and parse code from LLM requests and responses into project config.
 - Added an additional `-e` flag to the `explain` operation to provide an additional file with instructions on how to select project files relevant to your question. This can be used to provide simpler and clearer instructions for the LLM if the original question is too complex for the LLM to use to select the files correctly.
 - Minor improvements for local similarity search.
 - Build and package binary for Windows 7 32bit, using GoLang patched for Windows 7 target supoport, temporary solution, will be removed in future.
