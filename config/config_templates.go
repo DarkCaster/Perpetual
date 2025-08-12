@@ -60,10 +60,10 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementTaskStage3ExtraFilesPrompt] = templateString
 	result[K_ImplementStage3PlanningLitePrompt] = templateString
 	result[K_ImplementStage3PlanningLiteJsonModePrompt] = templateString
-	result[K_Stage3OutputSchema] = templateObject
-	result[K_Stage3OutputKey] = templateString
-	result[K_Stage3OutputSchemaName] = templateString
-	result[K_Stage3OutputSchemaDesc] = templateString
+	result[K_ImplementStage3OutputSchema] = templateObject
+	result[K_ImplementStage3OutputKey] = templateString
+	result[K_ImplementStage3OutputSchemaName] = templateString
+	result[K_ImplementStage3OutputSchemaDesc] = templateString
 	// stage 4
 	result[K_ImplementStage4ChangesDonePrompt] = templateString
 	result[K_ImplementStage4ChangesDoneResponse] = templateString

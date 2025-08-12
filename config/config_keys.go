@@ -36,11 +36,6 @@ const K_Stage1OutputSchemaName = "stage1_output_schema_name"
 const K_Stage1OutputSchemaDesc = "stage1_output_schema_desc"
 const K_Stage1OutputKey = "stage1_output_key"
 const K_Stage2ContinuePrompt = "stage2_continue_prompt"
-const K_Stage3OutputSchema = "stage3_output_schema"
-
-const K_Stage3OutputSchemaName = "stage3_output_schema_name"
-const K_Stage3OutputSchemaDesc = "stage3_output_schema_desc"
-const K_Stage3OutputKey = "stage3_output_key"
 
 // Keys for annotate operation config file
 const K_AnnotateTaskPrompt = "annotate_task_prompt"
@@ -78,6 +73,10 @@ const K_ImplementTaskStage3PlanningJsonModePrompt = "stage3_task_planning_json_m
 // Implement stage 3, prompt to generate list of files that will be changed, continuation of stage 2 with reasonings - not attaching target files
 const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
 const K_ImplementStage3PlanningLiteJsonModePrompt = "stage3_planning_lite_json_mode_prompt"
+const K_ImplementStage3OutputSchema = "stage3_output_schema"
+const K_ImplementStage3OutputSchemaName = "stage3_output_schema_name"
+const K_ImplementStage3OutputSchemaDesc = "stage3_output_schema_desc"
+const K_ImplementStage3OutputKey = "stage3_output_key"
 
 // Extra prompt when adding unexpected source file to the prompts on late stage 3
 const K_ImplementTaskStage3ExtraFilesPrompt = "stage3_task_extra_files_prompt"

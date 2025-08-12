@@ -33,9 +33,9 @@ func Stage3(projectRootDir string,
 		opCfg.String(config.K_SystemPrompt),
 		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		opCfg.Object(config.K_Stage3OutputSchema),
-		opCfg.String(config.K_Stage3OutputSchemaName),
-		opCfg.String(config.K_Stage3OutputSchemaDesc),
+		opCfg.Object(config.K_ImplementStage3OutputSchema),
+		opCfg.String(config.K_ImplementStage3OutputSchemaName),
+		opCfg.String(config.K_ImplementStage3OutputSchemaDesc),
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
@@ -164,7 +164,7 @@ func Stage3(projectRootDir string,
 			// Process response, parse files that will be created
 			if connector.GetOutputFormat() == llm.OutputJson {
 				// Use json-mode parsing
-				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_Stage3OutputKey))
+				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_ImplementStage3OutputKey))
 			} else {
 				// Use regular parsing to extract file-list
 				filesToProcessRaw, err = utils.ParseTaggedTextRx(
