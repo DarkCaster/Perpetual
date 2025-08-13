@@ -63,7 +63,8 @@ func (p *cppPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^(CMakeFiles\\\\|build\\\\|\\.deps\\\\|\\.libs\\\\|CMakeFiles\\/|build\\/|\\.deps\\/|\\.libs\\/)",
 	}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in C++ language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
+
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result

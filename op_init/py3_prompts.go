@@ -65,7 +65,7 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^unittest(\\\\|\\/).*\\.py$",
 		"(?i)^pytest(\\\\|\\/).*\\.py$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Python 3). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers

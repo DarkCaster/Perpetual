@@ -48,7 +48,7 @@ func (p *bashPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(sh|bash|in)$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in Bash scripting. Brief descriptions of the project source code files are provided, indicating the path to the file and its description."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Bash scripting). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
 	return result

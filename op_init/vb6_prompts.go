@@ -51,7 +51,7 @@ func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 		"(?i)^tests?(\\\\|\\/).*\\.(cls|bas|frm)$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in legacy VB6). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}

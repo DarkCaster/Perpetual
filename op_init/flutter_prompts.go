@@ -106,7 +106,7 @@ func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.dart$",
 		"(?i)^test(\\\\|\\/).*\\.dart$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Dart programming language and Flutter SDK. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (using Flutter SDK/Dart language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result

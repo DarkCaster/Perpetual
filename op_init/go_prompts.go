@@ -51,7 +51,7 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
 		"(?i)^test(\\\\|\\/).*\\.go$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Go language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result

@@ -55,7 +55,7 @@ func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 	}
-	result[config.K_ProjectIndexPrompt] = "Here is a description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (.NET/C#/VB.NET). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	return result
