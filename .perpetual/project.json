@@ -29,8 +29,8 @@
   "project_files_whitelist": [
     "(?i)^.*\\.go$"
   ],
-  "project_index_prompt": "Here is a description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains.",
-  "project_index_response": "Understood. What's next?",
+  "project_index_prompt": "For your careful consideration, here is the structure of the project (in Go language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding.",
+  "project_index_response": "I have carefully studied the information provided and will take it into account when working on the project tasks. Ready for your primary instructions.",
   "project_test_files_blacklist": [
     "(?i)^.*_test\\.go$",
     "(?i)^.*(\\\\|\\/)test(\\\\|\\/).*\\.go$",
