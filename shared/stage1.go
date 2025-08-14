@@ -82,7 +82,7 @@ func Stage1(
 	logger.Debugln("Created project-index request message")
 
 	// Create project-index simulated response
-	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_ProjectIndexResponse))
+	indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectIndexResponse))
 	messages = append(messages, indexResponse)
 	logger.Debugln("Created project-index simulated response message")
 
