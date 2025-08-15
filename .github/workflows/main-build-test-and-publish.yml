@@ -45,6 +45,10 @@ jobs:
         echo "GOTOOLCHAIN=local" >> $GITHUB_ENV &&
         echo "$HOME/go/bin" >> $GITHUB_PATH
 
+    - name: Update go.mod for windows-7
+      if: matrix.target == 'windows-7'
+      run: go mod edit -go=$(go version | awk '{print $3}' | sed 's/go//')
+
     - name: Go Env
       run: echo "PATH=$PATH" && echo "go location:" && which go && echo "go env:" && go env
 
