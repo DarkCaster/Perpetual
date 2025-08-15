@@ -21,7 +21,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
-## v8.0.0 (Unreleased, work in progress)
+## v8.0.0
 
 ### Improvements
 
