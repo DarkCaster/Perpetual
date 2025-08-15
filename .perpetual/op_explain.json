@@ -1,5 +1,5 @@
 {
-  "code_prompt": "Here are the contents of my project's source code files that are relevant to the question you will answer next.",
+  "code_prompt": "Here are the contents of the project's source code files that are likely relevant to the question you'll be working on.",
   "code_response": "Understood. What's next?",
   "output_answer_header": "# Answer",
   "output_filename_tags": [

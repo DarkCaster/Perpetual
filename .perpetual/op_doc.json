@@ -1,5 +1,5 @@
 {
-  "code_prompt": "Here are the contents of my project's source code files that are relevant to the document you will be working on.",
+  "code_prompt": "Here are the contents of the project's source code files that are likely relevant to the document you'll be working on.",
   "code_response": "Understood. What's next?",
   "example_doc_prompt": "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:",
   "example_doc_response": "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it.",

@@ -1,5 +1,5 @@
 {
-  "code_prompt": "Here are the contents of my project's source code files.",
+  "code_prompt": "Here are the contents of the project's source code files that are likely relevant to the tasks you'll be working on.",
   "code_response": "Understood. What's next?",
   "filename_embed_rx": "###FILENAME###",
   "implement_comments_rx": [
