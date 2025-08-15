@@ -179,7 +179,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 
 	// stage 2
-	result[config.K_CodePrompt] = "Here are the contents of my project's source code files."
+	result[config.K_CodePrompt] = "Here are the contents of the project's source code files that are likely relevant to the tasks you'll be working on."
 	result[config.K_CodeResponse] = defaultAIAcknowledge
 	result[config.K_ImplementStage2NoPlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the code I've provided for you and be ready to implement the tasks, one file at a time."
 	result[config.K_ImplementStage2NoPlanningResponse] = "I have carefully studied all the code provided to me, and I am ready to implement the tasks."
@@ -218,7 +218,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
 	result[config.K_DocExampleResponse] = "I have carefully studied the example provided to me and will apply a similar style, format and structure to the target document when I work on it."
-	result[config.K_CodePrompt] = "Here are the contents of my project's source code files that are relevant to the document you will be working on."
+	result[config.K_CodePrompt] = "Here are the contents of the project's source code files that are likely relevant to the document you'll be working on."
 	result[config.K_CodeResponse] = defaultAIAcknowledge
 	// stage 1
 
@@ -254,7 +254,7 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
 	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 	// stage 2
-	result[config.K_CodePrompt] = "Here are the contents of my project's source code files that are relevant to the question you will answer next."
+	result[config.K_CodePrompt] = "Here are the contents of the project's source code files that are likely relevant to the question you'll be working on."
 	result[config.K_CodeResponse] = defaultAIAcknowledge
 	result[config.K_ExplainStage2QuestionPrompt] = "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:"
 	result[config.K_Stage2ContinuePrompt] = "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response."
