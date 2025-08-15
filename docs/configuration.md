@@ -33,6 +33,9 @@ When you run `perpetual init -l <lang>`, example files named `*.env.example` are
 
 Use `*.env.example` as templates. Common settings include:
 
+- **Directory Override**  
+  - `PERPETUAL_DIR`: Override the default `.perpetual` directory location. If not set, Perpetual attempts to automatically find `.perpetual` configuration directory in the current directory/project-root directory.
+
 - **Provider Selection**  
   - `LLM_PROVIDER`: Default provider profile, e.g. `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g. `openai1`) to maintain multiple configurations.
   - `LLM_PROVIDER_OP_<OPERATION>`: Operation-specific provider override (e.g. `LLM_PROVIDER_OP_ANNOTATE`).
@@ -62,6 +65,7 @@ Project configuration files allow you to customize Perpetual's behavior on a per
 
 - **Global Project Settings**  
   - `project.json`: Defines file-selection filters, Markdown code-block mappings, and context saving parameters.
+  - `description.md`: Optional project description file that provides context to the LLM about your project.
 
 - **Operation-Specific Settings**  
   - `op_annotate.json`: Prompts and templates for file annotation.
@@ -76,8 +80,16 @@ Controls which files are included or excluded, how code is mapped to Markdown, a
 
 - `project_files_whitelist`: Array of regex patterns for files to include.
 - `project_files_blacklist`: Array of regex patterns for files to exclude.
-- `project_test_files_blacklist`: Regex patterns to exclude test files.
+- `project_test_files_blacklist`: Array of regex patterns to exclude test files.
 - `files_to_md_code_mappings`: A 2D array of `[pattern, language]` mappings for Markdown code blocks.
+- `project_index_prompt`: Prompt for generating project index.
+- `project_index_response`: Response template for project index.
+- `project_description_prompt`: Prompt for generating project description.
+- `project_description_response`: Response template for project description.
+- `filename_tags`: Tags used when embedding filenames in prompts.
+- `filename_tags_rx`: Regex arrays to recognize tagged filenames in responses.
+- `code_tags_rx`: Regex arrays to identify code blocks in responses.
+- `noupload_comments_rx`: Regex arrays for comments that mark files as "no-upload".
 - `medium_context_saving_file_count`: File count threshold for medium context saving mode.
 - `high_context_saving_file_count`: File count threshold for high context saving mode.
 - `medium_context_saving_select_percent`: Percentage of files to select in medium context saving.
@@ -117,13 +129,6 @@ Example:
 #### Response Schemas (JSON Mode)
 
 - `stage1_output_schema`, `stage3_output_schema`, etc.: Define expected JSON structure when using the JSON output mode.
-
-#### Tags and Regexes
-
-- `filename_tags`: Tags used when embedding filenames in LLM prompts.
-- `filename_tags_rx`: Regex to recognize tagged filenames in LLM responses.
-- `code_tags_rx`: Regex to identify code blocks in responses.
-- `noupload_comments_rx`: Regex for comments that mark files as "no-upload."
 
 **Version Control**: Operation configs in `.perpetual` should be committed to ensure consistency across environments.  
 **Customization**: Feel free to adjust prompts, regexes, and schemas to fit your project's needs.
