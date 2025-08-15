@@ -27,17 +27,17 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Added option to manually set `.perpetual` directory location with `PERPETUAL_DIR` env variable. If set, then location from env variable will be used instead of autodetecting it inside project directory.
 - Improved Generic LLM provider for better support working with Azure AI Foundry models.
-- Removed the shortest annotations for `annotate` operation used with `high` context saving measures, as it was deemed not effective enough to lower LLM context-window use on stage 1, when working with really big projects (more than 1500-2000 files)
-- Introduced new context saving measures for stage 1 of `implement`, `explain` and `doc` operations using local similarity search: limiting context-window use by preliminary filtering of project files reducing number of annotations sent to stage 1. Helps to improve quality or mitigate errors when trying to work with big projects (like 500-1000 files or more) and using LLM with context-window size not big enough (deepseek, or local models).
+- Removed the shortest annotations for `annotate` operation used with `high` context saving measures, as it was deemed not effective enough to lower LLM context-window use on stage 1, when working with really big projects (more than 1500-2000 files).
+- Introduced new context saving measures for stage 1 of `implement`, `explain` and `doc` operations using local similarity search: limiting context-window use by preliminary filtering of project files reducing number of annotations sent to stage 1. Helps to improve quality or mitigate errors when trying to work with big projects (like 500-1000 files or more) and using LLM with context-window size not big enough (DeepSeek, or local models).
 - Introduced multi-pass support for stage 1 of `implement`, `explain` and `doc` operations in order to select more relevant files, useful for big projects, or complex tasks, or when using smaller/local LLMs.
-- Reworked stage 1 and stage 2 logic for `implement`, `explain` and `doc` operations, now both stages using unidfied shared logic.
+- Reworked stage 1 and stage 2 logic for `implement`, `explain` and `doc` operations, now both stages using unified shared logic.
 - Renamed some stage 1 and 2 JSON config key-names for `implement`, `explain` and `doc` operations.
 - Added support for providing optional user-generated project description that will be added to the LLM context for better understanding of project structure. This should improve LLM performance for `implement`, `explain` and `doc` operations for bigger and more complex projects.
-- Move similar config records defining tags and regexps used to decorate and parse code from LLM requests and responses into project config.
+- Moved similar config records defining tags and regexps used to decorate and parse code from LLM requests and responses into project config.
 - Added an additional `-e` flag to the `explain` operation to provide an additional file with instructions on how to select project files relevant to your question. This can be used to provide simpler and clearer instructions for the LLM if the original question is too complex for the LLM to use to select the files correctly.
 - Minor improvements for local similarity search.
-- Build and package binary for Windows 7 32bit, using GoLang patched for Windows 7 target supoport, temporary solution, will be removed in future.
-- Added support for initializing default prompts for Flutter/Dart projects and language
+- Build and package binary for Windows 7 32bit, using GoLang patched for Windows 7 target support, temporary solution, will be removed in future.
+- Added support for initializing default prompts for Flutter/Dart projects and language.
 
 **NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for the operations.
 
