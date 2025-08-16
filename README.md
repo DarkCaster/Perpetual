@@ -54,14 +54,14 @@ In order to use the program, you need to configure it first. See [this doc](docs
 
 Supported operations:
 
-- [`init`: Initialize a new `.perpetual` directory to store the configuration](docs/op_init.md)
+- [`init`: Initialize new `.perpetual` directory to store project configuration, write default configuration](docs/op_init.md)
 - [`annotate`: Generate annotations for project files](docs/op_annotate.md)
-- [`embed`: Generate vector embeddings for project files](docs/op_embed.md)
+- [`embed`: Generate embeddings for project files to enable semantic search](docs/op_embed.md)
 - [`implement`: Implement code according to task or instructions marked with `###IMPLEMENT###` comments](docs/op_implement.md)
 - [`stash`: Rollback or re-apply generated code](docs/op_stash.md)
-- [`report`: Create a report from project source code that can be manually uploaded into the LLM for use as a knowledge base or for manual analysis](docs/op_report.md)
+- [`report`: Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis](docs/op_report.md)
 - [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
-- [`explain`: Answer questions about your project based on thorough source code analysis](docs/op_explain.md)
+- [`explain`: Getting answers to questions and clarifications on the project (based on source code analysis)](docs/op_explain.md)
 
 ### Initialize a New Project
 
@@ -87,7 +87,7 @@ Additional files created when executing program operations. **DO NOT ADD THESE T
 
 You should be cautious when modifying these settings. You can always rewrite them by running the `init` command in the project root directory again.
 
-Next, you need to manually create one or multiple `.env` files from provided `*.env.example` files and place it to apropriate config dir, see [this](docs/op_init.md) for more info.
+Next, you need to manually create one or multiple `.env` files from provided `*.env.example` files and place it to appropriate config dir, see [this](docs/op_init.md) for more info.
 
 ### Creating Project Annotations
 
