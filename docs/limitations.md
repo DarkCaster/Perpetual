@@ -26,7 +26,7 @@ When reading files, `Perpetual` performs the following operations:
 1. Detects the file encoding
 2. Converts the content to UTF-8 without BOM
 3. Validates the UTF-8 encoding
-4. Unsupported encodings will be treated as UTF-8 without BOM
+4. Unsupported encodings will be treated as UTF-8 without BOM and may result in encoding errors
 
 Currently, **all files are written back as UTF-8 without BOM** (Byte Order Mark) to ensure consistency across the project. This may be improved in the future to write files back in their original encoding.
 
@@ -34,7 +34,7 @@ Currently, **all files are written back as UTF-8 without BOM** (Byte Order Mark)
 
 `Perpetual` handles line endings in the following manner:
 
-- **Reading**: Supports files with any line-ending style (CR, LF, or CRLF)
+- **Reading**: Converts CRLF to LF during file loading for internal processing
 - **Writing**:
   - On Windows: Uses CRLF
   - On Linux: Uses LF
@@ -64,8 +64,9 @@ These limitations are in place to enhance security and simplify implementation u
 
 When handling filenames, `Perpetual` attempts to:
 
-- Match the case of existing project files
+- Match the case of existing project files using case-insensitive search
 - Create necessary directories with correct casing when applying changes
+- Detect and prevent case collisions in project file lists
 
 ## Project Root Detection
 
@@ -74,6 +75,7 @@ When handling filenames, `Perpetual` attempts to:
 - Searches for a `.perpetual` directory starting from the current working directory
 - Moves up the directory tree until it finds the `.perpetual` directory or reaches the file system root
 - The project root directory cannot be a symlink
+- Can be overridden using the `PERPETUAL_DIR` environment variable
 
 This approach ensures that `Perpetual` operates within the intended project scope.
 
@@ -120,9 +122,9 @@ For larger projects, Perpetual offers several features to improve performance:
 
 #### 1. Context Saving Modes (`-c` flag)
 
-Most operations support the `-c` flag to control annotation verbosity:
+Most operations support the `-c` flag to control context usage and annotation verbosity:
 
-- `auto` (default): Applies context saving automatically based on file count or other project attributes. Recommended.
+- `auto` (default): Applies context saving automatically based on file count thresholds defined in project configuration. Recommended.
 - `off`: Disable context saving regardless of project size
 - `medium`: Use medium context saving measures, should not lead to degraded results if used with larger projects, not recommended to use with smaller projects
 - `high`: Use maximum possible context saving measures, may lead to lower quality results, recommended to use only for large projects
@@ -137,7 +139,8 @@ Each operation or sub-operation may have its own context saving measures. For no
 
 Operations like `implement`, `doc`, and `explain` may use additional local search using embeddings in order to add files to review that LLM may have missed, or to locally reduce annotations count sent to LLM if context saving measures enabled. Local similarity search:
 
-- Uses embeddings to add more files relevant to the current task
+- Uses embeddings to find files semantically related to the current task
+- Supports both aggressive and conservative selection strategies
 - Helps reduce the number of files the LLM needs to process
 - Is particularly useful for projects with many files where only a subset is relevant
 
@@ -151,8 +154,8 @@ Perpetual employs a sophisticated multi-pass annotation system to optimize the q
 
 **Two-Stage Processing:**
 
-- **First Stage**: Generates multiple annotation variants
-- **Second Stage**: Applies intelligent selection or combination of these variants to create the final annotation
+- **First Stage**: Generates multiple annotation variants using the primary LLM connector
+- **Second Stage**: Uses a secondary LLM connector (annotate_post operation) to apply intelligent selection or combination of these variants to create the final annotation
 
 **Variant Selection Strategies:**
 Perpetual supports several strategies for processing annotation variants, controlled by the LLM configuration:
@@ -165,11 +168,11 @@ Perpetual supports several strategies for processing annotation variants, contro
 
 - **Best Strategy**: Leverages the LLM's judgment to select the highest-quality annotation among the variants based on factors like informativeness, accuracy, and conciseness.
 
-Multi-pass annotations must be enabled per-LLM basis using your `.env` configuration file or ENV variables.
+Multi-pass annotations must be enabled per-LLM basis using your `.env` configuration file or ENV variables by setting variant count greater than 1 and choosing an appropriate variant selection strategy.
 
 #### 4. Multi-pass file-selection
 
-Operations like `implement`, `doc`, and `explain` support multi-pass file-selection to select relevant files in multiple passes to improve quality of final result. 
+Operations like `implement`, `doc`, and `explain` support multi-pass file-selection to select relevant files in multiple passes to improve quality of final result.
 
 - Use multi-pass selection (`-sp` flag) to improve file selection quality. This will result in more API calls and tokens, but may improve quality for the complex tasks.
 
