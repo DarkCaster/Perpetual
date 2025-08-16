@@ -137,12 +137,6 @@ Customization of LLM prompts for the `annotate` operation is handled through the
 
 - **`annotate_task_response`**: Acknowledgment message for the task annotation prompt.
 
-- **`code_tags_rx`**: Regular expressions used to detect and handle code blocks within the annotations.
-
-- **`filename_tags`**: Tags used to identify filenames within the annotations.
-
-When using OpenAI or Anthropic LLMs, you typically don't need to modify the `code_tags_rx` and `filename_tags` parameters, but adjustments may be necessary for smaller models run with Ollama.
-
 ### Example `op_annotate.json` Configuration (partial, simplified)
 
 ```json
@@ -157,10 +151,8 @@ When using OpenAI or Anthropic LLMs, you typically don't need to modify the `cod
   "stage2_prompt_variant": "Create another summary variant",
   "stage2_prompt_combine": "Evaluate the summaries you have created and rework them into a final summary...",
   "stage2_prompt_best": "Evaluate the summaries you have created and choose summary variant that better matches...",
-  "annotate_task_prompt": "Extract and summarize implementation tasks from the following source file...",
-  "annotate_task_response": "Waiting for file contents to analyze for implementation tasks",
-  "filename_tags": ["<filename>", "</filename>"],
-  "code_tags_rx": ["(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"]
+  "annotate_task_prompt": "Create detailed summary of the tasks marked with \"###IMPLEMENT###\" comments...",
+  "annotate_task_response": "Waiting for file contents"
 }
 ```
 
@@ -170,25 +162,37 @@ When using OpenAI or Anthropic LLMs, you typically don't need to modify the `cod
    - The `annotate` operation begins by parsing command-line flags to determine its behavior.
    - It locates the project's root directory and the `.perpetual` configuration directory.
    - Environment variables are loaded from `.env` files to configure the core LLM parameters.
-   - Prompts are loaded from the `.perpetual/op_annotate.json` file.
+   - Configuration and prompts are loaded from the `.perpetual/op_annotate.json` and `.perpetual/project.json` files.
 
 2. **File Discovery:**
-   - The operation scans the project directory to identify source code files to annotate, applying whitelist and blacklist regex patterns.
-   - It calculates checksums for these files to track changes since the last annotation.
+   - The operation scans the project directory to identify source code files to annotate, applying whitelist and blacklist regex patterns from the project configuration.
+   - It calculates SHA-256 checksums for these files to track changes since the last annotation.
+   - Files are sorted by size (smallest first) before processing to optimize LLM context usage.
 
 3. **Annotation Decision:**
    - Based on the provided flags (`-f`, `-d`, `-r`), the operation determines which files require annotation.
+   - Files that haven't changed since the last annotation are skipped unless forced.
    - In dry-run mode (`-d`), it lists the files that would be annotated without making any changes.
 
 4. **Annotation Generation:**
    - For each selected file, the operation:
-     - Selects an appropriate prompt from `stage1_prompts` based on the file type and context saving mode
-     - Sends the prompt and file content to the LLM
-     - Optionally generates multiple variants if configured
-     - Processes variants according to the selected strategy (combine, select best, etc.)
+     - Selects an appropriate prompt from `stage1_prompts` based on file pattern matching and context saving mode
+     - Sends the prompt and file content to the LLM with proper file tagging
+     - Handles retries on failure according to the configured retry limit
+     - Generates multiple variants if configured (`variant_count` > 1)
+     - Processes variants according to the selected strategy:
+       - **short**: Selects the shortest variant
+       - **long**: Selects the longest variant
+       - **combine**: Uses post-processing LLM to combine variants into final annotation
+       - **best**: Uses post-processing LLM to select the best variant
 
-5. **Annotation Storage:**
-   - Generated annotations are saved to the `.perpetual/.annotations.json` file in the project directory.
-   - Checksums are updated to reflect the latest state of each annotated file.
+5. **Error Handling:**
+   - If a file fails to be annotated after all retries, its original checksum is preserved
+   - Processing continues with remaining files
+   - An error flag is set to indicate partial failure
 
-If any file fails to be annotated after the specified number of retries, the operation will not stop immediately but will exit with an error after all other files are processed, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
+6. **Annotation Storage:**
+   - Generated annotations are merged with existing annotations and saved to `.perpetual/.annotations.json`
+   - File checksums are updated to reflect the latest state of each successfully annotated file
+
+If any file fails to be annotated after the specified number of retries, the operation will continue processing other files but will exit with an error at the end, indicating that not all files were successfully annotated. Running the `annotate` operation again will attempt to process the failed files.
