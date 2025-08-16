@@ -21,6 +21,8 @@ Available flags:
   - `draft`  Create an initial draft template.  
   - `write`  Write or complete an existing document.  
   - `refine` Refine and update an existing document.
+- `-d <file>`  
+  Optional path to project description file for adding into LLM context (valid values: file-path|disabled). If omitted, uses `.perpetual/description.md` if available.
 - `-c <mode>`  
   Context saving mode: `auto` (default), `off`, `medium`, or `high`. Controls how aggressively LLM context usage is reduced on large projects.
 - `-s <limit>`  
@@ -82,6 +84,18 @@ Available flags:
    Perpetual doc -r docs/overview.md -a refine -x ../exclude_regexes.json
    ```
 
+7. **Use custom project description file:**
+
+   ```sh
+   Perpetual doc -r docs/api_reference.md -d custom_description.md -a write
+   ```
+
+8. **Disable project description:**
+
+   ```sh
+   Perpetual doc -r docs/quick_start.md -d disabled -a write
+   ```
+
 ## How It Works
 
 When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage process:
@@ -111,7 +125,7 @@ The `doc` operation can be configured using environment variables defined in the
    For comprehensive documentation, consider using higher token limits (e.g., 4096 or more, if supported by your model) for stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If generating a smaller document, it is generally better to set a larger token limit and limit document size with embedded instructions (starting with `Notes on implementation:`) inside the document.
 
 4. **JSON Structured Output Mode:**
-   To enable JSON-structured output mode for the `doc` operation, set the appropriate environment variables in your `.env` file. This mode can be enabled for Stage 1 for all providers except Generic, providing faster responses and lower costs. Note that not all models may support or work reliably with JSON-structured output.
+   To enable JSON-structured output mode for the `doc` operation, set the appropriate environment variables in your `.env` file. This mode can be enabled for Stage 1 for all providers, providing faster responses and lower costs. Note that not all models may support or work reliably with JSON-structured output.
 
    **Enable JSON-structured output mode:**
 
@@ -119,6 +133,7 @@ The `doc` operation can be configured using environment variables defined in the
    ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
    OPENAI_FORMAT_OP_DOC_STAGE1="json"
    OLLAMA_FORMAT_OP_DOC_STAGE1="json"
+   GENERIC_FORMAT_OP_DOC_STAGE1="json"
    ```
 
    Replace the provider name as necessary.
@@ -179,9 +194,6 @@ Customization of LLM prompts for the `doc` operation is handled through the `.pe
 
 Other important parameters (not recommended to change unless you are experiencing problems):
 
-- **`filename_tags_rx`**: Regular expressions used to detect and parse the list of files for the Stage 1 LLM response when not using JSON-structured output mode.
-- **`filename_tags`**: Tagging conventions used to identify filenames within the annotations. This allows the LLM to recognize and process filenames accurately, facilitating better integration with the project's file structure.
-- **`noupload_comments_rx`**: Regular expressions used to detect `no-upload` comments that mark source files as forbidden to upload for processing due to privacy or other concerns.
 - **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters used if JSON-structured output mode is enabled for Stage 1 of the operation.
 
 ## Workflow
@@ -192,11 +204,12 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
    - The operation begins by parsing command-line flags to determine its behavior.
    - It locates the project's root directory and the `.perpetual` configuration directory.
    - Environment variables are loaded from `.env` files to configure the core LLM parameters.
-   - Prompts and configuration are loaded from the `.perpetual/op_doc.json` file.
+   - Prompts and configuration are loaded from the `.perpetual/op_doc.json` and `.perpetual/project.json` files.
 
 2. **File Discovery:**
    - The operation scans the project directory to locate source code files, applying whitelist and blacklist regular expressions.
    - It automatically reannotates changed files unless the `-n` flag is used to skip this step.
+   - Embeddings are generated or updated for similarity search capabilities.
 
 3. **Documentation Generation or Refinement:**
    - **Stage 1:** Analyzes the project-index, target document content, and determines which files are relevant for the documentation task.
@@ -215,5 +228,7 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 5. **Version Control:** Keep your documentation files under version control along with your source code to precisely track changes made by the LLM.
 
 6. **Use Filtering Options:** Utilize the `-u` flag to include unit test files in the documentation process when necessary. For more granular control, create a custom regex filter file and use it with the `-x` flag to exclude specific files or patterns from processing.
+
+7. **Project Description:** Fill-up project description at `.perpetual/description.md` from provided template (or use the `-d` flag to read it from different file). This will populate LLM context with extra description about your project. This helps the LLM to better understand the project's purpose and architecture, leading to more relevant and accurate documentation.
 
 By leveraging the `doc` operation effectively, you can significantly streamline your documentation process, ensuring that your project's documentation remains comprehensive, up to date, and aligned with your codebase.
