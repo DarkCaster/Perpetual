@@ -14,6 +14,8 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 - `-i <file>`: Specify the input file containing the question to be answered. If omitted, the operation reads the question from standard input (stdin).  
 - `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.  
+- `-d <file>`: Optional path to project description file for adding into LLM context. Valid values are `file-path` to specify a custom description file, or `disabled` to explicitly disable loading the project description. If omitted, the operation attempts to load the default `description.md` file from the `.perpetual` directory.  
+- `-e <file>`: Read instructions from a text or markdown file that will be used in stage 1 to select relevant files. Use this flag if the original question is too complex or not clear enough for the LLM to select relevant files, allowing you to provide separate instructions for the file selection process.  
 - `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are `auto`, `off`, `medium`, or `high` (default: `auto`).  
 - `-a`: Enable the addition of full project annotations in the request along with the files requested by the LLM for analysis. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. It is disabled by default to save tokens and reduce the context window size requirement.  
 - `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). This mode may be useful when performing simple semantic file-search queries. Note that the file-search task is always performed during stage 1 of a full explanation.  
@@ -70,6 +72,18 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    Perpetual explain -i questions/query.txt -r explanations/detailed_answer.md -q
    ```
 
+7. **Use separate instructions file for relevant files selection:**
+
+   ```sh
+   Perpetual explain -i questions/query.txt -e instructions/file_selection.txt -r explanations/targeted_answer.md
+   ```
+
+8. **Disable project description loading:**
+
+   ```sh
+   Perpetual explain -i questions/query.txt -r explanations/answer.md -d disabled
+   ```
+
 ## LLM Configuration
 
 The effectiveness of the `explain` operation relies on the configuration of the underlying LLM. Environment variables defined in the `.env` file dictate the behavior and performance of the LLM during the explanation process. Proper configuration ensures accurate, relevant, and comprehensive explanations tailored to your project's specific needs.
@@ -88,7 +102,7 @@ The effectiveness of the `explain` operation relies on the configuration of the 
 3. **Token Limits:**
    - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of tokens for each stage when using Anthropic (typically 1024 for stage 1 and 32768 for stage 2).
    - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using OpenAI (typically 1024 for stage 1 and 8192 for stage 2).
-   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama (typically 512 for stage 1 and 8192 for stage 2).
+   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama (typically 1024 for stage 1 and 8192 for stage 2).
    - `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with the Generic provider.
    - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`, `GENERIC_MAX_TOKENS_SEGMENTS`: Limit the number of continuation segments if token limits are reached, preventing excessive API calls.
 
@@ -157,27 +171,17 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 
 - **`system_prompt_ack`**: Provides an acknowledgment for the system prompt, used when the model does not support the system prompt and it needs to be converted to a regular user prompt.
 
-- **`project_index_prompt`**: Instructs the LLM to analyze the project's annotations/index (used to determine relevant files for explanation).
+- **`code_prompt`**: Prompt used in stage 2 when presenting the source code files selected for review to the LLM. This prompt instructs the LLM on how to process and analyze the provided source code files.
 
-- **`project_index_response`**: Simulated response from the LLM regarding the project annotations analysis.
+- **`code_response`**: Simulated acknowledgment response from the LLM after receiving the source code files, used to maintain conversation flow in the multi-stage dialogue.
 
 - **`stage1_question_prompt`**: Frames the specific question to be addressed in stage 1 of the explanation process, prompting the LLM to generate a list of files from annotations related to the question.
 
 - **`stage1_question_json_mode_prompt`**: Alternative prompt for JSON-structured output mode in stage 1.
 
-- **`stage2_files_prompt`**: Guides the LLM in processing specific files selected for detailed explanation.
-
-- **`stage2_files_response`**: Simulated response from the LLM regarding file processing.
-
-- **`stage2_question_prompt`**: Formulates the main question for stage 2, building upon stage 1 findings.
+- **`stage2_question_prompt`**: Formulates the main question for stage 2, building upon stage 1 findings and requesting the LLM to generate a comprehensive explanation based on the selected files.
 
 - **`stage2_continue_prompt`**: Provides instructions for the LLM to continue generating responses if token limits are reached.
-
-- **`filename_tags_rx`**: Regular expressions used to identify and parse filenames in the LLM response.
-
-- **`filename_tags`**: Tagging conventions that help the LLM recognize filenames within annotations.
-
-- **`noupload_comments_rx`**: Regular expressions to detect `no-upload` comments, marking files that should not be processed for privacy or other reasons.
 
 - **`output_question_header`**, **`output_files_header`**, **`output_answer_header`**: Headers used when the `-q` flag is enabled to structure the output with question, relevant files list, and answer sections.
 
@@ -198,6 +202,7 @@ The `explain` operation is divided into two main stages:
 
 2. **Stage 2: Detailed Explanation:**
    - **Content Compilation:** Aggregates the contents of the identified files, preparing them for detailed analysis by the LLM. Files marked with 'no-upload' comments are filtered out unless the `-f` flag is used.
+   - **Source Code Review:** If files were selected in stage 1, presents them to the LLM using the `code_prompt` to establish context about the relevant source code.
    - **Question Processing:** Sends the main question along with the relevant file contents to the LLM to generate a comprehensive explanation.
    - **Response Handling:** Receives and compiles the LLM's response, handling scenarios where token limits are reached by utilizing continuation segments as configured.
    - **Output Formatting:** If the `-q` flag is enabled, formats the output to include the original question, list of relevant files (with indicators for filtered files), and the generated answer.
