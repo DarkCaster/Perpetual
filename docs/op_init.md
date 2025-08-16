@@ -34,10 +34,11 @@ Perpetual currently supports the following programming languages and technologie
 2. **.NET Framework (`dotnetfw`)** – Includes C#, VB.NET, WPF  
 3. **Bash (`bash`)** – Intended mostly for Linux use  
 4. **Python 3 (`python3`)**  
-5. **Visual Basic 6 (`vb6`)** – May be removed in future releases  
+5. **Visual Basic 6 (`vb6`)** – Legacy VB6, may be removed in future releases  
 6. **C (`c`)**  
 7. **C++ (`cpp`)**  
-8. **Arduino (`arduino`)**
+8. **Arduino (`arduino`)** – Arduino Sketches with C++ support  
+9. **Flutter (`flutter`)** – Flutter/Dart apps with a focus on Flutter
 
 When using the `-l` flag, provide the language identifier as shown above. You can add support for your programming language or project manually by editing file-selection regexps and LLM prompts in corresponding config files (see below).
 
@@ -67,6 +68,7 @@ After running the `init` operation, the following structure is created:
     ├── openai.env.example
     ├── anthropic.env.example
     ├── generic.env.example
+    ├── description.md.template
     ├── op_annotate.json
     ├── op_implement.json
     ├── op_doc.json
@@ -101,7 +103,7 @@ The following are managed automatically by Perpetual and should not be edited ma
 1. **`.annotations.json`**: Stores source-code annotations for your project. Updated via the `annotate` operation.  
 2. **`.embeddings.msgpack`**: Stores source-code vector embeddings for your project. Updated via the `embed` operation.  
 3. **`.stash/`**: Contains code backups created during operations. Managed by the `stash` operation.  
-4. **`.message_log.txt`**: Logs interactions with the LLM provider for debugging purposes.  
+4. **`.message_log.txt*`**: Logs interactions with the LLM provider for debugging purposes (includes rotated log files).  
 
 ## Cleaning Obsolete Files and Directories
 
