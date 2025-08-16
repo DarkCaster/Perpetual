@@ -1,6 +1,6 @@
 # Report Operation
 
-The `report` operation generates a comprehensive report of the project's source code. This report can be manually uploaded into a third-party LLM for further analysis or added to its internal knowledge base. The operation provides two types of reports: a detailed code report and a brief summary report.
+The `report` operation generates a comprehensive report of the project's source code that can be manually copied and pasted into an LLM user interface for further analysis or added to its internal knowledge base. The operation provides two types of reports: a detailed code report and a brief summary report.
 
 The `report` operation relies on both the `op_report` and `project` configurations and heavily depends on the `annotate` operation internally for optimal results. In the case of the brief report type, the `annotate` operation is executed first to ensure that all file annotations are up-to-date.
 
@@ -78,5 +78,5 @@ The generated report can be used for various purposes, such as:
 
 1. Providing a comprehensive overview of the project structure and contents.
 2. Facilitating code reviews by presenting the entire codebase in a single document.
-3. Enabling easy analysis of the project using an LLM by uploading the report into the third-party LLM user interface for further manual analysis.
+3. Enabling easy analysis of the project using an LLM by uploading the report into an LLM user interface for further manual analysis.
 4. Creating documentation or summaries of the project's current state.
