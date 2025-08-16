@@ -53,7 +53,7 @@ To effectively use the `implement` operation, follow this typical workflow:
      ```
 
    - The operation will process all files with `###IMPLEMENT###` comments by default.  
-   - **Task Mode**: Enable task mode with `-t`. Instructions can be provided through standard input or by specifying a file with `-i`. This bypasses the usual search for implementation comments and automatically enables planning mode.
+   - **Task Mode**: Enable task mode with `-t`. Instructions can be provided through standard input or by specifying a file with `-i` (which automatically enables task mode). This bypasses the usual search for implementation comments and automatically enables planning mode.
 
 4. **Reviewing and Iterating**  
    - Review the generated code for accuracy and consistency.  
@@ -73,9 +73,9 @@ To effectively use the `implement` operation, follow this typical workflow:
 ### Special Comments
 
 - `###IMPLEMENT###`: Marks sections for code implementation. You can provide detailed instructions after this comment.  
-- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive or unneeded information. Files with this comment will not be sent to the LLM for processing during the `implement` operation. **This will still expose your file to the LLM** on the `annotate` (always) or `doc` operation (if using the `-f` flag).
+- `###NOUPLOAD###`: Place this comment at the top of files containing sensitive or unneeded information. Files with this comment will not be sent to the LLM for processing during the `implement` operation unless the `-f` flag is used. **This will still expose your file to the LLM** during the `annotate` (always) or `doc` operation (if using the `-f` flag).
 
-  It is important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information. To ensure a file is never processed by the LLM, use `project.json` (see below).
+  It is important to note that while the `###NOUPLOAD###` comment prevents the full file content from being sent to the LLM during the `implement` operation, it does not provide complete protection against data exposure. The file will still be processed during the `annotate` operation, which may use a local LLM for generating annotations. This annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information. To ensure a file is never processed by the LLM, use `project.json` configuration (see below).
 
 ## Examining Logs
 
@@ -93,14 +93,15 @@ Perpetual implement [flags]
 
 - `-h`: Display help information about the `implement` operation.  
 - `-c <mode>`: Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high).  
+- `-d <file>`: Optional path to project description file for adding into LLM context (valid values: file-path|disabled).  
 - `-f`: Disable 'no-upload' file-filter and upload such files for review and processing if requested.  
-- `-i <file>`: When using task mode (-t flag), read task instructions from file, plain text or markdown format.  
+- `-i <file>`: Read task instructions from file, plain text or markdown format. This flag automatically enables task mode (equivalent to using both `-i` and `-t` flags).  
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.  
-- `-p`: Enable extended planning stage, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.  
+- `-p`: Enable planning, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.  
 - `-pr`: Enable planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.  
 - `-s <n>`: Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files). This flag invokes an embedding operation and performs a local similarity search for files related to the implementation context.  
 - `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.  
-- `-t`: Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the `-p` flag.  
+- `-t`: Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag automatically enables planning mode (equivalent to using both `-t` and `-p` flags).  
 - `-u`: Do not exclude unit-tests source files from processing.  
 - `-x <file>`: Path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).  
 - `-z`: When using `-p` or `-pr` flags, do not enforce initial sources to file-lists produced by planning.  
@@ -113,15 +114,15 @@ The `implement` operation is divided into four main stages.
 
 ### Stage 1: Context Gathering
 
-1. **Run `annotate` and `embed`** to update project source code annotations and vector embeddings.  
+1. **Run `annotate` and `embed`** to update project source code annotations and vector embeddings (unless `-n` flag is used or all project files are selected for processing).  
 2. **Generate a project index** containing filenames and their annotations.  
-3. **Create a request for files** with `###IMPLEMENT###` comments. Query the LLM to identify which project source code files are relevant, also perform a local vector search to determine the relevant files that LLM may miss.  
+3. **Create a request for files** with `###IMPLEMENT###` comments or based on task instructions. Query the LLM to identify which project source code files are relevant, also perform a local vector search to determine the relevant files that LLM may miss.  
 4. **Return the list of files** to review.
 
 ### Stage 2: Generating Work Plan
 
 1. **Gathering Source Code**: Collect source code from the files identified for review.  
-2. **Generating Reasonings**: If enabled via `-pr`, the LLM produces a detailed work plan outlining the steps required.
+2. **Generating Reasonings**: If planning with reasoning is enabled via `-pr`, the LLM produces a detailed work plan outlining the steps required.
 
 ### Stage 3: Planning Changes
 
@@ -139,7 +140,7 @@ The `implement` operation is divided into four main stages.
 
 ## Working with Large Projects
 
-When working with large projects, Perpetual employs several context saving measures to manage LLM context limits. This is mainly needed to make annotations/tasks/source-code analysis API calls to fit LLM-model context window size limits on stage 1 when working with large projects.
+When working with large projects, Perpetual employs several context saving measures to manage LLM context limits. This is mainly needed to make annotations/tasks/source-code analysis API calls fit LLM model context window size limits on stage 1 when working with large projects.
 
 ### Context Saving Modes
 
@@ -154,16 +155,16 @@ The `-c` flag allows you to control context saving behavior:
 
 Context saving is automatically triggered based on project file count:
 
-- **Medium Context Saving**: Activated when project exceeds 500 files (configurable via `project_medium_context_saving_file_count` in `project.json`)
-- **High Context Saving**: Activated when project exceeds 1000 files (configurable via `project_high_context_saving_file_count` in `project.json`)
+- **Medium Context Saving**: Activated when project exceeds 400 files (configurable via `medium_context_saving_file_count` in `project.json`)
+- **High Context Saving**: Activated when project exceeds 1200 files (configurable via `high_context_saving_file_count` in `project.json`)
 
 ### Context Saving Measures
 
 1. **Shorter Annotations**: When context saving is enabled, the `annotate` operation generates shorter, more concise file summaries to reduce context usage. **Important**: If you change context saving settings, you may need to manually regenerate annotations using `Perpetual annotate -f` to ensure consistency.
 
 2. **Project File Pre-selection**: Uses local similarity search with embeddings to pre-select the most relevant files for processing:
-   - **Medium Context Saving**: Selects 60% of project files, with 25% randomized (configurable via `project_medium_context_saving_select_percent` and `project_medium_context_saving_random_percent`)
-   - **High Context Saving**: Selects 50% of project files, with 20% randomized (configurable via `project_high_context_saving_select_percent` and `project_high_context_saving_random_percent`)
+   - **Medium Context Saving**: Selects 60% of project files, with 25% randomized (configurable via `medium_context_saving_select_percent` and `medium_context_saving_random_percent`)
+   - **High Context Saving**: Selects 30% of project files, with 20% randomized (configurable via `high_context_saving_select_percent` and `high_context_saving_random_percent`)
 
 3. **Multi-pass File Selection**: The `-sp` flag enables multiple passes of file selection at Stage 1, helping compensate for potential LLM errors in identifying relevant files. Works with or without context saving measures enabled, however it will cost you more API calls and may lead to higher token usage.
 
@@ -185,11 +186,11 @@ The `implement` operation can be fine-tuned using environment variables in the `
 
 2. **Model Selection**  
    - `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4`: Anthropic models for each stage.  
-   - Similar variables exist for OpenAI and Ollama providers (e.g., `OPENAI_MODEL_OP_IMPLEMENT_STAGE1`, `OLLAMA_MODEL_OP_IMPLEMENT_STAGE1`, etc.)
+   - Similar variables exist for OpenAI, Ollama, and Generic providers (e.g., `OPENAI_MODEL_OP_IMPLEMENT_STAGE1`, `OLLAMA_MODEL_OP_IMPLEMENT_STAGE1`, `GENERIC_MODEL_OP_IMPLEMENT_STAGE1`, etc.)
 
 3. **Token Limits**  
    - `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4`: Set maximum tokens for each stage.  
-   - Similar variables exist for OpenAI and Ollama providers.
+   - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
 4. **JSON Structured Output Mode**  
    JSON structured output mode is supported for Stages 1 and 3 for some LLM providers. This mode can be enabled to provide faster responses and slightly lower costs, may produce better results sometimes when used with Ollama. To enable it for different providers, add to your `.env` file:
@@ -205,11 +206,11 @@ The `implement` operation can be fine-tuned using environment variables in the `
 
 5. **Retry Settings**  
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4`: Specify retry attempts for each stage.  
-   - Similar variables exist for OpenAI and Ollama providers.
+   - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
 6. **Temperature**  
    - `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4`: Set temperature for each stage.  
-   - Similar variables exist for OpenAI and Ollama providers.
+   - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
 7. **Other LLM Parameters**  
    - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: Can be set for each stage by appending `_OP_IMPLEMENT_STAGE<NUMBER>`.
@@ -249,8 +250,6 @@ The prompt configuration is organized by stages, with each stage having specific
 
 Stage 1 is responsible for analyzing the project context and identifying relevant files for code implementation. It creates a project index using file annotations and determines which additional files should be reviewed to provide proper context for the implementation task.
 
-- **`project_index_prompt`**: Initial prompt that presents the project file index with annotations to give the LLM an overview of the project structure and content.
-- **`project_index_response`**: Simulated LLM response acknowledging receipt of the project index.
 - **`stage1_analysis_prompt`**: Main prompt for regular mode that asks the LLM to identify which project files are relevant for implementing the specified tasks.
 - **`stage1_analysis_json_mode_prompt`**: Alternative version of the analysis prompt designed for JSON structured output mode, providing the same functionality with formatted output.
 - **`stage1_task_analysis_prompt`**: Analysis prompt specifically for task mode when implementation instructions are provided directly rather than through `###IMPLEMENT###` comments.
@@ -260,14 +259,14 @@ Stage 1 is responsible for analyzing the project context and identifying relevan
 
 Stage 2 handles the gathering of source code context and, optionally, the generation of implementation reasoning or work plans. This stage prepares the foundation for subsequent stages by organizing relevant information and creating detailed plans when needed.
 
-- **`stage2_code_prompt`**: Prompt for reviewing and analyzing the source code files identified in Stage 1, providing context for implementation decisions.
-- **`stage2_code_response`**: Simulated response acknowledging the code review completion.
+- **`code_prompt`**: Prompt for reviewing and analyzing the source code files identified in Stage 1, providing context for implementation decisions.
+- **`code_response`**: Simulated response acknowledging the code review completion.
 - **`stage2_noplanning_prompt`**: Prompt used when planning mode is disabled (`-p` and `-pr` flags not used), requesting direct implementation without detailed planning.
 - **`stage2_noplanning_response`**: Simulated response for the no-planning mode.
 - **`stage2_reasonings_prompt`**: Prompt for generating detailed reasoning and work plans when planning with reasoning mode is enabled (`-pr` flag).
-- **`stage2_reasonings_prompt_final`**: Final prompt used after reasoning generation to prepare for subsequent stages. This is a simplified version of previous prompt that actually used in LLM message history on next stages instead of full prompt to draw LLM attention away from unneeded instructions.
+- **`stage2_reasonings_prompt_final`**: Final prompt used after reasoning generation to prepare for subsequent stages. This is a simplified version of the previous prompt that is actually used in LLM message history on next stages instead of the full prompt to draw LLM attention away from unneeded instructions.
 - **`stage2_task_reasonings_prompt`**: Reasoning prompt specifically for task mode implementations.
-- **`stage2_task_reasonings_prompt_final`**: Final reasoning prompt for task mode. This is a simplified version of previous prompt that actually used in LLM message history on next stages instead of full prompt to draw LLM attention away from unneeded instructions.
+- **`stage2_task_reasonings_prompt_final`**: Final reasoning prompt for task mode. This is a simplified version of the previous prompt that is actually used in LLM message history on next stages instead of the full prompt to draw LLM attention away from unneeded instructions.
 
 ### Stage 3 Prompts
 
@@ -290,18 +289,14 @@ Stage 4 performs the actual code implementation, processing each target file ind
 - **`stage4_continue_prompt`**: Prompt used when the LLM response reaches token limits and needs to continue generating the remaining code.
 - **`stage4_process_prompt`**: Main prompt for implementing code in a specific file, with placeholders for file-specific information.
 
-### Other Options
+### System-level Configuration Options
 
 System-level configuration options that apply across all stages:
 
 - **`system_prompt`**: The primary system prompt that establishes the LLM's role and general behavior for the implement operation.
 - **`system_prompt_ack`**: Acknowledgment response that the LLM should provide to confirm understanding of the system prompt.
-- **`code_tags_rx`**: Regular expressions to identify code blocks in responses.  
-- **`filename_embed_rx`**: Regular expression to embed the filename into a file implementation request.  
-- **`filename_tags`**: Tags used to denote filenames in messages.  
-- **`filename_tags_rx`**: Regular expressions to parse filename tags.  
+- **`filename_embed_rx`**: Regular expression pattern used to embed the filename into file implementation requests.  
 - **`implement_comments_rx`**: Regular expressions to detect `###IMPLEMENT###` comments.  
-- **`noupload_comments_rx`**: Regular expressions to detect `###NOUPLOAD###` comments.  
 - **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_name`**, **`stage1_output_schema_desc`**: Parameters for JSON-structured output in Stage 1.  
 - **`stage3_output_key`**, **`stage3_output_schema`**, **`stage3_output_schema_name`**, **`stage3_output_schema_desc`**: Parameters for JSON-structured output in Stage 3.
 
@@ -321,21 +316,33 @@ The following configuration keys control which files are included or excluded fr
 
 - **`files_to_md_code_mappings`**: A 2D array that maps file extensions to markdown code block language identifiers. This helps the LLM properly format code blocks when presenting source code. For example, `[".go", "go"]` maps Go files to the "go" language identifier in markdown.
 
+- **`noupload_comments_rx`**: Regular expressions to detect `###NOUPLOAD###` comments in files.
+
 ### Context Saving Configuration
 
 Context saving thresholds and percentages can be customized in your `project.json` configuration file:
 
-- **`project_medium_context_saving_file_count`**: The threshold number of files that triggers medium context saving mode automatically when using the `auto` context saving setting.
+- **`medium_context_saving_file_count`**: The threshold number of files that triggers medium context saving mode automatically when using the `auto` context saving setting.
 
-- **`project_high_context_saving_file_count`**: The threshold number of files that triggers high context saving mode automatically when using the `auto` context saving setting.
+- **`high_context_saving_file_count`**: The threshold number of files that triggers high context saving mode automatically when using the `auto` context saving setting.
 
-- **`project_medium_context_saving_select_percent`**: Percentage of project files to select during medium context saving mode (default: 60%).
+- **`medium_context_saving_select_percent`**: Percentage of project files to select during medium context saving mode (default: 60%).
 
-- **`project_medium_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during medium context saving mode (default: 25%).
+- **`medium_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during medium context saving mode (default: 25%).
 
-- **`project_high_context_saving_select_percent`**: Percentage of project files to select during high context saving mode (default: 50%).
+- **`high_context_saving_select_percent`**: Percentage of project files to select during high context saving mode (default: 30%).
 
-- **`project_high_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during high context saving mode (default: 20%).
+- **`high_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during high context saving mode (default: 20%).
+
+### Other Configuration
+
+- **`project_index_prompt`**: Initial prompt that presents the project file index with annotations to give the LLM an overview of the project structure and content.
+- **`project_index_response`**: Simulated LLM response acknowledging receipt of the project index.
+- **`project_description_prompt`**: Prompt for providing project description context to the LLM.
+- **`project_description_response`**: Simulated response acknowledging project description.
+- **`filename_tags`**: Tags used to denote filenames in messages.  
+- **`filename_tags_rx`**: Regular expressions to parse filename tags.  
+- **`code_tags_rx`**: Regular expressions to identify code blocks in responses.
 
 ## Best Practices
 
