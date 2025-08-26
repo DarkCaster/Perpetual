@@ -41,6 +41,10 @@ const defaultAIAnnotatePrompt_Flutter_Kotlin = "Create a summary for the Flutter
 
 const defaultAIAnnotatePrompt_Flutter_Kotlin_Short = "Create a short summary for the Flutter/Android Kotlin source file in my next message. The summary should be up to 2 sentences long and include flutter platform-channel name (only if defined).\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly."
 
+const defaultAIAnnotatePrompt_Flutter_AndroidManifestXML = "Create a summary for the Flutter/Android app manifest file AndroidManifest.xml. The summary should be concise but informative, and should not include application name. The whole summary should be up to 3 sentences long."
+
+const defaultAIAnnotatePrompt_Flutter_AndroidManifestXML_Short = "Create a short summary for the Flutter/Android app manifest file AndroidManifest.xml. The summary should be concise but informative, and should not include application name. The whole summary should be up to 2 sentences long."
+
 const defaultAIAnnotatePrompt_ARB = "Create a summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 2 sentences long, and should indicate the localization language for which it is intended."
 
 const defaultAIAnnotatePrompt_ARB_Short = "Create a short summary for the Application Resource Bundle (.arb) localization file, in my next message. The summary should be up to 1 sentence long, and should indicate the localization language for which it is intended."

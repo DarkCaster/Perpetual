@@ -32,6 +32,7 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 		// files for android build
 		{"(?i)^.*\\.java$", defaultAIAnnotatePrompt_Flutter_Java, defaultAIAnnotatePrompt_Flutter_Java_Short},
 		{"(?i)^.*\\.kt$", defaultAIAnnotatePrompt_Flutter_Kotlin, defaultAIAnnotatePrompt_Flutter_Kotlin_Short},
+		{"(?i)^.*(\\\\|\\/)main(\\\\|\\/)AndroidManifest\\.xml", defaultAIAnnotatePrompt_Flutter_AndroidManifestXML, defaultAIAnnotatePrompt_Flutter_AndroidManifestXML_Short},
 		//TODO: source files for mac, ios and web builds support
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
@@ -73,9 +74,10 @@ func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*\\.(h|h\\+\\+|hpp|hh|tpp|ipp)$",
 		"(?i)^.*\\.rc$",
 		"(?i)^.*\\.exe\\.manifest$",
-		// java and kotlin sources for android builds
+		// sources for android builds
 		"(?i)^.*\\.java$",
 		"(?i)^.*\\.kt$",
+		"(?i)^.*(\\\\|\\/)main(\\\\|\\/)AndroidManifest\\.xml",
 		//TODO: source files for mac, ios and web builds support
 	}
 	// extra markdown code-block mappings for dart projects
