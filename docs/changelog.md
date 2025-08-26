@@ -21,6 +21,18 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v8.1.0 (Unreleased)
+
+### Improvements
+
+- (work in progress) Improved `annotate` operation by adding optional user-generated project description to the LLM context if present.
+
+### Bug Fixes
+
+- Minor fixes and improvements in Flutter prompts
+
+**NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`.
+
 ## v8.0.0
 
 ### Improvements
