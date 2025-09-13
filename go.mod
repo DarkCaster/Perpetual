@@ -1,7 +1,8 @@
 module github.com/DarkCaster/Perpetual
 
 go 1.25.0
-toolchain 1.25.1
+
+toolchain go1.25.1
 
 require (
 	github.com/joho/godotenv v1.5.1
