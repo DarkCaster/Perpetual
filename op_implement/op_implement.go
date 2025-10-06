@@ -99,8 +99,9 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	projectDesc := ""
+	wrn := ""
 	if descFile == "" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -109,12 +110,15 @@ func Run(args []string, logger logging.ILogger) {
 			}
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
 	} else {
 		logger.Infoln("Loading of project description file (description.md) is disabled")
+	}
+	if wrn != "" {
+		logger.Warnln(wrn)
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
@@ -168,16 +172,22 @@ func Run(args []string, logger logging.ILogger) {
 	var task string
 	if taskMode {
 		if taskFile != "" {
-			data, err := utils.LoadTextFile(taskFile)
+			data, err, wrn := utils.LoadTextFile(taskFile)
 			if err != nil {
 				logger.Panicln("Error reading task from input file:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 			task = data
 		} else {
 			logger.Infoln("Reading task from stdin")
-			data, err := utils.LoadTextStdin()
+			data, err, wrn := utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 			task = string(data)
 		}
@@ -196,7 +206,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Debugln("Searching project files for implement comment")
 		for _, filePath := range fileNames {
 			logger.Traceln(filePath)
-			found, err := utils.FindInFile(
+			found, err, _ := utils.FindInFile(
 				filepath.Join(projectRootDir, filePath),
 				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 			if err != nil {

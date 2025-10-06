@@ -144,16 +144,22 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	var question string
 	if readQuestion {
 		if inputFile != "" {
-			data, err := utils.LoadTextFile(inputFile)
+			data, err, wrn := utils.LoadTextFile(inputFile)
 			if err != nil {
 				logger.Panicln("Error reading input file:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 			question = data
 		} else {
 			logger.Infoln("Reading question from stdin")
-			data, err := utils.LoadTextStdin()
+			data, err, wrn := utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 			question = string(data)
 		}
@@ -253,10 +259,13 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	changedFlag := false
 	for i, filePath := range filesToEmbed {
 		// Read file contents and generate embedding
-		fileBytes, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
+		fileBytes, err, wrn := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
 			logger.Errorf("Failed to read file %s: %s", filePath, err)
 			continue
+		}
+		if wrn != "" {
+			logger.Warnln(wrn)
 		}
 		fileContents := string(fileBytes)
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)

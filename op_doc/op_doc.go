@@ -86,8 +86,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	projectDesc := ""
+	wrn := ""
 	if descFile == "" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -95,10 +96,16 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Failed to load project description file:", err)
 			}
 		}
+		if wrn != "" {
+			logger.Warnln(wrn)
+		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
+		}
+		if wrn != "" {
+			logger.Warnln(wrn)
 		}
 	} else {
 		logger.Infoln("Loading of project description file (description.md) is disabled")
@@ -160,23 +167,32 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		//Load example if provided
 		if docExample != "" {
 			logger.Infoln("Loading example document:", docExample)
-			docExampleContent, err = utils.LoadTextFile(docExample)
+			docExampleContent, err, wrn = utils.LoadTextFile(docExample)
 			if err != nil {
 				logger.Panicln("Error reading example document:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 		}
 
 		//Load main document
 		if docFile != "" {
-			docContent, err = utils.LoadTextFile(docFile)
+			docContent, err, wrn = utils.LoadTextFile(docFile)
 			if err != nil {
 				logger.Panicln("Error reading target document:", err)
 			}
+			if wrn != "" {
+				logger.Warnln(wrn)
+			}
 		} else {
 			logger.Infoln("Reading document from stdin")
-			docContent, err = utils.LoadTextStdin()
+			docContent, err, wrn = utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
+			}
+			if wrn != "" {
+				logger.Warnln(wrn)
 			}
 		}
 
@@ -285,7 +301,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			filteredRequestedFiles = requestedFiles
 		} else {
 			for _, file := range requestedFiles {
-				if found, err := utils.FindInRelativeFile(
+				if found, err, _ := utils.FindInRelativeFile(
 					projectRootDir,
 					file,
 					projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx)); err == nil && !found {

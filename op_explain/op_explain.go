@@ -85,8 +85,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	projectDesc := ""
+	wrn := ""
 	if descFile == "" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -95,12 +96,15 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
 	} else {
 		logger.Infoln("Loading of project description file (description.md) is disabled")
+	}
+	if wrn != "" {
+		logger.Warnln(wrn)
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
@@ -153,16 +157,22 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Read input from file or stdin
 	var question string
 	if inputFile != "" {
-		data, err := utils.LoadTextFile(inputFile)
+		data, err, wrn := utils.LoadTextFile(inputFile)
 		if err != nil {
 			logger.Panicln("Error reading input file:", err)
+		}
+		if wrn != "" {
+			logger.Warnln(wrn)
 		}
 		question = data
 	} else {
 		logger.Infoln("Reading question from stdin")
-		data, err := utils.LoadTextStdin()
+		data, err, wrn := utils.LoadTextStdin()
 		if err != nil {
 			logger.Panicln("Error reading from stdin:", err)
+		}
+		if wrn != "" {
+			logger.Warnln(wrn)
 		}
 		question = string(data)
 	}
@@ -176,9 +186,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Read extra file with stage 1 instructions
 	var stage1query string
 	if extraFile != "" {
-		data, err := utils.LoadTextFile(extraFile)
+		data, err, wrn := utils.LoadTextFile(extraFile)
 		if err != nil {
 			logger.Panicln("Error reading extra instructions file:", err)
+		}
+		if wrn != "" {
+			logger.Warnln(wrn)
 		}
 		stage1query = strings.Trim(data, "\n")
 		logger.Infoln("Using stage 1 instructions from file:", extraFile)
@@ -292,7 +305,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		filteredRequestedFiles = requestedFiles
 	} else {
 		for _, file := range requestedFiles {
-			if found, err := utils.FindInRelativeFile(
+			if found, err, _ := utils.FindInRelativeFile(
 				projectRootDir,
 				file,
 				projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx)); err == nil && !found {
