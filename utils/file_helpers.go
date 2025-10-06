@@ -117,6 +117,14 @@ func GetEncodingByName(name string) (encoding.Encoding, error) {
 	return enc, nil
 }
 
+func GetEncodingFromEnv() (encoding.Encoding, error) {
+	name, err := GetEnvString("FALLBACK_TEXT_ENCODING")
+	if err != nil {
+		name = "windows-1252"
+	}
+	return GetEncodingByName(name)
+}
+
 func LoadTextData(bytes []byte) (string, error) {
 	bytes, err := convertToBOMLessUTF8(bytes)
 	if err != nil {
