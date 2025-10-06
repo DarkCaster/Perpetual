@@ -253,7 +253,7 @@ func TestDetectUTFBOM(t *testing.T) {
 	testCases := []struct {
 		name           string
 		input          []byte
-		expectedOutput textEncoding
+		expectedOutput utfEncoding
 		expectedLength int
 	}{
 		{
@@ -289,20 +289,20 @@ func TestDetectUTFBOM(t *testing.T) {
 		{
 			name:           "No BOM",
 			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectedOutput: Other,
+			expectedOutput: OtherBOMLess,
 			expectedLength: 0,
 		},
 		{
 			name:           "Empty input",
 			input:          []byte{},
-			expectedOutput: Other,
+			expectedOutput: OtherBOMLess,
 			expectedLength: 0,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, length := detectUTFEncoding(tc.input)
+			result, length := detectUTFBOMEncoding(tc.input)
 			if result != tc.expectedOutput || length != tc.expectedLength {
 				t.Errorf("Expected (%v, %d), but got (%v, %d)", tc.expectedOutput, tc.expectedLength, result, length)
 			}
@@ -375,7 +375,7 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := convertToBOMLessUTF8(tc.input)
+			output, err := convertToBOMLessEncoding(tc.input)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}

@@ -21,10 +21,10 @@ import (
 	"golang.org/x/text/encoding/unicode/utf32"
 )
 
-type textEncoding int
+type utfEncoding int
 
 const (
-	Other textEncoding = iota
+	OtherBOMLess utfEncoding = iota
 	UTF8
 	UTF16LE
 	UTF16BE
@@ -32,7 +32,7 @@ const (
 	UTF32BE
 )
 
-func detectUTFEncoding(data []byte) (textEncoding, int) {
+func detectUTFBOMEncoding(data []byte) (utfEncoding, int) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
 		return UTF8, 3
 	}
@@ -52,13 +52,13 @@ func detectUTFEncoding(data []byte) (textEncoding, int) {
 			return UTF32BE, 4
 		}
 	}
-	return Other, 0
+	return OtherBOMLess, 0
 }
 
-func convertToBOMLessUTF8(data []byte) ([]byte, error) {
-	encoding, bomLen := detectUTFEncoding(data)
+func convertToBOMLessEncoding(data []byte) ([]byte, error) {
+	encoding, bomLen := detectUTFBOMEncoding(data)
 	switch encoding {
-	case Other:
+	case OtherBOMLess:
 		return data, nil
 	case UTF8:
 		return data[bomLen:], nil
@@ -126,7 +126,7 @@ func GetEncodingFromEnv() (encoding.Encoding, error) {
 }
 
 func LoadTextData(bytes []byte) (string, error) {
-	bytes, err := convertToBOMLessUTF8(bytes)
+	bytes, err := convertToBOMLessEncoding(bytes)
 	if err != nil {
 		return "", err
 	}
