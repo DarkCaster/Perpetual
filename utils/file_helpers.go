@@ -15,6 +15,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/vmihailenco/msgpack/v5"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/encoding/unicode/utf32"
 )
@@ -102,6 +104,17 @@ func LoadTextFile(filePath string) (string, error) {
 		return "", err
 	}
 	return LoadTextData(bytes)
+}
+
+func GetEncodingByName(name string) (encoding.Encoding, error) {
+	enc, err := ianaindex.IANA.Encoding(name)
+	if err != nil {
+		return nil, fmt.Errorf("unknown fallback encoding: %s", name)
+	}
+	if enc == nil {
+		return nil, fmt.Errorf("fallback encoding %s is not supported", name)
+	}
+	return enc, nil
 }
 
 func LoadTextData(bytes []byte) (string, error) {

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -380,7 +379,7 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
-			if !bytes.Equal(output, tc.expectedOutput) {
+			if !equalByteSlices(output, tc.expectedOutput) {
 				t.Errorf("Expected %v, but got %v", tc.expectedOutput, output)
 			}
 		})
@@ -438,6 +437,138 @@ func TestCheckUTF8(t *testing.T) {
 			}
 			if !tc.expectError && err != nil {
 				t.Errorf("Expected no error, but got: %v", err)
+			}
+		})
+	}
+}
+
+func TestGetEncodingByName(t *testing.T) {
+	testCases := []struct {
+		name        string
+		encoding    string
+		expectError bool
+	}{
+		{
+			name:        "Windows-1252 (Western European)",
+			encoding:    "windows-1252",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-1 (Latin-1)",
+			encoding:    "ISO-8859-1",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1251 (Cyrillic)",
+			encoding:    "windows-1251",
+			expectError: false,
+		},
+		{
+			name:        "Shift_JIS (Japanese)",
+			encoding:    "Shift_JIS",
+			expectError: false,
+		},
+		{
+			name:        "EUC-KR (Korean)",
+			encoding:    "EUC-KR",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-2 (Central European)",
+			encoding:    "ISO-8859-2",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1250 (Central European)",
+			encoding:    "windows-1250",
+			expectError: false,
+		},
+		{
+			name:        "Big5 (Traditional Chinese)",
+			encoding:    "Big5",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-15 (Latin-9)",
+			encoding:    "ISO-8859-15",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1256 (Arabic)",
+			encoding:    "windows-1256",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-7 (Greek)",
+			encoding:    "ISO-8859-7",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1253 (Greek)",
+			encoding:    "windows-1253",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-8 (Hebrew)",
+			encoding:    "ISO-8859-8",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1255 (Hebrew)",
+			encoding:    "windows-1255",
+			expectError: false,
+		},
+		{
+			name:        "ISO-8859-9 (Turkish)",
+			encoding:    "ISO-8859-9",
+			expectError: false,
+		},
+		{
+			name:        "Windows-1254 (Turkish)",
+			encoding:    "windows-1254",
+			expectError: false,
+		},
+		{
+			name:        "EUC-JP (Japanese)",
+			encoding:    "EUC-JP",
+			expectError: false,
+		},
+		{
+			name:        "ISO-2022-JP (Japanese)",
+			encoding:    "ISO-2022-JP",
+			expectError: false,
+		},
+		{
+			name:        "KOI8-R (Russian)",
+			encoding:    "KOI8-R",
+			expectError: false,
+		},
+		{
+			name:        "Invalid encoding",
+			encoding:    "INVALID-ENCODING-XYZ",
+			expectError: true,
+		},
+		{
+			name:        "Empty encoding name",
+			encoding:    "",
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			enc, err := GetEncodingByName(tc.encoding)
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected an error for encoding %q, but got nil", tc.encoding)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for encoding %q, but got: %v", tc.encoding, err)
+				}
+				if enc == nil {
+					t.Errorf("Expected non-nil encoding for %q, but got nil", tc.encoding)
+				}
 			}
 		})
 	}
