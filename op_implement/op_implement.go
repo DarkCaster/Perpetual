@@ -200,7 +200,7 @@ func Run(args []string, logger logging.ILogger) {
 				filepath.Join(projectRootDir, filePath),
 				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 			if err != nil {
-				logger.Panicln("Failed to search 'implement' comment in file: ", err)
+				logger.Panicf("Failed to search 'implement' comment in file %s: %v", filePath, err)
 			}
 			if found {
 				targetFiles = append(targetFiles, filePath)
