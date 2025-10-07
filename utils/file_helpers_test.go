@@ -302,7 +302,7 @@ func TestDetectUTFBOM(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, length := detectUTFBOMEncoding(tc.input)
+			result, length := detectUTFEncoding(tc.input)
 			if result != tc.expectedOutput || length != tc.expectedLength {
 				t.Errorf("Expected (%v, %d), but got (%v, %d)", tc.expectedOutput, tc.expectedLength, result, length)
 			}

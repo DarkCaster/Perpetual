@@ -32,7 +32,7 @@ const (
 	UTF32BE
 )
 
-func detectUTFBOMEncoding(data []byte) (utfEncoding, int) {
+func detectUTFEncoding(data []byte) (utfEncoding, int) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
 		return UTF8BOM, 3
 	}
@@ -56,7 +56,7 @@ func detectUTFBOMEncoding(data []byte) (utfEncoding, int) {
 }
 
 func convertToBOMLessEncoding(data []byte) ([]byte, error) {
-	encoding, bomLen := detectUTFBOMEncoding(data)
+	encoding, bomLen := detectUTFEncoding(data)
 	switch encoding {
 	case UTF8:
 		return data, nil
