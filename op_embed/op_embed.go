@@ -149,7 +149,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Error reading input file:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("%s: %s", inputFile, wrn)
 			}
 			question = data
 		} else {
@@ -159,7 +159,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Error reading from stdin:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("stdin: %s", wrn)
 			}
 			question = string(data)
 		}
@@ -265,7 +265,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			continue
 		}
 		if wrn != "" {
-			logger.Warnln(wrn)
+			logger.Warnf("%s: %s", filePath, wrn)
 		}
 		fileContents := string(fileBytes)
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)

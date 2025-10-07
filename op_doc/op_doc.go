@@ -97,7 +97,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 		if wrn != "" {
-			logger.Warnln(wrn)
+			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
 		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
@@ -105,7 +105,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Failed to load project description file:", err)
 		}
 		if wrn != "" {
-			logger.Warnln(wrn)
+			logger.Warnf("%s: %s", descFile, wrn)
 		}
 	} else {
 		logger.Infoln("Loading of project description file (description.md) is disabled")
@@ -172,7 +172,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Error reading example document:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("%s: %s", docExample, wrn)
 			}
 		}
 
@@ -183,7 +183,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Error reading target document:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("%s: %s", docFile, wrn)
 			}
 		} else {
 			logger.Infoln("Reading document from stdin")
@@ -192,7 +192,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Error reading from stdin:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("stdin: %s", wrn)
 			}
 		}
 

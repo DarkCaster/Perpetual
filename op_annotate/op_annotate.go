@@ -265,7 +265,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			continue
 		}
 		if wrn != "" {
-			logger.Warnln(wrn)
+			logger.Warnf("%s: %s", filePath, wrn)
 		}
 		fileContents := string(fileBytes)
 

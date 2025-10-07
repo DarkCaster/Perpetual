@@ -109,16 +109,19 @@ func Run(args []string, logger logging.ILogger) {
 				logger.Panicln("Failed to load project description file:", err)
 			}
 		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
+		}
 	} else if strings.ToLower(descFile) != "disabled" {
 		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", descFile, wrn)
+		}
 	} else {
 		logger.Infoln("Loading of project description file (description.md) is disabled")
-	}
-	if wrn != "" {
-		logger.Warnln(wrn)
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
@@ -177,7 +180,7 @@ func Run(args []string, logger logging.ILogger) {
 				logger.Panicln("Error reading task from input file:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("%s: %s", taskFile, wrn)
 			}
 			task = data
 		} else {
@@ -187,7 +190,7 @@ func Run(args []string, logger logging.ILogger) {
 				logger.Panicln("Error reading from stdin:", err)
 			}
 			if wrn != "" {
-				logger.Warnln(wrn)
+				logger.Warnf("stdin: %s", wrn)
 			}
 			task = string(data)
 		}

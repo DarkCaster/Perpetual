@@ -54,7 +54,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 			logger.Panicf("Failed to read file %s: %s", filePath, err)
 		}
 		if wrn != "" {
-			logger.Warnln(wrn)
+			logger.Warnf("%s: %s", filePath, wrn)
 		}
 
 		annotateRequest := llm.AddPlainTextFragment(
