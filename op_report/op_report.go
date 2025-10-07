@@ -150,9 +150,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Save report string to file or print it to stderr
 	if outputFile != "" {
-		err = utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
+		wrn, err := utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
 		if err != nil {
 			logger.Panicln("Error writing report to file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", outputFile, wrn)
 		}
 	} else {
 		err = utils.WriteTextStdout(strings.Join(reportStrings, "\n"))

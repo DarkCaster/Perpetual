@@ -351,9 +351,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Write output to file or stdout
 	if docFile != "" {
 		logger.Infoln("Writing document:", docFile)
-		err := utils.SaveTextFile(docFile, docContent)
+		wrn, err := utils.SaveTextFile(docFile, docContent)
 		if err != nil {
 			logger.Panicln("Error writing to output file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", docFile, wrn)
 		}
 	} else {
 		err := utils.WriteTextStdout(docContent)

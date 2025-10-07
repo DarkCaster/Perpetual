@@ -291,9 +291,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	if listFilesOnly {
 		// for this mode, just list files one file per line for easier parsing with 3-rd party tool
 		if outputFile != "" {
-			err := utils.SaveTextFile(outputFile, strings.Join(requestedFiles, "\n"))
+			wrn, err := utils.SaveTextFile(outputFile, strings.Join(requestedFiles, "\n"))
 			if err != nil {
 				logger.Panicln("Error writing to output file:", err)
+			}
+			if wrn != "" {
+				logger.Warnf("%s: %s", outputFile, wrn)
 			}
 		} else {
 			for _, filename := range requestedFiles {
@@ -384,9 +387,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Write output to file or stdout
 	if outputFile != "" {
 		logger.Infoln("Writing answer to file:", outputFile)
-		err := utils.SaveTextFile(outputFile, strings.Join(outputStrings, "\n"))
+		wrn, err := utils.SaveTextFile(outputFile, strings.Join(outputStrings, "\n"))
 		if err != nil {
 			logger.Panicln("Error writing to output file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", outputFile, wrn)
 		}
 	} else {
 		err := utils.WriteTextStdout(strings.Join(outputStrings, "\n"))

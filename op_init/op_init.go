@@ -100,7 +100,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	globalConfigFile := filepath.Join(globalConfigDir, DotEnvFileName)
 	if _, err := os.Stat(globalConfigFile); os.IsNotExist(err) {
 		logger.Traceln("Creating default global config file")
-		err = utils.SaveTextFile(globalConfigFile, globalConfigText)
+		_, err = utils.SaveTextFile(globalConfigFile, globalConfigText)
 		if err != nil {
 			logger.Panicln("Error creating default global config file:", err)
 		}
@@ -110,7 +110,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	logger.Traceln("Creating .gitignore file")
 
 	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s*\n/%s\n", DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, llm.LLMRawLogFile, utils.StashesDirName)
-	err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
+	_, err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
 		logger.Panicln("Error creating .gitignore file:", err)
 	}
@@ -125,13 +125,13 @@ func Run(version string, args []string, logger logging.ILogger) {
 		if version != "" {
 			content = "# Example .env config, version: " + version + "\n\n" + content
 		}
-		if err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
+		if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
 			logger.Panicln("Error creating env example file:", err)
 		}
 	}
 
 	logger.Tracef("Creating %s file", descriptionTemplateFileName)
-	if err = utils.SaveTextFile(filepath.Join(perpetualDir, descriptionTemplateFileName), descriptionTemplate); err != nil {
+	if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, descriptionTemplateFileName), descriptionTemplate); err != nil {
 		logger.Panicf("Error creating %s file: %v", descriptionTemplateFileName, err)
 	}
 

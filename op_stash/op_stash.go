@@ -180,9 +180,12 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 			}
 			// Write file
 			outerCallLogger.Infoln(target)
-			err := utils.SaveTextFile(filepath.Join(projectRootDir, target), entry.Contents)
+			wrn, err := utils.SaveTextFile(filepath.Join(projectRootDir, target), entry.Contents)
 			if err != nil {
-				outerCallLogger.Errorln("Failed to save file:", err)
+				outerCallLogger.Errorf("Failed to save file %s: %v", target, err)
+			}
+			if wrn != "" {
+				logger.Warnf("%s: %s", target, wrn)
 			}
 		}
 	}
