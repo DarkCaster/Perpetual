@@ -87,7 +87,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	projectDesc := ""
 	wrn := ""
 	if descFile == "" {
-		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, wrn, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -99,7 +99,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err, wrn = utils.LoadTextFile(descFile)
+		projectDesc, wrn, err = utils.LoadTextFile(descFile)
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
@@ -160,7 +160,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Read input from file or stdin
 	var question string
 	if inputFile != "" {
-		data, err, wrn := utils.LoadTextFile(inputFile)
+		data, wrn, err := utils.LoadTextFile(inputFile)
 		if err != nil {
 			logger.Panicln("Error reading input file:", err)
 		}
@@ -170,7 +170,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		question = data
 	} else {
 		logger.Infoln("Reading question from stdin")
-		data, err, wrn := utils.LoadTextStdin()
+		data, wrn, err := utils.LoadTextStdin()
 		if err != nil {
 			logger.Panicln("Error reading from stdin:", err)
 		}
@@ -189,7 +189,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Read extra file with stage 1 instructions
 	var stage1query string
 	if extraFile != "" {
-		data, err, wrn := utils.LoadTextFile(extraFile)
+		data, wrn, err := utils.LoadTextFile(extraFile)
 		if err != nil {
 			logger.Panicln("Error reading extra instructions file:", err)
 		}
@@ -308,7 +308,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		filteredRequestedFiles = requestedFiles
 	} else {
 		for _, file := range requestedFiles {
-			if found, err, _ := utils.FindInRelativeFile(
+			if found, _, err := utils.FindInRelativeFile(
 				projectRootDir,
 				file,
 				projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx)); err == nil && !found {

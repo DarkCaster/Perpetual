@@ -144,7 +144,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	var question string
 	if readQuestion {
 		if inputFile != "" {
-			data, err, wrn := utils.LoadTextFile(inputFile)
+			data, wrn, err := utils.LoadTextFile(inputFile)
 			if err != nil {
 				logger.Panicln("Error reading input file:", err)
 			}
@@ -154,7 +154,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			question = data
 		} else {
 			logger.Infoln("Reading question from stdin")
-			data, err, wrn := utils.LoadTextStdin()
+			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
 			}
@@ -259,7 +259,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	changedFlag := false
 	for i, filePath := range filesToEmbed {
 		// Read file contents and generate embedding
-		fileBytes, err, wrn := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
+		fileBytes, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
 			logger.Errorf("Failed to read file %s: %s", filePath, err)
 			continue

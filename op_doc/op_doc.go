@@ -88,7 +88,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	projectDesc := ""
 	wrn := ""
 	if descFile == "" {
-		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, wrn, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -100,7 +100,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err, wrn = utils.LoadTextFile(descFile)
+		projectDesc, wrn, err = utils.LoadTextFile(descFile)
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
@@ -167,7 +167,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		//Load example if provided
 		if docExample != "" {
 			logger.Infoln("Loading example document:", docExample)
-			docExampleContent, err, wrn = utils.LoadTextFile(docExample)
+			docExampleContent, wrn, err = utils.LoadTextFile(docExample)
 			if err != nil {
 				logger.Panicln("Error reading example document:", err)
 			}
@@ -178,7 +178,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 		//Load main document
 		if docFile != "" {
-			docContent, err, wrn = utils.LoadTextFile(docFile)
+			docContent, wrn, err = utils.LoadTextFile(docFile)
 			if err != nil {
 				logger.Panicln("Error reading target document:", err)
 			}
@@ -187,7 +187,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		} else {
 			logger.Infoln("Reading document from stdin")
-			docContent, err, wrn = utils.LoadTextStdin()
+			docContent, wrn, err = utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
 			}
@@ -301,7 +301,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			filteredRequestedFiles = requestedFiles
 		} else {
 			for _, file := range requestedFiles {
-				if found, err, _ := utils.FindInRelativeFile(
+				if found, _, err := utils.FindInRelativeFile(
 					projectRootDir,
 					file,
 					projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx)); err == nil && !found {

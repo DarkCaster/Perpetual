@@ -90,23 +90,23 @@ func CheckUTF8(data []byte) error {
 	return nil
 }
 
-func LoadTextStdin() (string, error, string) {
+func LoadTextStdin() (string, string, error) {
 	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		return "", err, ""
+		return "", "", err
 	}
 	encoding, _ := GetEncodingFromEnv()
-	return LoadTextData(bytes, encoding)
+	return loadTextData(bytes, encoding)
 }
 
-func LoadTextFile(filePath string) (string, error, string) {
+func LoadTextFile(filePath string) (string, string, error) {
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", err, ""
+		return "", "", err
 	}
 	//TODO: store original encoding of file
 	encoding, _ := GetEncodingFromEnv()
-	return LoadTextData(bytes, encoding)
+	return loadTextData(bytes, encoding)
 }
 
 func GetEncodingByName(name string) (encoding.Encoding, error) {
@@ -129,30 +129,30 @@ func GetEncodingFromEnv() (encoding.Encoding, error) {
 }
 
 // TODO: return original file encoding
-func LoadTextData(bytes []byte, fallbackEncoding encoding.Encoding) (string, error, string) {
+func loadTextData(bytes []byte, fallbackEncoding encoding.Encoding) (string, string, error) {
 	bytes, err := convertToBOMLessEncoding(bytes)
 	if err != nil {
-		return "", err, ""
+		return "", "", err
 	}
 	err = CheckUTF8(bytes)
 	wrn := ""
 	if err != nil {
 		if fallbackEncoding == nil {
-			return "", err, ""
+			return "", "", err
 		} else {
 			wrn = fmt.Sprintf("warning: %v, using fallback encoding", err)
 			bytes, err = fallbackEncoding.NewDecoder().Bytes(bytes)
 			if err != nil {
-				return "", fmt.Errorf("convert from fallback encoding failed: %v", err), wrn
+				return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", err)
 			}
 		}
 	}
 	//TODO: use better method to convert windows line-endings
-	return strings.ReplaceAll(string(bytes), "\r\n", "\n"), nil, wrn
+	return strings.ReplaceAll(string(bytes), "\r\n", "\n"), wrn, nil
 }
 
 func LoadJsonFile(filePath string, v any) error {
-	str, err, _ := LoadTextFile(filePath)
+	str, _, err := LoadTextFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -257,26 +257,26 @@ func SaveJsonFile(filePath string, v any) error {
 	return SaveTextFile(filePath, writer.String())
 }
 
-func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, error, string) {
-	strData, err, wrn := LoadTextFile(filePath)
+func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, string, error) {
+	strData, wrn, err := LoadTextFile(filePath)
 	if err != nil {
-		return false, err, wrn
+		return false, wrn, err
 	}
 	scanner := bufio.NewScanner(strings.NewReader(strData))
 	for scanner.Scan() {
 		for _, rx := range regexps {
 			if rx.MatchString(scanner.Text()) {
-				return true, nil, wrn
+				return true, wrn, nil
 			}
 		}
 	}
-	return false, nil, wrn
+	return false, wrn, nil
 }
 
-func FindInRelativeFile(projectRootDir string, relativeFilePath string, regexps []*regexp.Regexp) (bool, error, string) {
+func FindInRelativeFile(projectRootDir string, relativeFilePath string, regexps []*regexp.Regexp) (bool, string, error) {
 	filePath, err := MakePathRelative(projectRootDir, relativeFilePath, true)
 	if err != nil {
-		return false, err, ""
+		return false, "", err
 	}
 	return FindInFile(filepath.Join(projectRootDir, filePath), regexps)
 }

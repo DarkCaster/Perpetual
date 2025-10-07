@@ -232,7 +232,7 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		_, err := os.Stat(filepath.Join(projectRootDir, filePathFinal))
 		if err == nil {
 			// Read file
-			backup, err, _ := utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
+			backup, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
 			if err != nil {
 				logger.Errorf("Error reading project file for backing up:", err)
 			}

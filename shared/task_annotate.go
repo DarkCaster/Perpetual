@@ -49,7 +49,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 	results := []string{}
 	for _, filePath := range targetFiles {
 		// Read file contents and generate task annotation
-		fileContents, err, wrn := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
+		fileContents, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {
 			logger.Panicf("Failed to read file %s: %s", filePath, err)
 		}

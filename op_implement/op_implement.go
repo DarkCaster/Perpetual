@@ -101,7 +101,7 @@ func Run(args []string, logger logging.ILogger) {
 	projectDesc := ""
 	wrn := ""
 	if descFile == "" {
-		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, wrn, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
 				logger.Infoln("Not loading missing project description file (description.md)")
@@ -113,7 +113,7 @@ func Run(args []string, logger logging.ILogger) {
 			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err, wrn = utils.LoadTextFile(descFile)
+		projectDesc, wrn, err = utils.LoadTextFile(descFile)
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
@@ -175,7 +175,7 @@ func Run(args []string, logger logging.ILogger) {
 	var task string
 	if taskMode {
 		if taskFile != "" {
-			data, err, wrn := utils.LoadTextFile(taskFile)
+			data, wrn, err := utils.LoadTextFile(taskFile)
 			if err != nil {
 				logger.Panicln("Error reading task from input file:", err)
 			}
@@ -185,7 +185,7 @@ func Run(args []string, logger logging.ILogger) {
 			task = data
 		} else {
 			logger.Infoln("Reading task from stdin")
-			data, err, wrn := utils.LoadTextStdin()
+			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
 				logger.Panicln("Error reading from stdin:", err)
 			}
@@ -209,7 +209,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Debugln("Searching project files for implement comment")
 		for _, filePath := range fileNames {
 			logger.Traceln(filePath)
-			found, err, _ := utils.FindInFile(
+			found, _, err := utils.FindInFile(
 				filepath.Join(projectRootDir, filePath),
 				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
 			if err != nil {

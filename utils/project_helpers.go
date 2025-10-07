@@ -287,7 +287,7 @@ func GetFileSizes(projectRootDir string, files []string) map[string]int {
 	fileSizes := make(map[string]int)
 	for _, file := range files {
 		filePath := filepath.Join(projectRootDir, file)
-		text, err, _ := LoadTextFile(filePath)
+		text, _, err := LoadTextFile(filePath)
 		if err == nil {
 			fileSizes[file] = len(text)
 		} else {
@@ -340,7 +340,7 @@ func FilterFilesWithBlacklist(sourceFiles []string, blacklist []*regexp.Regexp) 
 func FilterNoUploadProjectFiles(projectRootDir string, sourceFiles []string, noUploadRegexps []*regexp.Regexp, allowMissingFiles bool, logger logging.ILogger) []string {
 	var results []string
 	for _, file := range sourceFiles {
-		if found, err, _ := FindInRelativeFile(projectRootDir, file, noUploadRegexps); (err == nil || (allowMissingFiles && os.IsNotExist(err))) && !found {
+		if found, _, err := FindInRelativeFile(projectRootDir, file, noUploadRegexps); (err == nil || (allowMissingFiles && os.IsNotExist(err))) && !found {
 			results = append(results, file)
 		} else if found {
 			logger.Warnln("Skipping file marked as 'no-upload':", file)
