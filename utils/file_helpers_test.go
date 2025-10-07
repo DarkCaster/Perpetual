@@ -310,77 +310,93 @@ func TestDetectUTFBOM(t *testing.T) {
 	}
 }
 
-func TestConvertToBOMLessUTF8(t *testing.T) {
+func TestConvertFromUTFEncoding(t *testing.T) {
 	testCases := []struct {
 		name           string
 		input          []byte
-		expectedOutput []byte
+		expectedOutput string
+		expectError    bool
 	}{
 		{
 			name:           "UTF-8 BOM",
 			input:          []byte{0xEF, 0xBB, 0xBF, 0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "UTF-16LE BOM",
 			input:          []byte{0xFF, 0xFE, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "UTF-16BE BOM",
 			input:          []byte{0xFE, 0xFF, 0x00, 0x68, 0x00, 0x65, 0x00, 0x6C, 0x00, 0x6C, 0x00, 0x6F},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "UTF-32LE BOM",
 			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F, 0x00, 0x00, 0x00},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "UTF-32BE BOM",
 			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6C, 0x00, 0x00, 0x00, 0x6F},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "No BOM",
 			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectedOutput: []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
+			expectedOutput: "hello",
+			expectError:    false,
 		},
 		{
 			name:           "Empty input",
 			input:          []byte{},
-			expectedOutput: []byte{},
+			expectedOutput: "",
+			expectError:    false,
 		},
 		{
-			name:           "Malformed UTF-16LE",
-			input:          []byte{0xFF, 0xFE, 0x00},
-			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+			name:        "Malformed UTF-16LE",
+			input:       []byte{0xFF, 0xFE, 0x00},
+			expectError: true,
 		},
 		{
-			name:           "Malformed UTF-16BE",
-			input:          []byte{0xFE, 0xFF, 0x00},
-			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+			name:        "Malformed UTF-16BE",
+			input:       []byte{0xFE, 0xFF, 0x00},
+			expectError: true,
 		},
 		{
-			name:           "Malformed UTF-32LE",
-			input:          []byte{0xFF, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00},
-			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+			name:        "Malformed UTF-32LE",
+			input:       []byte{0xFF, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00},
+			expectError: true,
 		},
 		{
-			name:           "Malformed UTF-32BE",
-			input:          []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00},
-			expectedOutput: []byte{0xEF, 0xBF, 0xBD},
+			name:        "Malformed UTF-32BE",
+			input:       []byte{0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00},
+			expectError: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := convertFromUTFEncoding(tc.input)
-			if err != nil {
-				t.Errorf("Unexpected error: %v", err)
-			}
-			if !equalByteSlices(output, tc.expectedOutput) {
-				t.Errorf("Expected %v, but got %v", tc.expectedOutput, output)
+			encoding, bomLen := detectUTFEncoding(tc.input)
+			output, err := convertFromUTFEncoding(tc.input, encoding, bomLen)
+
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected an error, but got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if output != tc.expectedOutput {
+					t.Errorf("Expected %q, but got %q", tc.expectedOutput, output)
+				}
 			}
 		})
 	}
