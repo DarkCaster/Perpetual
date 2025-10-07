@@ -99,7 +99,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
-		projectDesc, err, wrn = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		projectDesc, err, wrn = utils.LoadTextFile(descFile)
 		if err != nil {
 			logger.Panicln("Failed to load project description file:", err)
 		}
