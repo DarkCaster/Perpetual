@@ -30,7 +30,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Bug Fixes
 
-- Minor fixes and improvements in Flutter prompts
+- Fixed loading custom project description file for `implement`, `explain` and `doc` operations.
+- Minor fixes and improvements in Flutter prompts.
 
 **NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`.
 
