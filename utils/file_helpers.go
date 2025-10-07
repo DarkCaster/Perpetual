@@ -55,28 +55,53 @@ func detectUTFEncoding(data []byte) (utfEncoding, int) {
 	return UTF8, 0
 }
 
-func convertFromUTFEncoding(data []byte) ([]byte, error) {
-	encoding, bomLen := detectUTFEncoding(data)
+func convertFromUTFEncoding(data []byte, encoding utfEncoding, bomLen int) (string, error) {
+	var err error = nil
+	var runes []byte = nil
+	//convert source data to the sequence of native UTF8 runes
 	switch encoding {
 	case UTF8:
-		return data, nil
+		runes = NewSlice(data...) //already UTF8
 	case UTF8BOM:
-		return data[bomLen:], nil
+		runes = NewSlice(data[bomLen:]...) //just cut the BOM
 	case UTF16LE:
-		decoder := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder()
-		return decoder.Bytes(data[bomLen:])
+		runes, err = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder().Bytes(NewSlice(data[bomLen:]...))
 	case UTF16BE:
-		decoder := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder()
-		return decoder.Bytes(data[bomLen:])
+		runes, err = unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder().Bytes(NewSlice(data[bomLen:]...))
 	case UTF32LE:
-		decoder := utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewDecoder()
-		return decoder.Bytes(data[bomLen:])
+		runes, err = utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM).NewDecoder().Bytes(NewSlice(data[bomLen:]...))
 	case UTF32BE:
-		decoder := utf32.UTF32(utf32.BigEndian, utf32.IgnoreBOM).NewDecoder()
-		return decoder.Bytes(data[bomLen:])
+		runes, err = utf32.UTF32(utf32.BigEndian, utf32.IgnoreBOM).NewDecoder().Bytes(NewSlice(data[bomLen:]...))
 	default:
-		return nil, fmt.Errorf("unsupported encoding")
+		return "", fmt.Errorf("unsupported encoding")
 	}
+	//conversion failed
+	if err != nil {
+		return "", err
+	}
+	//here we have slice with native UTF8 runes, check it for validity
+	if err = CheckUTF8(runes); err != nil {
+		return "", err
+	}
+	//return final string
+	return string(runes), nil
+}
+
+func convertFromFallbackEncoding(data []byte, encoding encoding.Encoding) (string, error) {
+	if encoding == nil {
+		return "", errors.New("fallback encoding is not defined")
+	}
+	runes, err := encoding.NewDecoder().Bytes(NewSlice(data...))
+	//conversion failed
+	if err != nil {
+		return "", err
+	}
+	//here we have slice with native UTF8 runes, check it for validity
+	if err = CheckUTF8(runes); err != nil {
+		return "", err
+	}
+	//return final string
+	return string(runes), nil
 }
 
 func CheckUTF8(data []byte) error {
@@ -95,8 +120,24 @@ func LoadTextStdin() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	encoding, _ := GetEncodingFromEnv()
-	return loadTextData(bytes, encoding)
+	//get encodings
+	fallbackEncoding, encErr := GetEncodingFromEnv()
+	encoding, bomLen := detectUTFEncoding(bytes)
+	//try converting to string using UTF encoding
+	text, convErr := convertFromUTFEncoding(bytes, encoding, bomLen)
+	if convErr != nil && encErr != nil {
+		return "", "", convErr
+	}
+	wrn := ""
+	//try converting to string using fallback encoding
+	if convErr != nil {
+		wrn = fmt.Sprintf("warning: %v, using fallback encoding", convErr)
+		text, convErr = convertFromFallbackEncoding(bytes, fallbackEncoding)
+		if convErr != nil {
+			return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", convErr)
+		}
+	}
+	return strings.ReplaceAll(text, "\r\n", "\n"), wrn, nil
 }
 
 func LoadTextFile(filePath string) (string, string, error) {
@@ -104,15 +145,31 @@ func LoadTextFile(filePath string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	//TODO: store original encoding of file
-	encoding, _ := GetEncodingFromEnv()
-	return loadTextData(bytes, encoding)
+	//get encodings
+	fallbackEncoding, encErr := GetEncodingFromEnv()
+	encoding, bomLen := detectUTFEncoding(bytes)
+	//try converting to string using UTF encoding
+	text, convErr := convertFromUTFEncoding(bytes, encoding, bomLen)
+	if convErr != nil && encErr != nil {
+		return "", "", convErr
+	}
+	wrn := ""
+	//try converting to string using fallback encoding
+	if convErr != nil {
+		wrn = fmt.Sprintf("warning: %v, using fallback encoding", convErr)
+		text, convErr = convertFromFallbackEncoding(bytes, fallbackEncoding)
+		if convErr != nil {
+			return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", convErr)
+		}
+	}
+	//TODO: save effective original encoding of source file for use when writing to this file in future
+	return strings.ReplaceAll(text, "\r\n", "\n"), wrn, nil
 }
 
 func GetEncodingByName(name string) (encoding.Encoding, error) {
 	enc, err := ianaindex.IANA.Encoding(name)
 	if err != nil {
-		return nil, fmt.Errorf("unknown fallback encoding: %s", name)
+		return nil, fmt.Errorf("unknown fallback encoding %s: %v", name, err)
 	}
 	if enc == nil {
 		return nil, fmt.Errorf("fallback encoding %s is not supported", name)
@@ -126,29 +183,6 @@ func GetEncodingFromEnv() (encoding.Encoding, error) {
 		name = "windows-1252"
 	}
 	return GetEncodingByName(name)
-}
-
-// TODO: return original file encoding
-func loadTextData(bytes []byte, fallbackEncoding encoding.Encoding) (string, string, error) {
-	bytes, err := convertFromUTFEncoding(bytes)
-	if err != nil {
-		return "", "", err
-	}
-	err = CheckUTF8(bytes)
-	wrn := ""
-	if err != nil {
-		if fallbackEncoding == nil {
-			return "", "", err
-		} else {
-			wrn = fmt.Sprintf("warning: %v, using fallback encoding", err)
-			bytes, err = fallbackEncoding.NewDecoder().Bytes(bytes)
-			if err != nil {
-				return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", err)
-			}
-		}
-	}
-	//TODO: use better method to convert windows line-endings
-	return strings.ReplaceAll(string(bytes), "\r\n", "\n"), wrn, nil
 }
 
 func LoadJsonFile(filePath string, v any) error {
