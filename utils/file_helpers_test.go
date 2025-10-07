@@ -375,7 +375,7 @@ func TestConvertToBOMLessUTF8(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := convertToBOMLessEncoding(tc.input)
+			output, err := convertFromUTFEncoding(tc.input)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}

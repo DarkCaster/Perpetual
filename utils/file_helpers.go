@@ -55,7 +55,7 @@ func detectUTFEncoding(data []byte) (utfEncoding, int) {
 	return UTF8, 0
 }
 
-func convertToBOMLessEncoding(data []byte) ([]byte, error) {
+func convertFromUTFEncoding(data []byte) ([]byte, error) {
 	encoding, bomLen := detectUTFEncoding(data)
 	switch encoding {
 	case UTF8:
@@ -130,7 +130,7 @@ func GetEncodingFromEnv() (encoding.Encoding, error) {
 
 // TODO: return original file encoding
 func loadTextData(bytes []byte, fallbackEncoding encoding.Encoding) (string, string, error) {
-	bytes, err := convertToBOMLessEncoding(bytes)
+	bytes, err := convertFromUTFEncoding(bytes)
 	if err != nil {
 		return "", "", err
 	}
