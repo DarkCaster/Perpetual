@@ -24,8 +24,8 @@ import (
 type utfEncoding int
 
 const (
-	OtherBOMLess utfEncoding = iota
-	UTF8
+	UTF8 utfEncoding = iota
+	UTF8BOM
 	UTF16LE
 	UTF16BE
 	UTF32LE
@@ -34,7 +34,7 @@ const (
 
 func detectUTFBOMEncoding(data []byte) (utfEncoding, int) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
-		return UTF8, 3
+		return UTF8BOM, 3
 	}
 	if len(data) >= 2 {
 		if data[0] == 0xFF && data[1] == 0xFE {
@@ -52,15 +52,15 @@ func detectUTFBOMEncoding(data []byte) (utfEncoding, int) {
 			return UTF32BE, 4
 		}
 	}
-	return OtherBOMLess, 0
+	return UTF8, 0
 }
 
 func convertToBOMLessEncoding(data []byte) ([]byte, error) {
 	encoding, bomLen := detectUTFBOMEncoding(data)
 	switch encoding {
-	case OtherBOMLess:
-		return data, nil
 	case UTF8:
+		return data, nil
+	case UTF8BOM:
 		return data[bomLen:], nil
 	case UTF16LE:
 		decoder := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder()

@@ -259,7 +259,7 @@ func TestDetectUTFBOM(t *testing.T) {
 		{
 			name:           "UTF-8 BOM",
 			input:          []byte{0xEF, 0xBB, 0xBF, 0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectedOutput: UTF8,
+			expectedOutput: UTF8BOM,
 			expectedLength: 3,
 		},
 		{
@@ -289,13 +289,13 @@ func TestDetectUTFBOM(t *testing.T) {
 		{
 			name:           "No BOM",
 			input:          []byte{0x68, 0x65, 0x6C, 0x6C, 0x6F},
-			expectedOutput: OtherBOMLess,
+			expectedOutput: UTF8,
 			expectedLength: 0,
 		},
 		{
 			name:           "Empty input",
 			input:          []byte{},
-			expectedOutput: OtherBOMLess,
+			expectedOutput: UTF8,
 			expectedLength: 0,
 		},
 	}
