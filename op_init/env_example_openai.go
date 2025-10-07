@@ -20,6 +20,10 @@ const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults
 # Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
 # Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
 
+# When dealing with files that cannot be read as proper UTF[8/16/32] encoded file, try using this fallback encoding as last resort.
+# You can use encoding names supported by "golang.org/x/text/encoding/ianaindex" package
+# FALLBACK_TEXT_ENCODING="windows-1252"
+
 # Uncomment if this is the only .env config file you are using
 # LLM_PROVIDER="openai"
 

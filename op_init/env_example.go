@@ -24,6 +24,10 @@ const dotEnvExample = `# Configuration files should have ".env" extensions and i
 # "ollama": which parameters started with OLLAMA_* prefix
 # "generic": Generic OpenAI compatible provider, which parameters started with GENERIC_* prefix
 
+# When dealing with files that cannot be read as proper UTF[8/16/32] encoded file, try using this fallback encoding as last resort.
+# You can use encoding names supported by "golang.org/x/text/encoding/ianaindex" package
+# FALLBACK_TEXT_ENCODING="windows-1252"
+
 # Per-operation provider selection
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
