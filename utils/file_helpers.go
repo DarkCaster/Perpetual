@@ -32,6 +32,13 @@ const (
 	UTF32BE
 )
 
+type fileParams struct {
+	ModernEncoding        utfEncoding
+	UsingFallbackEncoding bool
+}
+
+var projectFilesParams = map[string]fileParams{}
+
 func detectUTFEncoding(data []byte) (utfEncoding, int) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
 		return UTF8BOM, 3
@@ -148,6 +155,7 @@ func LoadTextFile(filePath string) (string, string, error) {
 	//get encodings
 	fallbackEncoding, encErr := GetEncodingFromEnv()
 	encoding, bomLen := detectUTFEncoding(bytes)
+	params := fileParams{ModernEncoding: encoding, UsingFallbackEncoding: false}
 	//try converting to string using UTF encoding
 	text, convErr := convertFromUTFEncoding(bytes, encoding, bomLen)
 	if convErr != nil && encErr != nil {
@@ -156,13 +164,15 @@ func LoadTextFile(filePath string) (string, string, error) {
 	wrn := ""
 	//try converting to string using fallback encoding
 	if convErr != nil {
+		params.UsingFallbackEncoding = true
 		wrn = fmt.Sprintf("warning: %v, using fallback encoding", convErr)
 		text, convErr = convertFromFallbackEncoding(bytes, fallbackEncoding)
 		if convErr != nil {
 			return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", convErr)
 		}
 	}
-	//TODO: save effective original encoding of source file for use when writing to this file in future
+	//store file-params for use with writing same file
+	projectFilesParams[filePath] = params
 	return strings.ReplaceAll(text, "\r\n", "\n"), wrn, nil
 }
 
