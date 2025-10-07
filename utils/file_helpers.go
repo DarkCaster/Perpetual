@@ -207,16 +207,68 @@ func LoadJsonFile(filePath string, v any) error {
 	return nil
 }
 
-func SaveTextFile(filePath string, text string) error {
+func convertToUTFEncoding(data []byte, encoding utfEncoding) ([]byte, error) {
+	var err error = nil
+	var result []byte = nil
+	//convert source data to the sequence of native UTF8 runes
+	switch encoding {
+	case UTF8:
+		result = NewSlice(data...) //already UTF8
+	case UTF8BOM:
+		result, err = unicode.UTF8BOM.NewEncoder().Bytes(NewSlice(data...))
+	case UTF16LE:
+		result, err = unicode.UTF16(unicode.LittleEndian, unicode.ExpectBOM).NewEncoder().Bytes(NewSlice(data...))
+	case UTF16BE:
+		result, err = unicode.UTF16(unicode.BigEndian, unicode.ExpectBOM).NewEncoder().Bytes(NewSlice(data...))
+	case UTF32LE:
+		result, err = utf32.UTF32(utf32.LittleEndian, utf32.ExpectBOM).NewEncoder().Bytes(NewSlice(data...))
+	case UTF32BE:
+		result, err = utf32.UTF32(utf32.BigEndian, utf32.ExpectBOM).NewEncoder().Bytes(NewSlice(data...))
+	default:
+		return nil, fmt.Errorf("unsupported encoding")
+	}
+	//conversion failed
+	if err != nil {
+		return nil, err
+	}
+	//return final converted data
+	return result, nil
+}
+
+func SaveTextFile(filePath string, text string) (string, error) {
 	//TODO: use better method to convert windows line-endings
 	if runtime.GOOS == "windows" {
 		text = strings.ReplaceAll(text, "\n", "\r\n")
 	}
-	err := os.WriteFile(filePath, []byte(text), 0644)
-	if err != nil {
-		return err
+	data := []byte(text)
+	wrn := ""
+	//get file parameters, try converting file to the encoding used when reading
+	if params, ok := projectFilesParams[filePath]; ok {
+		if params.UsingFallbackEncoding {
+			encoding, err := GetEncodingFromEnv()
+			if err != nil {
+				wrn = fmt.Sprintf("warning: %v, failed to get fallback encoding, using plain UTF8", err)
+			} else {
+				convData, err := encoding.NewEncoder().Bytes(NewSlice(data...))
+				if err != nil {
+					wrn = fmt.Sprintf("warning: %v, failed to convert file to fallback encoding, using plain UTF8", err)
+				} else {
+					data = convData
+				}
+			}
+		} else {
+			convData, err := convertToUTFEncoding(data, params.ModernEncoding)
+			if err != nil {
+				wrn = fmt.Sprintf("warning: %v, failed to convert file to source encoding, using plain UTF8", err)
+			} else {
+				data = convData
+			}
+		}
 	}
-	return nil
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
+		return wrn, err
+	}
+	return wrn, nil
 }
 
 func WriteTextStdout(text string) error {
@@ -298,7 +350,8 @@ func SaveJsonFile(filePath string, v any) error {
 	if err != nil {
 		return err
 	}
-	return SaveTextFile(filePath, writer.String())
+	_, err = SaveTextFile(filePath, writer.String())
+	return err
 }
 
 func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, string, error) {
