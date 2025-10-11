@@ -30,7 +30,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Bug Fixes
 
-- Fixed loading custom project description file for `implement`, `explain` and `doc` operations.
+- Fixed loading custom project description file for `implement`, `explain` and `doc` operations, `-d` flag used to point to custom project description text file was renamed to `-df`.
 - Minor fixes and improvements in Flutter prompts.
 
 **NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`.
