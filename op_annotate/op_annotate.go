@@ -28,12 +28,13 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Setup
 	var help, force, dryRun, verbose, trace bool
-	var requestedFile, userFilterFile, contextSaving string
+	var descFile, requestedFile, userFilterFile, contextSaving string
 
 	flags := annotateFlags()
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
+	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.BoolVar(&help, "h", false, "This help message")
 	flags.StringVar(&requestedFile, "r", "", "Only annotate single file provided with this flag, even if its annotation is already up to date (implies -f flag)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -93,6 +94,33 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 	annotateConfig := config.LoadOpAnnotateConfig(perpetualDir, logger)
+
+	// Load project description
+	projectDesc := ""
+	wrn := ""
+	if descFile == "" {
+		projectDesc, wrn, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
+		if err != nil {
+			if os.IsNotExist(err) {
+				logger.Infoln("Not loading missing project description file (description.md)")
+			} else {
+				logger.Panicln("Failed to load project description file:", err)
+			}
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
+		}
+	} else if strings.ToLower(descFile) != "disabled" {
+		projectDesc, wrn, err = utils.LoadTextFile(descFile)
+		if err != nil {
+			logger.Panicln("Failed to load project description file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", descFile, wrn)
+		}
+	} else {
+		logger.Infoln("Loading of project description file (description.md) is disabled")
+	}
 
 	var userBlacklist []*regexp.Regexp
 	if userFilterFile != "" {
@@ -269,19 +297,37 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		}
 		fileContents := string(fileBytes)
 
+		// Build message chain with project description if available
+		var messages []llm.Message
+
+		// Add project description if available
+		if projectDesc != "" {
+			projectDescPrompt := llm.AddPlainTextFragment(
+				llm.NewMessage(llm.UserRequest),
+				projectConfig.String(config.K_ProjectDescriptionPrompt))
+			projectDescResponse := llm.AddPlainTextFragment(
+				llm.NewMessage(llm.SimulatedAIResponse),
+				projectConfig.String(config.K_ProjectDescriptionResponse))
+			messages = append(messages, projectDescPrompt, projectDescResponse)
+		}
+
+		// Add annotation prompt and simulated response
 		annotateRequest := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.UserRequest),
 			annotatePrompt)
-
 		annotateSimulatedResponse := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
 			annotateConfig.String(config.K_AnnotateStage1Response))
 
+		// Add file contents
 		fileContentsRequest := llm.AddFileFragment(
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
 			projectConfig.StringArray(config.K_ProjectFilenameTags))
+
+		// Combine all messages
+		messages = append(messages, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
 
@@ -291,7 +337,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			// Get max number of variants to generate on query
 			variantCount := connector.GetVariantCount()
 			// Perform actual query
-			annotationVariants, status, err := connector.Query(variantCount, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotationVariants, status, err := connector.Query(variantCount, messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -335,8 +381,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 			// Combine the annotation using LLM
 			if variantSelectionStrategy == llm.Combine || variantSelectionStrategy == llm.Best {
-				// Create message-chain for request
-				combinedMessages := utils.NewSlice(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+				// Create message-chain for request including project description
+				combinedMessages := utils.NewSlice(messages...)
 				for i, variant := range finalVariants {
 					combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), variant))
 					if i < len(finalVariants)-1 {
