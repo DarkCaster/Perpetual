@@ -25,7 +25,9 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Improvements
 
-- (work in progress) update langchaingo dependency to the latest version, remove many quirks amd fixes that now implemented natively inside library
+- (work in progress) Updated langchaingo library to the latest version, remove many quirks amd fixes that now implemented natively inside library.
+- Added support for setting embeddings dimensions count parameter for Generic LLM provider.
+- (work in progress) Log reasonings for Generic and Open-AI LLM providers by using new logic from langchaingo library.
 - Improved `annotate` operation by adding optional user-generated project description to the LLM context if present.
 - Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env value, when it missing `windows-1252` (ansi) encoding will be used by default.
 
