@@ -36,7 +36,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&addAnnotations, "a", false, "Add project annotation in addition to files requested by LLM to improve the quality of the answer")
 	flags.BoolVar(&listFilesOnly, "l", false, "Only list files that LLM thinks are related to the question, do not generate the final answer. One filename per line, no formatting.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
-	flags.StringVar(&descFile, "d", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
+	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&outputFile, "r", "", "Target file for writing answer, markdown formatted (stdout if not supplied)")
 	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (stdin if not supplied)")
 	flags.StringVar(&extraFile, "e", "", "Read instructions from a text or markdown file that will be used in step 1 to select relevant files. Use if the original question is not good enough for LLM to select relevant files.")
