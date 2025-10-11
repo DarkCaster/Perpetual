@@ -54,6 +54,7 @@ type GenericLLMConnector struct {
 	EmbedDocOverlap       int
 	EmbedSearchChunk      int
 	EmbedSearchOverlap    int
+	EmbedDimensions       int
 	EmbedThreshold        float32
 	EmbedDocPrefix        string
 	EmbedSearchPrefix     string
@@ -145,6 +146,7 @@ func NewGenericLLMConnectorFromEnv(
 	var seed int = math.MaxInt
 	var variants int = 1
 
+	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
 	var embedDocPrefix string = ""
 	var embedSearchPrefix string = ""
@@ -193,6 +195,11 @@ func NewGenericLLMConnectorFromEnv(
 
 		if searchOverlap >= searchChunk {
 			return nil, fmt.Errorf("%s_EMBED_SEARCH_CHUNK_OVERLAP must be smaller than %s_EMBED_SEARCH_CHUNK_SIZE", prefix, prefix)
+		}
+
+		if dimensions, err := utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DIMENSIONS", prefix)); err == nil && dimensions != 0 {
+			embedDimensions = dimensions
+			debug.Add("embed dimensions", dimensions)
 		}
 
 		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
@@ -395,6 +402,7 @@ func NewGenericLLMConnectorFromEnv(
 		EmbedDocOverlap:       docOverlap,
 		EmbedSearchChunk:      searchChunk,
 		EmbedSearchOverlap:    searchOverlap,
+		EmbedDimensions:       embedDimensions,
 		EmbedThreshold:        embedThreshold,
 		EmbedDocPrefix:        embedDocPrefix,
 		EmbedSearchPrefix:     embedSearchPrefix,
@@ -444,6 +452,9 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 	statusCodeCollector := newStatusCodeCollector()
 	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
+	if p.EmbedDimensions > 0 {
+		providerOptions = append(providerOptions, openai.WithEmbeddingDimensions(p.EmbedDimensions))
+	}
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "OPENAI_API_BASE", "OPENAI_ORGANIZATION")

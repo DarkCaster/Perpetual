@@ -42,6 +42,7 @@ type OpenAILLMConnector struct {
 	EmbedDocOverlap       int
 	EmbedSearchChunk      int
 	EmbedSearchOverlap    int
+	EmbedDimensions       int
 	EmbedThreshold        float32
 	Debug                 llmDebug
 	RateLimitDelayS       int
@@ -118,6 +119,7 @@ func NewOpenAILLMConnectorFromEnv(
 
 	var variants int = 1
 
+	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
 
 	variantStrategy := Short
@@ -158,7 +160,7 @@ func NewOpenAILLMConnectorFromEnv(
 		}
 
 		if dimensions, err := utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DIMENSIONS", prefix)); err == nil && dimensions != 0 {
-			fieldsToInject["dimensions"] = dimensions
+			embedDimensions = dimensions
 			debug.Add("embed dimensions", dimensions)
 		}
 
@@ -276,6 +278,7 @@ func NewOpenAILLMConnectorFromEnv(
 		EmbedDocOverlap:       docOverlap,
 		EmbedSearchChunk:      searchChunk,
 		EmbedSearchOverlap:    searchOverlap,
+		EmbedDimensions:       embedDimensions,
 		EmbedThreshold:        embedThreshold,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
@@ -309,6 +312,9 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 	statusCodeCollector := newStatusCodeCollector()
 	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
+	if p.EmbedDimensions > 0 {
+		openAiOptions = append(openAiOptions, openai.WithEmbeddingDimensions(p.EmbedDimensions))
+	}
 
 	// Create backup of env vars and unset them
 	envBackup := utils.BackupEnvVars("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
