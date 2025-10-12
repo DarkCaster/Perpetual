@@ -270,6 +270,10 @@ func NewOllamaLLMConnectorFromEnv(
 		}
 
 		if thinkMode, err := utils.GetEnvString(fmt.Sprintf("%s_THINK_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK", prefix)); err == nil {
+			//NOTE: think support seem to be already implemented at https://github.com/tmc/langchaingo/pull/1349.
+			//Hovewer, langchaingo seem to set this value incorrectly inside options json object, but it must be top-level option
+			//Maybe this will be fixed at future langchaingo library versions, or already fixed at newer Ollama vesions
+			//TODO: recheck: maybe we need to set both options for compat with different ollama versions ?
 			value := false
 			switch strings.ToUpper(thinkMode) {
 			case "TRUE":
