@@ -488,6 +488,9 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			"top_logprobs",
 			"logit_bias",
 		}))
+	} else if strings.HasPrefix(modelStr, "gpt-5") {
+		//disable streaming for all GPT-5 models, it require extra organization verification that may be unavailable for all accounts
+		streamingSupported = false
 	} else if strings.HasPrefix(modelStr, "codex") {
 		//remove unsupported parameters of responses API
 		streamingSupported = false
