@@ -653,9 +653,27 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		}
 	}
 
-	streamFunc := func(ctx context.Context, chunk []byte) error {
+	processingReasonings := false
+	streamFunc := func(ctx context.Context, reasoningChunk []byte, chunk []byte) error {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger(string(chunk))
+			// reasoning chunk received
+			if len(reasoningChunk) > 0 {
+				if !processingReasonings {
+					processingReasonings = true
+					//add header
+					p.RawMessageLogger("AI thinking:\n\n\n")
+				}
+				p.RawMessageLogger(string(reasoningChunk))
+			}
+			// normal chunk received
+			if len(chunk) > 0 {
+				if processingReasonings {
+					processingReasonings = false
+					//add header, because it going after reasonings block - delimit it with newlines at the beginning
+					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				}
+				p.RawMessageLogger(string(chunk))
+			}
 		}
 		return nil
 	}
@@ -673,7 +691,7 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 
 		finalOptions := utils.NewSlice(p.Options...)
 		if p.Streaming {
-			finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+			finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))
 		}
 		// Generate new seed for each response if seed is set
 		if p.Seed != math.MaxInt {
@@ -753,8 +771,15 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 
 		// There was a message received, log it
 		if p.RawMessageLogger != nil {
-			if !p.Streaming && len(response.Choices[0].Content) > 0 {
-				p.RawMessageLogger(response.Choices[0].Content)
+			if !p.Streaming {
+				if response.Choices[0].ReasoningContent != "" {
+					p.RawMessageLogger("AI thinking:\n\n\n")
+					p.RawMessageLogger(response.Choices[0].ReasoningContent)
+					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				}
+				if response.Choices[0].Content != "" {
+					p.RawMessageLogger(response.Choices[0].Content)
+				}
 			}
 			if len(response.Choices[0].Content) < 1 {
 				p.RawMessageLogger("<empty response>")

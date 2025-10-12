@@ -557,9 +557,27 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 	}
 
-	streamFunc := func(ctx context.Context, chunk []byte) error {
+	processingReasonings := false
+	streamFunc := func(ctx context.Context, reasoningChunk []byte, chunk []byte) error {
 		if p.RawMessageLogger != nil {
-			p.RawMessageLogger(string(chunk))
+			// reasoning chunk received
+			if len(reasoningChunk) > 0 {
+				if !processingReasonings {
+					processingReasonings = true
+					//add header
+					p.RawMessageLogger("AI thinking:\n\n\n")
+				}
+				p.RawMessageLogger(string(reasoningChunk))
+			}
+			// normal chunk received
+			if len(chunk) > 0 {
+				if processingReasonings {
+					processingReasonings = false
+					//add header, because it going after reasonings block - delimit it with newlines at the beginning
+					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				}
+				p.RawMessageLogger(string(chunk))
+			}
 		}
 		return nil
 	}
@@ -571,7 +589,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	if maxCandidates > 1 {
 		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
 	} else if streamingSupported {
-		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+		finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))
 		streamingEnabled = true
 	}
 
@@ -643,7 +661,12 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		if p.RawMessageLogger != nil {
 			if !streamingEnabled {
 				p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-				if len(choice.Content) > 0 {
+				if choice.ReasoningContent != "" {
+					p.RawMessageLogger("AI thinking:\n\n\n")
+					p.RawMessageLogger(choice.ReasoningContent)
+					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				}
+				if choice.Content != "" {
 					p.RawMessageLogger(choice.Content)
 				}
 			}
