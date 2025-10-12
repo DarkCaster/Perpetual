@@ -182,7 +182,7 @@ func NewOpenAILLMConnectorFromEnv(
 		}
 
 		if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
-			extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+			extraOptions = append(extraOptions, openai.WithMaxCompletionTokens(maxTokens))
 			debug.Add("max tokens", maxTokens)
 		} else {
 			fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")

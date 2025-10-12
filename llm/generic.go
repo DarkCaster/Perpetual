@@ -37,7 +37,6 @@ type GenericLLMConnector struct {
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
-	MaxTokensFormat       maxTokensFormat
 	Streaming             bool
 	FilesToMdLangMappings [][]string
 	FieldsToInject        map[string]interface{}
@@ -256,7 +255,14 @@ func NewGenericLLMConnectorFromEnv(
 		}
 
 		if maxTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix)); err == nil {
-			extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+			if maxTokensFormat == MaxTokensNew {
+				//NOTE: openai.WithMaxCompletionTokens is generic llms.CallOption
+				extraOptions = append(extraOptions, openai.WithMaxCompletionTokens(maxTokens))
+			} else {
+				extraOptions = append(extraOptions, llms.WithMaxTokens(maxTokens))
+				//NOTE: openai.WithLegacyMaxTokensField is generic llms.CallOption
+				extraOptions = append(extraOptions, openai.WithLegacyMaxTokensField())
+			}
 			debug.Add("max tokens", maxTokens)
 		} else {
 			fieldsToRemove = append(fieldsToRemove, "max_tokens", "max_completion_tokens")
@@ -385,7 +391,6 @@ func NewGenericLLMConnectorFromEnv(
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
 		SystemPromptRole:      systemPromptRole,
-		MaxTokensFormat:       maxTokensFormat,
 		Streaming:             streaming > 0,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
@@ -594,10 +599,6 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	} else {
 		providerOptions = append(providerOptions, openai.WithToken("dummy"))
 		transformers = append(transformers, newBasicAuthTransformer(p.Auth))
-	}
-
-	if p.MaxTokensFormat == MaxTokensOld {
-		transformers = append(transformers, newMaxTokensModelTransformer())
 	}
 
 	if len(p.FieldsToInject) > 0 {
