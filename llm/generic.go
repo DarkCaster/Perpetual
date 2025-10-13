@@ -304,6 +304,8 @@ func NewGenericLLMConnectorFromEnv(
 			//so, instead we are injecting reasoning_effort api option directly into request json
 			debug.Add("reasoning effort", reasoning)
 			switch reasoning {
+			case "MINIMAL":
+				fieldsToInject["reasoning_effort"] = "minimal"
 			case "LOW":
 				fieldsToInject["reasoning_effort"] = "low"
 			case "MEDIUM":

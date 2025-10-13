@@ -198,13 +198,16 @@ func NewOpenAILLMConnectorFromEnv(
 			//hovewer, seem it not working properly for now, or it should be used differently.
 			//so, instead we are injecting reasoning_effort api option directly into request json
 			debug.Add("reasoning effort", reasoning)
-			if reasoning == "LOW" {
+			switch reasoning {
+			case "MINIMAL":
+				fieldsToInject["reasoning_effort"] = "minimal"
+			case "LOW":
 				fieldsToInject["reasoning_effort"] = "low"
-			} else if reasoning == "MEDIUM" {
+			case "MEDIUM":
 				fieldsToInject["reasoning_effort"] = "medium"
-			} else if reasoning == "HIGH" {
+			case "HIGH":
 				fieldsToInject["reasoning_effort"] = "high"
-			} else {
+			default:
 				return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
 			}
 		}
