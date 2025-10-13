@@ -193,7 +193,7 @@ func NewOpenAILLMConnectorFromEnv(
 			debug.Add("top p", topP)
 		}
 
-		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_OP_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
 			debug.Add("reasoning effort", reasoning)
 			if reasoning == "LOW" {
 				fieldsToInject["reasoning_effort"] = "low"
