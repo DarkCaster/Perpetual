@@ -299,6 +299,9 @@ func NewGenericLLMConnectorFromEnv(
 		}
 
 		if reasoning, err := utils.GetEnvUpperString(fmt.Sprintf("%s_REASONING_EFFORT_OP_%s", prefix, operation), fmt.Sprintf("%s_REASONING_EFFORT", prefix)); err == nil {
+			//TODO: looks like this option may be implemented at langchaingo as`llms.WithThinkingMode(llms.ThinkingMode[Low|Med|High])`
+			//hovewer, seem it not working properly for now, or it should be used differently.
+			//so, instead we are injecting reasoning_effort api option directly into request json
 			debug.Add("reasoning effort", reasoning)
 			switch reasoning {
 			case "LOW":
