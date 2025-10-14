@@ -27,7 +27,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - (work in progress) Updated langchaingo library to the latest version, remove many quirks amd fixes that now implemented natively inside library.
 - Added support for setting embeddings dimensions count parameter for Generic LLM provider.
-- Log reasonings for Generic provider by using new logic from langchaingo library (seem to be compatible with DeepSeek API).
+- Added logging reasonings for Generic provider by using new logic from langchaingo library (seem to be compatible with DeepSeek API).
+- Added support for setting additional system/user prompt prefix/suffix per operation for Generic LLM provider, using env options, work same as for Ollama.
 - Fixed `REASONING_EFFORT` env value parsing per-operation.
 - Improved `annotate` operation by adding optional user-generated project description to the LLM context if present.
 - Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env value, when it missing `windows-1252` (ansi) encoding will be used by default.
@@ -37,7 +38,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 - Fixed loading custom project description file for `implement`, `explain` and `doc` operations, `-d` flag used to point to custom project description text file was renamed to `-df`.
 - Minor fixes and improvements in Flutter prompts.
 
-**NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`.
+**NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`. Using new env options like fallback text encoding, or prompt prefix/suffix for Generic LLM provider require adding new parameters to the `*.env` files, see updated env files examples for more info.
 
 ## v8.0.0
 
