@@ -57,6 +57,10 @@ type GenericLLMConnector struct {
 	EmbedThreshold        float32
 	EmbedDocPrefix        string
 	EmbedSearchPrefix     string
+	SystemPromptPrefix    string
+	UserPromptPrefix      string
+	SystemPromptSuffix    string
+	UserPromptSuffix      string
 	ThinkRemoveRx         []*regexp.Regexp
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
@@ -149,6 +153,11 @@ func NewGenericLLMConnectorFromEnv(
 	var embedThreshold float32 = 0.0
 	var embedDocPrefix string = ""
 	var embedSearchPrefix string = ""
+
+	var systemPromptPrefix = ""
+	var userPromptPrefix = ""
+	var systemPromptSuffix = ""
+	var userPromptSuffix = ""
 
 	maxTokensFormat := MaxTokensOld
 	variantStrategy := Short
@@ -385,6 +394,23 @@ func NewGenericLLMConnectorFromEnv(
 		} else if errL == nil && errR == nil && errRC != nil {
 			return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
 		}
+
+		systemPromptPrefix, err = utils.GetEnvString(fmt.Sprintf("%s_SYSTEM_PFX_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSTEM_PFX", prefix))
+		if err == nil && systemPromptPrefix != "" {
+			debug.Add("system prompt prefix", "set")
+		}
+		systemPromptSuffix, err = utils.GetEnvString(fmt.Sprintf("%s_SYSTEM_SFX_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSTEM_SFX", prefix))
+		if err == nil && systemPromptSuffix != "" {
+			debug.Add("system prompt suffix", "set")
+		}
+		userPromptPrefix, err = utils.GetEnvString(fmt.Sprintf("%s_USER_PFX_OP_%s", prefix, operation), fmt.Sprintf("%s_USER_PFX", prefix))
+		if err == nil && userPromptPrefix != "" {
+			debug.Add("user prompt prefix", "set")
+		}
+		userPromptSuffix, err = utils.GetEnvString(fmt.Sprintf("%s_USER_SFX_OP_%s", prefix, operation), fmt.Sprintf("%s_USER_SFX", prefix))
+		if err == nil && userPromptSuffix != "" {
+			debug.Add("user prompt suffix", "set")
+		}
 	}
 
 	return &GenericLLMConnector{
@@ -416,6 +442,10 @@ func NewGenericLLMConnectorFromEnv(
 		EmbedThreshold:        embedThreshold,
 		EmbedDocPrefix:        embedDocPrefix,
 		EmbedSearchPrefix:     embedSearchPrefix,
+		SystemPromptPrefix:    systemPromptPrefix,
+		UserPromptPrefix:      userPromptPrefix,
+		SystemPromptSuffix:    systemPromptSuffix,
+		UserPromptSuffix:      userPromptSuffix,
 		ThinkRemoveRx:         thinkRx,
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
@@ -642,10 +672,10 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	}
 
 	llmMessages := utils.NewSlice(
-		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
 		return []string{}, QueryInitFailed, err
 	}
