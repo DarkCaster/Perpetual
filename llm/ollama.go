@@ -274,12 +274,18 @@ func NewOllamaLLMConnectorFromEnv(
 			//Hovewer, langchaingo seem to set this value incorrectly inside options json object, but it must be top-level option
 			//Maybe this will be fixed at future langchaingo library versions, or already fixed at newer Ollama vesions
 			//TODO: recheck: maybe we need to set both options for compat with different ollama versions ?
-			value := false
+			var value interface{}
 			switch strings.ToUpper(thinkMode) {
 			case "TRUE":
 				value = true
 			case "FALSE":
 				value = false
+			case "HIGH":
+				value = "high"
+			case "MEDIUM":
+				value = "medium"
+			case "LOW":
+				value = "low"
 			default:
 				return nil, fmt.Errorf("invalid THINK env value: %s", thinkMode)
 			}

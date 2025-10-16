@@ -103,9 +103,10 @@ OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
 OLLAMA_FORMAT_OP_DOC_STAGE1="json"
 OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 
-# Options to enable or disable reasoning/thinking for models that support it (Qwen3, DeepSeek R1).
-# For use with Ollama >= v0.9.0 and models/templates that support it.
-# Supported values: true, false. If unset then default behavior for model will be used.
+# Options to enable/disable reasoning/thinking for models that support it (Qwen3, DeepSeek R1, gpt-oss).
+# For use with Ollama >= v0.9.0 and models/templates that support it. May return "400 Bad Request" error for unsupported models.
+# Supported values: true, false. Ollama >= 0.12.0 also support: low, medium, high - for some models (gpt-oss)
+# If no "THINK" values set, Ollama may switch to old/raw output logic, and you may use regexps below to filter content
 # OLLAMA_THINK_OP_ANNOTATE="false"
 # OLLAMA_THINK_OP_ANNOTATE_POST="true"
 # OLLAMA_THINK_OP_IMPLEMENT_STAGE1="false"
@@ -116,7 +117,7 @@ OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 # OLLAMA_THINK_OP_DOC_STAGE2="true" # document generation
 # OLLAMA_THINK_OP_EXPLAIN_STAGE1="false"
 # OLLAMA_THINK_OP_EXPLAIN_STAGE2="true" # answer generation
-OLLAMA_THINK="false" # default value, if this value also unset, Ollama will change to old logic, and you may filter content using regexps below
+OLLAMA_THINK="false" # explicitly set think to false as default, unset if seeing "400 Bad Request" errors for your model
 
 # Options for limiting output tokens for different operations and stages, must be set
 OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
