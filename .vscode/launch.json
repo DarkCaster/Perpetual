@@ -21,7 +21,7 @@
 			"args": ["annotate","-vv","-r","main.go"],
 		},
 		{
-			"name": "Launch Package: embed",
+			"name": "Launch Package: embed -f",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -29,12 +29,20 @@
 			"args": ["embed","-vv","-f"],
 		},
 		{
-			"name": "Launch Package: embed (big file)",
+			"name": "Launch Package: embed (big file) -r utils/tag_parsing_test.go",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
 			"args": ["embed","-vv","-r","utils/tag_parsing_test.go"],
+		},
+				{
+			"name": "Launch Package: embed (small file) -r usage/usage.go",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["embed","-vv","-r","usage/usage.go"],
 		},
 		{
 			"name": "Launch Package: brief report",
