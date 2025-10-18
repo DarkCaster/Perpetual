@@ -197,6 +197,11 @@ func NewOllamaLLMConnectorFromEnv(
 			return nil, fmt.Errorf("%s_EMBED_SEARCH_CHUNK_OVERLAP must be smaller than %s_EMBED_SEARCH_CHUNK_SIZE", prefix, prefix)
 		}
 
+		if dimensions, err := utils.GetEnvInt(fmt.Sprintf("%s_EMBED_DIMENSIONS", prefix)); err == nil && dimensions != 0 {
+			fieldsToInject["dimensions"] = dimensions
+			debug.Add("embed dimensions", dimensions)
+		}
+
 		threshold, err := utils.GetEnvFloat(fmt.Sprintf("%s_EMBED_SCORE_THRESHOLD", prefix))
 		if err == nil {
 			if threshold < -math.MaxFloat32 || threshold > math.MaxFloat32 {
@@ -486,6 +491,10 @@ func (p *OllamaLLMConnector) CreateEmbeddings(mode EmbedMode, tag string, conten
 
 	if len(p.OptionsToRemove) > 0 {
 		transformers = append(transformers, newInnerBodyValuesRemover([]string{"options"}, p.OptionsToRemove))
+	}
+
+	if len(p.FieldsToInject) > 0 {
+		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
