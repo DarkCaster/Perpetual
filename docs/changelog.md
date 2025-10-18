@@ -26,13 +26,13 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 ### Improvements
 
 - (work in progress) Updated langchaingo library to the latest version, remove many quirks amd fixes that now implemented natively inside library.
-- Added support for setting embeddings dimensions count parameter for Generic LLM provider.
+- Added support for setting embeddings dimensions count parameter for Ollama and Generic LLM providers.
 - Added logging reasonings for Generic provider by using new logic from langchaingo library (seem to be compatible with DeepSeek API).
 - Added support for setting additional system/user prompt prefix/suffix per operation for Generic LLM provider, using env options, work same as for Ollama.
-- Fixed `REASONING_EFFORT` env value parsing per-operation.
-- Added `low`, `medium`, `high` options support for `OLLAMA_THINK_*` env option, should work with newer ollama and some models to control its' reasoning efforts.
+- Fixed `REASONING_EFFORT` env variable parsing per-operation.
+- Added `low`, `medium`, `high` options support for `OLLAMA_THINK_*` env option, should work with newer Ollama for some models to control its' reasoning efforts.
 - Improved `annotate` operation by adding optional user-generated project description to the LLM context if present.
-- Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env value, when it missing `windows-1252` (ansi) encoding will be used by default.
+- Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env variable, `windows-1252` (ansi) encoding will be used by default if env variable is missing.
 
 ### Bug Fixes
 
@@ -103,7 +103,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Bug Fixes
 
-- Fixed parsing of empty string env values, so per-operation override of non-empty string value with empty value should work now. Mainly affects Ollama provider when using output extraction regexps from reasoning models.
+- Fixed parsing of empty string env variables, so per-operation override of non-empty string value with empty value should work now. Mainly affects Ollama provider when using output extraction regexps from reasoning models.
 
 ## v5.0.0
 
