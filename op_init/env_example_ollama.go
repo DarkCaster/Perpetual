@@ -57,6 +57,9 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 # OLLAMA_EMBED_SEARCH_CHUNK_SIZE="4096"
 # OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="128"
 
+# Set dimension count of generated vectors, unset by default, setting this parameter may be not supported by model or generate bad vectors
+# OLLAMA_EMBED_DIMENSIONS="1024"
+
 # Cosine score threshold value to consider search vector simiar to target, usually not need to change anything here.
 # Model dependent, may be less than 0 for some models, (score < 0 usually means that the vectors are semantically opposite)
 # OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
