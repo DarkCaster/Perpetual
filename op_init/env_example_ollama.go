@@ -78,6 +78,9 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 # OLLAMA_EMBED_SEARCH_PREFIX="Represent this sentence for searching relevant passages:\n"
 # qwen3-embedding-8b
 # OLLAMA_EMBED_SEARCH_PREFIX="Instruct: retrieve code fragments relevant to the query\nQuery:\n"
+# embeddinggemma
+# OLLAMA_EMBED_DOC_PREFIX="title: code | text:\n"
+# OLLAMA_EMBED_SEARCH_PREFIX="task: code retrieval | query:\n"
 
 # Context overflow detection and management options: multiplier to increase context size, upper limit, and estimation multiplier.
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to initial value when starting new operation stage.
