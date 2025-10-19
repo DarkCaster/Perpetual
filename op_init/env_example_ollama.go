@@ -71,11 +71,13 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 
 # examples for some models:
 # nomic-embed-text-v1.5
-# OLLAMA_EMBED_DOC_PREFIX="search_document: \n"
-# OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
+# OLLAMA_EMBED_DOC_PREFIX="search_document:\n"
+# OLLAMA_EMBED_SEARCH_PREFIX="search_query:\n"
 # mxbai-embed-large-v1
 # OLLAMA_EMBED_DOC_PREFIX=""
-# OLLAMA_EMBED_SEARCH_PREFIX="Represent this sentence for searching relevant passages: \n"
+# OLLAMA_EMBED_SEARCH_PREFIX="Represent this sentence for searching relevant passages:\n"
+# qwen3-embedding-8b
+# OLLAMA_EMBED_SEARCH_PREFIX="Instruct: retrieve code fragments relevant to the query\nQuery:\n"
 
 # Context overflow detection and management options: multiplier to increase context size, upper limit, and estimation multiplier.
 # Used to detect overflow and increase context size on errors if needed. Context size will reset back to initial value when starting new operation stage.
