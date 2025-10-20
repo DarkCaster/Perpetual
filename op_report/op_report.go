@@ -142,7 +142,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	} else {
 		logger.Panicln("Invalid report type:", reportType)
 	}
-	reportStrings, err := llm.RenderMessagesToAIStrings(projectConfig.StringArray2D(config.K_ProjectMdCodeMappings), []llm.Message{reportMessage})
+	reportStrings, err := llm.RenderMessagesToAIStrings(projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings), []llm.Message{reportMessage})
 
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)

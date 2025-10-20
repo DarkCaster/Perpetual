@@ -20,7 +20,7 @@ func Stage1(
 	perpetualDir string,
 	prCfg config.Config,
 	opCfg config.Config,
-	filesToMdLangMappings [][]string,
+	filesToMdLangMappings config.TextMatcher[string],
 	preselectedProjectFiles []string,
 	allProjectFiles []string,
 	projectDesc string,

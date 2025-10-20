@@ -214,7 +214,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
@@ -226,7 +226,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
@@ -274,18 +274,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	for i, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
-		for _, mapping := range annotateConfig.StringArray2D(config.K_AnnotateStage1Prompts) {
-			matched, err := regexp.MatchString(mapping[0], filePath)
-			if err == nil && matched {
-				annotatePrompt = mapping[1+contextSavingMode]
-				break
-			}
-		}
-		if annotatePrompt == "" {
+		if matched, values := annotateConfig.TextMatcherString(config.K_AnnotateStage1Prompts).TryMatch(filePath); matched {
+			annotatePrompt = values[contextSavingMode]
+		} else {
 			logger.Errorln("Failed to detect annotation prompt for file:", filePath)
 			continue
 		}
-
 		// Read file contents and generate annotation
 		fileBytes, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 		if err != nil {

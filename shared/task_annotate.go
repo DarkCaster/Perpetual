@@ -34,7 +34,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 	connector, err := llm.NewLLMConnector("annotate",
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 		map[string]interface{}{},
 		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))

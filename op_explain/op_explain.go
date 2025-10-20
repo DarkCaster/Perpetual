@@ -253,7 +253,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			perpetualDir,
 			projectConfig,
 			explainConfig,
-			projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+			projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 			preselectedFileNames[pass],
 			fileNames,
 			projectDesc,
@@ -331,7 +331,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		perpetualDir,
 		projectConfig,
 		explainConfig,
-		projectConfig.StringArray2D(config.K_ProjectMdCodeMappings),
+		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 		fileNames,
 		filteredRequestedFiles,
 		projectDesc,
@@ -379,7 +379,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	outputMessage = llm.AddPlainTextFragment(outputMessage, answer)
-	outputStrings, err := llm.RenderMessagesToAIStrings(projectConfig.StringArray2D(config.K_ProjectMdCodeMappings), []llm.Message{outputMessage})
+	outputStrings, err := llm.RenderMessagesToAIStrings(projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings), []llm.Message{outputMessage})
 	if err != nil {
 		logger.Panicln("Error rendering report messages:", err)
 	}
