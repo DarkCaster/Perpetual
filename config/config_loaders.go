@@ -57,16 +57,20 @@ func (o *configStorage) StringArray(key string) []string {
 	return interfaceToStringArray(o.get(key).value)
 }
 
-func (o *configStorage) StringArray2D(key string) [][]string {
-	return interfaceTo2DStringArray(o.get(key).value)
-}
-
 func (o *configStorage) Integer(key string) int {
 	return int(as[float64](o.get(key)))
 }
 
 func (o *configStorage) Float(key string) float64 {
 	return as[float64](o.get(key))
+}
+
+func (o *configStorage) PathWithStringData(key string) PathDataCollection[string] {
+	return as[PathDataCollection[string]](o.get(key))
+}
+
+func (o *configStorage) PathWithIntegerData(key string) PathDataCollection[int] {
+	return as[PathDataCollection[int]](o.get(key))
 }
 
 func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
@@ -238,17 +242,13 @@ func processProjectConfig(cfg map[string]interface{}) error {
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
-	// Validate K_ProjectMdCodeMappings
-	mappings := interfaceTo2DStringArray(cfg[K_ProjectMdCodeMappings])
-	for i, mapping := range mappings {
-		if len(mapping) != 2 {
-			return fmt.Errorf("%s[%d] must contain exactly 2 elements", K_ProjectMdCodeMappings, i)
-		}
-		// Try compiling first element as regexp
-		if _, err := regexp.Compile(mapping[0]); err != nil {
-			return fmt.Errorf("%s[%d][0] must be a valid regexp: %s", K_ProjectMdCodeMappings, i, err)
-		}
+	//convert and Validate K_ProjectMdCodeMappings to the format usable for config
+	mappings, err := NewRxDataCollection[string](1, cfg[K_ProjectMdCodeMappings])
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %v", K_ProjectMdCodeMappings, err)
 	}
+	//write back converted value for direct acceess
+	cfg[K_ProjectMdCodeMappings] = mappings
 	//precompile regexps
 	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectFilesBlacklist]), K_ProjectFilesBlacklist); err != nil {
 		return err

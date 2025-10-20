@@ -131,26 +131,9 @@ func interfaceToStringArray(source interface{}) []string {
 	return target
 }
 
-func interfaceTo2DStringArray(source interface{}) [][]string {
-	sourceArray := source.([]interface{})
-	target := make([][]string, len(sourceArray), cap(sourceArray))
-	for i, element := range sourceArray {
-		target[i] = interfaceToStringArray(element)
-	}
-	return target
-}
-
 type rxDataPair[T any] struct {
 	Rx   *regexp.Regexp
 	Data []T
-}
-
-func (p *rxDataPair[T]) Match(path string) bool {
-	return p.Rx.MatchString(path)
-}
-
-func (p *rxDataPair[T]) GetData() []T {
-	return p.Data
 }
 
 type rxDataCollection[T any] struct {
@@ -159,7 +142,7 @@ type rxDataCollection[T any] struct {
 
 func (c *rxDataCollection[T]) GetDataIfMatch(path string) (bool, []T) {
 	for _, p := range c.Pairs {
-		if p.Match(path) {
+		if p.Rx.MatchString(path) {
 			return true, p.Data
 		}
 	}
@@ -168,7 +151,7 @@ func (c *rxDataCollection[T]) GetDataIfMatch(path string) (bool, []T) {
 
 func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {
 	if len(opts) == 0 {
-		return nil, fmt.Errorf("no data provided along with path-regexp: %s", rxStr)
+		return nil, fmt.Errorf("no data provided along with regexp: %s", rxStr)
 	}
 	data := make([]T, len(opts))
 	for i := 0; i < len(opts); i++ {
@@ -182,21 +165,25 @@ func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {
 	if rx, err := regexp.Compile(rxStr); err == nil {
 		return &rxDataPair[T]{Rx: rx, Data: data}, nil
 	} else {
-		return nil, fmt.Errorf("failed to compile path-regexp: %s: %v", rxStr, err)
+		return nil, fmt.Errorf("failed to compile regexp: %s: %v", rxStr, err)
 	}
 }
 
-// source must be 2-d array from json, inner array first element is a regex string, next elements is a path options data, and it must be assignable to T type
-func newRxDataCollection[T any](optsCount int, source []any) (PathDataCollection[T], error) {
+// source must be 2-d array from json, inner array first element is a regex string, next elements is a options data, and it must be assignable to T type
+func NewRxDataCollection[T any](optsCount int, source any) (PathDataCollection[T], error) {
 	if optsCount < 1 {
 		return nil, fmt.Errorf("options count must be > 0")
 	}
-	collection := make([]*rxDataPair[T], len(source))
-	for i, el := range source {
+	sourceArray, ok := source.([]any)
+	if !ok {
+		return nil, fmt.Errorf("value is not an a 2d array")
+	}
+	collection := make([]*rxDataPair[T], len(sourceArray))
+	for i, el := range sourceArray {
 		if innerArr, ok := el.([]any); ok {
 			if len(innerArr) != optsCount+1 {
 				typeName := reflect.TypeFor[T]().String()
-				return nil, fmt.Errorf("inner array at pos %d must contain path-regexp followed by exactly %d parameters of type %s", i+1, optsCount, typeName)
+				return nil, fmt.Errorf("inner array at pos %d must contain regexp followed by exactly %d parameters of type %s", i+1, optsCount, typeName)
 			}
 			if rxStr, ok := innerArr[0].(string); ok {
 				if pair, err := newRxDataPair[T](rxStr, innerArr[1:]); err == nil {
@@ -205,11 +192,11 @@ func newRxDataCollection[T any](optsCount int, source []any) (PathDataCollection
 					return nil, fmt.Errorf("inner array at pos %d processing failed: %v", i+1, err)
 				}
 			} else {
-				return nil, fmt.Errorf("inner array at pos %d first element is not a string path-regexp", i+1)
+				return nil, fmt.Errorf("inner array at pos %d first element is not a regexp", i+1)
 			}
 		} else {
 			typeName := reflect.TypeFor[T]().String()
-			return nil, fmt.Errorf("inner array at pos %d is not a valid array of path-regexp with corresponding options of type %s", i+1, typeName)
+			return nil, fmt.Errorf("inner array at pos %d is not a valid array with regexp + corresponding options of type %s", i+1, typeName)
 		}
 	}
 	return &rxDataCollection[T]{Pairs: collection}, nil
