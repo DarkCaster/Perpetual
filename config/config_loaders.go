@@ -204,6 +204,13 @@ func processOpAnnotateConfig(cfg map[string]interface{}) error {
 	if err := validateOpAnnotateStage1Prompts(cfg[K_AnnotateStage1Prompts]); err != nil {
 		return err
 	}
+	//convert K_AnnotateStage1Prompts to the proper format
+	mappings, err := NewRxDataCollection[string](2, cfg[K_AnnotateStage1Prompts])
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %v", K_AnnotateStage1Prompts, err)
+	}
+	//write back converted value for direct acceess
+	cfg[K_AnnotateStage1Prompts] = mappings
 	return nil
 }
 
