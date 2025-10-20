@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/DarkCaster/Perpetual/config"
+	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -31,7 +31,7 @@ func (p *llmDebug) Format() string {
 	return sb.String()
 }
 
-func getMarkdownCodeBlockType(filesToMdLangMappings config.TextMatcher[string], fileName string) string {
+func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], fileName string) string {
 	if filesToMdLangMappings != nil {
 		if matched, values := filesToMdLangMappings.TryMatch(fileName); matched {
 			return values[0]
@@ -86,7 +86,7 @@ func getMarkdownCodeBlockType(filesToMdLangMappings config.TextMatcher[string], 
 	}
 }
 
-func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings config.TextMatcher[string], messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, error) {
+func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMatcher[string], messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, error) {
 	var result []llms.MessageContent
 	for i, message := range messages {
 		lastMessage := (i >= len(messages)-1)
@@ -209,7 +209,7 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings config.TextM
 	return result, nil
 }
 
-func RenderMessagesToAIStrings(filesToMdLangMappings config.TextMatcher[string], messages []Message) ([]string, error) {
+func RenderMessagesToAIStrings(filesToMdLangMappings utils.TextMatcher[string], messages []Message) ([]string, error) {
 	messageContents, err := renderMessagesToGenericAILangChainFormat(filesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return nil, err

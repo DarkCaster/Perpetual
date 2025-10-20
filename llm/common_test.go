@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/DarkCaster/Perpetual/config"
+	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -181,18 +181,18 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 	}
 }
 
-func createFileToMdMappings(data [][]string) config.TextMatcher[string] {
+func createFileToMdMappings(data [][]string) utils.TextMatcher[string] {
 	byteData, _ := json.Marshal(data)
 	var decodedData any
 	json.Unmarshal(byteData, &decodedData)
-	result, _ := config.NewRxDataCollection[string](1, decodedData)
+	result, _ := utils.NewRxMatcher[string](1, decodedData)
 	return result
 }
 
 func TestRenderMessagesWithMappings(t *testing.T) {
 	testCases := []struct {
 		name     string
-		mappings config.TextMatcher[string]
+		mappings utils.TextMatcher[string]
 		messages []Message
 		expected []llms.MessageContent
 		err      error

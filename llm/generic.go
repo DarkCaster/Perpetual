@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -39,7 +38,7 @@ type GenericLLMConnector struct {
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
 	Streaming             bool
-	FilesToMdLangMappings config.TextMatcher[string]
+	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	UrlQueriesToInject    map[string]string
 	MaxTokensSegments     int
@@ -73,7 +72,7 @@ func NewGenericLLMConnectorFromEnv(
 	operation string,
 	systemPrompt string,
 	systemPromptAck string,
-	filesToMdLangMappings config.TextMatcher[string],
+	filesToMdLangMappings utils.TextMatcher[string],
 	llmRawMessageLogger func(v ...any)) (*GenericLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 

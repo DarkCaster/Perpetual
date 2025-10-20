@@ -65,12 +65,12 @@ func (o *configStorage) Float(key string) float64 {
 	return as[float64](o.get(key))
 }
 
-func (o *configStorage) TextMatcherString(key string) TextMatcher[string] {
-	return as[TextMatcher[string]](o.get(key))
+func (o *configStorage) TextMatcherString(key string) utils.TextMatcher[string] {
+	return as[utils.TextMatcher[string]](o.get(key))
 }
 
-func (o *configStorage) TextMatcherInteger(key string) TextMatcher[int] {
-	return as[TextMatcher[int]](o.get(key))
+func (o *configStorage) TextMatcherInteger(key string) utils.TextMatcher[int] {
+	return as[utils.TextMatcher[int]](o.get(key))
 }
 
 func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
@@ -205,12 +205,12 @@ func processOpAnnotateConfig(cfg map[string]interface{}) error {
 		return err
 	}
 	//convert K_AnnotateStage1Prompts to the proper format
-	mappings, err := NewRxDataCollection[string](2, cfg[K_AnnotateStage1Prompts])
+	matcher, err := utils.NewRxMatcher[string](2, cfg[K_AnnotateStage1Prompts])
 	if err != nil {
 		return fmt.Errorf("failed to parse %s: %v", K_AnnotateStage1Prompts, err)
 	}
 	//write back converted value for direct acceess
-	cfg[K_AnnotateStage1Prompts] = mappings
+	cfg[K_AnnotateStage1Prompts] = matcher
 	return nil
 }
 
@@ -250,12 +250,12 @@ func processProjectConfig(cfg map[string]interface{}) error {
 		return err
 	}
 	//convert and Validate K_ProjectMdCodeMappings to the format usable for config
-	mappings, err := NewRxDataCollection[string](1, cfg[K_ProjectMdCodeMappings])
+	matcher, err := utils.NewRxMatcher[string](1, cfg[K_ProjectMdCodeMappings])
 	if err != nil {
 		return fmt.Errorf("failed to parse %s: %v", K_ProjectMdCodeMappings, err)
 	}
 	//write back converted value for direct acceess
-	cfg[K_ProjectMdCodeMappings] = mappings
+	cfg[K_ProjectMdCodeMappings] = matcher
 	//precompile regexps
 	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectFilesBlacklist]), K_ProjectFilesBlacklist); err != nil {
 		return err

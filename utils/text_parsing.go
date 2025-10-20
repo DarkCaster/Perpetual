@@ -2,9 +2,87 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 )
+
+// Ordered container of [regexp + associated data] records in the same order as in config file
+// Return associated data when one of the regexps matched (trying in the same order as in config file)
+type TextMatcher[T any] interface {
+	TryMatch(path string) (bool, []T)
+}
+
+type rxDataPair[T any] struct {
+	Rx   *regexp.Regexp
+	Data []T
+}
+
+type rxMatcher[T any] struct {
+	Pairs []*rxDataPair[T]
+}
+
+func (c *rxMatcher[T]) TryMatch(path string) (bool, []T) {
+	for _, p := range c.Pairs {
+		if p.Rx.MatchString(path) {
+			return true, p.Data
+		}
+	}
+	return false, nil
+}
+
+func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {
+	if len(opts) == 0 {
+		return nil, fmt.Errorf("no data provided along with regexp: %s", rxStr)
+	}
+	data := make([]T, len(opts))
+	for i := 0; i < len(opts); i++ {
+		if val, ok := opts[i].(T); ok {
+			data[i] = val
+		} else {
+			typeName := reflect.TypeFor[T]().String()
+			return nil, fmt.Errorf("array element at position %d is not a valid value of type %s", i+2, typeName)
+		}
+	}
+	if rx, err := regexp.Compile(rxStr); err == nil {
+		return &rxDataPair[T]{Rx: rx, Data: data}, nil
+	} else {
+		return nil, fmt.Errorf("failed to compile regexp: %s: %v", rxStr, err)
+	}
+}
+
+func NewRxMatcher[T any](optsCount int, source any) (TextMatcher[T], error) {
+	if optsCount < 1 {
+		return nil, fmt.Errorf("options count must be > 0")
+	}
+	sourceArray, ok := source.([]any)
+	if !ok {
+		return nil, fmt.Errorf("value is not an a 2d array")
+	}
+	collection := make([]*rxDataPair[T], len(sourceArray))
+	for i, el := range sourceArray {
+		if innerArr, ok := el.([]any); ok {
+			if len(innerArr) != optsCount+1 {
+				typeName := reflect.TypeFor[T]().String()
+				return nil, fmt.Errorf("inner array at pos %d must contain regexp followed by exactly %d parameters of type %s", i+1, optsCount, typeName)
+			}
+			if rxStr, ok := innerArr[0].(string); ok {
+				if pair, err := newRxDataPair[T](rxStr, innerArr[1:]); err == nil {
+					collection[i] = pair
+				} else {
+					return nil, fmt.Errorf("inner array at pos %d processing failed: %v", i+1, err)
+				}
+			} else {
+				return nil, fmt.Errorf("inner array at pos %d first element is not a regexp", i+1)
+			}
+		} else {
+			typeName := reflect.TypeFor[T]().String()
+			return nil, fmt.Errorf("inner array at pos %d is not a valid array with regexp + corresponding options of type %s", i+1, typeName)
+		}
+	}
+	return &rxMatcher[T]{Pairs: collection}, nil
+}
 
 func ParseMultiTaggedTextRx(sourceText string, startTags []*regexp.Regexp, endTags []*regexp.Regexp, ignoreUnclosedTagErrors bool) ([]string, error) {
 	var result []string

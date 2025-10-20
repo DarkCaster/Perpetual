@@ -2,13 +2,9 @@ package config
 
 import (
 	"regexp"
-)
 
-// Ordered container of [regexp + associated data] records in the same order as in config file
-// Return associated data when one of the regexps matched (trying in the same order as in config file)
-type TextMatcher[T any] interface {
-	TryMatch(path string) (bool, []T)
-}
+	"github.com/DarkCaster/Perpetual/utils"
+)
 
 type Config interface {
 	Float(key string) float64
@@ -18,6 +14,6 @@ type Config interface {
 	Object(key string) map[string]interface{}
 	StringArray(key string) []string
 	RegexpArray(key string) []*regexp.Regexp
-	TextMatcherString(key string) TextMatcher[string]
-	TextMatcherInteger(key string) TextMatcher[int]
+	TextMatcherString(key string) utils.TextMatcher[string]
+	TextMatcherInteger(key string) utils.TextMatcher[int]
 }

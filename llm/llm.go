@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
@@ -81,7 +80,7 @@ type LLMConnector interface {
 func NewLLMConnector(operation string,
 	systemPrompt string,
 	systemPromptAck string,
-	filesToMdLangMappings config.TextMatcher[string],
+	filesToMdLangMappings utils.TextMatcher[string],
 	outputSchema map[string]interface{},
 	outputSchemaName string,
 	outputSchemaDesc string,

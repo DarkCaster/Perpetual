@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
@@ -36,7 +35,7 @@ type OllamaLLMConnector struct {
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
-	FilesToMdLangMappings config.TextMatcher[string]
+	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
 	MaxTokens             int
@@ -71,7 +70,7 @@ func NewOllamaLLMConnectorFromEnv(
 	operation string,
 	systemPrompt string,
 	systemPromptAck string,
-	filesToMdLangMappings config.TextMatcher[string],
+	filesToMdLangMappings utils.TextMatcher[string],
 	outputSchema map[string]interface{},
 	outputFormat OutputFormat,
 	llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
