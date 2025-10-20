@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -28,7 +29,7 @@ type OpenAILLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	SystemPromptAck       string
-	FilesToMdLangMappings [][]string
+	FilesToMdLangMappings config.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
 	MaxTokensSegments     int
@@ -53,7 +54,7 @@ func NewOpenAILLMConnectorFromEnv(
 	operation string,
 	systemPrompt string,
 	systemPromptAck string,
-	filesToMdLangMappings [][]string,
+	filesToMdLangMappings config.TextMatcher[string],
 	outputSchema map[string]interface{},
 	outputSchemaName string,
 	outputSchemaDesc string,

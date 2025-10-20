@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/anthropic"
@@ -25,7 +26,7 @@ type AnthropicLLMConnector struct {
 	Token                 string
 	Model                 string
 	SystemPrompt          string
-	FilesToMdLangMappings [][]string
+	FilesToMdLangMappings config.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
 	MaxTokensSegments     int
@@ -44,7 +45,7 @@ func NewAnthropicLLMConnectorFromEnv(
 	subprofile string,
 	operation string,
 	systemPrompt string,
-	filesToMdLangMappings [][]string,
+	filesToMdLangMappings config.TextMatcher[string],
 	outputSchema map[string]interface{},
 	outputSchemaName string,
 	outputSchemaDesc string,

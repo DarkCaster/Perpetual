@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
@@ -35,7 +36,7 @@ type OllamaLLMConnector struct {
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
-	FilesToMdLangMappings [][]string
+	FilesToMdLangMappings config.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
 	MaxTokens             int
@@ -70,7 +71,7 @@ func NewOllamaLLMConnectorFromEnv(
 	operation string,
 	systemPrompt string,
 	systemPromptAck string,
-	filesToMdLangMappings [][]string,
+	filesToMdLangMappings config.TextMatcher[string],
 	outputSchema map[string]interface{},
 	outputFormat OutputFormat,
 	llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
@@ -636,7 +637,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
 		//do rough context size estimation
-		if msgStrings, err := RenderMessagesToAIStrings([][]string{}, messages); err == nil {
+		if msgStrings, err := RenderMessagesToAIStrings(nil, messages); err == nil {
 			total := 0
 			for _, str := range msgStrings {
 				total += len(str)
