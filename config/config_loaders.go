@@ -53,8 +53,12 @@ func (o *configStorage) String(key string) string {
 	return as[string](o.get(key))
 }
 
-func (o *configStorage) StringArray(key string) []string {
-	return interfaceToStringArray(o.get(key).value)
+func (o *configStorage) Tags(key string) utils.TagPair {
+	sourceArray := o.get(key).value.([]interface{})
+	if len(sourceArray) != 2 {
+		panic(fmt.Errorf("invalid length of array %s: %d", key, len(sourceArray)))
+	}
+	return utils.TagPair{Left: sourceArray[0].(string), Right: sourceArray[1].(string)}
 }
 
 func (o *configStorage) Integer(key string) int {

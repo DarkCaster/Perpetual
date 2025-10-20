@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type TagPair struct {
+	Left  string
+	Right string
+}
+
 // Ordered container of [regexp + associated data] records in the same order as in config file
 // Return associated data when one of the regexps matched (trying in the same order as in config file)
 type TextMatcher[T any] interface {

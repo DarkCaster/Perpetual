@@ -12,7 +12,7 @@ type Config interface {
 	String(key string) string
 	Regexp(key string) *regexp.Regexp
 	Object(key string) map[string]interface{}
-	StringArray(key string) []string
+	Tags(key string) utils.TagPair
 	RegexpArray(key string) []*regexp.Regexp
 	TextMatcherString(key string) utils.TextMatcher[string]
 	TextMatcherInteger(key string) utils.TextMatcher[int]
