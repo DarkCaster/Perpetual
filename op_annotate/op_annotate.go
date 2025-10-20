@@ -318,7 +318,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			projectConfig.StringArray(config.K_ProjectFilenameTags))
+			projectConfig.Tags(config.K_ProjectFilenameTags))
 
 		// Combine all messages
 		messages = append(messages, annotateRequest, annotateSimulatedResponse, fileContentsRequest)

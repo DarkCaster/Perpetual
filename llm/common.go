@@ -1,7 +1,6 @@
 package llm
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -127,26 +126,16 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					var tags []string
-					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
-					if err != nil {
-						return result, err
-					}
 					// Placing filenames in a such way between tags will serve as example for LLM how to deal with filenames in responses
-					builder.WriteString(tags[0] + fragment.FileName + tags[1])
+					builder.WriteString(fragment.FileNameTags.Left + fragment.FileName + fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 				case FileFragment:
 					// Each file fragment must have a blank line between it and previous text
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					var tags []string
-					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
-					if err != nil {
-						return result, err
-					}
 					// Following formatting will also show LLM how to deal with filenames and file contens in responses
-					builder.WriteString(tags[0] + fragment.FileName + tags[1])
+					builder.WriteString(fragment.FileNameTags.Left + fragment.FileName + fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 					builder.WriteString("```" + getMarkdownCodeBlockType(filesToMdLangMappings, fragment.FileName))
 					builder.WriteString("\n")
@@ -160,37 +149,21 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					var tags []string
-					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
-					if err != nil {
-						return result, err
-					}
-					if len(tags) < 2 {
-						return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
-					}
-					builder.WriteString(tags[0])
+					builder.WriteString(fragment.FileNameTags.Left)
 					builder.WriteString(fragment.Contents)
-					builder.WriteString(tags[1])
+					builder.WriteString(fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 				case MultilineTaggedFragment:
 					if index > 0 {
 						builder.WriteString("\n")
 					}
-					var tags []string
-					err := json.Unmarshal([]byte(fragment.FileNameTags), &tags)
-					if err != nil {
-						return result, err
-					}
-					if len(tags) < 2 {
-						return result, fmt.Errorf("invalid tags count in metadata for tagged fragment with index: %d", index)
-					}
-					builder.WriteString(tags[0])
+					builder.WriteString(fragment.FileNameTags.Left)
 					builder.WriteString("\n")
 					builder.WriteString(fragment.Contents)
 					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
 						builder.WriteString("\n")
 					}
-					builder.WriteString(tags[1])
+					builder.WriteString(fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 				default:
 					return result, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)

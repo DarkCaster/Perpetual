@@ -7,7 +7,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func ComposeMessageWithFiles(projectRootDir, prompt string, targetFiles, filenameTags []string, logger logging.ILogger) Message {
+func ComposeMessageWithFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	// Create message fragment with prompt
 	result := AddPlainTextFragment(NewMessage(UserRequest), prompt)
 	// Attach target-files contents
@@ -17,7 +17,7 @@ func ComposeMessageWithFiles(projectRootDir, prompt string, targetFiles, filenam
 	return result
 }
 
-func AppendFileToMessage(message Message, projectRootDir, file string, filenameTags []string, logger logging.ILogger) Message {
+func AppendFileToMessage(message Message, projectRootDir, file string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
 	if err != nil {
 		logger.Panicln("Failed to attach file to prompt:", err)
@@ -25,7 +25,7 @@ func AppendFileToMessage(message Message, projectRootDir, file string, filenameT
 	return AddFileFragment(message, file, text, filenameTags)
 }
 
-func ComposeMessageWithAnnotations(prompt string, targetFiles, filenameTags []string, annotations map[string]string, logger logging.ILogger) Message {
+func ComposeMessageWithAnnotations(prompt string, targetFiles []string, filenameTags utils.TagPair, annotations map[string]string, logger logging.ILogger) Message {
 	request := AddPlainTextFragment(NewMessage(UserRequest), prompt)
 	for _, item := range targetFiles {
 		request = AddIndexFragment(request, item, filenameTags)
@@ -38,7 +38,7 @@ func ComposeMessageWithAnnotations(prompt string, targetFiles, filenameTags []st
 	return request
 }
 
-func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body interface{}, filenameTags []string, logger logging.ILogger) (Message, bool) {
+func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body interface{}, filenameTags utils.TagPair, logger logging.ILogger) (Message, bool) {
 	if text, isText := body.(string); isText {
 		if text == "" {
 			return NewMessage(UserRequest), false

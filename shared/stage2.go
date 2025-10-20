@@ -73,7 +73,7 @@ func Stage2(
 		indexRequest := llm.ComposeMessageWithAnnotations(
 			prCfg.String(config.K_ProjectIndexPrompt),
 			projectFiles,
-			prCfg.StringArray(config.K_ProjectFilenameTags),
+			prCfg.Tags(config.K_ProjectFilenameTags),
 			annotations,
 			logger)
 		messages = append(messages, indexRequest)
@@ -93,7 +93,7 @@ func Stage2(
 			projectRootDir,
 			opCfg.String(config.K_CodePrompt),
 			filesForReview,
-			prCfg.StringArray(config.K_ProjectFilenameTags),
+			prCfg.Tags(config.K_ProjectFilenameTags),
 			logger)
 		messages = append(messages, reviewRequest)
 		logger.Debugln("Created source code review request message")
@@ -109,7 +109,7 @@ func Stage2(
 		if preRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir,
 			preQueriesPrompts[i],
 			preQueriesBodies[i],
-			prCfg.StringArray(config.K_ProjectFilenameTags),
+			prCfg.Tags(config.K_ProjectFilenameTags),
 			logger,
 		); ok {
 			messages = append(messages, preRequest)
@@ -129,7 +129,7 @@ func Stage2(
 	}
 
 	// Create query-processing mainRequest message
-	mainRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
+	mainRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPrompt, mainPromptBody, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 	if !ok {
 		logger.Panicln("Failed to create main prompt message")
 	}
@@ -218,7 +218,7 @@ func Stage2(
 			messages = append(messages, mainRequest)
 		} else {
 			// Add final request message to history - it use simplier instructions that will less likely affect next stages
-			finalRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPromptFinal, mainPromptBody, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
+			finalRequest, ok := llm.ComposeMessageWithFilesOrText(projectRootDir, mainPromptFinal, mainPromptBody, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 			if !ok {
 				logger.Panicln("Failed to create final main prompt message")
 			}

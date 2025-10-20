@@ -75,7 +75,7 @@ func Stage1(
 	indexRequest := llm.ComposeMessageWithAnnotations(
 		prCfg.String(config.K_ProjectIndexPrompt),
 		preselectedProjectFiles,
-		prCfg.StringArray(config.K_ProjectFilenameTags),
+		prCfg.Tags(config.K_ProjectFilenameTags),
 		annotations,
 		logger)
 	messages = append(messages, indexRequest)
@@ -113,7 +113,7 @@ func Stage1(
 	}
 	// Add file contents
 	for _, item := range targetFiles {
-		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, prCfg.StringArray(config.K_ProjectFilenameTags), logger)
+		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 	}
 
 	messages = append(messages, analysisRequest)

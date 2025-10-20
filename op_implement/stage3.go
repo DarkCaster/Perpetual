@@ -70,7 +70,7 @@ func Stage3(projectRootDir string,
 				projectRootDir,
 				opCfg.String(config.K_ImplementStage3PlanningPrompt),
 				targetFiles,
-				prCfg.StringArray(config.K_ProjectFilenameTags),
+				prCfg.Tags(config.K_ProjectFilenameTags),
 				logger)
 		} else {
 			request = llm.AddPlainTextFragment(
@@ -89,7 +89,7 @@ func Stage3(projectRootDir string,
 				projectRootDir,
 				opCfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
 				targetFiles,
-				prCfg.StringArray(config.K_ProjectFilenameTags),
+				prCfg.Tags(config.K_ProjectFilenameTags),
 				logger)
 		} else {
 			jsonModeRequest = llm.AddPlainTextFragment(
@@ -243,7 +243,7 @@ func Stage3(projectRootDir string,
 								messages[msgIndexToAddExtraFiles],
 								projectRootDir,
 								file,
-								prCfg.StringArray(config.K_ProjectFilenameTags),
+								prCfg.Tags(config.K_ProjectFilenameTags),
 								logger)
 							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
@@ -262,10 +262,10 @@ func Stage3(projectRootDir string,
 		// Generate simulated AI message, with list of files
 		response := llm.NewMessage(llm.SimulatedAIResponse)
 		for _, item := range otherFilesToModify {
-			response = llm.AddTaggedFragment(response, item, prCfg.StringArray(config.K_ProjectFilenameTags))
+			response = llm.AddTaggedFragment(response, item, prCfg.Tags(config.K_ProjectFilenameTags))
 		}
 		for _, item := range targetFilesToModify {
-			response = llm.AddTaggedFragment(response, item, prCfg.StringArray(config.K_ProjectFilenameTags))
+			response = llm.AddTaggedFragment(response, item, prCfg.Tags(config.K_ProjectFilenameTags))
 		}
 		// Add response to the normal-mode message history, because it better aligns with tags used to denote the filenames
 		messages = append(messages, response)

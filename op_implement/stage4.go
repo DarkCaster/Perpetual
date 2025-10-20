@@ -63,7 +63,7 @@ func Stage4(projectRootDir string,
 					stage4ChangesDoneMessage,
 					item,
 					contents,
-					prCfg.StringArray(config.K_ProjectFilenameTags))
+					prCfg.Tags(config.K_ProjectFilenameTags))
 			}
 		}
 

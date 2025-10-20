@@ -1,6 +1,8 @@
 package llm
 
-import "encoding/json"
+import (
+	"github.com/DarkCaster/Perpetual/utils"
+)
 
 type MessageType int
 
@@ -24,7 +26,7 @@ type Fragment struct {
 	Type         FragmentType
 	Contents     string
 	FileName     string
-	FileNameTags string
+	FileNameTags utils.TagPair
 }
 
 type Message struct {
@@ -37,7 +39,7 @@ func NewMessage(messageType MessageType) Message {
 	return Message{Type: messageType, Fragments: []Fragment{}, RawText: ""}
 }
 
-func addMessageFragment(message Message, fragmentType FragmentType, contents string, filename string, tags string) Message {
+func addMessageFragment(message Message, fragmentType FragmentType, contents string, filename string, tags utils.TagPair) Message {
 	message.Fragments = append(message.Fragments, Fragment{Type: fragmentType, Contents: contents, FileName: filename, FileNameTags: tags})
 	return message
 }
@@ -51,37 +53,21 @@ func SetRawResponse(message Message, rawResponse string) Message {
 }
 
 func AddPlainTextFragment(message Message, text string) Message {
-	return addMessageFragment(message, PlainTextFragment, text, "", "")
+	return addMessageFragment(message, PlainTextFragment, text, "", utils.TagPair{})
 }
 
-func AddIndexFragment(message Message, filename string, tags []string) Message {
-	bTags, err := json.Marshal(tags)
-	if err != nil {
-		panic(err)
-	}
-	return addMessageFragment(message, IndexFragment, "", filename, string(bTags))
+func AddIndexFragment(message Message, filename string, tags utils.TagPair) Message {
+	return addMessageFragment(message, IndexFragment, "", filename, tags)
 }
 
-func AddTaggedFragment(message Message, contents string, tags []string) Message {
-	bTags, err := json.Marshal(tags)
-	if err != nil {
-		panic(err)
-	}
-	return addMessageFragment(message, TaggedFragment, contents, "", string(bTags))
+func AddTaggedFragment(message Message, contents string, tags utils.TagPair) Message {
+	return addMessageFragment(message, TaggedFragment, contents, "", tags)
 }
 
-func AddMultilineTaggedFragment(message Message, multilineContent string, tags []string) Message {
-	bTags, err := json.Marshal(tags)
-	if err != nil {
-		panic(err)
-	}
-	return addMessageFragment(message, MultilineTaggedFragment, multilineContent, "", string(bTags))
+func AddMultilineTaggedFragment(message Message, multilineContent string, tags utils.TagPair) Message {
+	return addMessageFragment(message, MultilineTaggedFragment, multilineContent, "", tags)
 }
 
-func AddFileFragment(message Message, filename string, contents string, tags []string) Message {
-	bTags, err := json.Marshal(tags)
-	if err != nil {
-		panic(err)
-	}
-	return addMessageFragment(message, FileFragment, contents, filename, string(bTags))
+func AddFileFragment(message Message, filename string, contents string, tags utils.TagPair) Message {
+	return addMessageFragment(message, FileFragment, contents, filename, tags)
 }

@@ -69,7 +69,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 			llm.NewMessage(llm.UserRequest),
 			filePath,
 			fileContents,
-			projectConfig.StringArray(config.K_ProjectFilenameTags))
+			projectConfig.Tags(config.K_ProjectFilenameTags))
 
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate task: %s\n\n\n", filePath))
 		logger.Infoln("Creating task summary for:", filePath)
