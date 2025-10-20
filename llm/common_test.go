@@ -1,9 +1,11 @@
 package llm
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
+	"github.com/DarkCaster/Perpetual/config"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -179,24 +181,32 @@ func TestRenderMessagesToGenericLangChainFormat(t *testing.T) {
 	}
 }
 
+func createFileToMdMappings(data [][]string) config.TextMatcher[string] {
+	byteData, _ := json.Marshal(data)
+	var decodedData any
+	json.Unmarshal(byteData, &decodedData)
+	result, _ := config.NewRxDataCollection[string](1, decodedData)
+	return result
+}
+
 func TestRenderMessagesWithMappings(t *testing.T) {
 	testCases := []struct {
 		name     string
-		mappings [][]string
+		mappings config.TextMatcher[string]
 		messages []Message
 		expected []llms.MessageContent
 		err      error
 	}{
 		{
 			name:     "Empty messages",
-			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: createFileToMdMappings([][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}),
 			messages: []Message{},
 			expected: []llms.MessageContent{},
 			err:      errors.New("no messages was generated"),
 		},
 		{
 			name:     "User request message",
-			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: createFileToMdMappings([][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}),
 			messages: []Message{
 				NewMessage(UserRequest),
 			},
@@ -207,7 +217,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "AI response message",
-			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: createFileToMdMappings([][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}),
 			messages: []Message{
 				NewMessage(SimulatedAIResponse),
 			},
@@ -218,7 +228,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "Real AI response with raw response",
-			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: createFileToMdMappings([][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}),
 			messages: []Message{
 				SetRawResponse(NewMessage(RealAIResponse), "This is a raw response."),
 			},
@@ -227,7 +237,7 @@ func TestRenderMessagesWithMappings(t *testing.T) {
 		},
 		{
 			name:     "Multiple messages with different fragments",
-			mappings: [][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}},
+			mappings: createFileToMdMappings([][]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}),
 			messages: []Message{
 				AddFileFragment(AddPlainTextFragment(NewMessage(SimulatedAIResponse), "This is a file content."), "file.bas", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}\n", []string{"<filename>", "</filename>"}),
 				AddFileFragment(AddPlainTextFragment(NewMessage(SimulatedAIResponse), "This is a file content."), "File.BAS", "package main\n\nfunc main() {\n\tprintln(\"Hello, World!\")\n}", []string{"<filename>", "</filename>"}),
