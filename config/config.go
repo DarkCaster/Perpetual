@@ -4,9 +4,10 @@ import (
 	"regexp"
 )
 
-// Container with PathData instances in same order as in config file, return associated data for the first patch match (if any)
-type PathDataCollection[T any] interface {
-	GetDataIfMatch(path string) (bool, []T)
+// Ordered container of [regexp + associated data] records in the same order as in config file
+// Return associated data when one of the regexps matched (trying in the same order as in config file)
+type TextMatcher[T any] interface {
+	TryMatch(path string) (bool, []T)
 }
 
 type Config interface {
@@ -17,6 +18,6 @@ type Config interface {
 	Object(key string) map[string]interface{}
 	StringArray(key string) []string
 	RegexpArray(key string) []*regexp.Regexp
-	PathWithStringData(key string) PathDataCollection[string]
-	PathWithIntegerData(key string) PathDataCollection[int]
+	TextMatcherString(key string) TextMatcher[string]
+	TextMatcherInteger(key string) TextMatcher[int]
 }

@@ -65,12 +65,12 @@ func (o *configStorage) Float(key string) float64 {
 	return as[float64](o.get(key))
 }
 
-func (o *configStorage) PathWithStringData(key string) PathDataCollection[string] {
-	return as[PathDataCollection[string]](o.get(key))
+func (o *configStorage) TextMatcherString(key string) TextMatcher[string] {
+	return as[TextMatcher[string]](o.get(key))
 }
 
-func (o *configStorage) PathWithIntegerData(key string) PathDataCollection[int] {
-	return as[PathDataCollection[int]](o.get(key))
+func (o *configStorage) TextMatcherInteger(key string) TextMatcher[int] {
+	return as[TextMatcher[int]](o.get(key))
 }
 
 func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {

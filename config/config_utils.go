@@ -140,7 +140,7 @@ type rxDataCollection[T any] struct {
 	Pairs []*rxDataPair[T]
 }
 
-func (c *rxDataCollection[T]) GetDataIfMatch(path string) (bool, []T) {
+func (c *rxDataCollection[T]) TryMatch(path string) (bool, []T) {
 	for _, p := range c.Pairs {
 		if p.Rx.MatchString(path) {
 			return true, p.Data
@@ -170,7 +170,7 @@ func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {
 }
 
 // source must be 2-d array from json, inner array first element is a regex string, next elements is a options data, and it must be assignable to T type
-func NewRxDataCollection[T any](optsCount int, source any) (PathDataCollection[T], error) {
+func NewRxDataCollection[T any](optsCount int, source any) (TextMatcher[T], error) {
 	if optsCount < 1 {
 		return nil, fmt.Errorf("options count must be > 0")
 	}
