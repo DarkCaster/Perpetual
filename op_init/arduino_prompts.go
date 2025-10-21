@@ -61,9 +61,11 @@ func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
 	}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (Arduino/C++). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
-
-	// redefine language-dependent prompt
+	// redefine language-dependent prompts
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.(c|cpp|ino|h|hpp|hh|tpp|ipp)$", 1024},
+	}
 	return result
 }
 

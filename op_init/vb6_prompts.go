@@ -55,6 +55,9 @@ func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.(frm|cls|bas)$", 1024},
+	}
 	return result
 }
 

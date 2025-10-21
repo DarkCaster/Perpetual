@@ -111,6 +111,10 @@ func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (using Flutter SDK/Dart language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.(dart|arb|cc|cpp|cxx|c\\+\\+|cppm|h\\+\\+|hpp|hh|tpp|ipp|rc|java|kt|xml)$", 1024},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 1024},
+	}
 	return result
 }
 

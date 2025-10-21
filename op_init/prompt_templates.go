@@ -133,6 +133,7 @@ var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/fil
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
+var defaultIncrModeTagsRegexps = []string{"(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"}
 
 func getDefaultListOfFilesOutputSchema() map[string]interface{} {
 	return map[string]interface{}{
@@ -292,5 +293,7 @@ func getDefaultProjectConfigTemplate() map[string]interface{} {
 	result[config.K_ProjectFilenameTagsRx] = defaultFileNameTagsRegexps
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps
 	result[config.K_ProjectNoUploadCommentsRx] = defaultOutputTagsRegexps
+	// settings for incremental file-change mode
+	result[config.K_ProjectFilesIncrModeRx] = defaultIncrModeTagsRegexps
 	return result
 }

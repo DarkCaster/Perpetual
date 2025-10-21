@@ -51,6 +51,9 @@ func (p *bashPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Bash scripting). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.(sh|bash|in)$", 1024},
+	}
 	return result
 }
 

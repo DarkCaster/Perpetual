@@ -253,13 +253,23 @@ func processProjectConfig(cfg map[string]interface{}) error {
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
 		return err
 	}
+
 	//convert and Validate K_ProjectMdCodeMappings to the format usable for config
-	matcher, err := utils.NewRxMatcher[string](1, cfg[K_ProjectMdCodeMappings])
+	codeBlocksMatcher, err := utils.NewRxMatcher[string](1, cfg[K_ProjectMdCodeMappings])
 	if err != nil {
 		return fmt.Errorf("failed to parse %s: %v", K_ProjectMdCodeMappings, err)
 	}
 	//write back converted value for direct acceess
-	cfg[K_ProjectMdCodeMappings] = matcher
+	cfg[K_ProjectMdCodeMappings] = codeBlocksMatcher
+
+	//convert and Validate K_ProjectFilesIncrModeMinLen to the format usable for config
+	fileLenMatcher, err := utils.NewRxMatcher[int](1, cfg[K_ProjectFilesIncrModeMinLen])
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %v", K_ProjectFilesIncrModeMinLen, err)
+	}
+	//write back converted value for direct acceess
+	cfg[K_ProjectFilesIncrModeMinLen] = fileLenMatcher
+
 	//precompile regexps
 	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectFilesBlacklist]), K_ProjectFilesBlacklist); err != nil {
 		return err
@@ -276,6 +286,12 @@ func processProjectConfig(cfg map[string]interface{}) error {
 	} else {
 		cfg[K_ProjectTestFilesBlacklist] = rxArr
 	}
+	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectFilesIncrModeRx]), K_ProjectFilesIncrModeRx); err != nil {
+		return err
+	} else {
+		cfg[K_ProjectFilesIncrModeRx] = rxArr
+	}
+
 	//validate arrays with value-pairs
 	if err := validateEvenStringArray(cfg[K_ProjectFilenameTags], K_ProjectFilenameTags); err != nil {
 		return err

@@ -24,6 +24,8 @@ const K_ProjectFilesBlacklist = "project_files_blacklist"
 const K_ProjectFilesWhitelist = "project_files_whitelist"
 const K_ProjectTestFilesBlacklist = "project_test_files_blacklist"
 const K_ProjectMdCodeMappings = "files_to_md_code_mappings"
+const K_ProjectFilesIncrModeMinLen = "files_incremental_mode_min_length"
+const K_ProjectFilesIncrModeRx = "files_incremental_mode_rx"
 
 // Keys present in multuple operations config files
 const K_SystemPrompt = "system_prompt"

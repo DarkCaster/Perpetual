@@ -60,9 +60,12 @@ func (p *cPrompts) GetProjectConfig() map[string]interface{} {
 	}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in C language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
-
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.(c|h)$", 1024},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 1024},
+	}
 	return result
 }
 

@@ -54,6 +54,9 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Go language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
+		{"(?i)^.*\\.go$", 1024},
+	}
 	return result
 }
 

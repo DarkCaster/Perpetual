@@ -11,6 +11,7 @@ const templateFloat = 0.0
 
 var templateStringArray = [...]string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 var templateString2DArray = [...][]string{{"TEMPLATE VALUE_00", "TEMPLATE VALUE_01"}, {"TEMPLATE VALUE_10", "TEMPLATE VALUE_11"}}
+var templateStringInt2DArray = [...][]any{{"TEMPLATE VALUE_00", 0}, {"TEMPLATE VALUE_10", 1}}
 var templateObject = map[string]interface{}{"TEMPLATE_KEY": "TEMPLATE_VALUE"}
 
 func GetAnnotateConfigTemplate() map[string]interface{} {
@@ -152,5 +153,8 @@ func GetProjectConfigTemplate() map[string]interface{} {
 	result[K_ProjectFilenameTagsRx] = templateStringArray
 	result[K_ProjectCodeTagsRx] = templateStringArray
 	result[K_ProjectNoUploadCommentsRx] = templateStringArray
+	// settings for incremental file-change mode
+	result[K_ProjectFilesIncrModeMinLen] = templateStringInt2DArray
+	result[K_ProjectFilesIncrModeRx] = templateStringArray
 	return result
 }
