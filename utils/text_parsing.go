@@ -42,12 +42,22 @@ func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {
 		return nil, fmt.Errorf("no data provided along with regexp: %s", rxStr)
 	}
 	data := make([]T, len(opts))
-	for i := 0; i < len(opts); i++ {
-		if val, ok := opts[i].(T); ok {
-			data[i] = val
-		} else {
-			typeName := reflect.TypeFor[T]().String()
-			return nil, fmt.Errorf("array element at position %d is not a valid value of type %s", i+2, typeName)
+	tType := reflect.TypeFor[T]()
+	for i, opt := range opts {
+		ok := false
+		v := reflect.ValueOf(opt)
+		switch v.Kind() {
+		// manual conversion of floats, because JSON deserialize numbers as float
+		case reflect.Float64, reflect.Float32:
+			if ok = v.CanConvert(tType); ok {
+				data[i] = v.Convert(tType).Interface().(T)
+			}
+		// direct assignment for other types
+		default:
+			data[i], ok = opt.(T)
+		}
+		if !ok {
+			return nil, fmt.Errorf("array element at position %d is not a valid value of type %s", i+2, tType.String())
 		}
 	}
 	if rx, err := regexp.Compile(rxStr); err == nil {
