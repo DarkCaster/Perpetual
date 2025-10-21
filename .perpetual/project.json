@@ -11,6 +11,17 @@
     "(?m)\\s*<filename>\\n?",
     "(?m)<\\/filename>\\s*$?"
   ],
+  "files_incremental_mode_min_length": [
+    [
+      "(?i)^.*\\.go$",
+      1024
+    ]
+  ],
+  "files_incremental_mode_rx": [
+    "(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)",
+    "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)",
+    "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"
+  ],
   "files_to_md_code_mappings": [],
   "high_context_saving_file_count": 1200,
   "high_context_saving_random_percent": 20,
