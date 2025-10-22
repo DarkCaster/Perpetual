@@ -807,15 +807,292 @@ func TestGetOddRegexps(t *testing.T) {
 	}
 }
 
-// Helper function to compare slices of regexps
-func equalRegexSlices(a, b []*regexp.Regexp) bool {
-	if len(a) != len(b) {
-		return false
+func TestNewRxDataPair(t *testing.T) {
+	testCases := []struct {
+		name          string
+		rxStr         string
+		opts          []any
+		expectedError string
+	}{
+		{
+			name:          "Empty options slice",
+			rxStr:         "test.*pattern",
+			opts:          []any{},
+			expectedError: "no data provided along with regexp: test.*pattern",
+		},
+		{
+			name:          "Invalid regex pattern",
+			rxStr:         "[invalid-regex",
+			opts:          []any{"data"},
+			expectedError: "failed to compile regexp: [invalid-regex: error parsing regexp: missing closing ]: `[invalid-regex`",
+		},
+		{
+			name:          "Valid regex with single string option",
+			rxStr:         "test.*pattern",
+			opts:          []any{"data1"},
+			expectedError: "",
+		},
+		{
+			name:          "Valid regex with multiple string options",
+			rxStr:         "test.*pattern",
+			opts:          []any{"data1", "data2"},
+			expectedError: "",
+		},
+		{
+			name:          "Valid regex with float64 options, not assignable to string",
+			rxStr:         "test.*pattern",
+			opts:          []any{float64(1.5), float64(2.7)},
+			expectedError: "array element at position 2 is not a valid value of type string",
+		},
+		{
+			name:          "Valid regex with mixed convertible types, not assignable to string",
+			rxStr:         "test.*pattern",
+			opts:          []any{float64(42), "string_data"},
+			expectedError: "array element at position 2 is not a valid value of type string",
+		},
 	}
-	for i := range a {
-		if a[i].String() != b[i].String() {
-			return false
-		}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := newRxDataPair[string](tc.rxStr, tc.opts)
+
+			if tc.expectedError != "" {
+				if err == nil {
+					t.Errorf("Expected error '%s', but got nil", tc.expectedError)
+				} else if err.Error() != tc.expectedError {
+					t.Errorf("Expected error '%s', but got '%s'", tc.expectedError, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if result == nil {
+					t.Error("Expected non-nil result, but got nil")
+				}
+				if result.Rx == nil {
+					t.Error("Expected non-nil regex in result")
+				}
+				if len(result.Data) != len(tc.opts) {
+					t.Errorf("Expected data length %d, but got %d", len(tc.opts), len(result.Data))
+				}
+				if result.Rx.String() != tc.rxStr {
+					t.Errorf("Expected regex pattern '%s', but got '%s'", tc.rxStr, result.Rx.String())
+				}
+			}
+		})
 	}
-	return true
+}
+
+func TestNewRxDataPairWithDifferentTypes(t *testing.T) {
+	testCases := []struct {
+		name          string
+		rxStr         string
+		opts          []any
+		typeParam     string
+		expectedError string
+	}{
+		{
+			name:          "String type with valid conversion",
+			rxStr:         ".*\\.go$",
+			opts:          []any{"go_file", "another_go_file"},
+			typeParam:     "string",
+			expectedError: "",
+		},
+		{
+			name:          "Int type with float64 conversion",
+			rxStr:         ".*\\.txt$",
+			opts:          []any{float64(42), float64(100)},
+			typeParam:     "int",
+			expectedError: "",
+		},
+		{
+			name:          "Int32 type with float64 conversion",
+			rxStr:         ".*\\.json$",
+			opts:          []any{float64(1), float64(2)},
+			typeParam:     "int32",
+			expectedError: "",
+		},
+		{
+			name:          "Float64 type with float64 conversion",
+			rxStr:         ".*\\.csv$",
+			opts:          []any{float64(3.14), float64(2.71)},
+			typeParam:     "float64",
+			expectedError: "",
+		},
+		{
+			name:          "Float64 type with float64 conversion",
+			rxStr:         ".*\\.csv$",
+			opts:          []any{float64(3.14), float64(2.71)},
+			typeParam:     "float32",
+			expectedError: "",
+		},
+		{
+			name:          "Type conversion failure for string to int",
+			rxStr:         ".*\\.xml$",
+			opts:          []any{"not_a_number"},
+			typeParam:     "int",
+			expectedError: "array element at position 2 is not a valid value of type int",
+		},
+		{
+			name:          "Type conversion failure for incompatible types",
+			rxStr:         ".*\\.yaml$",
+			opts:          []any{struct{}{}},
+			typeParam:     "string",
+			expectedError: "array element at position 2 is not a valid value of type string",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var err error
+			var result any
+
+			switch tc.typeParam {
+			case "string":
+				result, err = newRxDataPair[string](tc.rxStr, tc.opts)
+			case "int":
+				result, err = newRxDataPair[int](tc.rxStr, tc.opts)
+			case "int32":
+				result, err = newRxDataPair[int32](tc.rxStr, tc.opts)
+			case "float64":
+				result, err = newRxDataPair[float64](tc.rxStr, tc.opts)
+			case "float32":
+				result, err = newRxDataPair[float32](tc.rxStr, tc.opts)
+			}
+
+			if tc.expectedError != "" {
+				if err == nil {
+					t.Errorf("Expected error '%s', but got nil", tc.expectedError)
+				} else if err.Error() != tc.expectedError {
+					t.Errorf("Expected error '%s', but got '%s'", tc.expectedError, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if result == nil {
+					t.Error("Expected non-nil result, but got nil")
+				}
+			}
+		})
+	}
+}
+
+func TestNewRxDataPairFloatConversion(t *testing.T) {
+	testCases := []struct {
+		name          string
+		rxStr         string
+		opts          []any
+		expectedData  []int
+		expectedError string
+	}{
+		{
+			name:          "Float64 to int conversion",
+			rxStr:         "test.*",
+			opts:          []any{float64(10), float64(20)},
+			expectedData:  []int{10, 20},
+			expectedError: "",
+		},
+		{
+			name:          "Float32 to int conversion",
+			rxStr:         "test.*",
+			opts:          []any{float32(5), float32(15)},
+			expectedData:  []int{5, 15},
+			expectedError: "",
+		},
+		{
+			name:          "Mixed float types to int conversion",
+			rxStr:         "test.*",
+			opts:          []any{float64(7), float32(14)},
+			expectedData:  []int{7, 14},
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := newRxDataPair[int](tc.rxStr, tc.opts)
+
+			if tc.expectedError != "" {
+				if err == nil {
+					t.Errorf("Expected error '%s', but got nil", tc.expectedError)
+				} else if err.Error() != tc.expectedError {
+					t.Errorf("Expected error '%s', but got '%s'", tc.expectedError, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if result == nil {
+					t.Error("Expected non-nil result, but got nil")
+				}
+				if len(result.Data) != len(tc.expectedData) {
+					t.Errorf("Expected data length %d, but got %d", len(tc.expectedData), len(result.Data))
+				}
+				for i, expected := range tc.expectedData {
+					if result.Data[i] != expected {
+						t.Errorf("Expected data[%d] = %d, but got %d", i, expected, result.Data[i])
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestNewRxDataPairComplexRegex(t *testing.T) {
+	testCases := []struct {
+		name          string
+		rxStr         string
+		opts          []any
+		expectedError string
+	}{
+		{
+			name:          "Complex regex with groups",
+			rxStr:         `^(\d{3})-(\d{3})-(\d{4})$`,
+			opts:          []any{"phone_pattern"},
+			expectedError: "",
+		},
+		{
+			name:          "Regex with special characters",
+			rxStr:         `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`,
+			opts:          []any{"email_pattern"},
+			expectedError: "",
+		},
+		{
+			name:          "Long regex pattern",
+			rxStr:         `^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$`,
+			opts:          []any{"uuid_pattern"},
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := newRxDataPair[string](tc.rxStr, tc.opts)
+
+			if tc.expectedError != "" {
+				if err == nil {
+					t.Errorf("Expected error '%s', but got nil", tc.expectedError)
+				} else if err.Error() != tc.expectedError {
+					t.Errorf("Expected error '%s', but got '%s'", tc.expectedError, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if result == nil {
+					t.Error("Expected non-nil result, but got nil")
+				}
+				if result.Rx == nil {
+					t.Error("Expected non-nil regex in result")
+				}
+				if result.Rx.String() != tc.rxStr {
+					t.Errorf("Expected regex pattern '%s', but got '%s'", tc.rxStr, result.Rx.String())
+				}
+				if len(result.Data) != len(tc.opts) {
+					t.Errorf("Expected data length %d, but got %d", len(tc.opts), len(result.Data))
+				}
+			}
+		})
+	}
 }
