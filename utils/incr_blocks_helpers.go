@@ -89,3 +89,15 @@ func ParseIncrBlocks(source string, searchTags []*regexp.Regexp) ([]IncrBlock, e
 
 	return blocks, nil
 }
+
+func FilterIncrBlocks(incrBlocks []IncrBlock, startTags []*regexp.Regexp, endTags []*regexp.Regexp) []IncrBlock {
+	filteredBlocks := make([]IncrBlock, len(incrBlocks))
+	for i, block := range incrBlocks {
+		search := GetTextAfterFirstMatchesRx(block.Search, startTags)
+		search = GetTextBeforeLastMatchesRx(search, endTags)
+		replace := GetTextAfterFirstMatchesRx(block.Replace, startTags)
+		replace = GetTextBeforeLastMatchesRx(replace, endTags)
+		filteredBlocks[i] = IncrBlock{Search: search, Replace: replace}
+	}
+	return filteredBlocks
+}
