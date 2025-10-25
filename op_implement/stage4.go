@@ -116,8 +116,31 @@ func Stage4(projectRootDir string,
 			stage4ProcessIncrPrompt = cfg.String(config.K_ImplementStage4ProcessIncrPrompt)
 		}
 
-		useIncrMode := !noIncrMode
-		//TODO: detect can we use incremental mode or not - depending on source file-name matching and file-size
+		useIncrMode := true
+		if noIncrMode {
+			useIncrMode = false
+		} else {
+			//TODO: get incremental mode setting from connector
+		}
+
+		if useIncrMode {
+			//detect if we can use incremental mode depending on file size and filename match
+			_, fileSize, err := llm.GetSourceFileFromCache(pendingFile)
+			if err != nil {
+				useIncrMode = false
+				logger.Infoln("Not using incremental mode, new file:", pendingFile)
+			} else {
+				matcher := prCfg.TextMatcherInteger(config.K_ProjectFilesIncrModeMinLen)
+				if ok, v := matcher.TryMatch(pendingFile); ok {
+					if fileSize < v[0] {
+						useIncrMode = false
+						logger.Infoln("Not using incremental mode, file too small:", pendingFile)
+					}
+				} else {
+					logger.Infoln("Not using incremental mode for file:", pendingFile)
+				}
+			}
+		}
 
 		var fileBodies []string
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
