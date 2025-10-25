@@ -31,6 +31,7 @@ type OpenAILLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
+	IncrModeSupport       bool
 	MaxTokensSegments     int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
@@ -123,6 +124,7 @@ func NewOpenAILLMConnectorFromEnv(
 	var embedThreshold float32 = 0.0
 
 	variantStrategy := Short
+	incrModeSupport := true
 
 	if operation == "EMBED" {
 		fieldsToRemove = append(fieldsToRemove, "temperature")
@@ -174,6 +176,18 @@ func NewOpenAILLMConnectorFromEnv(
 			}
 		}
 	} else {
+		if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
+			if incrMode == "FALSE" {
+				debug.Add("incr.mode", false)
+				incrModeSupport = false
+			} else if incrMode == "TRUE" {
+				debug.Add("incr.mode", true)
+				incrModeSupport = true
+			} else {
+				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
+			}
+		}
+
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 			debug.Add("temperature", temperature)
@@ -273,6 +287,7 @@ func NewOpenAILLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
+		IncrModeSupport:       incrModeSupport,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -722,6 +737,10 @@ func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 
 func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
+}
+
+func (p *OpenAILLMConnector) GetIncrModeSupport() bool {
+	return p.IncrModeSupport
 }
 
 func (p *OpenAILLMConnector) GetDebugString() string {

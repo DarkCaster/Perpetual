@@ -72,6 +72,7 @@ type LLMConnector interface {
 	GetDebugString() string
 	GetPerfString() string
 	GetOutputFormat() OutputFormat
+	GetIncrModeSupport() bool
 	// Results variant-count management.
 	GetVariantCount() int
 	GetVariantSelectionStrategy() VariantSelectionStrategy

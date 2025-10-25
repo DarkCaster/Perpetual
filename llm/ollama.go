@@ -38,6 +38,7 @@ type OllamaLLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
+	IncrModeSupport       bool
 	MaxTokens             int
 	MaxTokensSegments     int
 	OnFailRetries         int
@@ -158,6 +159,7 @@ func NewOllamaLLMConnectorFromEnv(
 	var userPromptSuffix = ""
 
 	variantStrategy := Short
+	incrModeSupport := true
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
@@ -224,6 +226,18 @@ func NewOllamaLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
+		if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
+			if incrMode == "FALSE" {
+				debug.Add("incr.mode", false)
+				incrModeSupport = false
+			} else if incrMode == "TRUE" {
+				debug.Add("incr.mode", true)
+				incrModeSupport = true
+			} else {
+				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
+			}
+		}
+
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 			extraOptions = append(extraOptions, llms.WithTemperature(temperature))
 			debug.Add("temperature", temperature)
@@ -440,6 +454,7 @@ func NewOllamaLLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
+		IncrModeSupport:       incrModeSupport,
 		MaxTokensSegments:     maxTokensSegments,
 		MaxTokens:             maxTokens,
 		OnFailRetries:         onFailRetries,
@@ -907,6 +922,10 @@ func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 
 func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
+}
+
+func (p *OllamaLLMConnector) GetIncrModeSupport() bool {
+	return p.IncrModeSupport
 }
 
 func (p *OllamaLLMConnector) GetDebugString() string {

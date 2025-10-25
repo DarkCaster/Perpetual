@@ -41,6 +41,7 @@ type GenericLLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	UrlQueriesToInject    map[string]string
+	IncrModeSupport       bool
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -161,6 +162,7 @@ func NewGenericLLMConnectorFromEnv(
 
 	maxTokensFormat := MaxTokensOld
 	variantStrategy := Short
+	incrModeSupport := true
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
@@ -232,6 +234,18 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
+		if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
+			if incrMode == "FALSE" {
+				debug.Add("incr.mode", false)
+				incrModeSupport = false
+			} else if incrMode == "TRUE" {
+				debug.Add("incr.mode", true)
+				incrModeSupport = true
+			} else {
+				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
+			}
+		}
+
 		if apiVersion, err := utils.GetEnvString(fmt.Sprintf("%s_API_VERSION_OP_%s", prefix, operation), fmt.Sprintf("%s_API_VERSION", prefix)); err == nil {
 			urlQueriesToInject["api-version"] = apiVersion
 			debug.Add("api-version", apiVersion)
@@ -426,6 +440,7 @@ func NewGenericLLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		UrlQueriesToInject:    urlQueriesToInject,
+		IncrModeSupport:       incrModeSupport,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -882,6 +897,10 @@ func (p *GenericLLMConnector) GetOnFailureRetryLimit() int {
 
 func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
 	return OutputPlain
+}
+
+func (p *GenericLLMConnector) GetIncrModeSupport() bool {
+	return p.IncrModeSupport
 }
 
 func (p *GenericLLMConnector) GetDebugString() string {

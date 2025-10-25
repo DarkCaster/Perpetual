@@ -28,6 +28,7 @@ type AnthropicLLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
+	IncrModeSupport       bool
 	MaxTokensSegments     int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
@@ -81,6 +82,19 @@ func NewAnthropicLLMConnectorFromEnv(
 		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
+
+	incrModeSupport := true
+	if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
+		if incrMode == "FALSE" {
+			debug.Add("incr.mode", false)
+			incrModeSupport = false
+		} else if incrMode == "TRUE" {
+			debug.Add("incr.mode", true)
+			incrModeSupport = true
+		} else {
+			return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
+		}
+	}
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
@@ -182,6 +196,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
+		IncrModeSupport:       incrModeSupport,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -435,6 +450,10 @@ func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 
 func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
+}
+
+func (p *AnthropicLLMConnector) GetIncrModeSupport() bool {
+	return p.IncrModeSupport
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
