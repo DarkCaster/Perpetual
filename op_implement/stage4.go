@@ -120,7 +120,7 @@ func Stage4(projectRootDir string,
 		if noIncrMode {
 			useIncrMode = false
 		} else {
-			//TODO: get incremental mode setting from connector
+			useIncrMode = connector.GetIncrModeSupport()
 		}
 
 		if useIncrMode {
