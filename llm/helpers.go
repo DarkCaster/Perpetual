@@ -1,11 +1,15 @@
 package llm
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
+
+// NOTE: make cache management threadsafe if needed
+var sourceFileCache map[string]string
 
 func ComposeMessageWithSourceFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	// Create message fragment with prompt
@@ -22,7 +26,15 @@ func AppendSourceFileToMessage(message Message, projectRootDir, file string, fil
 	if err != nil {
 		logger.Panicln("Failed to attach file to prompt:", err)
 	}
+	sourceFileCache[file] = text
 	return AddFileFragment(message, file, text, filenameTags)
+}
+
+func GetSourceFileFromCache(file string) (string, int, error) {
+	if text, ok := sourceFileCache[file]; ok {
+		return text, len(text), nil
+	}
+	return "", 0, fmt.Errorf("file %s not found in cache", file)
 }
 
 func ComposeMessageWithAnnotations(prompt string, targetFiles []string, filenameTags utils.TagPair, annotations map[string]string, logger logging.ILogger) Message {
