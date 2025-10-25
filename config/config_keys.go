@@ -88,6 +88,7 @@ const K_ImplementStage4ChangesDonePrompt = "stage4_changes_done_prompt"
 const K_ImplementStage4ChangesDoneResponse = "stage4_changes_done_response"
 const K_ImplementStage4ProcessPrompt = "stage4_process_prompt"
 const K_ImplementStage4ContinuePrompt = "stage4_continue_prompt"
+const K_ImplementStage4ProcessIncrPrompt = "stage4_process_incremental_prompt"
 
 // Keys for doc operation config file
 const K_DocExamplePrompt = "example_doc_prompt"
