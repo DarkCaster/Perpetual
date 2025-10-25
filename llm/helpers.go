@@ -9,7 +9,7 @@ import (
 )
 
 // NOTE: make cache management threadsafe if needed
-var sourceFileCache map[string]string
+var sourceFileCache map[string]string = make(map[string]string)
 
 func ComposeMessageWithSourceFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	// Create message fragment with prompt
