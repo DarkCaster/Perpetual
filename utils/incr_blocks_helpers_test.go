@@ -83,8 +83,8 @@ func TestParseIncrBlocks(t *testing.T) {
 		}
 
 		_, err := ParseIncrBlocks(source, searchTags)
-		if err == nil {
-			t.Error("Expected error for no blocks found, got nil")
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
 		}
 	})
 

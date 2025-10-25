@@ -26,9 +26,6 @@ func ParseIncrBlocks(source string, searchTags []*regexp.Regexp) ([]IncrBlock, e
 		// Find search start tag
 		searchStartMatch := searchStartTag.FindStringIndex(remainingText)
 		if searchStartMatch == nil {
-			if len(blocks) == 0 {
-				return nil, errors.New("no search start tag found")
-			}
 			break // No more blocks found
 		}
 		// Extract text after search start tag
@@ -57,10 +54,6 @@ func ParseIncrBlocks(source string, searchTags []*regexp.Regexp) ([]IncrBlock, e
 		blocks = append(blocks, block)
 		// Move remaining text past the current block
 		remainingText = remainingText[replaceEndMatch[1]:]
-	}
-
-	if len(blocks) == 0 {
-		return nil, errors.New("no valid blocks found")
 	}
 
 	//validate blocks
