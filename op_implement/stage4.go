@@ -96,23 +96,35 @@ func Stage4(projectRootDir string,
 			cfg.String(config.K_ImplementStage4ProcessPrompt),
 			cfg.Regexp(config.K_ImplementFilenameEmbedRx),
 			pendingFile)
-
 		if err != nil {
 			logger.Errorln("Failed to replace filename tag", err)
 			stage4ProcessFilePrompt = cfg.String(config.K_ImplementStage4ProcessPrompt)
 		}
 
-		// Create prompt for to implement one of the files
-		stage4Messages = append(stage4Messages, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessFilePrompt))
+		// Create prompt for incremental search-and-replace processing
+		stage4ProcessIncrPrompt, err := utils.ReplaceTagRx(
+			cfg.String(config.K_ImplementStage4ProcessIncrPrompt),
+			cfg.Regexp(config.K_ImplementFilenameEmbedRx),
+			pendingFile)
+		if err != nil {
+			logger.Errorln("Failed to replace filename tag", err)
+			stage4ProcessIncrPrompt = cfg.String(config.K_ImplementStage4ProcessIncrPrompt)
+		}
+
+		useIncrMode := true
+		//TODO: detect can we use incremental mode or not - depending on source file-name matching and file-size
 
 		var fileBodies []string
-		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
-		if onFailRetriesLeft < 1 {
-			onFailRetriesLeft = 1
-		}
+		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			// Create a copy, so it will be discarded on file retry
+			// Create a copy, so it will be discarded on retry
 			stage4MessagesTry := utils.NewSlice(stage4Messages...)
+			// Create LLM message for incremental search-and-replace mode, or for regular mode
+			if useIncrMode {
+				stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessIncrPrompt))
+			} else {
+				stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessFilePrompt))
+			}
 			// Initialize temporary variables for handling partial answers
 			var responses []string
 			continueGeneration := true
@@ -136,8 +148,17 @@ func Stage4(projectRootDir string,
 						break
 					}
 				} else if status == llm.QueryMaxTokens {
-					// Try to recover other parts of the file if reached max tokens
-					if generateTry >= connector.GetMaxTokensSegments() {
+					if useIncrMode {
+						// Try to recover other parts of the file if reached max tokens
+						if onFailRetriesLeft < 1 {
+							logger.Errorln("LLM query reached token limit, no retries left!")
+						} else {
+							logger.Warnln("LLM query reached token limit, turning off incremental mode and retrying")
+							useIncrMode = false
+							fileRetry = true
+							break
+						}
+					} else if generateTry >= connector.GetMaxTokensSegments() {
 						logger.Errorln("LLM query reached token limit, and we are reached segment limit, not attempting to continue")
 					} else {
 						logger.Warnln("LLM query reached token limit, attempting to continue and file recover")
@@ -152,7 +173,6 @@ func Stage4(projectRootDir string,
 						llm.NewMessage(llm.UserRequest),
 						cfg.String(config.K_ImplementStage4ContinuePrompt)))
 				}
-
 				// Append response fragment
 				responses = append(responses, aiResponses[0])
 			}
@@ -160,47 +180,53 @@ func Stage4(projectRootDir string,
 				continue
 			}
 
-			// Remove extra output tag from the start from non first response-fragments
-			for i := range responses {
-				if i > 0 {
-					responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
+			if useIncrMode {
+				//TODO:
+				logger.Panicln("TODO: incremental mode parsing")
+			} else {
+				// Remove extra output tag from the start from non first response-fragments
+				//TODO: fix: remove only in last response each time
+				for i := range responses {
+					if i > 0 {
+						responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
+					}
 				}
-			}
 
-			// Parse LLM output, detect file body in response
-			combinedResponse := strings.Join(responses, "")
-			fileBodies, err = utils.ParseMultiTaggedTextRx(
-				combinedResponse,
-				utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
-				utils.GetOddRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
-				ignoreUnclosedTagErrors)
-			if err != nil {
-				if onFailRetriesLeft < 1 {
-					logger.Errorln("Error while parsing LLM response with output file:", err)
-				} else {
-					logger.Warnln("Error while parsing LLM response with output file, retrying:", err)
-					continue
+				// Parse LLM output, detect file body in response
+				combinedResponse := strings.Join(responses, "")
+				fileBodies, err = utils.ParseMultiTaggedTextRx(
+					combinedResponse,
+					utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
+					utils.GetOddRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
+					ignoreUnclosedTagErrors)
+				if err != nil {
+					if onFailRetriesLeft < 1 {
+						logger.Errorln("Error while parsing LLM response with output file:", err)
+					} else {
+						logger.Warnln("Error while parsing LLM response with output file, retrying:", err)
+						continue
+					}
+					// Try to remove only first match then, last resort
+					fileBody := utils.GetTextAfterFirstMatchesRx(combinedResponse, utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
+					fileBodies = []string{fileBody}
 				}
-				// Try to remove only first match then, last resort
-				fileBody := utils.GetTextAfterFirstMatchesRx(combinedResponse, utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
-				fileBodies = []string{fileBody}
-			}
 
-			if len(fileBodies) > 1 {
-				if onFailRetriesLeft < 1 {
-					logger.Errorln("Multiple file bodies detected in LLM response")
-				} else {
-					logger.Warnln("Multiple file bodies detected in LLM response")
-					continue
+				if len(fileBodies) > 1 {
+					if onFailRetriesLeft < 1 {
+						logger.Errorln("Multiple file bodies detected in LLM response")
+					} else {
+						logger.Warnln("Multiple file bodies detected in LLM response")
+						continue
+					}
 				}
-			}
 
-			if len(fileBodies) < 1 {
-				if onFailRetriesLeft < 1 {
-					logger.Errorln("No file bodies detected in LLM response")
-				} else {
-					logger.Warnln("No file bodies detected in LLM response")
-					continue
+				if len(fileBodies) < 1 {
+					if onFailRetriesLeft < 1 {
+						logger.Errorln("No file bodies detected in LLM response")
+					} else {
+						logger.Warnln("No file bodies detected in LLM response")
+						continue
+					}
 				}
 			}
 
