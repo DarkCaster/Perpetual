@@ -27,7 +27,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var forceUpload, help, noAnnotate, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var forceUpload, help, noAnnotate, noIncrMode, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
 	var descFile, taskFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
@@ -38,6 +38,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&taskFile, "i", "", "Implement the task directly from instructions read from file (plain text or markdown). This flag includes the -t flag.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
+	flags.BoolVar(&noIncrMode, "ni", false, "No incremental mode: disable using incremental 'search-and-replace' mode when generating file changes")
 	flags.BoolVar(&planning, "p", false, "Enable planning, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
 	flags.BoolVar(&reasonings, "pr", false, "Enables extended planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
@@ -482,6 +483,7 @@ func Run(args []string, logger logging.ILogger) {
 		messages,
 		otherFilesToModify,
 		targetFilesToModify,
+		noIncrMode,
 		logger)
 
 	// Extra failsafe: filter-out files from results that not among initial files to modify

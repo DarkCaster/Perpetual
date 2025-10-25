@@ -19,6 +19,7 @@ func Stage4(projectRootDir string,
 	stage2Messages []llm.Message,
 	otherFiles []string,
 	targetFiles []string,
+	noIncrMode bool,
 	logger logging.ILogger) map[string]string {
 
 	logger.Traceln("Stage4: Starting")       // Add trace logging
@@ -44,6 +45,10 @@ func Stage4(projectRootDir string,
 	debugString := connector.GetDebugString()
 	logger.Notifyln(debugString)
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", debugString))
+
+	if noIncrMode {
+		logger.Warnln("Incremental file-modification mode is manually disabled")
+	}
 
 	// Main processing loop
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
@@ -111,7 +116,7 @@ func Stage4(projectRootDir string,
 			stage4ProcessIncrPrompt = cfg.String(config.K_ImplementStage4ProcessIncrPrompt)
 		}
 
-		useIncrMode := true
+		useIncrMode := !noIncrMode
 		//TODO: detect can we use incremental mode or not - depending on source file-name matching and file-size
 
 		var fileBodies []string
