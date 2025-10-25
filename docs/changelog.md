@@ -21,10 +21,11 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
-## v8.1.0 (Unreleased)
+## v9.0.0 (Unreleased)
 
 ### Improvements
 
+- (work in progress) Added "incremental" mode for generating file changes at stage 4 of `implement` operation: instead of generating full file with changes, LLM will be asked to generate delta with changes, should increase both performance and quality for big source code files. Can be disabled per LLM model/provider and will automatically revert to the old logic in case of errors or inconclusive results.
 - (work in progress) Updated langchaingo library to the latest version, remove many quirks amd fixes that now implemented natively inside library.
 - Added support for setting embeddings dimensions count parameter for Ollama and Generic LLM providers.
 - Added logging reasonings for Generic provider by using new logic from langchaingo library (seem to be compatible with DeepSeek API).
