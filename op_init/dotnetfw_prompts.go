@@ -24,7 +24,7 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. When you write code, you output the entire file with your changes without truncating it."
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF."
 	// redefine language-dependent prompt
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	return result

@@ -25,7 +25,7 @@ func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. When you write code, you output the entire file with your changes without truncating it."
+	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer."
 	// redefine language-dependent prompt
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	return result

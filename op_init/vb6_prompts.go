@@ -24,7 +24,7 @@ func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *vb6Prompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. When you write code, you output the entire file with your changes without truncating it."
+	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it."
 	// redefine language-dependent prompt
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*'+\\s*###IMPLEMENT###.*$"}
 	return result

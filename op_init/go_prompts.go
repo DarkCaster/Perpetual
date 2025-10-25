@@ -23,7 +23,7 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *goPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. When you write code, you output the entire file with your changes without truncating it."
+	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer."
 	// redefine language-dependent prompt
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	return result
