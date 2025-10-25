@@ -7,17 +7,17 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func ComposeMessageWithFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
+func ComposeMessageWithSourceFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	// Create message fragment with prompt
 	result := AddPlainTextFragment(NewMessage(UserRequest), prompt)
 	// Attach target-files contents
 	for _, item := range targetFiles {
-		result = AppendFileToMessage(result, projectRootDir, item, filenameTags, logger)
+		result = AppendSourceFileToMessage(result, projectRootDir, item, filenameTags, logger)
 	}
 	return result
 }
 
-func AppendFileToMessage(message Message, projectRootDir, file string, filenameTags utils.TagPair, logger logging.ILogger) Message {
+func AppendSourceFileToMessage(message Message, projectRootDir, file string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
 	if err != nil {
 		logger.Panicln("Failed to attach file to prompt:", err)
@@ -50,7 +50,7 @@ func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body interface
 			return NewMessage(UserRequest), false
 		}
 		logger.Debugf("Creating message with files")
-		return ComposeMessageWithFiles(projectRootDir, prompt, fileNames, filenameTags, logger), true
+		return ComposeMessageWithSourceFiles(projectRootDir, prompt, fileNames, filenameTags, logger), true
 	}
 
 	logger.Panicln("Unsupported message body type")

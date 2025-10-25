@@ -66,7 +66,7 @@ func Stage3(projectRootDir string,
 		// Create normal mode request and add it to history
 		var request llm.Message
 		if task == "" {
-			request = llm.ComposeMessageWithFiles(
+			request = llm.ComposeMessageWithSourceFiles(
 				projectRootDir,
 				opCfg.String(config.K_ImplementStage3PlanningPrompt),
 				targetFiles,
@@ -85,7 +85,7 @@ func Stage3(projectRootDir string,
 		// Create json mode request and add it to json mode history
 		var jsonModeRequest llm.Message
 		if task == "" {
-			jsonModeRequest = llm.ComposeMessageWithFiles(
+			jsonModeRequest = llm.ComposeMessageWithSourceFiles(
 				projectRootDir,
 				opCfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
 				targetFiles,
@@ -239,7 +239,7 @@ func Stage3(projectRootDir string,
 									opCfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
 							}
 							// Add the file contents so that LLM doesn't overwrite it from scratch, thus destroying it.
-							messages[msgIndexToAddExtraFiles] = llm.AppendFileToMessage(
+							messages[msgIndexToAddExtraFiles] = llm.AppendSourceFileToMessage(
 								messages[msgIndexToAddExtraFiles],
 								projectRootDir,
 								file,

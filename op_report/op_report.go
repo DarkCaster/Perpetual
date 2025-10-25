@@ -133,7 +133,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger)
 	} else if strings.ToUpper(reportType) == "CODE" {
 		// Generate report messages
-		reportMessage = llm.ComposeMessageWithFiles(
+		reportMessage = llm.ComposeMessageWithSourceFiles(
 			projectRootDir,
 			reportConfig.String(config.K_ReportCodePrompt),
 			fileNames,

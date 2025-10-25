@@ -113,7 +113,7 @@ func Stage1(
 	}
 	// Add file contents
 	for _, item := range targetFiles {
-		analysisRequest = llm.AppendFileToMessage(analysisRequest, projectRootDir, item, prCfg.Tags(config.K_ProjectFilenameTags), logger)
+		analysisRequest = llm.AppendSourceFileToMessage(analysisRequest, projectRootDir, item, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 	}
 
 	messages = append(messages, analysisRequest)

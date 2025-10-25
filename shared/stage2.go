@@ -89,7 +89,7 @@ func Stage2(
 	// Add files requested by LLM
 	if len(filesForReview) > 0 {
 		// Create request with file-contents
-		reviewRequest := llm.ComposeMessageWithFiles(
+		reviewRequest := llm.ComposeMessageWithSourceFiles(
 			projectRootDir,
 			opCfg.String(config.K_CodePrompt),
 			filesForReview,
