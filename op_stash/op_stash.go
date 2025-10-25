@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -234,11 +235,14 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		// Check file exist on disk
 		_, err := os.Stat(filepath.Join(projectRootDir, filePathFinal))
 		if err == nil {
-			// Read file
-			//TODO: use source file cache
-			backup, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
+			// Read file from cache or disk
+			backup, _, err := llm.GetSourceFileFromCache(filePathFinal)
 			if err != nil {
-				logger.Errorf("Error reading project file for backing up:", err)
+				logger.Errorf("Error getting file from cache (will retry to read it directly): %v", err)
+				backup, _, err = utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
+				if err != nil {
+					logger.Errorf("Error reading project file for backing up:", err)
+				}
 			}
 			// Store file content to stash original files
 			stash.OriginalFiles = append(stash.OriginalFiles, FileEntry{Filename: filePathFinal, Contents: backup})
