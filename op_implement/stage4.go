@@ -211,7 +211,43 @@ func Stage4(projectRootDir string,
 			if useIncrMode {
 				//TODO:
 				logger.Panicln("TODO: incremental mode parsing")
-			} else {
+				// check we have inconsistent number of responses generated
+				if len(responses) != 1 {
+					//TODO
+				}
+				// filter search-and-replace blocks from response
+				blocks, err := utils.ParseIncrBlocks(responses[0], prCfg.RegexpArray(config.K_ProjectFilesIncrModeRx))
+				if err != nil {
+					//TODO
+				}
+				if len(blocks) < 1 {
+					useIncrMode = false
+					logger.Warnln("No incremental search-and-replace blocks found in response, trying regular mode")
+				} else {
+					// apply additional code-blocks filter to the search-and-replace blocks
+					blocks = utils.FilterIncrBlocks(blocks,
+						utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)),
+						utils.GetOddRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
+					// get file from cache
+					fileBody, _, err := llm.GetSourceFileFromCache(pendingFile)
+					if err != nil {
+						//should not occur, so this is an internal error
+						logger.Panicf("Failed to get file from cache, trying regular mode: %v", err)
+					}
+					bool changedOk = true
+					// iterate over each search-and-replace block
+					for _, block := range blocks {
+						// search requested text
+						// replace requested text
+					}
+					if changedOk {
+						// save modified file contents
+						fileBodies = []string{fileBody}
+					}
+				}
+			}
+
+			if !useIncrMode {
 				// Remove extra output tag from the start from non first response-fragments
 				//TODO: fix: remove only in last response each time
 				for i := range responses {
