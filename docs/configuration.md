@@ -34,24 +34,30 @@ When you run `perpetual init -l <lang>`, example files named `*.env.example` are
 Use `*.env.example` as templates. Common settings include:
 
 - **Directory Override**  
-  - `PERPETUAL_DIR`: Override the default `.perpetual` directory location. If not set, Perpetual attempts to automatically find `.perpetual` configuration directory in the current directory/project-root directory.
+  - `PERPETUAL_DIR`: Override the default `.perpetual` directory location. If not set, Perpetual attempts to automatically find `.perpetual` configuration directory in the current directory and parent directories.
+
+- **Text Encoding**  
+  - `FALLBACK_TEXT_ENCODING`: Fallback encoding for files that cannot be read as UTF-8/16/32 (e.g., `"windows-1252"`).
 
 - **Provider Selection**  
-  - `LLM_PROVIDER`: Default provider profile, e.g. `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g. `openai1`) to maintain multiple configurations.
-  - `LLM_PROVIDER_OP_<OPERATION>`: Operation-specific provider override (e.g. `LLM_PROVIDER_OP_ANNOTATE`).
+  - `LLM_PROVIDER`: Default provider profile, e.g., `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g., `openai1`) to maintain multiple configurations.
+  - `LLM_PROVIDER_OP_<OPERATION>`: Operation-specific provider override (e.g., `LLM_PROVIDER_OP_ANNOTATE`).
 
 - **Authentication** (options depend on selected provider)  
-  - `<PROFILE>_API_KEY` or `<PROFILE>_AUTH`: API key, token or `login:password` for the provider
+  - `<PROFILE>_API_KEY` or `<PROFILE>_AUTH`: API key, token or `login:password` for the provider.
   - `<PROFILE>_AUTH_TYPE`: `"Bearer"` (API key/token) or `"Basic"` (login:password).
 
 - **Model and Parameters**  
-  - `<PROFILE>_MODEL`: Default model name (e.g. `OPENAI_MODEL="gpt-4.1"`).
+  - `<PROFILE>_MODEL`: Default model name (e.g., `OPENAI_MODEL="gpt-5"`).
   - `<PROFILE>_MODEL_OP_<OPERATION>`: Model override for a specific operation.
   - `<PROFILE>_TEMPERATURE`: Sampling temperature (`0.0`–`1.0`).
   - `<PROFILE>_MAX_TOKENS`: Maximum tokens per response.
   - `<PROFILE>_FORMAT_OP_<OPERATION>`: Response format (`plain` or `json`).
   - `<PROFILE>_VARIANT_COUNT`: Number of response variants to generate.
   - `<PROFILE>_VARIANT_SELECTION`: Strategy for selecting final variant (`short`, `long`, `combine`, or `best`).
+  - `<PROFILE>_INCRMODE_SUPPORT`: Enable incremental file-change mode (`true`/`false`).
+  - `<PROFILE>_THINK_TOKENS` (Anthropic) or `<PROFILE>_THINK` (Ollama): Enable reasoning/thinking for supported models.
+  - `<PROFILE>_SYSPROMPT_ROLE`: System prompt role (`system`, `developer`, or `user`) for models without system prompt support.
 
 Refer to the comments within `*.env.example` files for detailed defaults. You may create single or multiple `*.env` files with options for provider(s) you are using.
 
@@ -96,6 +102,8 @@ Controls which files are included or excluded, how code is mapped to Markdown, a
 - `medium_context_saving_random_percent`: Percentage of random files in medium context saving (calculated relative to the previous value).
 - `high_context_saving_select_percent`: Percentage of files to select in high context saving.
 - `high_context_saving_random_percent`: Percentage of random files in high context saving (calculated relative to the previous value).
+- `files_incremental_mode_min_length`: Minimum file length for incremental mode.
+- `files_incremental_mode_rx`: Regex patterns for incremental mode tags.
 
 Example:
 
@@ -114,7 +122,16 @@ Example:
   "medium_context_saving_select_percent": 60.0,
   "medium_context_saving_random_percent": 25.0,
   "high_context_saving_select_percent": 50.0,
-  "high_context_saving_random_percent": 20.0
+  "high_context_saving_random_percent": 20.0,
+  "files_incremental_mode_min_length": [
+    [".*\\.go$", 1000],
+    [".*\\.py$", 500]
+  ],
+  "files_incremental_mode_rx": [
+    "(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)",
+    "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)",
+    "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"
+  ]
 }
 ```
 
@@ -124,11 +141,14 @@ Example:
 
 - `system_prompt`: The initial system context for the LLM.
 - `system_prompt_ack`: Acknowledgment message after the system prompt.
-- Stage-specific prompts (e.g. `stage1_prompts`, `stage2_prompt_variant`).
+- Stage-specific prompts (e.g., `stage1_prompts`, `stage2_prompt_variant`).
 
 #### Response Schemas (JSON Mode)
 
 - `stage1_output_schema`, `stage3_output_schema`, etc.: Define expected JSON structure when using the JSON output mode.
+- `stage1_output_key`, `stage3_output_key`: Key names for extracting data from JSON responses.
+- `stage1_output_schema_name`, `stage3_output_schema_name`: Schema names for JSON mode.
+- `stage1_output_schema_desc`, `stage3_output_schema_desc`: Schema descriptions for JSON mode.
 
 **Version Control**: Operation configs in `.perpetual` should be committed to ensure consistency across environments.  
 **Customization**: Feel free to adjust prompts, regexes, and schemas to fit your project's needs.
