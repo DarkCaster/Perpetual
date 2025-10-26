@@ -51,6 +51,12 @@ ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 # ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
 # ANTHROPIC_FORMAT_OP_EXPLAIN_STAGE1="json"
 
+# Incremental mode support (on by default or if value is unset)
+# Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
+# Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed
+# ANTHROPIC_INCRMODE_SUPPORT="true"
+# ANTHROPIC_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
+
 # Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="768"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE_POST="768"

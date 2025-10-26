@@ -111,6 +111,12 @@ OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
 OLLAMA_FORMAT_OP_DOC_STAGE1="json"
 OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 
+# Incremental mode support (on by default or if value is unset)
+# Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
+# Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed
+# OLLAMA_INCRMODE_SUPPORT="true"
+# OLLAMA_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
+
 # Options to enable/disable reasoning/thinking for models that support it (Qwen3, DeepSeek R1, gpt-oss).
 # For use with Ollama >= v0.9.0 and models/templates that support it. May return "400 Bad Request" error for unsupported models.
 # Supported values: true, false. Ollama >= 0.12.0 also support: low, medium, high - for some models (gpt-oss)

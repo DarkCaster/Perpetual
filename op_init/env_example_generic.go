@@ -121,6 +121,12 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 # LLM query text prefix used when generating embeddings for search queries. Model dependent. Unset by default.
 # GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
+# Incremental mode support (on by default or if value is unset)
+# Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
+# Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed
+# GENERIC_INCRMODE_SUPPORT="true"
+# GENERIC_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
+
 # Options for limiting output tokens for different operations and stages, must be set
 GENERIC_MAX_TOKENS_OP_ANNOTATE="768" # you shoud keep the summary short.
 GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
