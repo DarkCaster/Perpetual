@@ -209,20 +209,23 @@ func Stage4(projectRootDir string,
 			}
 
 			if useIncrMode {
-				//TODO:
-				logger.Panicln("TODO: incremental mode parsing")
-				// check we have inconsistent number of responses generated
+				// check we have inconsistent number of responses generated, this is an internal error on this step
 				if len(responses) != 1 {
-					//TODO
+					logger.Panicln("Incorrect number if LLM responses was generated:", len(responses))
 				}
 				// filter search-and-replace blocks from response
 				blocks, err := utils.ParseIncrBlocks(responses[0], prCfg.RegexpArray(config.K_ProjectFilesIncrModeRx))
 				if err != nil {
-					//TODO
-				}
-				if len(blocks) < 1 {
+					if onFailRetriesLeft < 1 {
+						logger.Errorln("Error while parsing incremental search-and-replace blocks:", err)
+					} else {
+						logger.Warnln("Error while parsing incremental search-and-replace blocks, retrying in normal mode:", err)
+						useIncrMode = false
+						continue
+					}
+				} else if len(blocks) < 1 {
 					useIncrMode = false
-					logger.Warnln("No incremental search-and-replace blocks found in response, trying regular mode")
+					logger.Infoln("No incremental search-and-replace blocks found in response, trying apply changes in full-file mode")
 				} else {
 					// apply additional code-blocks filter to the search-and-replace blocks
 					blocks = utils.FilterIncrBlocks(blocks,
@@ -234,15 +237,41 @@ func Stage4(projectRootDir string,
 						//should not occur, so this is an internal error
 						logger.Panicf("Failed to get file from cache, trying regular mode: %v", err)
 					}
-					bool changedOk = true
-					// iterate over each search-and-replace block
-					for _, block := range blocks {
+					changedOk := true
+					// iterate over each search-and-replace blocks
+					for i, block := range blocks {
+						logger.Debugf("Applying block #%d", i)
+						if block.Search == "" {
+							logger.Debugln("block.Search is empty")
+							changedOk = false
+							break
+						}
 						// search requested text
-						// replace requested text
+						searchIdx := strings.Index(fileBody, block.Search)
+						if searchIdx < 0 {
+							logger.Debugln("Cannot find position in file to apply changes")
+							changedOk = false
+							break
+						}
+						if strings.LastIndex(fileBody, block.Search) != searchIdx {
+							logger.Debugln("Multiple positions to apply changes was found in file")
+							changedOk = false
+							break
+						}
+						// replace requested text once
+						fileBody = strings.Replace(fileBody, block.Search, block.Replace, 1)
 					}
 					if changedOk {
 						// save modified file contents
 						fileBodies = []string{fileBody}
+					} else {
+						if onFailRetriesLeft < 1 {
+							logger.Errorln("Error applying incremental changes to file")
+						} else {
+							logger.Warnln("Error applying incremental changes to file, retrying in normal mode")
+							useIncrMode = false
+							continue
+						}
 					}
 				}
 			}
