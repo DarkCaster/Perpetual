@@ -278,7 +278,6 @@ func Stage4(projectRootDir string,
 
 			if !useIncrMode {
 				// Remove extra output tag from the start from non first response-fragments
-				//TODO: fix: remove only in last response each time
 				for i := range responses {
 					if i > 0 {
 						responses[i] = utils.GetTextAfterFirstMatchesRx(responses[i], utils.GetEvenRegexps(prCfg.RegexpArray(config.K_ProjectCodeTagsRx)))
