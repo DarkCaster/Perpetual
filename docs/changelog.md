@@ -25,22 +25,22 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Improvements
 
-- (work in progress) Added "incremental" mode for generating file changes at stage 4 of `implement` operation: instead of generating full file with changes, LLM will be asked to generate delta with changes, should increase both performance and quality for big source code files. Can be disabled per LLM model/provider and will automatically revert to the old logic in case of errors or inconclusive results.
-- (work in progress) Updated langchaingo library to the latest version, remove many quirks amd fixes that now implemented natively inside library.
+- Added "incremental" mode for generating file changes at stage 4 of `implement` operation: instead of generating full file with changes, LLM will be asked to generate smaller delta with changes, should increase both performance and quality for big source code files. Can be disabled per LLM model/provider and will automatically revert to the old logic in case of errors or inconclusive results.
+- Updated langchaingo library to the latest version, remove many quirks and fixes that now implemented natively inside library.
 - Added support for setting embeddings dimensions count parameter for Ollama and Generic LLM providers.
-- Added logging reasonings for Generic provider by using new logic from langchaingo library (seem to be compatible with DeepSeek API).
-- Added support for setting additional system/user prompt prefix/suffix per operation for Generic LLM provider, using env options, work same as for Ollama.
+- Added logging reasonings for Generic provider by using new logic from langchaingo library (seems to be compatible with DeepSeek API).
+- Added support for setting additional system/user prompt prefix/suffix per operation for Generic LLM provider, using env options, works same as for Ollama.
 - Fixed `REASONING_EFFORT` env variable parsing per-operation.
-- Added `low`, `medium`, `high` options support for `OLLAMA_THINK_*` env option, should work with newer Ollama for some models to control its' reasoning efforts.
+- Added `low`, `medium`, `high` options support for `OLLAMA_THINK_*` env option, should work with newer Ollama for some models to control its reasoning efforts.
 - Improved `annotate` operation by adding optional user-generated project description to the LLM context if present.
-- Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env variable, `windows-1252` (ansi) encoding will be used by default if env variable is missing.
+- Added handling of non-UTF8 8-bit encodings as fallback when reading source code files. Try to write-back file using same encoding as when reading. Fallback encoding controlled by `FALLBACK_TEXT_ENCODING` env variable, `windows-1252` (ANSI) encoding will be used by default if env variable is missing.
 
 ### Bug Fixes
 
 - Fixed loading custom project description file for `implement`, `explain` and `doc` operations, `-d` flag used to point to custom project description text file was renamed to `-df`.
 - Minor fixes and improvements in Flutter prompts.
 
-**NOTE**: For Flutter projects, you may install new prompts your project by running `Perpetual init -l flutter`. Using new env options like fallback text encoding, or prompt prefix/suffix for Generic LLM provider require adding new parameters to the `*.env` files, see updated env files examples for more info.
+**NOTE**: You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the new config files for the operations. Using new env options like fallback text encoding, or prompt prefix/suffix for Generic LLM provider require adding new parameters to the `*.env` files, see updated env files examples for more info.
 
 ## v8.0.0
 
