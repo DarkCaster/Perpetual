@@ -326,11 +326,11 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		choices := []*llms.ContentChoice{}
 		if responses != nil && responses.Choices != nil {
 			for _, choice := range responses.Choices {
-				if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
-					choices = append(choices, choice)
-				} else if choice.StopReason == "tool_use" && len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
+				if len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
 					choice.Content = choice.ToolCalls[0].FunctionCall.Arguments
 					choices = append([]*llms.ContentChoice{choice}, choices...)
+				} else if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
+					choices = append(choices, choice)
 				}
 			}
 		}
@@ -438,7 +438,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		p.RateLimitDelayS = 0
 
 		var content string
-		if len(choices) < 1 {
+		if len(choices) < 1 || choices[0].Content == "" {
 			if lastResort {
 				return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
 			}
