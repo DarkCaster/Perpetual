@@ -38,7 +38,6 @@ type AnthropicLLMConnector struct {
 	FieldsToRemove        []string
 	Debug                 llmDebug
 	RateLimitDelayS       int
-	PerfString            string
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -240,11 +239,7 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
-	responseStreamCollector := newAnthropicStreamCollector(func(chunk []byte) {
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger(string(chunk))
-		}
-	})
+	responseStreamCollector := newAnthropicStreamCollector()
 	mitmClient := newMitmHTTPClient([]responseCollector{responseStreamCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
 
@@ -276,15 +271,38 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		}
 	}
 
+	processingReasonings := false
 	streamFunc := func(ctx context.Context, chunk []byte) error {
 		if p.RawMessageLogger != nil {
+			if processingReasonings {
+				processingReasonings = false
+				//add header, because it going after reasonings block - delimit it with newlines at the beginning
+				p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+			}
 			p.RawMessageLogger(string(chunk))
+		}
+		return nil
+	}
+	streamReasoningFunc := func(ctx context.Context, reasoningChunk []byte, chunk []byte) error {
+		if p.RawMessageLogger != nil {
+			// reasoning chunk received
+			if len(reasoningChunk) > 0 {
+				if !processingReasonings {
+					processingReasonings = true
+					//add header
+					p.RawMessageLogger("AI thinking:\n\n\n")
+				}
+				p.RawMessageLogger(string(reasoningChunk))
+			}
+			// normal chunk received
+			if len(chunk) > 0 {
+				return streamFunc(ctx, chunk)
+			}
 		}
 		return nil
 	}
 
 	finalContent := []string{}
-	var perfLineBuilder strings.Builder
 
 	for i := 0; i < maxCandidates; i++ {
 		//make a pause, if we need to wait to recover from previous error
@@ -297,14 +315,24 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		}
 
 		finalOptions := utils.NewSlice(p.Options...)
-		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc))
+		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc), llms.WithStreamingReasoningFunc(streamReasoningFunc))
 
 		// Perform LLM query
-		response, err := model.GenerateContent(
+		responses, err := model.GenerateContent(
 			context.Background(),
 			llmMessages,
 			finalOptions...,
 		)
+		choices := []*llms.ContentChoice{}
+		if responses != nil && responses.Choices != nil {
+			for _, choice := range responses.Choices {
+				if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
+					choices = append(choices, choice)
+				} else if choice.StopReason == "tool_use" {
+					choices = append([]*llms.ContentChoice{choice}, choices...)
+				}
+			}
+		}
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
@@ -401,27 +429,16 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		//reset rate limit delay
 		p.RateLimitDelayS = 0
 
-		startDelay, eventsPS, charsPS := responseStreamCollector.GetPerfReport()
-		if maxCandidates > 1 {
-			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
-		} else {
-			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
-		}
-		p.PerfString = perfLineBuilder.String()
-
 		var content string
-		if len(response.Choices) < 1 || responseStreamCollector.ToolResponse != "" {
-			if responseStreamCollector.ToolResponse == "" {
-				if lastResort {
-					return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
-				}
-				continue
+		if len(choices) < 1 {
+			if lastResort {
+				return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
 			}
-			content = responseStreamCollector.ToolResponse
+			continue
 		} else {
-			content = response.Choices[0].Content
+			content = choices[0].Content
 			// Check for max tokens
-			if response.Choices[0].StopReason == "max_tokens" {
+			if choices[0].StopReason == "max_tokens" {
 				if lastResort {
 					if p.OutputFormat == OutputJson {
 						//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
@@ -469,5 +486,5 @@ func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionSt
 }
 
 func (p *AnthropicLLMConnector) GetPerfString() string {
-	return p.PerfString
+	return ""
 }
