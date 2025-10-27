@@ -328,7 +328,8 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 			for _, choice := range responses.Choices {
 				if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
 					choices = append(choices, choice)
-				} else if choice.StopReason == "tool_use" {
+				} else if choice.StopReason == "tool_use" && len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
+					choice.Content = choice.ToolCalls[0].FunctionCall.Arguments
 					choices = append([]*llms.ContentChoice{choice}, choices...)
 				}
 			}
@@ -336,8 +337,15 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 
 		lastResort := len(finalContent) < 1 && i == maxCandidates-1
 
-		// If no http errors at this point, then we have chunks logged, so add separator to the log-file
+		// Add empty response notification, tool_use response and raw separator if we received no http error
 		if (responseStreamCollector.StatusCode < 400 || responseStreamCollector.StatusCode > 900) && p.RawMessageLogger != nil {
+			if len(choices) < 1 {
+				p.RawMessageLogger("<empty response>")
+			} else if p.OutputFormat == OutputJson && len(choices) > 0 {
+				// Log tool use response, because it is not streamed properly
+				p.RawMessageLogger(choices[0].Content)
+			}
+			// Separator
 			p.RawMessageLogger("\n\n\n")
 		}
 
