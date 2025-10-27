@@ -61,12 +61,12 @@
 			"args": ["report","-t","brief","-vv"],
 		},
 		{
-			"name": "Launch Package: explain -n -i question.txt",
+			"name": "Launch Package: explain -n -f -i question.txt",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["explain","-n","-i","question.txt","-vv"],
+			"args": ["explain","-n","-f","-i","question.txt","-vv"],
 		},
 		{
 			"name": "Launch Package: explain -c medium -n -i question.txt",
