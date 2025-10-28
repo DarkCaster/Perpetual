@@ -65,7 +65,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		return nil, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 	}
 
-	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
+	token, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix), fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil {
 		return nil, err
 	}

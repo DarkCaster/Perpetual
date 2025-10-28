@@ -86,7 +86,7 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
-	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix))
+	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix), fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil || auth == "" {
 		debug.Add("auth", "not set")
 	} else {
@@ -94,7 +94,7 @@ func NewGenericLLMConnectorFromEnv(
 	}
 
 	authType := Bearer
-	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix), fmt.Sprintf("%s_API_KEY", prefix)); err == nil {
+	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix)); err == nil {
 		debug.Add("auth type", curAuthType)
 		switch curAuthType {
 		case "BASIC":

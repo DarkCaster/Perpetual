@@ -71,7 +71,7 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
-	token, err := utils.GetEnvString(fmt.Sprintf("%s_API_KEY", prefix))
+	token, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix), fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil {
 		return nil, err
 	}
