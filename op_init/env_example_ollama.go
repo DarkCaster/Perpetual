@@ -106,10 +106,10 @@ OLLAMA_CONTEXT_SIZE="24576"
 # Switch to use structured JSON output format for some operations, may work better with some models (or not work at all)
 # Supported values: plain, json. Default: plain
 # Enabling reasoning/thinking (below) may be incompatible with json output format
-OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
-OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
-OLLAMA_FORMAT_OP_DOC_STAGE1="json"
-OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
+# OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
+# OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
+# OLLAMA_FORMAT_OP_DOC_STAGE1="json"
+# OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
@@ -134,12 +134,12 @@ OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
 OLLAMA_THINK="false" # explicitly set think to false as default, unset if seeing "400 Bad Request" errors for your model
 
 # Options for limiting output tokens for different operations and stages, must be set
-OLLAMA_MAX_TOKENS_OP_ANNOTATE="768" # it is very important to keep the summary short.
+OLLAMA_MAX_TOKENS_OP_ANNOTATE="1024" # it is very important to keep the summary short.
 OLLAMA_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan also should not be too big
+OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big
 OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
-OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE4="4096" # generated code output limit should be as big as possible
+OLLAMA_MAX_TOKENS_OP_IMPLEMENT_STAGE4="8192" # generated code output limit should be as big as possible
 OLLAMA_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
 OLLAMA_MAX_TOKENS_OP_DOC_STAGE2="8192" # generated document output limit should be as big as possible
 OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
@@ -157,7 +157,7 @@ OLLAMA_ON_FAIL_RETRIES_OP_ANNOTATE="5" # this number include errors caused by co
 # OLLAMA_ON_FAIL_RETRIES_OP_DOC_STAGE2="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="3"
 # OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="3"
-OLLAMA_ON_FAIL_RETRIES="3"
+OLLAMA_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # OLLAMA_TEMPERATURE_OP_ANNOTATE="0.5"
