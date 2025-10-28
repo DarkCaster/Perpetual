@@ -114,8 +114,11 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
 - **Score Threshold:**  
   `<PROVIDER>_EMBED_SCORE_THRESHOLD` (default: 0.0)
 
-- **Embedding Dimensions (OpenAI only):**  
-  `OPENAI_EMBED_DIMENSIONS`
+- **Embedding Dimensions (OpenAI and Generic):**  
+  `OPENAI_EMBED_DIMENSIONS` or `GENERIC_EMBED_DIMENSIONS`
+
+- **Ollama Embedding Dimensions:**  
+  `OLLAMA_EMBED_DIMENSIONS` (may not be supported by all models)
 
 - **Retries:**  
   `<PROVIDER>_ON_FAIL_RETRIES_OP_EMBED` (fallback to `<PROVIDER>_ON_FAIL_RETRIES`, default: 3)
@@ -142,8 +145,6 @@ OPENAI_EMBED_SEARCH_CHUNK_OVERLAP="128"
 OPENAI_EMBED_DIMENSIONS="1536"
 # Cosine similarity threshold
 OPENAI_EMBED_SCORE_THRESHOLD="0.0"
-# Retry on failure
-OPENAI_ON_FAIL_RETRIES_OP_EMBED="3"
 ```
 
 ```sh
@@ -154,10 +155,25 @@ OLLAMA_EMBED_DOC_CHUNK_SIZE="1024"
 OLLAMA_EMBED_DOC_CHUNK_OVERLAP="64"
 OLLAMA_EMBED_SEARCH_CHUNK_SIZE="1024"
 OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="64"
+OLLAMA_EMBED_DIMENSIONS="1024"
 OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
-# Optional Ollama prefixes for models that require them (needed for nomic-embed-text)
-OLLAMA_EMBED_DOC_PREFIX="search_document: \n"
-OLLAMA_EMBED_SEARCH_PREFIX="search_query: \n"
+# Optional Ollama prefixes for models that require them (needed for nomic-embed-text, for example)
+OLLAMA_EMBED_DOC_PREFIX="search_document:\n"
+OLLAMA_EMBED_SEARCH_PREFIX="search_query:\n"
+```
+
+```sh
+# Generic provider embeddings
+LLM_PROVIDER_OP_EMBED="generic"
+GENERIC_MODEL_OP_EMBED="deepseek-r1"
+GENERIC_EMBED_DOC_CHUNK_SIZE="1024"
+GENERIC_EMBED_DOC_CHUNK_OVERLAP="64"
+GENERIC_EMBED_SEARCH_CHUNK_SIZE="4096"
+GENERIC_EMBED_SEARCH_CHUNK_OVERLAP="128"
+GENERIC_EMBED_DIMENSIONS="1024"
+GENERIC_EMBED_SCORE_THRESHOLD="0.0"
+GENERIC_EMBED_DOC_PREFIX="Process following document:\n"
+GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 ```
 
 ## Workflow
@@ -208,20 +224,20 @@ When using `-q` or `-i` flags:
    If `-u` is not specified, exclude test files from the search using project blacklist patterns.
 
 3. **Generate Question Embeddings**  
-   Create embeddings for the input question using the same LLM provider.
+   Create embeddings for the input question using the same LLM provider. Search query embeddings are cached to avoid recomputation.
 
 4. **Load Project Embeddings**  
    Read existing project file embeddings from storage.
 
 5. **Perform Similarity Search**  
-   Calculate cosine similarity between the question embedding and all project file embeddings.
+   Calculate cosine similarity between the question embedding and all project file embeddings. The search can use both the direct query and annotations of target files (if available) to form additional search queries.
 
 6. **Return Results**  
    Output the top files (limited by `-s` parameter) that exceed the similarity threshold, sorted by relevance score.
 
 ### Internal Use for Local Search
 
-Other operations invoke `embed` internally to perform local similarity search, combining these embeddings with LLM-driven file selection for improved relevance.
+Other operations invoke `embed` internally to perform local similarity search, combining these embeddings with LLM-driven file selection for improved relevance. Search query embeddings are cached to improve performance during repeated searches.
 
 ## Best Practices
 
@@ -245,3 +261,9 @@ Other operations invoke `embed` internally to perform local similarity search, c
 
 - **Resource Optimization:**  
   For very large projects (500+ files), consider increasing `DOC_CHUNK_SIZE` to reduce the number of generated vectors (trading off granularity for performance). You can also experiment with higher `SEARCH_CHUNK_SIZE` for large queries if your provider supports it without errors.
+
+- **Model-Specific Prefixes:**  
+  Some embedding models require specific prefixes for optimal performance. Check your model's documentation for recommended prefixes. For example:
+  - `nomic-embed-text-v1.5`: Use `search_document:` and `search_query:` prefixes
+  - `mxbai-embed-large-v1`: No prefix needed for documents, but use `Represent this sentence for searching relevant passages:` for search queries
+  - `qwen3-embedding-8b`: Use `Instruct: retrieve code fragments relevant to the query\nQuery:` for search queries
