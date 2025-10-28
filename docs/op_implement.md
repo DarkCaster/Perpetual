@@ -97,6 +97,7 @@ Perpetual implement [flags]
 - `-f`: Disable 'no-upload' file-filter and upload such files for review and processing if requested.  
 - `-i <file>`: Read task instructions from file, plain text or markdown format. This flag automatically enables task mode (equivalent to using both `-i` and `-t` flags).  
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.  
+- `-ni`: No incremental mode. Disable using incremental 'search-and-replace' mode when generating file changes.  
 - `-p`: Enable planning, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.  
 - `-pr`: Enable planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.  
 - `-s <n>`: Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files). This flag invokes an embedding operation and performs a local similarity search for files related to the implementation context.  
@@ -288,6 +289,7 @@ Stage 4 performs the actual code implementation, processing each target file ind
 - **`stage4_changes_done_response`**: Simulated response acknowledging the completed changes.
 - **`stage4_continue_prompt`**: Prompt used when the LLM response reaches token limits and needs to continue generating the remaining code.
 - **`stage4_process_prompt`**: Main prompt for implementing code in a specific file, with placeholders for file-specific information.
+- **`stage4_process_incremental_prompt`**: Prompt for incremental search-and-replace mode implementation, which can be more efficient for large files.
 
 ### System-level Configuration Options
 
@@ -334,6 +336,13 @@ Context saving thresholds and percentages can be customized in your `project.jso
 
 - **`high_context_saving_random_percent`**: Percentage of selected files that should be chosen randomly during high context saving mode (default: 20%).
 
+### Incremental Mode Configuration
+
+Configuration for incremental search-and-replace mode in Stage 4:
+
+- **`files_incremental_mode_min_len`**: A 2D array that maps file patterns to minimum file sizes for incremental mode. Files smaller than the specified size will use full-file processing instead of incremental mode.
+- **`files_incremental_mode_rx`**: Regular expressions used to parse incremental search-and-replace blocks from LLM responses.
+
 ### Other Configuration
 
 - **`project_index_prompt`**: Initial prompt that presents the project file index with annotations to give the LLM an overview of the project structure and content.
@@ -372,3 +381,4 @@ The `implement` operation can consume significant time (when using a locally run
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.  
 4. **Use the `-u` Flag**: If your project contains unit-tests source code files that are relevant to the implementation task, use the `-u` flag to include them in processing (this will disable the filter for such files). This provides additional context for the LLM and allows it to see and modify unit-tests. However, be aware that including tests will increase the amount of code the LLM needs to analyze, which may increase costs.  
 5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.
+6. **Incremental Mode**: The `-ni` flag disables incremental search-and-replace mode, which can be useful for troubleshooting but may increase token usage for large files. Generally, incremental mode is more efficient and should be left enabled unless you encounter issues.
