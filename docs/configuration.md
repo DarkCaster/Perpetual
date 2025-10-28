@@ -37,7 +37,7 @@ Use `*.env.example` as templates. Common settings include:
   - `PERPETUAL_DIR`: Override the default `.perpetual` directory location. If not set, Perpetual attempts to automatically find `.perpetual` configuration directory in the current directory and parent directories.
 
 - **Text Encoding**  
-  - `FALLBACK_TEXT_ENCODING`: Fallback encoding for files that cannot be read as UTF-8/16/32 (e.g., `"windows-1252"`).
+  - `FALLBACK_TEXT_ENCODING`: Fallback encoding for files that cannot be read as UTF-8/16/32 (e.g., `"windows-1252"`). Uses encoding names supported by `golang.org/x/text/encoding/ianaindex` package.
 
 - **Provider Selection**  
   - `LLM_PROVIDER`: Default provider profile, e.g., `openai`, `anthropic`, `ollama`, or `generic`. You can append a profile number (e.g., `openai1`) to maintain multiple configurations.
@@ -52,6 +52,8 @@ Use `*.env.example` as templates. Common settings include:
   - `<PROFILE>_MODEL_OP_<OPERATION>`: Model override for a specific operation.
   - `<PROFILE>_TEMPERATURE`: Sampling temperature (`0.0`–`1.0`).
   - `<PROFILE>_MAX_TOKENS`: Maximum tokens per response.
+  - `<PROFILE>_MAX_TOKENS_SEGMENTS`: Maximum segments when hitting token limits.
+  - `<PROFILE>_ON_FAIL_RETRIES`: Number of retry attempts on failure.
   - `<PROFILE>_FORMAT_OP_<OPERATION>`: Response format (`plain` or `json`).
   - `<PROFILE>_VARIANT_COUNT`: Number of response variants to generate.
   - `<PROFILE>_VARIANT_SELECTION`: Strategy for selecting final variant (`short`, `long`, `combine`, or `best`).
@@ -99,10 +101,10 @@ Controls which files are included or excluded, how code is mapped to Markdown, a
 - `medium_context_saving_file_count`: File count threshold for medium context saving mode.
 - `high_context_saving_file_count`: File count threshold for high context saving mode.
 - `medium_context_saving_select_percent`: Percentage of files to select in medium context saving.
-- `medium_context_saving_random_percent`: Percentage of random files in medium context saving (calculated relative to the previous value).
+- `medium_context_saving_random_percent`: Percentage of random files in medium context saving (calculated relative to selected files).
 - `high_context_saving_select_percent`: Percentage of files to select in high context saving.
-- `high_context_saving_random_percent`: Percentage of random files in high context saving (calculated relative to the previous value).
-- `files_incremental_mode_min_length`: Minimum file length for incremental mode.
+- `high_context_saving_random_percent`: Percentage of random files in high context saving (calculated relative to selected files).
+- `files_incremental_mode_min_length`: 2D array of `[pattern, min_length]` defining minimum file length for incremental mode.
 - `files_incremental_mode_rx`: Regex patterns for incremental mode tags.
 
 Example:
