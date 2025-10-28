@@ -10,7 +10,7 @@ To maximize performance and minimize VRAM usage, set the following environment v
 
 ```sh
 OLLAMA_FLASH_ATTENTION="1"
-OLLAMA_KV_CACHE_TYPE=q8_0
+OLLAMA_KV_CACHE_TYPE="q8_0"
 ```
 
 This configuration sets KV cache quantization to 8-bit, allowing larger context window sizes with some quality loss. It is recommended for GPUs with a low amount of VRAM.
