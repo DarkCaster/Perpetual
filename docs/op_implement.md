@@ -93,7 +93,7 @@ Perpetual implement [flags]
 
 - `-h`: Display help information about the `implement` operation.  
 - `-c <mode>`: Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high).  
-- `-d <file>`: Optional path to project description file for adding into LLM context (valid values: file-path|disabled).  
+- `-df <file>`: Optional path to project description file for adding into LLM context (valid values: file-path|disabled).  
 - `-f`: Disable 'no-upload' file-filter and upload such files for review and processing if requested.  
 - `-i <file>`: Read task instructions from file, plain text or markdown format. This flag automatically enables task mode (equivalent to using both `-i` and `-t` flags).  
 - `-n`: No annotate mode. Skip re-annotating changed files and use current annotations if any.  
@@ -194,7 +194,7 @@ The `implement` operation can be fine-tuned using environment variables in the `
    - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
 4. **JSON Structured Output Mode**  
-   JSON structured output mode is supported for Stages 1 and 3 for some LLM providers. This mode can be enabled to provide faster responses and slightly lower costs, may produce better results sometimes when used with Ollama. To enable it for different providers, add to your `.env` file:
+   JSON structured output mode is supported for Stages 1 and 3 for some LLM providers. This mode can be enabled to provide faster responses and slightly lower costs, and may produce better results sometimes when used with Ollama. To enable it for different providers, add to your `.env` file:
 
    ```sh
    ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
