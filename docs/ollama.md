@@ -2,7 +2,7 @@
 
 In this document, I collect my subjective tests of local LLMs with `Perpetual`. Your results may vary.
 
-**My test machine specs:** AMD Ryzen 9 7945HX, 32GB of RAM, Nvidia RTX 4070 Laptop GPU with 8GB of VRAM limited to 70W of power. I consider this as a bare minimum for working with local LLMs for now.
+**My test machine specs:** AMD Ryzen 9 7945HX, 32GB of RAM, Nvidia RTX 4070 Laptop GPU with 8GB of VRAM. Consider this as a minimum for working with local LLMs for now.
 
 ## Ollama Setup
 
@@ -13,47 +13,46 @@ OLLAMA_FLASH_ATTENTION="1"
 OLLAMA_KV_CACHE_TYPE=q8_0
 ```
 
-This configuration sets KV cache quantization to 8-bit, allowing larger context window sizes with minimal quality loss. It is recommended for GPUs with a low amount of VRAM.
+This configuration sets KV cache quantization to 8-bit, allowing larger context window sizes with some quality loss. It is recommended for GPUs with a low amount of VRAM.
 
 ## Models
 
-It is possible to use models from the Ollama repository to cover some `Perpetual` operations. **NOTE:** Always prefer "instruct" versions of the models over any other versions, since strict instruction following is key to reliable operation with the program.
+It is possible to use models from the Ollama repository to cover some `Perpetual` operations.
 
-### Qwen2.5-Coder
+### gpt-oss:20b
 
-The following models seem to work with `Perpetual`:
-
-- **`qwen2.5-coder:7b-instruct`**: Can be used with the `annotate` operation more or less reliably (more reliable with multi-step/multi-try annotate mode), depending on the target programming language. It can fully fit in 8GB of VRAM, providing decent performance. This is a working alternative for commercial LLMs like Claude 3 Haiku or GPT-4-mini for the `annotate` operation only. Coding tasks with the `implement` operation are pretty unreliable.
-
-- **`qwen2.5-coder:14b-instruct-q4_K_M`**: Can be used with the `annotate` operation more reliably than the 7b model and can handle small and most trivial coding tasks with the `implement` operation. It can only partially fit in 8GB of VRAM, leading to a significant performance drop. It is barely usable on a GPU with 8GB of VRAM.
-
-- **`qwen2.5-coder:32b-instruct-q4_K_M`**: Can write more complicated code with the `implement` operation and is more reliable. However, it is practically unusable on a GPU with 8GB of VRAM.
-
-If using these models with the `implement` operation, you can reliably use JSON mode for Stage 1 and Stage 3.
-
-#### Alternative Qwen-based models found on Hugging Face that also seem to work
-
-- **`Rombos-Coder-V2.5-Qwen-7b`**: Provide similar results to base Qwen2.5-Coder models, but seem to be a bit more reliable. In order to use the model, you need to download model weights in GGUF format from [here](https://huggingface.co/mradermacher/Rombos-Coder-V2.5-Qwen-7b-i1-GGUF) and use a custom model file (see below) to add it to your Ollama installation.
-
-- **`Rombos-Coder-V2.5-Qwen-14b`**: Download weights from [here](https://huggingface.co/mradermacher/Rombos-Coder-V2.5-Qwen-14b-GGUF).
-
-Model file:
+Download with:
 
 ```sh
-FROM Rombos-Coder-V2.5-Qwen-14b.IQ4_XS.gguf
-PARAMETER num_ctx 12288
-PARAMETER num_predict 2048
-SYSTEM You are a helpful AI assistant. Given the following conversation, relevant context, and a follow-up question, reply with an answer to the current question the user is asking. Return only your response to the question given the above information, following the user's instructions as needed.
-TEMPLATE """{{ if .System }}<|im_start|>system
-{{ .System }}<|im_end|>
-{{ end }}{{ if .Prompt }}<|im_start|>user
-{{ .Prompt }}<|im_end|>
-{{ end }}<|im_start|>assistant
-{{ .Response }}{{ if .Response }}<|im_end|>{{ end }}"""
-PARAMETER stop "<|endoftext|>"
-PARAMETER stop "<|file_sep|>"
-PARAMETER stop "<|fim_prefix|>"
-PARAMETER stop "<|fim_middle|>"
+ollama pull gpt-oss:20b
 ```
 
-**NOTE:** When saving the model file, use Unix (LF) line-ending style, the template text is affected by it. `Perpetual` always communicates with Ollama assuming LF line endings and transfers file contents with line endings converted to LF.
+20b gpt-oss model can be used for generating annotations providing results good enough for use on other stages and operations, you need to set env. variable `OLLAMA_THINK_OP_ANNOTATE` or `OLLAMA_THINK` to `low` in order to fit annotations in smaller context. May be used for stage 1 of other operations in `plain` non-json mode with small projects, results may be unstable - consider to use `-sp` flag for multi-step file selection.
+
+### qwen3:8b / qwen3:14b
+
+Download with:
+
+```sh
+ollama pull qwen3:8b
+or
+ollama pull qwen3:14b
+```
+
+Both models can be used for generating annotations, you should disable thinking by setting `OLLAMA_THINK_OP_ANNOTATE` or `OLLAMA_THINK` env. variable to `false`. If using smaller 8b model, consider using multi-stage annotation generation for better results. 14b model can be used for stage 1 of other operations on smaller projects, hovewer, result are unstable.
+
+### qwen3:30b
+
+This is MOE qwen 3 model. Works good enough for generating annotations, providing similar (or slightly worse) result as qwen3:14b.
+
+**NOTE: There are multiple different models available in ollama library with the same name.** Consider using `qwen3:30b-a3b-q4_K_M`, this is an older but more universal - it can be used with or without thinking. Other models untested, but should work.
+
+### snowflake-arctic-embed2
+
+This is an embeddings model that can only be used for local similarity search. Enable by setting `OLLAMA_MODEL_OP_EMBED="snowflake-arctic-embed2"` and `LLM_PROVIDER_OP_EMBED="ollama"` env. variables. Generated embeddings are good enough for production use with projects of any size.
+
+Download with:
+
+```sh
+ollama pull snowflake-arctic-embed2
+```
