@@ -51,9 +51,12 @@ The `init` operation performs several tasks to set up your project for use with 
 3. **Generates default configuration files and prompts** for the selected programming language.  
 4. **Creates a `.gitignore` file** within the `.perpetual` directory to exclude specific Perpetual files from version control.  
 5. **Creates example `.env.example` files** for Perpetual and each supported LLM provider (e.g., `.env.example`, `ollama.env.example`, `openai.env.example`, `anthropic.env.example`, `generic.env.example`).  
-6. **Cleans obsolete configuration files and directories** if the `-c` flag is used.  
+6. **Creates a `description.md.template` file** that can be used as a starting point for creating a project description document.  
+7. **Cleans obsolete configuration files and directories** if the `-c` flag is used.  
 
 When run inside an already initialized project, it will overwrite current config files and create any missing ones.
+
+**Note:** The `init` operation respects the `PERPETUAL_DIR` environment variable. If set, it uses the specified directory instead of creating `.perpetual` in the current directory.
 
 ### Directory and File Structure
 
