@@ -15,20 +15,27 @@ These limitations are in place to ensure a controlled and safe environment for c
 
 ## Supported Source File Encoding
 
-`Perpetual` only supports the following text encodings for source files:
+`Perpetual` supports the following text encodings for source files:
 
 - UTF-8 (with or without BOM)
 - UTF-16 (LE and BE, with BOM)
 - UTF-32 (LE and BE, with BOM)
 
+Additionally, if a file cannot be decoded as one of the above UTF encodings, `Perpetual` will attempt to use a fallback encoding. The fallback encoding can be set via the `FALLBACK_TEXT_ENCODING` environment variable (default: `windows-1252`). The fallback encoding must be supported by the `golang.org/x/text/encoding/ianaindex` package.
+
 When reading files, `Perpetual` performs the following operations:
 
-1. Detects the file encoding
-2. Converts the content to UTF-8 without BOM
+1. Detects the file encoding by checking for BOMs and, if not found, assumes UTF-8 without BOM
+2. Converts the content to UTF-8 for internal processing
 3. Validates the UTF-8 encoding
-4. Unsupported encodings will be treated as UTF-8 without BOM and may result in encoding errors
+4. If UTF-8 validation fails and fallback encoding is available, converts using the fallback encoding
 
-Currently, **all files are written back as UTF-8 without BOM** (Byte Order Mark) to ensure consistency across the project. This may be improved in the future to write files back in their original encoding.
+When writing files, `Perpetual` attempts to use the same encoding that was used when reading the file:
+
+- If the file was originally read as one of the supported UTF encodings, it will be written back in that same encoding (including BOM if originally present)
+- If the file was read using the fallback encoding, it will be written back using the fallback encoding
+
+This ensures that the file encoding remains consistent across read and write operations, minimizing unnecessary changes to the file encoding.
 
 ## Line Endings (CR LF)
 
@@ -185,7 +192,7 @@ It is now possible to use local LLM and models like `qwen3:8b` or `qwen3:14b` to
 Consider these additional approaches for very large projects:
 
 - Work with logical subsets of your project rather than the entire codebase
-- Do not include unit-test files unless needed (using the `-u` flag, enabled by default)
+- Do not include unit-test files into processing unless needed (use `-u` flag to include them)
 - Apply custom filters with the `-x` flag to focus on specific parts of your codebase
 
 ### Future Improvements
