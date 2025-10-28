@@ -2,7 +2,7 @@
 
 The `doc` operation creates or reworks documentation files in Markdown or plain-text format. It streamlines generating and maintaining project documentation by producing context-aware documents based on your project's source code and any existing materials.
 
-**Note:** Results may vary depending on the model used. The `doc` operation uses more tokens and context than `implement`. Use a capable model for best consistency and style. Reasoning models can improve style but may incur higher costs, also looks like reasoning models are good in creating initial documents with `-a write` flag rather than refining documents with `-a refine`. The `doc` operation is somewhat experimental for now.
+**Note:** Results may vary depending on the model used. The `doc` operation uses more tokens and context than `implement`. Use a capable model for best consistency and style. Reasoning models can improve style but may incur higher costs, and they are often better at creating initial documents with `-a write` rather than refining existing documents with `-a refine`. The `doc` operation is somewhat experimental for now.
 
 ## Usage
 
@@ -21,7 +21,7 @@ Available flags:
   - `draft`  Create an initial draft template.  
   - `write`  Write or complete an existing document.  
   - `refine` Refine and update an existing document.
-- `-d <file>`  
+- `-df <file>`  
   Optional path to project description file for adding into LLM context (valid values: file-path|disabled). If omitted, uses `.perpetual/description.md` if available.
 - `-c <mode>`  
   Context saving mode: `auto` (default), `off`, `medium`, or `high`. Controls how aggressively LLM context usage is reduced on large projects.
@@ -87,13 +87,13 @@ Available flags:
 7. **Use custom project description file:**
 
    ```sh
-   Perpetual doc -r docs/api_reference.md -d custom_description.md -a write
+   Perpetual doc -r docs/api_reference.md -df custom_description.md -a write
    ```
 
 8. **Disable project description:**
 
    ```sh
-   Perpetual doc -r docs/quick_start.md -d disabled -a write
+   Perpetual doc -r docs/quick_start.md -df disabled -a write
    ```
 
 ## How It Works
@@ -229,6 +229,6 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 
 6. **Use Filtering Options:** Utilize the `-u` flag to include unit test files in the documentation process when necessary. For more granular control, create a custom regex filter file and use it with the `-x` flag to exclude specific files or patterns from processing.
 
-7. **Project Description:** Fill-up project description at `.perpetual/description.md` from provided template (or use the `-d` flag to read it from different file). This will populate LLM context with extra description about your project. This helps the LLM to better understand the project's purpose and architecture, leading to more relevant and accurate documentation.
+7. **Project Description:** Fill-up project description at `.perpetual/description.md` from provided template (or use the `-df` flag to read it from different file). This will populate LLM context with extra description about your project. This helps the LLM to better understand the project's purpose and architecture, leading to more relevant and accurate documentation.
 
 By leveraging the `doc` operation effectively, you can significantly streamline your documentation process, ensuring that your project's documentation remains comprehensive, up to date, and aligned with your codebase.
