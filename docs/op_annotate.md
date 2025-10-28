@@ -20,6 +20,8 @@ The `annotate` operation supports several command-line flags to customize its be
 
 - `-d`: Perform a dry run without actually generating annotations. This flag will list the files that would be annotated without making LLM requests and updating annotations.
 
+- `-df <file>`: Optional path to project description file for adding into LLM context. Valid values: `file-path` or `disabled`. If not specified, the operation will attempt to load the project description from `.perpetual/description.md`.
+
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
 - `-r <file>`: Only annotate a single specified file, even if its annotation is already up to date. This flag implies the `-f` flag. Use this when you want to update the annotation for a specific file. It may be useful if annotating all changed project files in a batch hits LLM API limits.
@@ -48,6 +50,12 @@ The `annotate` operation supports several command-line flags to customize its be
 
    ```sh
    Perpetual annotate -r path/to/file.go
+   ```
+
+4. **Annotate with custom project description:**
+
+   ```sh
+   Perpetual annotate -df custom_description.md
    ```
 
 When run, the `annotate` operation will process the specified files (or all changed files if no specific file is given) and generate or update their annotations. These annotations are then stored in the project's configuration directory (`.perpetual/.annotations.json`) for use by other `Perpetual` operations.
@@ -163,6 +171,7 @@ Customization of LLM prompts for the `annotate` operation is handled through the
    - It locates the project's root directory and the `.perpetual` configuration directory.
    - Environment variables are loaded from `.env` files to configure the core LLM parameters.
    - Configuration and prompts are loaded from the `.perpetual/op_annotate.json` and `.perpetual/project.json` files.
+   - The project description is loaded from `.perpetual/description.md` or a custom file specified with the `-df` flag.
 
 2. **File Discovery:**
    - The operation scans the project directory to identify source code files to annotate, applying whitelist and blacklist regex patterns from the project configuration.
@@ -177,6 +186,7 @@ Customization of LLM prompts for the `annotate` operation is handled through the
 4. **Annotation Generation:**
    - For each selected file, the operation:
      - Selects an appropriate prompt from `stage1_prompts` based on file pattern matching and context saving mode
+     - Builds a message chain that may include the project description if available
      - Sends the prompt and file content to the LLM with proper file tagging
      - Handles retries on failure according to the configured retry limit
      - Generates multiple variants if configured (`variant_count` > 1)
