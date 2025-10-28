@@ -24,7 +24,7 @@ The `stash` operation supports several command-line flags to customize its behav
 
 - `-lf`: List files in a specified stash. This flag shows the files that are affected by a particular stash.
 
-- `-n <name>`: Set the stash name to apply or revert. If not specified, it defaults to the latest stash.
+- `-n <name>`: Set the stash name to apply or revert. If not specified, it defaults to the most recent stash.
 
 - `-f <filename>`: Select a single file to apply or revert from the stash. This is useful when you want to manipulate changes for a specific file.
 
