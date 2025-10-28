@@ -36,7 +36,7 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # Deprecated:
 # GENERIC_API_KEY="<token>" # will work same as GENERIC_AUTH
 
-# Streaming support: 0 - disabled (default), 1 - enabled. Best value depends on provider support and/or model.
+# Streaming support: 0 - disabled (default), 1 - enabled. Value depends on provider support and/or model.
 # May affect error-handling, timeouts and costs.
 # GENERIC_ENABLE_STREAMING_OP_ANNOTATE="0"
 # GENERIC_ENABLE_STREAMING_OP_ANNOTATE_POST="0"
@@ -51,7 +51,7 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # GENERIC_ENABLE_STREAMING_OP_EXPLAIN_STAGE2="0"
 # GENERIC_ENABLE_STREAMING="0"
 
-# Format of max-tokens API parameter: old (default), new. Best value depends on provider support and/or model.
+# Format of max-tokens API parameter: old (default), new. Value depends on provider support and/or model.
 # Old is "max_tokens=<value>", New is "max_completion_tokens=<value>"
 # GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE="old"
 # GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE_POST="old"
@@ -86,15 +86,15 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # Model selection for different operations and stages
 # GENERIC_MODEL_OP_ANNOTATE="deepseek-chat"
 # GENERIC_MODEL_OP_ANNOTATE_POST="deepseek-chat" # used to process multiple response-variants if any
-# GENERIC_MODEL_OP_EMBED="deepseek-r1"
+# GENERIC_MODEL_OP_EMBED="unknown" # depends on provider
 # GENERIC_MODEL_OP_IMPLEMENT_STAGE1="deepseek-chat"
-# GENERIC_MODEL_OP_IMPLEMENT_STAGE2="deepseek-chat"
+GENERIC_MODEL_OP_IMPLEMENT_STAGE2="deepseek-reasoner"
 # GENERIC_MODEL_OP_IMPLEMENT_STAGE3="deepseek-chat"
 # GENERIC_MODEL_OP_IMPLEMENT_STAGE4="deepseek-chat"
 # GENERIC_MODEL_OP_DOC_STAGE1="deepseek-chat"
-# GENERIC_MODEL_OP_DOC_STAGE2="deepseek-chat"
+GENERIC_MODEL_OP_DOC_STAGE2="deepseek-reasoner"
 # GENERIC_MODEL_OP_EXPLAIN_STAGE1="deepseek-chat"
-# GENERIC_MODEL_OP_EXPLAIN_STAGE2="deepseek-chat"
+GENERIC_MODEL_OP_EXPLAIN_STAGE2="deepseek-reasoner"
 GENERIC_MODEL="deepseek-chat"
 # GENERIC_MODEL="deepseek-reasoner" # do not forget to set system prompt role to "user" below
 GENERIC_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
@@ -128,16 +128,16 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 # GENERIC_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
 # Options for limiting output tokens for different operations and stages, must be set
-GENERIC_MAX_TOKENS_OP_ANNOTATE="768" # you shoud keep the summary short.
+GENERIC_MAX_TOKENS_OP_ANNOTATE="1024" # you shoud keep the summary short.
 GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big as possible, works with DeepSeek
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="12288" # generated code output limit should be big, but it may reduce maximum context size available
 GENERIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, longer list is probably an error
-GENERIC_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be as big as possible, works with DeepSeek
+GENERIC_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be big, but it may reduce maximum context size available
 GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
-GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192" # generated answer output limit
+GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="12288" # generated answer output limit
 GENERIC_MAX_TOKENS="4096" # probably should work with most LLMs
 
 # Options to control retries (including rate-limit hits) and partial output due to token limit
@@ -165,6 +165,20 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2" # less creative for file-list output
 # GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
 # GENERIC_TEMPERATURE="0.5"
+
+# Reasoning effort control, option is unset and omited by default
+# Will work for providers and models with reasoning capabilities, values: minimal, low, medium, high
+# GENERIC_REASONING_EFFORT_OP_ANNOTATE="medium"
+# GENERIC_REASONING_EFFORT_OP_ANNOTATE_POST="medium"
+# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="medium"
+# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="medium"
+# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="medium"
+# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE4="medium"
+# GENERIC_REASONING_EFFORT_OP_DOC_STAGE1="medium"
+# GENERIC_REASONING_EFFORT_OP_DOC_STAGE2="medium"
+# GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE1="medium"
+# GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE2="medium"
+# GENERIC_REASONING_EFFORT="medium"
 
 # System prompt role for model, can be configured per operation. Useful for reasoning models without system prompt, like deepseek-reasoner
 # Valid values: system, developer, user. default: system.
@@ -320,7 +334,7 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_REPEAT_PENALTY_OP_DOC_STAGE2="1.2"
 # GENERIC_REPEAT_PENALTY_OP_EXPLAIN_STAGE1="1.0"
 # GENERIC_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
-# GENERIC_REPEAT_PENALTY="1.1"
+# GENERIC_REPEAT_PENALTY="1.1" # try enabling for deepseek-reasoner models if experiencing problems with infinite reasoning loops
 # GENERIC_FREQ_PENALTY_OP_ANNOTATE="1.0"
 # GENERIC_FREQ_PENALTY_OP_ANNOTATE_POST="1.0"
 # GENERIC_FREQ_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
@@ -343,15 +357,4 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_PRESENCE_PENALTY_OP_EXPLAIN_STAGE1="1.0"
 # GENERIC_PRESENCE_PENALTY_OP_EXPLAIN_STAGE2="1.0"
 # GENERIC_PRESENCE_PENALTY="1.0"
-# GENERIC_REASONING_EFFORT_OP_ANNOTATE="medium" # values: minimal, low, medium, high
-# GENERIC_REASONING_EFFORT_OP_ANNOTATE_POST="medium"
-# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="medium"
-# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="medium"
-# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="medium"
-# GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE4="medium"
-# GENERIC_REASONING_EFFORT_OP_DOC_STAGE1="medium"
-# GENERIC_REASONING_EFFORT_OP_DOC_STAGE2="medium"
-# GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE1="medium"
-# GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE2="medium"
-# GENERIC_REASONING_EFFORT="medium"
 `
