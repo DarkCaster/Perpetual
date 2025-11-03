@@ -63,8 +63,8 @@ func (p *cPrompts) GetProjectConfig() map[string]interface{} {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(c|h)$", 1024},
-		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 1024},
+		{"(?i)^.*\\.(c|h)$", 4096},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
 	}
 	return result
 }

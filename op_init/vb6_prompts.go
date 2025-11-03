@@ -56,7 +56,7 @@ func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*'+\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(frm|cls|bas)$", 1024},
+		{"(?i)^.*\\.(frm|cls|bas)$", 4096},
 	}
 	return result
 }

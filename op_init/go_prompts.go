@@ -55,7 +55,7 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.go$", 1024},
+		{"(?i)^.*\\.go$", 4096},
 	}
 	return result
 }

@@ -64,7 +64,7 @@ func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
 	// redefine language-dependent prompts
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(c|cpp|ino|h|hpp|hh|tpp|ipp)$", 1024},
+		{"(?i)^.*\\.(c|cpp|ino|h|hpp|hh|tpp|ipp)$", 4096},
 	}
 	return result
 }

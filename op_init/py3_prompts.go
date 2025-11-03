@@ -70,7 +70,7 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in)$", 1024},
+		{"(?i)^.*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in)$", 4096},
 	}
 	return result
 }
