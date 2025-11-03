@@ -14,7 +14,7 @@
   "files_incremental_mode_min_length": [
     [
       "(?i)^.*\\.go$",
-      1024
+      4096
     ]
   ],
   "files_incremental_mode_rx": [
