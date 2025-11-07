@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -23,7 +25,7 @@ func miscFlags() *flag.FlagSet {
 }
 
 func Run(args []string, stdErrLogger logging.ILogger) {
-	var help, projTest, verbose, trace, includeTests bool
+	var help, projTest, listFiles, verbose, trace, includeTests bool
 	var descFile, userFilterFile string
 
 	// Parse flags for the "misc" operation
@@ -31,6 +33,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&help, "h", false, "Show usage")
 	// Main flags to perform particular function
 	flags.BoolVar(&projTest, "p", false, "Search for .perpetual dir, starting from curdir and check json configs inside it. Output full path of .perpetual dir on success.")
+	flags.BoolVar(&listFiles, "l", false, "List project files accesible by utility, can work with '-x' and '-u' flags.")
 	// Extra options, may be used with flags above to alter its behavior or test some more things
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
@@ -47,22 +50,36 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		stdErrLogger.EnableLevel(logging.TraceLevel)
 	}
 
-	//TODO: check for flag conflicts between: -p, ...
 	stdErrLogger.Debugln("Starting 'misc' operation")
 	stdErrLogger.Traceln("Args:", args)
 
-	if !projTest || help {
-		usage.PrintOperationUsage("One of the following flags must be provided: -p, ...", flags)
+	fc := 0
+	if projTest {
+		fc++
+	}
+	if listFiles {
+		fc++
+	}
+
+	if help {
+		usage.PrintOperationUsage("", flags)
+	} else if fc > 1 {
+		usage.PrintOperationUsage("Only one of the following flags must be provided: -p, -l", flags)
+	} else if fc < 1 {
+		usage.PrintOperationUsage("One of the following flags must be provided: -p, -l", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
-	_, perpetualDir, err := utils.FindProjectRoot(stdErrLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(stdErrLogger)
 	if err != nil {
 		stdErrLogger.Panicln("Error finding project root directory:", err)
 	}
 
+	stdErrLogger.Infoln("Project root directory:", projectRootDir)
+	stdErrLogger.Debugln("Perpetual directory:", perpetualDir)
+
 	//load json config files for project and operations, will panic if it cannot be loaded or parsed
-	config.LoadProjectConfig(perpetualDir, stdErrLogger)
+	projectConfig := config.LoadProjectConfig(perpetualDir, stdErrLogger)
 	config.LoadOpAnnotateConfig(perpetualDir, stdErrLogger)
 	config.LoadOpDocConfig(perpetualDir, stdErrLogger)
 	config.LoadOpExplainConfig(perpetualDir, stdErrLogger)
@@ -98,6 +115,71 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	//if we are only checking for .perpetual directory validity, output it here
 	if projTest {
 		fmt.Println(perpetualDir)
+		return
+	}
+
+	// Preparation of project files
+	stdErrLogger.Infoln("Fetching project files")
+	fileNames, _, err := utils.GetProjectFileList(
+		projectRootDir,
+		perpetualDir,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectConfig.RegexpArray(config.K_ProjectFilesBlacklist))
+
+	if err != nil {
+		stdErrLogger.Panicln("Error getting project file-list:", err)
+	}
+
+	// Check fileNames array for case collisions
+	if !utils.CheckFilenameCaseCollisions(fileNames) {
+		//list current files
+		if listFiles {
+			for _, file := range fileNames {
+				fmt.Println(file)
+			}
+		}
+		stdErrLogger.Panicln("Filename case collisions detected in project files")
+	}
+
+	// File names and dir-names must not contain path separators characters
+	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
+		//list current files
+		if listFiles {
+			for _, file := range fileNames {
+				fmt.Println(file)
+			}
+		}
+		stdErrLogger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+	}
+
+	// Filter project files with unittest- and user- filters
+	var userBlacklist []*regexp.Regexp
+	if userFilterFile != "" {
+		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
+		if err != nil {
+			stdErrLogger.Panicln("Error processing user blacklist-filter:", err)
+		}
+	}
+
+	if !includeTests {
+		userBlacklist = append(userBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
+	}
+
+	fileNames, droppedFiles := utils.FilterFilesWithBlacklist(fileNames, userBlacklist)
+	if len(droppedFiles) > 0 {
+		stdErrLogger.Infoln("Number of blacklisted files with unit-tests and/or user-provided filters:", len(droppedFiles))
+		slices.Sort(droppedFiles)
+		for _, file := range droppedFiles {
+			stdErrLogger.Debugln("Filtered-out:", file)
+		}
+	}
+
+	//list currently available files
+	slices.Sort(fileNames)
+	if listFiles {
+		for _, file := range fileNames {
+			fmt.Println(file)
+		}
 		return
 	}
 }
