@@ -21,6 +21,15 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.1.0 (Unreleased)
+
+### Improvements
+
+- Improved default python prompts: added more filetypes to project.json
+- (work in progress) Adeded `misc` opertation: collection of various small helper-functions for managing project-files, detecting and fixing errors in configuration, and much more. Intended to be used both manually and with external agent tools.
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration to enable use of new filetypes and annotation-prompts by running `Perpetual init -l python3`
+
 ## v9.0.0
 
 ### Improvements
