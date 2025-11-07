@@ -18,6 +18,9 @@ func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.pl$", defaultAIAnnotatePrompt_Perl, defaultAIAnnotatePrompt_Perl_Short},
 		{"(?i)^.*\\.(bat|cmd)$", defaultAIAnnotatePrompt_Bat, defaultAIAnnotatePrompt_Bat_Short},
 		{"(?i)^.*\\.(sh|bash)(\\.in)?$", defaultAIAnnotatePrompt_Bash, defaultAIAnnotatePrompt_Bash_Short},
+		{"(?i)^.*\\.lua$", defaultAIAnnotatePrompt_Lua, defaultAIAnnotatePrompt_Lua_Short},
+		{"(?i)^.*pyproject\\.toml$", defaultAIAnnotatePrompt_PyProjectToml, defaultAIAnnotatePrompt_PyProjectToml_Short},
+		{"(?i)^.*requirements\\.txt$", defaultAIAnnotatePrompt_PyReqTxt, defaultAIAnnotatePrompt_PyReqTxt_Short},
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
@@ -52,25 +55,28 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*\\.(sh|bash)$",
 		"(?i)^.*\\.sh\\.in$",
 		"(?i)^.*\\.bash\\.in$",
+		"(?i)^.*\\.lua$",
+		"(?i)^.*pyproject\\.toml$",
+		"(?i)^.*requirements\\.txt$",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^venv(\\\\|\\/).*"}
 	result[config.K_ProjectTestFilesBlacklist] = []string{
-		"(?i)^test_.*\\.py$",
-		"(?i)^.*(\\\\|\\/)test_.*\\.py$",
-		"(?i)^.*_test\\.py$",
-		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.py$",
-		"(?i)^.*(\\\\|\\/)unittest(\\\\|\\/).*\\.py$",
-		"(?i)^.*(\\\\|\\/)pytest(\\\\|\\/).*\\.py$",
-		"(?i)^tests?(\\\\|\\/).*\\.py$",
-		"(?i)^unittest(\\\\|\\/).*\\.py$",
-		"(?i)^pytest(\\\\|\\/).*\\.py$",
+		"(?i)^test_.*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^.*(\\\\|\\/)test_.*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^.*_test\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^.*(\\\\|\\/)tests?(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^.*(\\\\|\\/)unittest(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^.*(\\\\|\\/)pytest(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^tests?(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^unittest(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
+		"(?i)^pytest(\\\\|\\/).*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in|lua|toml|txt)$",
 	}
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Python 3). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*###NOUPLOAD###.*$", "^\\s*(REM)*\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps_WithNumbers
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(py|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in)$", 4096},
+		{"(?i)^.*\\.(py|lua|pl|bat|cmd|sh|bash|sh\\.in|bash\\.in)$", 4096},
 	}
 	return result
 }

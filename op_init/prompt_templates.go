@@ -105,6 +105,18 @@ const defaultAIAnnotatePrompt_Py3 = "Create a summary for the Python 3 source fi
 
 const defaultAIAnnotatePrompt_Py3_Short = "Create a short summary for the Python 3 source file in my next message. The summary should be up to 2 sentences long, and should include the module name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nModule: `<module_name>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_Lua = "Create a summary for the Lua script file in my next message. It should be as brief as possible, without unnecessary language structures.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis file provides <description of what this file is used for, up to 3 sentences>"
+
+const defaultAIAnnotatePrompt_Lua_Short = "Create a short summary for the Lua script file in my next message. The summary should be up to 2 sentences long.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nThis file provides <description of what this file is used for, up to 2 sentences>"
+
+const defaultAIAnnotatePrompt_PyProjectToml = "Create a short description for the Python package configuration file in TOML format. Do not list any dependencies. Use the following template:\n\nThis file describes the configuration of the package <name>: <very short description of the package, 1 sentence long>"
+
+const defaultAIAnnotatePrompt_PyProjectToml_Short = defaultAIAnnotatePrompt_PyProjectToml
+
+const defaultAIAnnotatePrompt_PyReqTxt = "Create a short description for the Python requirements.txt configuration file. The description should not include a list of dependencies. The description should only consist of a single line of the following format:\n\nThis file describes the project's dependencies for the following areas <a comma-separated list of one or more areas that you believe the listed packages cover>"
+
+const defaultAIAnnotatePrompt_PyReqTxt_Short = defaultAIAnnotatePrompt_PyReqTxt
+
 const defaultAIAnnotatePrompt_Xaml = "Create a summary for the XAML ui-markup file in my next message. Describe the main UI elements, their purpose, and their relationships. Indicate what type of user interface (e.g., window, page, dialog box, etc.) this XAML file likely describes. Limit the summary to 3-4 sentences."
 
 const defaultAIAnnotatePrompt_Xaml_Short = "Create a short summary for the XAML ui-markup file in my next message. The summary should be up to 2 sentences long."
