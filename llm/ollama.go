@@ -629,6 +629,35 @@ func (p *OllamaLLMConnector) CreateEmbeddings(mode EmbedMode, tag string, conten
 	return embeddings, QueryOk, nil
 }
 
+func (p *OllamaLLMConnector) CanGrowContextSize() bool {
+	// unknown context size
+	if p.ContextSize < 1 {
+		return false
+	}
+	// multiplier will shrink context size instead of growing it
+	if p.ContextSizeMult <= 1 {
+		return false
+	}
+	// already hit the limit
+	if p.ContextSizeLimit > 0 && p.ContextSizeOverride >= p.ContextSizeLimit {
+		return false
+	}
+	// in any other cases we can grow context size
+	return true
+}
+
+func (p *OllamaLLMConnector) GrowContextSize() int {
+	ovSize := p.ContextSizeOverride
+	if ovSize < 1 {
+		ovSize = p.ContextSize
+	}
+	newSize := int(float64(ovSize) * p.ContextSizeMult)
+	if p.ContextSizeLimit > 0 && newSize >= p.ContextSizeLimit {
+		return p.ContextSizeLimit
+	}
+	return max(newSize, ovSize)
+}
+
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
@@ -657,7 +686,16 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				total += len(str)
 			}
 			totalTokens := int(float64(total) * p.ContextSizeEstMult)
-			contextOverflowExpected = totalTokens > ctxSz+p.MaxTokens
+			contextOverflowExpected = totalTokens > ctxSz
+			if contextOverflowExpected {
+				//TODO: try best-shot estimation to evaluate our changes of successful generation
+				contextOverflowInevitable := true
+				// try to grow context size and return early
+				if contextOverflowInevitable && p.CanGrowContextSize() {
+					p.ContextSizeOverride = p.GrowContextSize()
+					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+				}
+			}
 		}
 	}
 
@@ -854,17 +892,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			}
 			//handle overflow
 			if contextOverflow {
-				if p.ContextSizeMult > 1 {
-					if p.ContextSizeOverride < 1 {
-						p.ContextSizeOverride = p.ContextSize
-					}
-					p.ContextSizeOverride = int(float64(p.ContextSizeOverride) * p.ContextSizeMult)
-					if p.ContextSizeLimit > 0 && p.ContextSizeOverride > p.ContextSizeLimit {
-						p.ContextSizeOverride = p.ContextSizeLimit
-					}
-					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+				if !p.CanGrowContextSize() {
+					return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
 				}
-				return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
+				p.ContextSizeOverride = p.GrowContextSize()
+				return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 			}
 		}
 
