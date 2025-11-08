@@ -844,7 +844,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			if p.ContextSizeOverride > 0 {
 				ctxSz = p.ContextSizeOverride
 			}
-			//first check overflow by comparing total tokens with current context size, may not work well with new ollama engine
+			//first check overflow by comparing total tokens with current context size, may not always work well
 			if totalTokens, exist := response.Choices[0].GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
 				contextOverflow = true
 			}
