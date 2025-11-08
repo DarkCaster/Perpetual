@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/DarkCaster/Perpetual/utils"
 	"github.com/tmc/langchaingo/llms"
@@ -680,6 +681,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	contextOverflowExpected := false
+	promptSize := 0
 	if p.ContextSize > 0 {
 		//set the context size
 		ctxSz := p.ContextSize
@@ -689,17 +691,16 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
 		//do rough context size estimation
 		if msgStrings, err := RenderMessagesToAIStrings(nil, messages); err == nil {
-			total := 0
 			for _, str := range msgStrings {
-				total += len(str)
+				promptSize += utf8.RuneCountInString(str)
 			}
 			//prompt size + response limit
-			totalTokens := int(float64(total)*p.ContextSizeEstMult) + p.MaxTokens
+			totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + p.MaxTokens
 			contextOverflowExpected = totalTokens > ctxSz
 			if contextOverflowExpected {
 				// try best-shot estimation to grow context size and quit early:
 				// prompt only, calculated via best-shot multiplier, not including response limit
-				totalTokens := int(float64(total) * p.ContextSizeEstMultBest)
+				totalTokens := int(float64(promptSize) * p.ContextSizeEstMultBest)
 				contextOverflowInevitable := totalTokens > ctxSz
 				if contextOverflowInevitable && p.CanGrowContextSize() {
 					p.ContextSizeOverride = p.GrowContextSize()
