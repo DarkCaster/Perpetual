@@ -29,6 +29,14 @@
 			"args": ["annotate","-vv","-r","main.go"],
 		},
 		{
+			"name": "Launch Package: annotate (big file) -r op_init/prompt_templates.go",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["annotate","-vv","-r","op_init/prompt_templates.go"],
+		},
+		{
 			"name": "Launch Package: embed -f",
 			"type": "go",
 			"request": "launch",
