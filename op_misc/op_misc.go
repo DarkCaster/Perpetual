@@ -56,28 +56,28 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	stdErrLogger.Debugln("Starting 'misc' operation")
 	stdErrLogger.Traceln("Args:", args)
 
-	fc := 0
+	flagCount := 0
 	if projTest {
-		fc++
+		flagCount++
 	}
 	if listFiles {
-		fc++
+		flagCount++
 	}
 	if checkFilesRead {
-		fc++
+		flagCount++
 	}
 	if checkFilesReadAsASCII {
-		fc++
+		flagCount++
 	}
 	if checkFilesAndSaveAsUTF {
-		fc++
+		flagCount++
 	}
 
 	if help {
 		usage.PrintOperationUsage("", flags)
-	} else if fc > 1 {
+	} else if flagCount > 1 {
 		usage.PrintOperationUsage("Only one of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
-	} else if fc < 1 {
+	} else if flagCount < 1 {
 		usage.PrintOperationUsage("One of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
 	}
 
