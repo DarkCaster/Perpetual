@@ -844,18 +844,16 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			if p.ContextSizeOverride > 0 {
 				ctxSz = p.ContextSizeOverride
 			}
-			//get total tokens
-			totalTokens := 0
-			if contextOverflow {
-				totalTokens = math.MaxInt
-			} else {
-				var exist bool
-				if totalTokens, exist = response.Choices[0].GenerationInfo["TotalTokens"].(int); !exist {
-					totalTokens = 0
-				}
+			//first check overflow by comparing total tokens with current context size, may not work well with new ollama engine
+			if totalTokens, exist := response.Choices[0].GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
+				contextOverflow = true
+			}
+			//token limit check: if we expecting overflow to occur, then hitting token limit is a sign of context overflow
+			if responseTokens, exist := response.Choices[0].GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
+				contextOverflow = true
 			}
 			//handle overflow
-			if totalTokens >= ctxSz {
+			if contextOverflow {
 				if p.ContextSizeMult > 1 {
 					if p.ContextSizeOverride < 1 {
 						p.ContextSizeOverride = p.ContextSize
@@ -866,7 +864,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 					}
 					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 				}
-				return []string{}, QueryFailed, errors.New("context overflow detected")
+				return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
 			}
 		}
 
