@@ -25,15 +25,18 @@ func miscFlags() *flag.FlagSet {
 }
 
 func Run(args []string, stdErrLogger logging.ILogger) {
-	var help, projTest, listFiles, verbose, trace, includeTests bool
+	var help, projTest, listFiles, checkFilesRead, checkFilesReadAsASCII, checkFilesAndSaveAsUTF, verbose, trace, includeTests bool
 	var descFile, userFilterFile string
 
 	// Parse flags for the "misc" operation
 	flags := miscFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	// Main flags to perform particular function
-	flags.BoolVar(&projTest, "p", false, "Search for .perpetual dir, starting from curdir and check json configs inside it. Output full path of .perpetual dir on success.")
-	flags.BoolVar(&listFiles, "l", false, "List project files accesible by utility, can work with '-x' and '-u' flags.")
+	flags.BoolVar(&projTest, "p", false, "Search for .perpetual dir, starting from curdir and check json configs inside it. Output absolute path of .perpetual dir on success.")
+	flags.BoolVar(&listFiles, "l", false, "List project files accessible by perpetual, relative to project root, can work with -x and -u flags.")
+	flags.BoolVar(&checkFilesRead, "fc", false, "Try reading project files as text, on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
+	flags.BoolVar(&checkFilesReadAsASCII, "fa", false, "Read project files and ensure it contains only ASCII characters (0-127), on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
+	flags.BoolVar(&checkFilesAndSaveAsUTF, "fs", false, "Read project files and convert non-UTF8 files to UTF8, print paths of affected files to stdout (relative to project root), can work with -x and -u flags.")
 	// Extra options, may be used with flags above to alter its behavior or test some more things
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
@@ -60,13 +63,22 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	if listFiles {
 		fc++
 	}
+	if checkFilesRead {
+		fc++
+	}
+	if checkFilesReadAsASCII {
+		fc++
+	}
+	if checkFilesAndSaveAsUTF {
+		fc++
+	}
 
 	if help {
 		usage.PrintOperationUsage("", flags)
 	} else if fc > 1 {
-		usage.PrintOperationUsage("Only one of the following flags must be provided: -p, -l", flags)
+		usage.PrintOperationUsage("Only one of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
 	} else if fc < 1 {
-		usage.PrintOperationUsage("One of the following flags must be provided: -p, -l", flags)
+		usage.PrintOperationUsage("One of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
