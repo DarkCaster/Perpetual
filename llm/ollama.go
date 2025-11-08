@@ -66,6 +66,10 @@ type OllamaLLMConnector struct {
 	Debug                  llmDebug
 	RateLimitDelayS        int
 	PerfString             string
+	PerfPCount             int
+	PerfRollingMeanPM      float64
+	PerfMinPM              float64
+	PerfMaxPM              float64
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -488,6 +492,10 @@ func NewOllamaLLMConnectorFromEnv(
 		OutputExtractRx:        outRx,
 		Debug:                  debug,
 		RateLimitDelayS:        0,
+		PerfPCount:             0,
+		PerfRollingMeanPM:      0,
+		PerfMinPM:              0,
+		PerfMaxPM:              math.MaxInt,
 	}, nil
 }
 
