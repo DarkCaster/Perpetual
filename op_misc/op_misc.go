@@ -87,8 +87,15 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		stdErrLogger.Panicln("Error finding project root directory:", err)
 	}
 
+	globalConfigDir, err := utils.FindConfigDir()
+	if err != nil {
+		stdErrLogger.Panicln("Error finding perpetual config directory:", err)
+	}
+
 	stdErrLogger.Infoln("Project root directory:", projectRootDir)
 	stdErrLogger.Debugln("Perpetual directory:", perpetualDir)
+
+	utils.LoadEnvFiles(stdErrLogger, perpetualDir, globalConfigDir)
 
 	//load json config files for project and operations, will panic if it cannot be loaded or parsed
 	projectConfig := config.LoadProjectConfig(perpetualDir, stdErrLogger)
@@ -191,6 +198,34 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	if listFiles {
 		for _, file := range fileNames {
 			fmt.Println(file)
+		}
+		return
+	}
+
+	//try reading files
+	stdErrLogger.Debugln("Reading project files")
+	fileContent := map[string]string{}
+	failedFiles := []string{}
+	for _, file := range fileNames {
+		stdErrLogger.Traceln("Reading file:", file)
+		content, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
+		if err != nil {
+			stdErrLogger.Errorf("%s: %v", file, err)
+			failedFiles = append(failedFiles, file)
+			continue
+		}
+		fileContent[file] = content
+		if wrn != "" {
+			stdErrLogger.Warnf("%s: %s", file, wrn)
+		}
+	}
+
+	if checkFilesRead {
+		for _, file := range failedFiles {
+			fmt.Println(file)
+		}
+		if len(failedFiles) > 0 {
+			stdErrLogger.Panicln("Reading of some project files was unsuccessful")
 		}
 		return
 	}
