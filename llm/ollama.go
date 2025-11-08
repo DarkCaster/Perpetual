@@ -688,7 +688,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		ollamaOptions = append(ollamaOptions, ollama.WithServerURL(p.BaseURL))
 	}
 
-	contextOverflowExpected := false
 	// calculate prompt size in characters
 	promptSize := 0
 	if msgStrings, err := RenderMessagesToAIStrings(nil, messages); err == nil {
@@ -697,6 +696,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 	}
 
+	contextOverflowExpected := false
 	if p.ContextSize > 0 {
 		//set the context size
 		ctxSz := p.ContextSize
@@ -887,6 +887,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			}
 			continue
 		}
+		choice := response.Choices[0]
 
 		startDelay, eventsPS, charsPS := responseStreamer.GetPerfReport()
 		if maxCandidates > 1 {
@@ -904,11 +905,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				ctxSz = p.ContextSizeOverride
 			}
 			//first check overflow by comparing total tokens with current context size, may not always work well
-			if totalTokens, exist := response.Choices[0].GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
+			if totalTokens, exist := choice.GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
 				contextOverflow = true
 			}
 			//token limit check: if we expecting overflow to occur, then hitting token limit is a sign of context overflow
-			if responseTokens, exist := response.Choices[0].GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
+			if responseTokens, exist := choice.GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
 				contextOverflow = true
 			}
 			//handle overflow
@@ -923,7 +924,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
 		//so, instead we compare actual returned message length in tokens with currently defined token limit
-		responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int)
+		responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
 		if !ok {
 			responseTokens = p.MaxTokens
 		}
@@ -935,13 +936,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 					//also, return error if extra answer filtering is required
 					return []string{}, QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
 				}
-				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
+				return []string{choice.Content}, QueryMaxTokens, nil
 			}
 			continue
 		}
 
-		content := response.Choices[0].Content
-
+		content := choice.Content
 		//remove reasoning, if we have setup corresponding regexps
 		if len(p.ThinkRemoveRx) > 1 {
 			filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
