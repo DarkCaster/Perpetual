@@ -693,7 +693,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				// try to grow context size and return early
 				if contextOverflowInevitable && p.CanGrowContextSize() {
 					p.ContextSizeOverride = p.GrowContextSize()
-					return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+					return []string{}, QueryFailed, fmt.Errorf("context overflow predicted, context size increased to %d", p.ContextSizeOverride)
 				}
 			}
 		}
