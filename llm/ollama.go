@@ -689,7 +689,14 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	}
 
 	contextOverflowExpected := false
+	// calculate prompt size in characters
 	promptSize := 0
+	if msgStrings, err := RenderMessagesToAIStrings(nil, messages); err == nil {
+		for _, str := range msgStrings {
+			promptSize += utf8.RuneCountInString(str)
+		}
+	}
+
 	if p.ContextSize > 0 {
 		//set the context size
 		ctxSz := p.ContextSize
@@ -697,23 +704,18 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			ctxSz = p.ContextSizeOverride
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
-		//do rough context size estimation
-		if msgStrings, err := RenderMessagesToAIStrings(nil, messages); err == nil {
-			for _, str := range msgStrings {
-				promptSize += utf8.RuneCountInString(str)
-			}
-			//prompt size + response limit
-			totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + p.MaxTokens
-			contextOverflowExpected = totalTokens > ctxSz
-			if contextOverflowExpected {
-				// try best-shot estimation to grow context size and quit early:
-				// prompt only, calculated via best-shot multiplier, not including response limit
-				totalTokens := int(float64(promptSize) * p.ContextSizeEstMultBest)
-				contextOverflowInevitable := totalTokens > ctxSz
-				if contextOverflowInevitable && p.CanGrowContextSize() {
-					p.ContextSizeOverride = p.GrowContextSize()
-					return []string{}, QueryFailed, fmt.Errorf("context overflow predicted, context size increased to %d", p.ContextSizeOverride)
-				}
+		//do worst-case context size estimation
+		//prompt size + response limit
+		totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + p.MaxTokens
+		contextOverflowExpected = totalTokens > ctxSz
+		if contextOverflowExpected {
+			// try best-shot estimation to grow context size and quit early:
+			// prompt only, calculated via best-shot multiplier, not including response limit
+			totalTokens := int(float64(promptSize) * p.ContextSizeEstMultBest)
+			contextOverflowInevitable := totalTokens > ctxSz
+			if contextOverflowInevitable && p.CanGrowContextSize() {
+				p.ContextSizeOverride = p.GrowContextSize()
+				return []string{}, QueryFailed, fmt.Errorf("context overflow predicted, context size increased to %d", p.ContextSizeOverride)
 			}
 		}
 	}
