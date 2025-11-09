@@ -23,53 +23,52 @@ import (
 // Do not include anything below to the summary, just omit it completely
 
 type OllamaLLMConnector struct {
-	Subprofile             string
-	BaseURL                string
-	AuthType               providerAuthType
-	Auth                   string
-	Model                  string
-	ContextSize            int
-	ContextSizeLimit       int
-	ContextSizeMult        float64
-	ContextSizeEstMult     float64
-	ContextSizeEstMultBest float64
-	ContextSizeOverride    int
-	SystemPrompt           string
-	SystemPromptAck        string
-	SystemPromptRole       systemPromptRole
-	FilesToMdLangMappings  utils.TextMatcher[string]
-	FieldsToInject         map[string]interface{}
-	OutputFormat           OutputFormat
-	IncrModeSupport        bool
-	MaxTokens              int
-	MaxTokensSegments      int
-	OnFailRetries          int
-	Seed                   int
-	RawMessageLogger       func(v ...any)
-	Options                []llms.CallOption
-	Variants               int
-	VariantStrategy        VariantSelectionStrategy
-	OptionsToRemove        []string
-	EmbedDocChunk          int
-	EmbedDocOverlap        int
-	EmbedSearchChunk       int
-	EmbedSearchOverlap     int
-	EmbedThreshold         float32
-	EmbedDocPrefix         string
-	EmbedSearchPrefix      string
-	SystemPromptPrefix     string
-	UserPromptPrefix       string
-	SystemPromptSuffix     string
-	UserPromptSuffix       string
-	ThinkRemoveRx          []*regexp.Regexp
-	OutputExtractRx        []*regexp.Regexp
-	Debug                  llmDebug
-	RateLimitDelayS        int
-	PerfString             string
-	PerfPCount             int
-	PerfMeanPM             float64
-	PerfMinPM              float64
-	PerfMaxPM              float64
+	Subprofile            string
+	BaseURL               string
+	AuthType              providerAuthType
+	Auth                  string
+	Model                 string
+	ContextSize           int
+	ContextSizeLimit      int
+	ContextSizeMult       float64
+	ContextSizeEstMult    float64
+	ContextSizeOverride   int
+	SystemPrompt          string
+	SystemPromptAck       string
+	SystemPromptRole      systemPromptRole
+	FilesToMdLangMappings utils.TextMatcher[string]
+	FieldsToInject        map[string]interface{}
+	OutputFormat          OutputFormat
+	IncrModeSupport       bool
+	MaxTokens             int
+	MaxTokensSegments     int
+	OnFailRetries         int
+	Seed                  int
+	RawMessageLogger      func(v ...any)
+	Options               []llms.CallOption
+	Variants              int
+	VariantStrategy       VariantSelectionStrategy
+	OptionsToRemove       []string
+	EmbedDocChunk         int
+	EmbedDocOverlap       int
+	EmbedSearchChunk      int
+	EmbedSearchOverlap    int
+	EmbedThreshold        float32
+	EmbedDocPrefix        string
+	EmbedSearchPrefix     string
+	SystemPromptPrefix    string
+	UserPromptPrefix      string
+	SystemPromptSuffix    string
+	UserPromptSuffix      string
+	ThinkRemoveRx         []*regexp.Regexp
+	OutputExtractRx       []*regexp.Regexp
+	Debug                 llmDebug
+	RateLimitDelayS       int
+	PerfString            string
+	PerfPCount            int
+	PerfMeanPM            float64
+	PerfMinPM             float64
+	PerfMaxPM             float64
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -147,7 +146,6 @@ func NewOllamaLLMConnectorFromEnv(
 	var numCtxMult float64 = 1
 	var numCtx int = 0
 	var numCtxEstMult float64 = 0.3
-	var numCtxEstMultBest float64 = numCtxEstMult
 	var seed int = math.MaxInt
 	var maxTokens int = 0
 	var variants int = 1
@@ -283,13 +281,8 @@ func NewOllamaLLMConnectorFromEnv(
 		if err != nil || numCtxEstMult < 0 {
 			numCtxEstMult = 0.3
 		}
-		numCtxEstMultBest, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_ESTIMATE_MULT_BEST", prefix))
-		if err != nil || numCtxEstMultBest < 0 || numCtxEstMultBest > numCtxEstMult {
-			numCtxEstMultBest = numCtxEstMult
-		}
-
 		if numCtx > 0 {
-			debug.Add("ctx. estimate worst|best mult", fmt.Sprint(numCtxEstMult, "|", numCtxEstMultBest))
+			debug.Add("ctx. token est. mult", numCtxEstMult)
 		}
 
 		maxTokens, err = utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -450,52 +443,51 @@ func NewOllamaLLMConnectorFromEnv(
 	}
 
 	return &OllamaLLMConnector{
-		Subprofile:             subprofile,
-		BaseURL:                customBaseURL,
-		AuthType:               authType,
-		Auth:                   auth,
-		Model:                  model,
-		ContextSize:            numCtx,
-		ContextSizeLimit:       numCtxLimit,
-		ContextSizeMult:        numCtxMult,
-		ContextSizeEstMult:     numCtxEstMult,
-		ContextSizeEstMultBest: numCtxEstMultBest,
-		ContextSizeOverride:    0,
-		SystemPrompt:           systemPrompt,
-		SystemPromptAck:        systemPromptAck,
-		SystemPromptRole:       systemPromptRole,
-		FilesToMdLangMappings:  filesToMdLangMappings,
-		FieldsToInject:         fieldsToInject,
-		OutputFormat:           outputFormat,
-		IncrModeSupport:        incrModeSupport,
-		MaxTokensSegments:      maxTokensSegments,
-		MaxTokens:              maxTokens,
-		OnFailRetries:          onFailRetries,
-		Seed:                   seed,
-		RawMessageLogger:       llmRawMessageLogger,
-		Options:                extraOptions,
-		Variants:               variants,
-		VariantStrategy:        variantStrategy,
-		OptionsToRemove:        optionsToRemove,
-		EmbedDocChunk:          docChunk,
-		EmbedDocOverlap:        docOverlap,
-		EmbedSearchChunk:       searchChunk,
-		EmbedSearchOverlap:     searchOverlap,
-		EmbedThreshold:         embedThreshold,
-		EmbedDocPrefix:         embedDocPrefix,
-		EmbedSearchPrefix:      embedSearchPrefix,
-		SystemPromptPrefix:     systemPromptPrefix,
-		UserPromptPrefix:       userPromptPrefix,
-		SystemPromptSuffix:     systemPromptSuffix,
-		UserPromptSuffix:       userPromptSuffix,
-		ThinkRemoveRx:          thinkRx,
-		OutputExtractRx:        outRx,
-		Debug:                  debug,
-		RateLimitDelayS:        0,
-		PerfPCount:             0,
-		PerfMeanPM:             0,
-		PerfMinPM:              math.MaxFloat64,
-		PerfMaxPM:              -math.MaxFloat64,
+		Subprofile:            subprofile,
+		BaseURL:               customBaseURL,
+		AuthType:              authType,
+		Auth:                  auth,
+		Model:                 model,
+		ContextSize:           numCtx,
+		ContextSizeLimit:      numCtxLimit,
+		ContextSizeMult:       numCtxMult,
+		ContextSizeEstMult:    numCtxEstMult,
+		ContextSizeOverride:   0,
+		SystemPrompt:          systemPrompt,
+		SystemPromptAck:       systemPromptAck,
+		SystemPromptRole:      systemPromptRole,
+		FilesToMdLangMappings: filesToMdLangMappings,
+		FieldsToInject:        fieldsToInject,
+		OutputFormat:          outputFormat,
+		IncrModeSupport:       incrModeSupport,
+		MaxTokensSegments:     maxTokensSegments,
+		MaxTokens:             maxTokens,
+		OnFailRetries:         onFailRetries,
+		Seed:                  seed,
+		RawMessageLogger:      llmRawMessageLogger,
+		Options:               extraOptions,
+		Variants:              variants,
+		VariantStrategy:       variantStrategy,
+		OptionsToRemove:       optionsToRemove,
+		EmbedDocChunk:         docChunk,
+		EmbedDocOverlap:       docOverlap,
+		EmbedSearchChunk:      searchChunk,
+		EmbedSearchOverlap:    searchOverlap,
+		EmbedThreshold:        embedThreshold,
+		EmbedDocPrefix:        embedDocPrefix,
+		EmbedSearchPrefix:     embedSearchPrefix,
+		SystemPromptPrefix:    systemPromptPrefix,
+		UserPromptPrefix:      userPromptPrefix,
+		SystemPromptSuffix:    systemPromptSuffix,
+		UserPromptSuffix:      userPromptSuffix,
+		ThinkRemoveRx:         thinkRx,
+		OutputExtractRx:       outRx,
+		Debug:                 debug,
+		RateLimitDelayS:       0,
+		PerfPCount:            0,
+		PerfMeanPM:            0,
+		PerfMinPM:             math.MaxFloat64,
+		PerfMaxPM:             -math.MaxFloat64,
 	}, nil
 }
 
@@ -704,14 +696,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			ctxSz = p.ContextSizeOverride
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
-		//do worst-case context size estimation
-		//prompt size + response limit
+		//do worst-case context size estimation: prompt size + response limit
 		totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + p.MaxTokens
 		contextOverflowExpected = totalTokens > ctxSz
 		if contextOverflowExpected {
-			// try best-shot estimation to grow context size and quit early:
-			// prompt only, calculated via best-shot multiplier, not including response limit
-			totalTokens := int(float64(promptSize) * p.ContextSizeEstMultBest)
+			//try more accurate estimation to predict upcoming overflow
+			totalTokens := int(float64(promptSize) * p.ContextSizeEstMult) //TODO: add mean answer size value
 			contextOverflowInevitable := totalTokens > ctxSz
 			if contextOverflowInevitable && p.CanGrowContextSize() {
 				p.ContextSizeOverride = p.GrowContextSize()
@@ -974,6 +964,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			} else {
 				perfLineBuilder.WriteString(fmt.Sprintf("; prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f", promptSize, promptTokens, p.PerfMeanPM, p.PerfMinPM, p.PerfMaxPM))
 			}
+			// update context tokens estimation multiplier to the worst of the currently detected variant
+			p.ContextSizeEstMult = max(p.ContextSizeEstMult, p.PerfMaxPM)
 		}
 
 		p.PerfString = perfLineBuilder.String()
