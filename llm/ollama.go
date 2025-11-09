@@ -65,10 +65,10 @@ type OllamaLLMConnector struct {
 	Debug                 llmDebug
 	RateLimitDelayS       int
 	PerfString            string
-	PerfPCount            int
-	PerfMeanPM            float64
-	PerfMinPM             float64
-	PerfMaxPM             float64
+	PerfPromptCount       int
+	PerfMeanEstMult       float64
+	PerfMinEstMult        float64
+	PerfMaxEstMult        float64
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -484,10 +484,10 @@ func NewOllamaLLMConnectorFromEnv(
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
-		PerfPCount:            0,
-		PerfMeanPM:            0,
-		PerfMinPM:             math.MaxFloat64,
-		PerfMaxPM:             -math.MaxFloat64,
+		PerfPromptCount:       0,
+		PerfMeanEstMult:       0,
+		PerfMinEstMult:        math.MaxFloat64,
+		PerfMaxEstMult:        -math.MaxFloat64,
 	}, nil
 }
 
@@ -955,19 +955,20 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			promptSize += utf8.RuneCountInString(responseStreamer.GetThinkingContent())
 			curMult := float64(promptTokens) / float64(promptSize)
 			// max and min value
-			p.PerfMinPM = min(p.PerfMinPM, curMult)
-			p.PerfMaxPM = max(p.PerfMaxPM, curMult)
+			p.PerfMinEstMult = min(p.PerfMinEstMult, curMult)
+			p.PerfMaxEstMult = max(p.PerfMaxEstMult, curMult)
 			// update mean value
-			p.PerfMeanPM = (p.PerfMeanPM*float64(p.PerfPCount) + curMult) / float64(p.PerfPCount+1)
-			p.PerfPCount += 1
+			p.PerfMeanEstMult = (p.PerfMeanEstMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
+			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
 			if maxCandidates > 1 {
-				perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f; ", promptSize, promptTokens, p.PerfMeanPM, p.PerfMinPM, p.PerfMaxPM))
+				perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f; ", promptSize, promptTokens, p.PerfMeanEstMult, p.PerfMinEstMult, p.PerfMaxEstMult))
 			} else {
-				perfLineBuilder.WriteString(fmt.Sprintf("; prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f", promptSize, promptTokens, p.PerfMeanPM, p.PerfMinPM, p.PerfMaxPM))
+				perfLineBuilder.WriteString(fmt.Sprintf("; prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f", promptSize, promptTokens, p.PerfMeanEstMult, p.PerfMinEstMult, p.PerfMaxEstMult))
 			}
 			// update context tokens estimation multiplier to the worst of the currently detected variant
-			p.ContextSizeEstMult = max(p.ContextSizeEstMult, p.PerfMaxPM)
+			p.ContextSizeEstMult = max(p.ContextSizeEstMult, p.PerfMaxEstMult)
+
 		}
 
 		p.PerfString = perfLineBuilder.String()
