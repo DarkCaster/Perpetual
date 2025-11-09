@@ -689,6 +689,8 @@ func (p *OllamaLLMConnector) GrowContextSize() int {
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+	p.PerfString = ""
+
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
 	}
@@ -998,10 +1000,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			if maxCandidates < 2 {
 				perfLineBuilder.WriteString("; ")
 			}
-			perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d tok (apx, excl. thinking); resp sz: cur %d tok (apx, incl. thinking: %d tok), mean %d tok; token est.mult: min %05.3f, max %05.3f, mean %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
-			// update context tokens estimation multiplier to the worst of the currently detected variant
-			p.ContextSizeEstMult = max(p.ContextSizeEstMult, p.PerfMaxEstMult)
-
+			perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d tk (excl. think); resp. sz: cur %d tk (incl. think: %d tk), avg %d tk; token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
+			// update context tokens estimation multiplier
+			p.ContextSizeEstMult = max(p.ContextSizeMultMin, p.PerfMeanEstMult)
 		}
 
 		p.PerfString = perfLineBuilder.String()
