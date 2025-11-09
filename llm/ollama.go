@@ -688,6 +688,8 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		for _, str := range msgStrings {
 			promptSize += utf8.RuneCountInString(str)
 		}
+	} else {
+		return []string{}, QueryInitFailed, err
 	}
 
 	contextOverflowExpected := false
@@ -881,6 +883,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		choice := response.Choices[0]
 
+		// prompt tokens from langchaingo generation stats seem to include thinking content, so we need to add it to promptSize
+		thinkingSize := utf8.RuneCountInString(responseStreamer.GetThinkingContent())
+		promptSize += thinkingSize
+		promptSize = max(1, promptSize)
+
 		//check for context overflow
 		if p.ContextSize > 0 {
 			//get context size
@@ -895,6 +902,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			//token limit check: if we expecting overflow to occur, then hitting token limit is a sign of context overflow
 			if responseTokens, exist := choice.GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
 				contextOverflow = true
+			}
+			//test prompt char-size to token-size multiplier from current stats, values too low or too big are signs of context overflow
+			if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
+				mult := float64(promptTokens) / float64(promptSize)
+				contextOverflow = mult < 0.1
+				//TODO
 			}
 			//handle overflow
 			if contextOverflow {
@@ -952,10 +965,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 
 		//update token estimation multipliers status, if we have PromptTokens stat
-		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist && promptSize > 0 {
-			// promptTokens includes thinking content, so we need to add it to promptSize
-			thinkingSize := utf8.RuneCountInString(responseStreamer.GetThinkingContent())
-			promptSize += thinkingSize
+		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
 			curMult := float64(promptTokens) / float64(promptSize)
 			// get approx size of thinking in tokens using calculated multiplier
 			thinkingTokens := int(float64(thinkingSize) * curMult)
