@@ -22,16 +22,17 @@ import (
 // Workaround for the following bug:
 // https://github.com/tmc/langchaingo/issues/774
 type ollamaResponseBodyReader struct {
-	inner         io.ReadCloser
-	outer         io.ReadWriter
-	streamingFunc func(chunk []byte)
-	stage         int
-	done          bool
-	requestTime   time.Time
-	startDelaySec float64
-	eventsPerSec  float64
-	charsPerSec   float64
-	err           error
+	inner           io.ReadCloser
+	outer           io.ReadWriter
+	thinkingBuilder strings.Builder
+	streamingFunc   func(chunk []byte)
+	stage           int
+	done            bool
+	requestTime     time.Time
+	startDelaySec   float64
+	eventsPerSec    float64
+	charsPerSec     float64
+	err             error
 }
 
 func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
@@ -91,8 +92,8 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 							msgCount++
 							contentVal, _ := msgObj["content"].(string)
 							thinking, _ := msgObj["thinking"].(string)
-							charCount += len(contentVal)
-							charCount += len(thinking)
+							charCount += utf8.RuneCountInString(contentVal)
+							charCount += utf8.RuneCountInString(thinking)
 							// log thinking or contents
 							if o.stage == 0 && thinking != "" {
 								o.streamingFunc([]byte("AI thinking:\n\n\n"))
@@ -101,6 +102,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 								o.stage = 2
 							}
 							if o.stage == 1 {
+								o.thinkingBuilder.WriteString(thinking)
 								o.streamingFunc([]byte(thinking))
 							}
 							if o.stage == 1 && contentVal != "" {
@@ -148,15 +150,18 @@ func newOllamaResponseBodyReader(requestTime time.Time, inner io.ReadCloser, str
 }
 
 type ollamaResponseStreamer struct {
-	streamingFunc     func(chunk []byte)
-	completionErrFunc func() (bool, error)
-	perfReportFunc    func() (float64, float64, float64)
+	streamingFunc          func(chunk []byte)
+	completionErrFunc      func() (bool, error)
+	perfReportFunc         func() (float64, float64, float64)
+	getThinkingContentFunc func() string
 }
 
 func newOllamaResponseStreamer(streamingFunc func(chunk []byte)) *ollamaResponseStreamer {
 	return &ollamaResponseStreamer{
-		streamingFunc:     streamingFunc,
-		completionErrFunc: nil,
+		streamingFunc:          streamingFunc,
+		completionErrFunc:      nil,
+		perfReportFunc:         nil,
+		getThinkingContentFunc: nil,
 	}
 }
 
@@ -177,6 +182,9 @@ func (p *ollamaResponseStreamer) CollectResponse(requestTime time.Time, response
 	p.perfReportFunc = func() (float64, float64, float64) {
 		return reader.startDelaySec, reader.eventsPerSec, reader.charsPerSec
 	}
+	p.getThinkingContentFunc = func() string {
+		return reader.thinkingBuilder.String()
+	}
 	response.Body = reader
 	return nil
 }
@@ -194,4 +202,8 @@ func (p *ollamaResponseStreamer) GetCompletionError() error {
 
 func (p *ollamaResponseStreamer) GetPerfReport() (float64, float64, float64) {
 	return p.perfReportFunc()
+}
+
+func (p *ollamaResponseStreamer) GetThinkingContent() string {
+	return p.getThinkingContentFunc()
 }
