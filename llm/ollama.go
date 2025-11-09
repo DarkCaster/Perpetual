@@ -1000,7 +1000,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			if maxCandidates < 2 {
 				perfLineBuilder.WriteString("; ")
 			}
-			perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d tk (excl. think); resp. sz: cur %d tk (incl. think: %d tk), avg %d tk; token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
+			perfLineBuilder.WriteString(fmt.Sprintf("prompt: %d tk (excl. think); out: cur %d tk (incl. think: %d tk), avg %d tk; token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
 			// update context tokens estimation multiplier
 			p.ContextSizeEstMult = max(p.ContextSizeMultMin, p.PerfMeanEstMult)
 		}
