@@ -67,7 +67,7 @@ type OllamaLLMConnector struct {
 	RateLimitDelayS        int
 	PerfString             string
 	PerfPCount             int
-	PerfRollingMeanPM      float64
+	PerfMeanPM             float64
 	PerfMinPM              float64
 	PerfMaxPM              float64
 }
@@ -493,9 +493,9 @@ func NewOllamaLLMConnectorFromEnv(
 		Debug:                  debug,
 		RateLimitDelayS:        0,
 		PerfPCount:             0,
-		PerfRollingMeanPM:      0,
-		PerfMinPM:              0,
-		PerfMaxPM:              math.MaxInt,
+		PerfMeanPM:             0,
+		PerfMinPM:              math.MaxFloat64,
+		PerfMaxPM:              -math.MaxFloat64,
 	}, nil
 }
 
@@ -889,14 +889,6 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		choice := response.Choices[0]
 
-		startDelay, eventsPS, charsPS := responseStreamer.GetPerfReport()
-		if maxCandidates > 1 {
-			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
-		} else {
-			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
-		}
-		p.PerfString = perfLineBuilder.String()
-
 		//check for context overflow
 		if p.ContextSize > 0 {
 			//get context size
@@ -958,6 +950,33 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 
 		finalContent = append(finalContent, content)
+
+		//update performance report
+		startDelay, eventsPS, charsPS := responseStreamer.GetPerfReport()
+		if maxCandidates > 1 {
+			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
+		} else {
+			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
+		}
+
+		//update token estimation multipliers status, if we have PromptTokens stat
+		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist && promptSize > 0 {
+			curMult := float64(promptTokens) / float64(promptSize)
+			// max and min value
+			p.PerfMinPM = min(p.PerfMinPM, curMult)
+			p.PerfMaxPM = max(p.PerfMaxPM, curMult)
+			// update mean value
+			p.PerfMeanPM = (p.PerfMeanPM*float64(p.PerfPCount) + curMult) / float64(p.PerfPCount+1)
+			p.PerfPCount += 1
+			// add token estimation metrics to perfLineBuilder
+			if maxCandidates > 1 {
+				perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f; ", promptSize, promptTokens, p.PerfMeanPM, p.PerfMinPM, p.PerfMaxPM))
+			} else {
+				perfLineBuilder.WriteString(fmt.Sprintf("; prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f", promptSize, promptTokens, p.PerfMeanPM, p.PerfMinPM, p.PerfMaxPM))
+			}
+		}
+
+		p.PerfString = perfLineBuilder.String()
 	}
 
 	return finalContent, QueryOk, nil
