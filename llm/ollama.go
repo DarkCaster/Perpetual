@@ -69,6 +69,7 @@ type OllamaLLMConnector struct {
 	PerfMeanEstMult       float64
 	PerfMinEstMult        float64
 	PerfMaxEstMult        float64
+	PerfRespTokenSzMean   float64
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -488,6 +489,7 @@ func NewOllamaLLMConnectorFromEnv(
 		PerfMeanEstMult:       0,
 		PerfMinEstMult:        math.MaxFloat64,
 		PerfMaxEstMult:        -math.MaxFloat64,
+		PerfRespTokenSzMean:   0,
 	}, nil
 }
 
@@ -701,11 +703,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		contextOverflowExpected = totalTokens > ctxSz
 		if contextOverflowExpected {
 			//try more accurate estimation to predict upcoming overflow
-			totalTokens := int(float64(promptSize) * p.ContextSizeEstMult) //TODO: add mean answer size value
+			totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + int(p.PerfRespTokenSzMean)
 			contextOverflowInevitable := totalTokens > ctxSz
 			if contextOverflowInevitable && p.CanGrowContextSize() {
 				p.ContextSizeOverride = p.GrowContextSize()
-				return []string{}, QueryFailed, fmt.Errorf("context overflow predicted, context size increased to %d", p.ContextSizeOverride)
+				return []string{}, QueryFailed, fmt.Errorf("context overflow predicted with %d tokens needed for answer, context size increased to %d", totalTokens, p.ContextSizeOverride)
 			}
 		}
 	}
@@ -952,20 +954,23 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//update token estimation multipliers status, if we have PromptTokens stat
 		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist && promptSize > 0 {
 			// promptTokens includes thinking content, so we need to add it to promptSize
-			promptSize += utf8.RuneCountInString(responseStreamer.GetThinkingContent())
+			thinkingSize := utf8.RuneCountInString(responseStreamer.GetThinkingContent())
+			promptSize += thinkingSize
 			curMult := float64(promptTokens) / float64(promptSize)
+			// get approx size of thinking in tokens using calculated multiplier
+			thinkingTokens := int(float64(thinkingSize) * curMult)
 			// max and min value
 			p.PerfMinEstMult = min(p.PerfMinEstMult, curMult)
 			p.PerfMaxEstMult = max(p.PerfMaxEstMult, curMult)
-			// update mean value
+			// update mean values
 			p.PerfMeanEstMult = (p.PerfMeanEstMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
+			p.PerfRespTokenSzMean = (p.PerfRespTokenSzMean*float64(p.PerfPromptCount) + float64(thinkingTokens+responseTokens)) / float64(p.PerfPromptCount+1)
 			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
-			if maxCandidates > 1 {
-				perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f; ", promptSize, promptTokens, p.PerfMeanEstMult, p.PerfMinEstMult, p.PerfMaxEstMult))
-			} else {
-				perfLineBuilder.WriteString(fmt.Sprintf("; prompt sz: %d ch, %d tok; token est.mult: mean %05.3f, min %05.3f, max %05.3f", promptSize, promptTokens, p.PerfMeanEstMult, p.PerfMinEstMult, p.PerfMaxEstMult))
+			if maxCandidates < 2 {
+				perfLineBuilder.WriteString("; ")
 			}
+			perfLineBuilder.WriteString(fmt.Sprintf("prompt sz: %d tok (apx, excl. thinking); resp sz: cur %d tok (apx, incl. thinking: %d tok), mean %d tok; token est.mult: min %05.3f, max %05.3f, mean %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
 			// update context tokens estimation multiplier to the worst of the currently detected variant
 			p.ContextSizeEstMult = max(p.ContextSizeEstMult, p.PerfMaxEstMult)
 
