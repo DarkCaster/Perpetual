@@ -951,6 +951,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 		//update token estimation multipliers status, if we have PromptTokens stat
 		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist && promptSize > 0 {
+			// TODO: promptTokens includes thinking content, so we need to add it to promptSize
 			curMult := float64(promptTokens) / float64(promptSize)
 			// max and min value
 			p.PerfMinPM = min(p.PerfMinPM, curMult)
