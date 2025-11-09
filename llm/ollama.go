@@ -32,6 +32,8 @@ type OllamaLLMConnector struct {
 	ContextSizeLimit      int
 	ContextSizeMult       float64
 	ContextSizeEstMult    float64
+	ContextSizeMultMin    float64
+	ContextSizeMultMax    float64
 	ContextSizeOverride   int
 	SystemPrompt          string
 	SystemPromptAck       string
@@ -147,6 +149,9 @@ func NewOllamaLLMConnectorFromEnv(
 	var numCtxMult float64 = 1
 	var numCtx int = 0
 	var numCtxEstMult float64 = 0.3
+	var numCtxMultMin float64 = 0.1
+	var numCtxMultMax float64 = 1.0
+
 	var seed int = math.MaxInt
 	var maxTokens int = 0
 	var variants int = 1
@@ -279,11 +284,23 @@ func NewOllamaLLMConnectorFromEnv(
 		}
 
 		numCtxEstMult, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_ESTIMATE_MULT", prefix))
-		if err != nil || numCtxEstMult < 0 {
+		if err != nil || numCtxEstMult <= 0 {
 			numCtxEstMult = 0.3
 		}
 		if numCtx > 0 {
 			debug.Add("ctx. token est. mult", numCtxEstMult)
+		}
+
+		numCtxMultMax, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_MULT_MAX", prefix))
+		if err != nil || numCtxMultMax <= 0 {
+			numCtxMultMax = 1.0
+		}
+		numCtxMultMin, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_MULT_MIN", prefix))
+		if err != nil || numCtxMultMin <= 0 {
+			numCtxMultMin = 0.1
+		}
+		if numCtx > 0 {
+			debug.Add("ctx. mult. limits", fmt.Sprint(numCtxMultMin, "-", numCtxMultMax))
 		}
 
 		maxTokens, err = utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
@@ -453,6 +470,8 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeLimit:      numCtxLimit,
 		ContextSizeMult:       numCtxMult,
 		ContextSizeEstMult:    numCtxEstMult,
+		ContextSizeMultMin:    numCtxMultMin,
+		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
@@ -906,8 +925,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			//test prompt char-size to token-size multiplier from current stats, values too low or too big are signs of context overflow
 			if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
 				mult := float64(promptTokens) / float64(promptSize)
-				contextOverflow = mult < 0.1
-				//TODO
+				contextOverflow = mult < p.ContextSizeMultMin || mult > p.ContextSizeMultMax
 			}
 			//handle overflow
 			if contextOverflow {
