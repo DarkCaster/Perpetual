@@ -30,8 +30,7 @@ type ollamaResponseBodyReader struct {
 	done            bool
 	requestTime     time.Time
 	startDelaySec   float64
-	eventsPerSec    float64
-	charsPerSec     float64
+	outputTimeSec   float64
 	err             error
 }
 
@@ -121,10 +120,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 			}
 		}
 		//do not allow to division by zero
-		durationS := math.Max(time.Since(o.requestTime).Seconds(), 0.1)
-		//set performance counters
-		o.charsPerSec = float64(charCount) / durationS
-		o.eventsPerSec = float64(msgCount) / durationS
+		o.outputTimeSec = math.Max(time.Since(o.requestTime).Seconds(), 0.1)
 		// depending on capturing final JSON chunk earlier, we either return the full response or empty response
 		if !o.done {
 			o.outer = bytes.NewBuffer([]byte("{\"response\": \"\",\"done\": true,\"done_reason\": \"error\"}"))
@@ -152,7 +148,7 @@ func newOllamaResponseBodyReader(requestTime time.Time, inner io.ReadCloser, str
 type ollamaResponseStreamer struct {
 	streamingFunc          func(chunk []byte)
 	completionErrFunc      func() (bool, error)
-	perfReportFunc         func() (float64, float64, float64)
+	perfReportFunc         func() (float64, float64)
 	getThinkingContentFunc func() string
 }
 
@@ -179,8 +175,8 @@ func (p *ollamaResponseStreamer) CollectResponse(requestTime time.Time, response
 	p.completionErrFunc = func() (bool, error) {
 		return reader.done, reader.err
 	}
-	p.perfReportFunc = func() (float64, float64, float64) {
-		return reader.startDelaySec, reader.eventsPerSec, reader.charsPerSec
+	p.perfReportFunc = func() (float64, float64) {
+		return reader.startDelaySec, reader.outputTimeSec
 	}
 	p.getThinkingContentFunc = func() string {
 		return reader.thinkingBuilder.String()
@@ -200,7 +196,7 @@ func (p *ollamaResponseStreamer) GetCompletionError() error {
 	return err
 }
 
-func (p *ollamaResponseStreamer) GetPerfReport() (float64, float64, float64) {
+func (p *ollamaResponseStreamer) GetPerfReport() (float64, float64) {
 	return p.perfReportFunc()
 }
 
