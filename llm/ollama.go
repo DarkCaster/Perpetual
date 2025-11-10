@@ -977,12 +977,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		finalContent = append(finalContent, content)
 
 		//update performance report
-		startDelay, eventsPS, charsPS := responseStreamer.GetPerfReport()
+		startDelay, totalTime := responseStreamer.GetPerfReport()
 		if maxCandidates > 1 {
-			perfLineBuilder.WriteString(fmt.Sprintf("#%d: delay %06.3f, ev/s %06.3f, ch/s %06.3f; ", i+1, startDelay, eventsPS, charsPS))
-		} else {
-			perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f, ev/s %06.3f, ch/s %06.3f", startDelay, eventsPS, charsPS))
+			perfLineBuilder.WriteString(fmt.Sprintf("#%d: ", i+1))
 		}
+		perfLineBuilder.WriteString(fmt.Sprintf("delay %06.3f s, total %06.3f s; ", startDelay, totalTime))
 
 		//update token estimation multipliers status, if we have PromptTokens stat
 		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
@@ -993,14 +992,16 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.PerfMinEstMult = min(p.PerfMinEstMult, curMult)
 			p.PerfMaxEstMult = max(p.PerfMaxEstMult, curMult)
 			// update mean values
+			totalResponseTokens := thinkingTokens + responseTokens
 			p.PerfMeanEstMult = (p.PerfMeanEstMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
-			p.PerfRespTokenSzMean = (p.PerfRespTokenSzMean*float64(p.PerfPromptCount) + float64(thinkingTokens+responseTokens)) / float64(p.PerfPromptCount+1)
+			p.PerfRespTokenSzMean = (p.PerfRespTokenSzMean*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
 			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
-			if maxCandidates < 2 {
-				perfLineBuilder.WriteString("; ")
-			}
-			perfLineBuilder.WriteString(fmt.Sprintf("prompt: %d tk (excl. think); out: cur %d tk (incl. think: %d tk), avg %d tk; token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", promptTokens-thinkingTokens, thinkingTokens+responseTokens, thinkingTokens, int(p.PerfRespTokenSzMean), p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
+			perfLineBuilder.WriteString(fmt.Sprintf("speed: %05.3f tk/s, ", float64(totalResponseTokens)/totalTime))
+			perfLineBuilder.WriteString(fmt.Sprintf("prompt: %d tk, ", promptTokens-thinkingTokens))
+			perfLineBuilder.WriteString(fmt.Sprintf("out: cur %d tk (incl. think: %d tk), ", totalResponseTokens, thinkingTokens))
+			perfLineBuilder.WriteString(fmt.Sprintf("avg %d tk; ", int(p.PerfRespTokenSzMean)))
+			perfLineBuilder.WriteString(fmt.Sprintf("token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
 			// update context tokens estimation multiplier
 			p.ContextSizeEstMult = max(p.ContextSizeMultMin, p.PerfMeanEstMult)
 		}
