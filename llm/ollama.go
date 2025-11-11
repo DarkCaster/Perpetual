@@ -663,16 +663,16 @@ func (p *OllamaLLMConnector) CanGrowContextSize() bool {
 	return true
 }
 
-func (p *OllamaLLMConnector) GrowContextSize() int {
-	ovSize := p.ContextSizeOverride
-	if ovSize < 1 {
-		ovSize = p.ContextSize
+func (p *OllamaLLMConnector) GrowContextSize() {
+	if p.ContextSizeOverride < 1 {
+		p.ContextSizeOverride = p.ContextSize
 	}
-	newSize := int(float64(ovSize) * p.ContextSizeMult)
+	newSize := int(float64(p.ContextSizeOverride) * p.ContextSizeMult)
 	if p.ContextSizeLimit > 0 && newSize >= p.ContextSizeLimit {
-		return p.ContextSizeLimit
+		p.ContextSizeOverride = p.ContextSizeLimit
+	} else {
+		p.ContextSizeOverride = max(newSize, p.ContextSizeOverride)
 	}
-	return max(newSize, ovSize)
 }
 
 func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
@@ -714,9 +714,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		if contextOverflowExpected {
 			//try more accurate estimation to predict upcoming overflow
 			totalTokens := int(float64(promptSize)*p.ContextSizeEstMultSel) + int(p.ResponseTokensAvg)
-			contextOverflowInevitable := totalTokens > ctxSz
-			if contextOverflowInevitable && p.CanGrowContextSize() {
-				p.ContextSizeOverride = p.GrowContextSize()
+			if totalTokens > ctxSz && p.CanGrowContextSize() {
+				//note: limit grow steps to 10, so we not go into infinite loop
+				for i := 0; i < 10 && totalTokens > ctxSz && p.CanGrowContextSize(); i++ {
+					p.GrowContextSize()
+					ctxSz = p.ContextSizeOverride
+				}
 				return []string{}, QueryFailed, fmt.Errorf("context overflow predicted with %d tokens needed for answer, context size increased to %d", totalTokens, p.ContextSizeOverride)
 			}
 		}
@@ -923,7 +926,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 				if !p.CanGrowContextSize() {
 					return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
 				}
-				p.ContextSizeOverride = p.GrowContextSize()
+				p.GrowContextSize()
 				return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 			}
 		}
