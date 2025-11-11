@@ -38,6 +38,7 @@ type OllamaLLMConnector struct {
 	ContextSizeMultMax    float64
 	ContextSizeOverride   int
 	ResponseTokensAvg     float64
+	CompletedQueriesCount int
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
@@ -70,7 +71,6 @@ type OllamaLLMConnector struct {
 	Debug                 llmDebug
 	RateLimitDelayS       int
 	PerfString            string
-	PerfPromptCount       int
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -475,6 +475,7 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
 		ResponseTokensAvg:     0,
+		CompletedQueriesCount: 0,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
 		SystemPromptRole:      systemPromptRole,
@@ -506,7 +507,6 @@ func NewOllamaLLMConnectorFromEnv(
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
-		PerfPromptCount:       0,
 	}, nil
 }
 
@@ -989,9 +989,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			thinkingTokens := int(float64(thinkingSize) * curMult)
 			// update mean values
 			totalResponseTokens := thinkingTokens + responseTokens
-			p.ContextSizeEstMultAvg = (p.ContextSizeEstMultAvg*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
-			p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
-			p.PerfPromptCount += 1
+			p.ContextSizeEstMultAvg = (p.ContextSizeEstMultAvg*float64(p.CompletedQueriesCount) + curMult) / float64(p.CompletedQueriesCount+1)
+			p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.CompletedQueriesCount) + float64(totalResponseTokens)) / float64(p.CompletedQueriesCount+1)
+			p.CompletedQueriesCount += 1
 			// add token estimation metrics to perfLineBuilder
 			perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
 			perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
