@@ -979,11 +979,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		finalContent = append(finalContent, content)
 
 		//update performance report
-		startDelay, totalTime := responseStreamer.GetPerfReport()
+		pfTime, respGenTime := responseStreamer.GetPerfReport()
 		if maxCandidates > 1 {
 			perfLineBuilder.WriteString(fmt.Sprintf("#%d: ", i+1))
 		}
-		perfLineBuilder.WriteString(fmt.Sprintf("delay %03.1f s, total %03.1f s; ", startDelay, totalTime))
+		perfLineBuilder.WriteString(fmt.Sprintf("prefill %03.1f s, gen %03.1f s; ", pfTime, respGenTime))
 
 		//update token estimation multipliers status, if we have PromptTokens stat
 		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
@@ -999,9 +999,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			p.PerfRespTokenSzMean = (p.PerfRespTokenSzMean*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
 			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
-			perfLineBuilder.WriteString(fmt.Sprintf("speed: %03.1f tk/s, ", float64(totalResponseTokens)/totalTime))
+			perfLineBuilder.WriteString(fmt.Sprintf("speed: %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
 			perfLineBuilder.WriteString(fmt.Sprintf("prompt: %d tk, ", promptTokens-thinkingTokens))
-			perfLineBuilder.WriteString(fmt.Sprintf("out: cur %d tk (incl. think: %d tk), ", totalResponseTokens, thinkingTokens))
+			perfLineBuilder.WriteString(fmt.Sprintf("out: cur %d tk (think: %d tk), ", totalResponseTokens, thinkingTokens))
 			perfLineBuilder.WriteString(fmt.Sprintf("avg %d tk; ", int(p.PerfRespTokenSzMean)))
 			perfLineBuilder.WriteString(fmt.Sprintf("token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
 			// update context tokens estimation multiplier
