@@ -36,7 +36,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&listFiles, "l", false, "List project files accessible by perpetual, relative to project root, can work with -x and -u flags.")
 	flags.BoolVar(&checkFilesRead, "fc", false, "Try reading project files as text, on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
 	flags.BoolVar(&checkFilesReadAsASCII, "fa", false, "Read project files and ensure it contains only ASCII characters (0-127), on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
-	flags.BoolVar(&checkFilesAndSaveAsUTF, "fs", false, "Read project files and convert non-UTF8 files to UTF8, print paths of affected files to stdout (relative to project root), can work with -x and -u flags.")
+	flags.BoolVar(&checkFilesAndSaveAsUTF, "fs", false, "Read project files and convert non-UTF8/16/32 files to UTF8, print paths of affected files to stdout (relative to project root), can work with -x and -u flags.")
 	// Extra options, may be used with flags above to alter its behavior or test some more things
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
@@ -206,6 +206,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	stdErrLogger.Debugln("Reading project files")
 	fileContent := map[string]string{}
 	failedFiles := []string{}
+	warnedFiles := []string{}
 	for _, file := range fileNames {
 		stdErrLogger.Traceln("Reading file:", file)
 		content, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
@@ -217,11 +218,12 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		fileContent[file] = content
 		if wrn != "" {
 			stdErrLogger.Warnf("%s: %s", file, wrn)
+			warnedFiles = append(warnedFiles, file)
 		}
 	}
 
 	slices.Sort(failedFiles)
-	if checkFilesRead || checkFilesAndSaveAsUTF {
+	if checkFilesRead {
 		for _, file := range failedFiles {
 			fmt.Println(file)
 		}
@@ -247,6 +249,16 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		}
 		if len(failedFiles) > 0 {
 			stdErrLogger.Panicln("Some files contain non ASCII content, or cannot be read as text at all")
+		}
+		return
+	}
+
+	if checkFilesAndSaveAsUTF {
+		for _, file := range warnedFiles {
+			if err := utils.SaveTextFileAsUTF8(filepath.Join(projectRootDir, file), fileContent[file]); err != nil {
+				stdErrLogger.Panicln("Failed to save text file as UTF8:", err)
+			}
+			fmt.Println(file)
 		}
 		return
 	}
