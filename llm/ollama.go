@@ -995,7 +995,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			// add token estimation metrics to perfLineBuilder
 			perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
 			perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
-			perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think: %d tk), ", totalResponseTokens, thinkingTokens))
+			perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think %d tk), ", totalResponseTokens, thinkingTokens))
 			perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
 			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg))
 			// update multiplier for context size estimation
