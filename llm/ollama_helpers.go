@@ -29,7 +29,7 @@ type ollamaResponseBodyReader struct {
 	stage           int
 	done            bool
 	requestTime     time.Time
-	startDelaySec   float64
+	prefillTimeSec  float64
 	outputTimeSec   float64
 	err             error
 }
@@ -84,7 +84,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
 							//start timer on first message
 							if !timerStarted {
-								o.startDelaySec = time.Since(o.requestTime).Seconds()
+								o.prefillTimeSec = time.Since(o.requestTime).Seconds()
 								timerStarted = true
 								o.requestTime = time.Now()
 							}
@@ -176,7 +176,7 @@ func (p *ollamaResponseStreamer) CollectResponse(requestTime time.Time, response
 		return reader.done, reader.err
 	}
 	p.perfReportFunc = func() (float64, float64) {
-		return reader.startDelaySec, reader.outputTimeSec
+		return reader.prefillTimeSec, reader.outputTimeSec
 	}
 	p.getThinkingContentFunc = func() string {
 		return reader.thinkingBuilder.String()
