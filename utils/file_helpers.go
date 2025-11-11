@@ -235,6 +235,12 @@ func convertToUTFEncoding(data []byte, encoding utfEncoding) ([]byte, error) {
 	return result, nil
 }
 
+func SaveTextFileAsUTF8(filePath string, text string) error {
+	delete(projectFilesParams, filePath)
+	_, err := SaveTextFile(filePath, text)
+	return err
+}
+
 func SaveTextFile(filePath string, text string) (string, error) {
 	//TODO: use better method to convert windows line-endings
 	if runtime.GOOS == "windows" {
@@ -350,8 +356,7 @@ func SaveJsonFile(filePath string, v any) error {
 	if err != nil {
 		return err
 	}
-	_, err = SaveTextFile(filePath, writer.String())
-	return err
+	return SaveTextFileAsUTF8(filePath, writer.String())
 }
 
 func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, string, error) {
