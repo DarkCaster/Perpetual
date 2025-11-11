@@ -32,8 +32,8 @@ type OllamaLLMConnector struct {
 	ContextSizeLimit      int
 	ContextSizeMult       float64
 	ContextSizeEstMult    float64
-	ContextSizeNextMult   float64
-	ContextSizeAvgMult    float64
+	ContextSizeEstMultAvg float64
+	ContextSizeEstMultSel float64
 	ContextSizeMultMin    float64
 	ContextSizeMultMax    float64
 	ContextSizeOverride   int
@@ -469,8 +469,8 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeLimit:      numCtxLimit,
 		ContextSizeMult:       numCtxMult,
 		ContextSizeEstMult:    numCtxEstMult,
-		ContextSizeNextMult:   numCtxEstMult,
-		ContextSizeAvgMult:    0,
+		ContextSizeEstMultAvg: 0,
+		ContextSizeEstMultSel: numCtxEstMult,
 		ContextSizeMultMin:    numCtxMultMin,
 		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
@@ -720,11 +720,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
 		//do worst-case context size estimation: prompt size + response limit
-		totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + p.MaxTokens
+		totalTokens := int(float64(promptSize)*p.ContextSizeEstMultSel) + p.MaxTokens
 		contextOverflowExpected = totalTokens > ctxSz
 		if contextOverflowExpected {
 			//try more accurate estimation to predict upcoming overflow
-			totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + int(p.ResponseTokensAvg)
+			totalTokens := int(float64(promptSize)*p.ContextSizeEstMultSel) + int(p.ResponseTokensAvg)
 			contextOverflowInevitable := totalTokens > ctxSz
 			if contextOverflowInevitable && p.CanGrowContextSize() {
 				p.ContextSizeOverride = p.GrowContextSize()
@@ -989,7 +989,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			thinkingTokens := int(float64(thinkingSize) * curMult)
 			// update mean values
 			totalResponseTokens := thinkingTokens + responseTokens
-			p.ContextSizeAvgMult = (p.ContextSizeAvgMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
+			p.ContextSizeEstMultAvg = (p.ContextSizeEstMultAvg*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
 			p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
 			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
@@ -997,9 +997,9 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
 			perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think: %d tk), ", totalResponseTokens, thinkingTokens))
 			perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
-			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeAvgMult))
-			// update context tokens estimation multiplier
-			p.ContextSizeNextMult = max(p.ContextSizeEstMult, p.ContextSizeAvgMult)
+			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg))
+			// update multiplier for context size estimation
+			p.ContextSizeEstMultSel = max(p.ContextSizeEstMult, p.ContextSizeEstMultAvg)
 		}
 
 		p.PerfString = perfLineBuilder.String()
