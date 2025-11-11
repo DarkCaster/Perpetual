@@ -88,12 +88,10 @@ OLLAMA_VARIANT_SELECTION="short" # will be used as fallback
 OLLAMA_CONTEXT_MULT="1.75"
 OLLAMA_CONTEXT_SIZE_LIMIT="49152" # reasonable limit for typical desktop systems with 32G of RAM and 8G of VRAM (+ 32G swap on NVME SSD)
 
-# Parameters for context size estimation, used to convert prompt lengts in characters to tokens when detecting context overflow errors.
-# The values can be automatically increased on successive operations, do not change unless having constant problems with context overflow.
-OLLAMA_CONTEXT_ESTIMATE_MULT="0.3" # equals to about 3.33 characters per token, good default value
-# Minumum and maximum of multiplier when detecting context overflows
+# Default multiplier for text-size to token-count estimation, will be updated automatically on consecutive LLM queries
+OLLAMA_CONTEXT_ESTIMATE_MULT="0.3" # equals to 3.33 characters per token, good default value
+# Minumum multiplier value used when detecting context overflows ang garbage results
 OLLAMA_CONTEXT_MULT_MIN="0.1"
-OLLAMA_CONTEXT_MULT_MAX="1.0"
 
 # Context window sizes for different operations, if set too low, it will be extended automatically when context overflow detected
 # If not set - use default for ollama model, and also disable context overflow detection above
