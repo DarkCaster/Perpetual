@@ -148,7 +148,6 @@ func NewOllamaLLMConnectorFromEnv(
 	var numCtx int = 0
 	var numCtxEstMult float64 = 0.3
 	var numCtxMultMin float64 = 0.1
-	var numCtxMultMax float64 = 1.0
 
 	var seed int = math.MaxInt
 	var maxTokens int = 0
@@ -285,20 +284,12 @@ func NewOllamaLLMConnectorFromEnv(
 		if err != nil || numCtxEstMult <= 0 {
 			numCtxEstMult = 0.3
 		}
-		if numCtx > 0 {
-			debug.Add("ctx. token est. mult", numCtxEstMult)
-		}
-
-		numCtxMultMax, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_MULT_MAX", prefix))
-		if err != nil || numCtxMultMax <= 0 {
-			numCtxMultMax = 1.0
-		}
 		numCtxMultMin, err = utils.GetEnvFloat(fmt.Sprintf("%s_CONTEXT_MULT_MIN", prefix))
 		if err != nil || numCtxMultMin <= 0 {
 			numCtxMultMin = 0.1
 		}
 		if numCtx > 0 {
-			debug.Add("ctx. mult. limits", fmt.Sprint(numCtxMultMin, "-", numCtxMultMax))
+			debug.Add("ctx. token est. mult", fmt.Sprint(numCtxEstMult, "|", numCtxMultMin))
 		}
 
 		maxTokens, err = utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_MAX_TOKENS", prefix))
