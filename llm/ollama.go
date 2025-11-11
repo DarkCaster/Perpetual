@@ -35,7 +35,6 @@ type OllamaLLMConnector struct {
 	ContextSizeEstMultAvg float64
 	ContextSizeEstMultSel float64
 	ContextSizeMultMin    float64
-	ContextSizeMultMax    float64
 	ContextSizeOverride   int
 	ResponseTokensAvg     float64
 	CompletedQueriesCount int
@@ -472,7 +471,6 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeEstMultAvg: 0,
 		ContextSizeEstMultSel: numCtxEstMult,
 		ContextSizeMultMin:    numCtxMultMin,
-		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
 		ResponseTokensAvg:     0,
 		CompletedQueriesCount: 0,
@@ -922,10 +920,12 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			if responseTokens, exist := choice.GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
 				contextOverflow = true
 			}
-			//test prompt char-size to token-size multiplier from current stats, values too low or too big are signs of context overflow
+			//check prompt char-size to token-size multiplier from current stats, value too low is a sign of context overflow
 			if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
 				mult := float64(promptTokens) / float64(promptSize)
-				contextOverflow = mult < p.ContextSizeMultMin || mult > p.ContextSizeMultMax
+				if mult < p.ContextSizeMultMin {
+					contextOverflow = true
+				}
 			}
 			//handle overflow
 			if contextOverflow {
