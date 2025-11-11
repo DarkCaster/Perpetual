@@ -32,6 +32,7 @@ type OllamaLLMConnector struct {
 	ContextSizeLimit      int
 	ContextSizeMult       float64
 	ContextSizeEstMult    float64
+	ContextSizeNextMult   float64
 	ContextSizeMultMin    float64
 	ContextSizeMultMax    float64
 	ContextSizeOverride   int
@@ -470,6 +471,7 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeLimit:      numCtxLimit,
 		ContextSizeMult:       numCtxMult,
 		ContextSizeEstMult:    numCtxEstMult,
+		ContextSizeNextMult:   numCtxEstMult,
 		ContextSizeMultMin:    numCtxMultMin,
 		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
@@ -722,11 +724,11 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		ollamaOptions = append(ollamaOptions, ollama.WithRunnerNumCtx(ctxSz))
 		//do worst-case context size estimation: prompt size + response limit
-		totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + p.MaxTokens
+		totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + p.MaxTokens
 		contextOverflowExpected = totalTokens > ctxSz
 		if contextOverflowExpected {
 			//try more accurate estimation to predict upcoming overflow
-			totalTokens := int(float64(promptSize)*p.ContextSizeEstMult) + int(p.PerfRespTokenSzMean)
+			totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + int(p.PerfRespTokenSzMean)
 			contextOverflowInevitable := totalTokens > ctxSz
 			if contextOverflowInevitable && p.CanGrowContextSize() {
 				p.ContextSizeOverride = p.GrowContextSize()
@@ -1003,7 +1005,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			perfLineBuilder.WriteString(fmt.Sprintf("avg %d tk; ", int(p.PerfRespTokenSzMean)))
 			perfLineBuilder.WriteString(fmt.Sprintf("token est.mult: min %05.3f, max %05.3f, avg %05.3f; ", p.PerfMinEstMult, p.PerfMaxEstMult, p.PerfMeanEstMult))
 			// update context tokens estimation multiplier
-			p.ContextSizeEstMult = max(p.ContextSizeMultMin, p.PerfMeanEstMult)
+			p.ContextSizeNextMult = max(p.ContextSizeEstMult, p.PerfMeanEstMult)
 		}
 
 		p.PerfString = perfLineBuilder.String()
