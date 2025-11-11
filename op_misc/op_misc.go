@@ -220,12 +220,33 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		}
 	}
 
-	if checkFilesRead {
+	slices.Sort(failedFiles)
+	if checkFilesRead || checkFilesAndSaveAsUTF {
 		for _, file := range failedFiles {
 			fmt.Println(file)
 		}
 		if len(failedFiles) > 0 {
 			stdErrLogger.Panicln("Reading of some project files was unsuccessful")
+		}
+		return
+	}
+
+	if checkFilesReadAsASCII {
+		for file, content := range fileContent {
+			// Check if content only contains ASCII characters (0-127)
+			for _, r := range content {
+				if r > 127 {
+					failedFiles = append(failedFiles, file)
+					break
+				}
+			}
+		}
+		slices.Sort(failedFiles)
+		for _, file := range failedFiles {
+			fmt.Println(file)
+		}
+		if len(failedFiles) > 0 {
+			stdErrLogger.Panicln("Some files contain non ASCII content, or cannot be read as text at all")
 		}
 		return
 	}
