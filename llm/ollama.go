@@ -33,9 +33,11 @@ type OllamaLLMConnector struct {
 	ContextSizeMult       float64
 	ContextSizeEstMult    float64
 	ContextSizeNextMult   float64
+	ContextSizeAvgMult    float64
 	ContextSizeMultMin    float64
 	ContextSizeMultMax    float64
 	ContextSizeOverride   int
+	ResponseTokensAvg     float64
 	SystemPrompt          string
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
@@ -69,8 +71,6 @@ type OllamaLLMConnector struct {
 	RateLimitDelayS       int
 	PerfString            string
 	PerfPromptCount       int
-	PerfMeanEstMult       float64
-	PerfRespTokenSzMean   float64
 }
 
 func NewOllamaLLMConnectorFromEnv(
@@ -470,9 +470,11 @@ func NewOllamaLLMConnectorFromEnv(
 		ContextSizeMult:       numCtxMult,
 		ContextSizeEstMult:    numCtxEstMult,
 		ContextSizeNextMult:   numCtxEstMult,
+		ContextSizeAvgMult:    0,
 		ContextSizeMultMin:    numCtxMultMin,
 		ContextSizeMultMax:    numCtxMultMax,
 		ContextSizeOverride:   0,
+		ResponseTokensAvg:     0,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
 		SystemPromptRole:      systemPromptRole,
@@ -505,8 +507,6 @@ func NewOllamaLLMConnectorFromEnv(
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 		PerfPromptCount:       0,
-		PerfMeanEstMult:       0,
-		PerfRespTokenSzMean:   0,
 	}, nil
 }
 
@@ -724,7 +724,7 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		contextOverflowExpected = totalTokens > ctxSz
 		if contextOverflowExpected {
 			//try more accurate estimation to predict upcoming overflow
-			totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + int(p.PerfRespTokenSzMean)
+			totalTokens := int(float64(promptSize)*p.ContextSizeNextMult) + int(p.ResponseTokensAvg)
 			contextOverflowInevitable := totalTokens > ctxSz
 			if contextOverflowInevitable && p.CanGrowContextSize() {
 				p.ContextSizeOverride = p.GrowContextSize()
@@ -981,24 +981,25 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		}
 		perfLineBuilder.WriteString(fmt.Sprintf("prefill %03.1f s, gen %03.1f s, ", pfTime, respGenTime))
 
-		//update token estimation multipliers status, if we have PromptTokens stat
+		//add more values to performance report
+		//update counters for context size estimation, will be used on the next call to provide better estimation
 		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
 			curMult := float64(promptTokens) / float64(promptSize)
 			// get approx size of thinking in tokens using calculated multiplier
 			thinkingTokens := int(float64(thinkingSize) * curMult)
 			// update mean values
 			totalResponseTokens := thinkingTokens + responseTokens
-			p.PerfMeanEstMult = (p.PerfMeanEstMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
-			p.PerfRespTokenSzMean = (p.PerfRespTokenSzMean*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
+			p.ContextSizeAvgMult = (p.ContextSizeAvgMult*float64(p.PerfPromptCount) + curMult) / float64(p.PerfPromptCount+1)
+			p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.PerfPromptCount) + float64(totalResponseTokens)) / float64(p.PerfPromptCount+1)
 			p.PerfPromptCount += 1
 			// add token estimation metrics to perfLineBuilder
 			perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
 			perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
 			perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think: %d tk), ", totalResponseTokens, thinkingTokens))
-			perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.PerfRespTokenSzMean)))
-			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.PerfMeanEstMult))
+			perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
+			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeAvgMult))
 			// update context tokens estimation multiplier
-			p.ContextSizeNextMult = max(p.ContextSizeEstMult, p.PerfMeanEstMult)
+			p.ContextSizeNextMult = max(p.ContextSizeEstMult, p.ContextSizeAvgMult)
 		}
 
 		p.PerfString = perfLineBuilder.String()
