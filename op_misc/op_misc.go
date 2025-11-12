@@ -236,11 +236,19 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	if checkFilesReadAsASCII {
 		for file, content := range fileContent {
 			// Check if content only contains ASCII characters (0-127)
-			for _, r := range content {
+			line := 1
+			linePos := 1
+			for b, r := range content {
+				if r == '\n' {
+					line++
+					linePos = 1
+				}
 				if r > 127 {
+					stdErrLogger.Warnf("%s: non-ASCII character found at byte %d (line %d, pos %d)", file, b, line, linePos)
 					failedFiles = append(failedFiles, file)
 					break
 				}
+				linePos++
 			}
 		}
 		slices.Sort(failedFiles)
