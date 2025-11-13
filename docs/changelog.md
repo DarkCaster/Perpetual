@@ -21,13 +21,13 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
-## v9.1.0 (Unreleased)
+## v9.1.0
 
 ### Improvements
 
 - Improved default python prompts: added more filetypes to project.json
 - Improved context overflow detection and context size grow logic for Ollama provider.
-- Adeded `misc` opertation: collection of various small helper-functions for managing project-files, detecting and fixing errors in configuration, and much more. Intended to be used both manually and with external agent tools.
+- Added `misc` operation: collection of various small helper-functions for managing project-files, detecting and fixing errors in configuration, and more. Intended to be used both manually and with external agent tools.
 
 **NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration to enable use of new filetypes and annotation-prompts by running `Perpetual init -l python3`. Using new context overflow detection parameter (optional) for Ollama requires adding new parameter to the `*.env` files, see updated env files examples for more info.
 
