@@ -3,6 +3,7 @@ package op_misc
 import (
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -222,8 +223,8 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		}
 	}
 
-	slices.Sort(failedFiles)
 	if checkFilesRead {
+		slices.Sort(failedFiles)
 		for _, file := range failedFiles {
 			fmt.Println(file)
 		}
@@ -234,10 +235,13 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	}
 
 	if checkFilesReadAsASCII {
-		for file, content := range fileContent {
+		loadedFiles := slices.Collect(maps.Keys(fileContent))
+		slices.Sort(loadedFiles)
+		for _, file := range loadedFiles {
 			// Check if content only contains ASCII characters (0-127)
 			line := 1
 			linePos := 1
+			content := fileContent[file]
 			for b, r := range content {
 				if r == '\n' {
 					line++
@@ -251,6 +255,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 				linePos++
 			}
 		}
+		// output failed files
 		slices.Sort(failedFiles)
 		for _, file := range failedFiles {
 			fmt.Println(file)
@@ -261,7 +266,9 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		return
 	}
 
+	// try to re-save file as UTF8 that was read with warnings (so it was converted from fallback encoding)
 	if checkFilesAndSaveAsUTF {
+		slices.Sort(warnedFiles)
 		for _, file := range warnedFiles {
 			if err := utils.SaveTextFileAsUTF8(filepath.Join(projectRootDir, file), fileContent[file]); err != nil {
 				stdErrLogger.Panicln("Failed to save text file as UTF8:", err)
