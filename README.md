@@ -62,6 +62,7 @@ Supported operations:
 - [`report`: Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis](docs/op_report.md)
 - [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
 - [`explain`: Getting answers to questions and clarifications on the project (based on source code analysis)](docs/op_explain.md)
+- [`misc`: Other helper functions for troubleshooting, validating project setup, and other maintenance tasks)](docs/op_misc.md)
 
 ### Initialize a New Project
 
