@@ -21,6 +21,18 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.2.0
+
+### Bug Fixes
+
+- Fixed bug where incremental mode was not automatically disabled for source files not matched by `files_incremental_mode_min_length` regexps at `project.json` config
+
+### Improvements
+
+- (work in progress) Improved default python prompts: added markdown code-blocks mappings for some project file-types
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration by running `Perpetual init -l python3`.
+
 ## v9.1.0
 
 ### Improvements
