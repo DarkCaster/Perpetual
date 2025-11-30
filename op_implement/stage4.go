@@ -137,6 +137,7 @@ func Stage4(projectRootDir string,
 						logger.Infoln("Not using incremental mode, file too small:", pendingFile)
 					}
 				} else {
+					useIncrMode = false
 					logger.Infoln("Not using incremental mode for file:", pendingFile)
 				}
 			}
