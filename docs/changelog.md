@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.3.0
+
+### Bug Fixes
+
+- Minor fix at default python annotation prompts: do not put subpackage name in square brackets - small local LLMs seem to be confused by it.
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration by running `Perpetual init -l python3`.
+
 ## v9.2.0
 
 ### Bug Fixes
