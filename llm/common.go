@@ -80,6 +80,10 @@ func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], f
 		return "bash"
 	case ".sql":
 		return "sql"
+	case ".toml":
+		return "toml"
+	case ".lua":
+		return "lua"
 	default:
 		return "text"
 	}
