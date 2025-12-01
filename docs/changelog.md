@@ -29,7 +29,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 ### Improvements
 
-- (work in progress) Improved default python prompts: added markdown code-blocks mappings for some project file-types
+- Improved default python annotation prompts: add subpackage name into python file annotation
 
 **NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration by running `Perpetual init -l python3`.
 
