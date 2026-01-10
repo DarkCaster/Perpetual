@@ -29,6 +29,12 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 **NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration by running `Perpetual init -l python3`.
 
+## v9.2.1
+
+### Bug Fixes
+
+- Fixed bug where optional project description content was not added into LLM messages for `annotate` operation.
+
 ## v9.2.0
 
 ### Bug Fixes
