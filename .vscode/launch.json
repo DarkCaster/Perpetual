@@ -21,6 +21,14 @@
 			"args": ["annotate","-vv","-r","utils/text_parsing_test.go"],
 		},
 		{
+			"name": "Launch Package: annotate (regular file, with extra proejct description (fake)) -r main.go",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["annotate","-vv","-r","main.go","-df",".perpetual/description.md.template"],
+		},
+		{
 			"name": "Launch Package: annotate (regular file) -r main.go",
 			"type": "go",
 			"request": "launch",
