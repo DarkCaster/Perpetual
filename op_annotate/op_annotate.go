@@ -299,6 +299,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			projectDescPrompt := llm.AddPlainTextFragment(
 				llm.NewMessage(llm.UserRequest),
 				projectConfig.String(config.K_ProjectDescriptionPrompt))
+			projectDescPrompt = llm.AddPlainTextFragment(projectDescPrompt, projectDesc)
 			projectDescResponse := llm.AddPlainTextFragment(
 				llm.NewMessage(llm.SimulatedAIResponse),
 				projectConfig.String(config.K_ProjectDescriptionResponse))
