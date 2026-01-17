@@ -30,7 +30,7 @@ func (p *py3Prompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer."
 	// redefine language-dependent prompt
-	result[config.K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$"}
+	result[config.K_ImplementCommentsRx] = []string{"^\\s*###IMPLEMENT###.*$", "^\\s*(REM)*\\s*###IMPLEMENT###.*$", "^\\s*-*\\s*###IMPLEMENT###.*$"}
 	return result
 }
 
