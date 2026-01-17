@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.4.0
+
+### Improvements
+
+- Improved default configuration for python language support: added detection of `###IMPLEMENT###` comments inside lua files (example: `--###IMPLEMENT###`).
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your python project configuration by running `Perpetual init -l python3`.
+
 ## v9.3.1
 
 ### Bug Fixes
