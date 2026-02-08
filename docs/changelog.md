@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.5.0
+
+### Improvements
+
+- Added support for injecting custom JSON into outgoing requests for Generic LLM provider, per operation. Defined as env variables or at the env files.
+
+**NOTE**: There are no incompatible configuration changes. Using new env variables for Generic provider requires adding new entries to the `*.env` files, see updated `generic.env.example` example for more info.
+
 ## v9.4.0
 
 ### Improvements
