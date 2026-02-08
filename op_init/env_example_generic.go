@@ -194,6 +194,21 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_SYSPROMPT_ROLE_OP_EXPLAIN_STAGE2="system"
 # GENERIC_SYSPROMPT_ROLE="system"
 
+# Optional extra JSON object to inject into outgoing LLM request, per operation
+# Must be a valid JSON object, will silently overwrite objects with matching names
+# GENERIC_ADD_JSON_OP_ANNOTATE=""
+# GENERIC_ADD_JSON_OP_ANNOTATE_POST=""
+# GENERIC_ADD_JSON_OP_EMBED=""
+# GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE1=""
+# GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE2=""
+# GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE3=""
+# GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE4=""
+# GENERIC_ADD_JSON_OP_DOC_STAGE1=""
+# GENERIC_ADD_JSON_OP_DOC_STAGE2=""
+# GENERIC_ADD_JSON_OP_EXPLAIN_STAGE1=""
+# GENERIC_ADD_JSON_OP_EXPLAIN_STAGE2=""
+# GENERIC_ADD_JSON="{ \"chat_template_kwargs\": { \"enable_thinking\": false } }" # llama.cpp example to disable thinking for supported models
+
 # Optional system- and user- prompt prefixes and suffixes, added before and after prompts for selected operation/stage.
 # You can use it to perform some model-specific fine-tuning if needed.
 # GENERIC_SYSTEM_PFX_OP_ANNOTATE=""

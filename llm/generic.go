@@ -2,6 +2,7 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -166,6 +167,15 @@ func NewGenericLLMConnectorFromEnv(
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
+
+	jsonToInject, err := utils.GetEnvString(fmt.Sprintf("%s_ADD_JSON_OP_%s", prefix, operation), fmt.Sprintf("%s_ADD_JSON", prefix))
+	if err == nil && jsonToInject != "" {
+		// deserialize string as json object
+		if err := json.Unmarshal([]byte(jsonToInject), &fieldsToInject); err != nil {
+			return nil, fmt.Errorf("failed to parse json for adding into request: %v", err)
+		}
+		debug.Add("add json", true)
+	}
 
 	if operation == "EMBED" {
 		fieldsToRemove = append(fieldsToRemove, "temperature")
