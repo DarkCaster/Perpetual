@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.6.0
+
+### Improvements
+
+- Improved default configuration for dotnet platform: make prompts less specific about .NET Framework, added support for ASP source files: cshtml, js, css, html.
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your dotnet project configuration by running `Perpetual init -l dotnet`.
+
 ## v9.5.0
 
 ### Improvements
