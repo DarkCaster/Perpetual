@@ -23,8 +23,8 @@ func newPrompts(targetLang string) (prompts, error) {
 	switch targetLang {
 	case "GO":
 		return &goPrompts{}, nil
-	case "DOTNETFW":
-		return &dotNetFWPrompts{}, nil
+	case "DOTNET":
+		return &dotNetPrompts{}, nil
 	case "BASH":
 		return &bashPrompts{}, nil
 	case "PYTHON3":

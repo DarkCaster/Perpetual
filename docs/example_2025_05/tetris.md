@@ -13,7 +13,7 @@ Create new desktop-application WPF/XAML solution for .NET 8 and C# in Visual Stu
 Open terminal with powershell session inside your project directory and initialize `perpetual` project in it.
 
 ```ps
-Perpetual_amd64.exe init -l dotnetfw
+Perpetual_amd64.exe init -l dotnet
 ```
 
 ## Prepare your .env files

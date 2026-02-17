@@ -31,7 +31,7 @@ This command initializes Perpetual for a Go project, setting up the appropriate 
 Perpetual currently supports the following programming languages and technologies:
 
 1. **Go (`go`)**  
-2. **.NET Framework (`dotnetfw`)** – Includes C#, VB.NET, WPF  
+2. **.NET (`dotnet`)** – Includes C#, VB.NET, WPF, ASP  
 3. **Bash (`bash`)** – Intended mostly for Linux use  
 4. **Python 3 (`python3`)**  
 5. **Visual Basic 6 (`vb6`)** – Legacy VB6, may be removed in future releases  
