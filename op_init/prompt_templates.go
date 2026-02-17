@@ -101,6 +101,18 @@ const defaultAIAnnotatePrompt_CSHTML_CS = "Create a summary for the C# code-behi
 
 const defaultAIAnnotatePrompt_CSHTML_CS_SHORT = "Create a short summary for the C# code-behind file in my next message. The summary should be up to 2 sentences long and include the class name. If there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_CSS = "Create a summary for the CSS source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key selectors and their purposes, and main layout or styling features. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_CSS_SHORT = "Create a short summary for the CSS source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_JS = "Create a summary for the JavaScript source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key functions, variables, and event listeners. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_JS_SHORT = "Create a short summary for the JavaScript source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_HTML = "Create a summary for the HTML source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, main structure (sections, containers), and key elements or components. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
+
+const defaultAIAnnotatePrompt_HTML_SHORT = "Create a short summary for the HTML source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+
 const defaultAIAnnotatePrompt_S = "Create a summary for the assembly source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, exported symbols (if any), key data sections, main operations performed, and dependencies on external symbols. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly."
 
 const defaultAIAnnotatePrompt_S_Short = "Create a short summary for the assembly source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file marked as notes for creating this summary, follow them strictly."

@@ -19,6 +19,9 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS, defaultAIAnnotatePrompt_CS_Short},
 		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet, defaultAIAnnotatePrompt_VBNet_Short},
 		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml, defaultAIAnnotatePrompt_Xaml_Short},
+		{"(?i)^.*\\.css$", defaultAIAnnotatePrompt_CSS, defaultAIAnnotatePrompt_CSS_SHORT},
+		{"(?i)^.*\\.js$", defaultAIAnnotatePrompt_JS, defaultAIAnnotatePrompt_JS_SHORT},
+		{"(?i)^.*\\.html$", defaultAIAnnotatePrompt_HTML, defaultAIAnnotatePrompt_HTML_SHORT},
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
@@ -47,7 +50,7 @@ func (p *dotNetFWPrompts) GetExplainConfig() map[string]interface{} {
 func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
-		"(?i)^.*\\.(cs|vb|xaml|cshtml)$",
+		"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html)$",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^.*AssemblyInfo\\.cs$",
@@ -63,7 +66,7 @@ func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(cs|cshtml|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
+		{"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
 	}
 	return result
