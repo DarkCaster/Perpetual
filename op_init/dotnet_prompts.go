@@ -34,6 +34,7 @@ func (p *dotNetPrompts) GetImplementConfig() map[string]interface{} {
 	result[config.K_ImplementCommentsRx] = []string{
 		"^\\s*\\/\\/\\s*###IMPLEMENT###.*$",
 		"^\\s*\\/\\*\\s*###IMPLEMENT###\\s*\\*\\/.*$",
+		"^\\s*<!--\\s*###IMPLEMENT###\\s*-->.*$",
 	}
 	return result
 }
@@ -70,6 +71,7 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectNoUploadCommentsRx] = []string{
 		"^\\s*\\/\\/\\s*###NOUPLOAD###.*$",
 		"^\\s*\\/\\*\\s*###NOUPLOAD###\\s*\\*\\/.*$",
+		"^\\s*<!--\\s*###NOUPLOAD###\\s*-->.*$",
 	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
 		{"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
