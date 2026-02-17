@@ -64,6 +64,8 @@ func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], f
 		return "rust"
 	case ".cs":
 		return "csharp"
+	case ".cshtml":
+		return "cshtml"
 	case ".html", ".htm":
 		return "html"
 	case ".css":
@@ -76,6 +78,8 @@ func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], f
 		return "yaml"
 	case ".xml":
 		return "xml"
+	case ".xaml":
+		return "xaml"
 	case ".sh", ".bash", ".sh.in", ".bash.in":
 		return "bash"
 	case ".sql":
