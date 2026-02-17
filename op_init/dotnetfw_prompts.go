@@ -11,9 +11,11 @@ type dotNetFWPrompts struct{}
 
 func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^.*\\.cshtml$", defaultAIAnnotatePrompt_CSHTML, defaultAIAnnotatePrompt_CSHTML_SHORT},
+		{"(?i)^.*\\.cshtml\\.cs$", defaultAIAnnotatePrompt_CSHTML_CS, defaultAIAnnotatePrompt_CSHTML_CS_SHORT},
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS, defaultAIAnnotatePrompt_CS_Short},
 		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet, defaultAIAnnotatePrompt_VBNet_Short},
 		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml, defaultAIAnnotatePrompt_Xaml_Short},
@@ -24,7 +26,7 @@ func (p *dotNetFWPrompts) GetAnnotateConfig() map[string]interface{} {
 
 func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF."
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages."
 	// redefine language-dependent prompt
 	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
 	return result
@@ -32,19 +34,21 @@ func (p *dotNetFWPrompts) GetImplementConfig() map[string]interface{} {
 
 func (p *dotNetFWPrompts) GetDocConfig() map[string]interface{} {
 	result := getDefaultDocConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You write and refine technical documentation based on detailed study of the source code."
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
 func (p *dotNetFWPrompts) GetExplainConfig() map[string]interface{} {
 	result := getDefaultExplainConfigTemplate()
-	result[config.K_SystemPrompt] = "You are a highly skilled .NET Framework software developer with excellent knowledge of C# and VB.NET programming languages and WPF. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
+	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
 func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
-	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(cs|vb|xaml)$"}
+	result[config.K_ProjectFilesWhitelist] = []string{
+		"(?i)^.*\\.(cs|vb|xaml|cshtml)$",
+	}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^.*AssemblyInfo\\.cs$",
 		"(?i)^(bin\\\\|obj\\\\|bin\\/|obj\\/)",
@@ -55,11 +59,11 @@ func (p *dotNetFWPrompts) GetProjectConfig() map[string]interface{} {
 		"(?i)^.*(\\\\|\\/)_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 		"(?i)^_?tests?(\\\\|\\/).*\\.(cs|vb)$",
 	}
-	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (.NET/C#/VB.NET). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
+	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project. Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
+		{"(?i)^.*\\.(cs|cshtml|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
 	}
 	return result
