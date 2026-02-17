@@ -31,7 +31,10 @@ func (p *dotNetPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages."
 	// redefine language-dependent prompt
-	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[config.K_ImplementCommentsRx] = []string{
+		"^\\s*\\/\\/\\s*###IMPLEMENT###.*$",
+		"^\\s*\\/\\*\\s*###IMPLEMENT###\\s*\\*\\/.*$",
+	}
 	return result
 }
 
@@ -64,7 +67,10 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]interface{} {
 	}
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project. Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
-	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectNoUploadCommentsRx] = []string{
+		"^\\s*\\/\\/\\s*###NOUPLOAD###.*$",
+		"^\\s*\\/\\*\\s*###NOUPLOAD###\\s*\\*\\/.*$",
+	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
 		{"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
