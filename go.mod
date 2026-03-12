@@ -1,6 +1,6 @@
 module github.com/DarkCaster/Perpetual
 
-go 1.25
+go 1.25.0
 
 toolchain go1.25.7
 
@@ -8,7 +8,7 @@ require (
 	github.com/joho/godotenv v1.6.0-pre.2
 	github.com/tmc/langchaingo v0.1.14
 	github.com/vmihailenco/msgpack/v5 v5.4.1
-	golang.org/x/text v0.34.0
+	golang.org/x/text v0.35.0
 )
 
 require (
