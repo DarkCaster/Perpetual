@@ -27,6 +27,7 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 - Added streaming option override for OpenAI LLM provider, per operation.
 - Added service tier option override for OpenAI LLM provider, per operation.
+- Added support for setting any string to reasoning effort value for OpenAI and Generic providers.
 
 **NOTE**: There are no incompatible configuration changes. Using new env variables for OpenAI provider requires adding new entries to the `*.env` files, see updated `openai.env.example` example for more info.
 
