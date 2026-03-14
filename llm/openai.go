@@ -28,6 +28,7 @@ type OpenAILLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	SystemPromptAck       string
+	StreamingPref         int
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
@@ -113,6 +114,7 @@ func NewOpenAILLMConnectorFromEnv(
 	var fieldsToRemove []string
 	fieldsToInject := map[string]interface{}{}
 
+	var streaming int = 0
 	var docChunk int = 1024
 	var docOverlap int = 64
 	var searchChunk int = 4096
@@ -186,6 +188,14 @@ func NewOpenAILLMConnectorFromEnv(
 			} else {
 				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
 			}
+		}
+
+		streaming, err = utils.GetEnvInt(fmt.Sprintf("%s_ENABLE_STREAMING_OP_%s", prefix, operation), fmt.Sprintf("%s_ENABLE_STREAMING", prefix))
+		if err == nil {
+			debug.Add("streaming", streaming)
+		} else {
+			//streaming will use model-specific setting
+			streaming = -1
 		}
 
 		if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
@@ -284,6 +294,7 @@ func NewOpenAILLMConnectorFromEnv(
 		Model:                 model,
 		SystemPrompt:          systemPrompt,
 		SystemPromptAck:       systemPromptAck,
+		StreamingPref:         streaming,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
@@ -464,6 +475,10 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	systemPrompt := p.SystemPrompt
 	streamingSupported := true
+	// set streaming support to disabled early if requested by user
+	if p.StreamingPref == 0 {
+		streamingSupported = false
+	}
 
 	if len(p.FieldsToInject) > 0 {
 		transformers = append(transformers, newTopLevelBodyValuesInjector(p.FieldsToInject))
@@ -510,10 +525,14 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 			"logit_bias",
 		}))
 	} else if strings.HasPrefix(modelStr, "gpt-5") {
-		//disable streaming for all GPT-5 models, it require extra organization verification that may be unavailable for all accounts
-		streamingSupported = false
+		if p.StreamingPref < 0 {
+			//no explicit streaming preference provided, so disable streaming for all GPT-5 models:
+			//it may require extra organization verification that may be unavailable for all accounts
+			streamingSupported = false
+		}
 	} else if strings.HasPrefix(modelStr, "codex") {
-		//remove unsupported parameters of responses API
+		//TODO: remove this custom responses-API handling logic when it will be implemented at langchain-go library (if ever)
+		//remove unsupported parameters of responses API, too hard to implement and maintain
 		streamingSupported = false
 		maxCandidates = 1
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
@@ -611,6 +630,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 	// Perform LLM query
 	if maxCandidates > 1 {
+		// for multiple output variants, do not enable streaming, too expensive for me to support
 		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
 	} else if streamingSupported {
 		finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))

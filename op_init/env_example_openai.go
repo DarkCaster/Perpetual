@@ -31,20 +31,34 @@ OPENAI_API_KEY="<your api key goes here>"
 OPENAI_BASE_URL="https://api.openai.com/v1"
 # NOTE: OPENAI_API_BASE and OPENAI_ORGANIZATION env vars are not supported or tested, but may work if used
 
+# Streaming support override:
+# 0 - disabled, positive number - enabled, negative number - use model-specific setting (default)
+# OPENAI_ENABLE_STREAMING_OP_ANNOTATE="0"
+# OPENAI_ENABLE_STREAMING_OP_ANNOTATE_POST="0"
+# OPENAI_ENABLE_STREAMING_OP_EMBED="0"
+# OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE1="0"
+# OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE2="0"
+# OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE3="0"
+# OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE4="0"
+# OPENAI_ENABLE_STREAMING_OP_DOC_STAGE1="0"
+# OPENAI_ENABLE_STREAMING_OP_DOC_STAGE2="0"
+# OPENAI_ENABLE_STREAMING_OP_EXPLAIN_STAGE1="0"
+# OPENAI_ENABLE_STREAMING_OP_EXPLAIN_STAGE2="0"
+# OPENAI_ENABLE_STREAMING="0"
+
 # Model selection for different operations and stages
-OPENAI_MODEL_OP_ANNOTATE="gpt-5-nano"
+OPENAI_MODEL_OP_ANNOTATE="gpt-5-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-5-mini" # used to process multiple response-variants if any
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
-OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5-mini"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="codex-mini-latest" # highly experimental, not recommended, may work only on implementation stage 4
-OPENAI_MODEL_OP_DOC_STAGE1="gpt-5-mini"
-# OPENAI_MODEL_OP_DOC_STAGE2="o4-mini" # good for generating initial document structure from your draft
-OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5-mini"
-# OPENAI_MODEL_OP_EXPLAIN_STAGE2="o4-mini"
-OPENAI_MODEL="gpt-5"
+# OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.4"
+# OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.4"
+# OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.4"
+# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5.4"
+# OPENAI_MODEL_OP_DOC_STAGE1="gpt-5.4"
+# OPENAI_MODEL_OP_DOC_STAGE2="gpt-5.4"
+# OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5.4"
+# OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-5.4"
+OPENAI_MODEL="gpt-5.4"
 OPENAI_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
 OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
 OPENAI_VARIANT_COUNT="1" # will be used as fallback
@@ -77,17 +91,18 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 # OPENAI_INCRMODE_SUPPORT="true"
 # OPENAI_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
-# Options for limiting output tokens for different operations and stages, must be set
+# Options for limiting output tokens for different operations and stages, must be set.
+# Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.
-OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="3072" # additional tokens may be needed for thinking.
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
-OPENAI_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="16384" # generated answer output limit
+OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="3072"
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096" # file-list for review, long list is probably an error
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="16384" # work-plan generation
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="4096" # file-list for processing, long list is probably an error
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="24576" # generated code output limit should be big enough
+OPENAI_MAX_TOKENS_OP_DOC_STAGE1="4096" # file-list for review, long list is probably an error
+OPENAI_MAX_TOKENS_OP_DOC_STAGE2="24576" # generated document output limit should be as big as possible
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="4096" # file-list for review
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="24576" # generated answer output limit
 OPENAI_MAX_TOKENS="4096" # default limit
 
 # Options to control retries (including rate-limit hits) and partial output due to token limit
