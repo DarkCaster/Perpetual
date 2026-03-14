@@ -221,19 +221,9 @@ func NewOpenAILLMConnectorFromEnv(
 			//TODO: looks like this option may be implemented at langchaingo as`llms.WithThinkingMode(llms.ThinkingMode[Low|Med|High])`
 			//hovewer, seem it not working properly for now, or it should be used differently.
 			//so, instead we are injecting reasoning_effort api option directly into request json
-			debug.Add("reasoning effort", reasoning)
-			switch reasoning {
-			case "MINIMAL":
-				fieldsToInject["reasoning_effort"] = "minimal"
-			case "LOW":
-				fieldsToInject["reasoning_effort"] = "low"
-			case "MEDIUM":
-				fieldsToInject["reasoning_effort"] = "medium"
-			case "HIGH":
-				fieldsToInject["reasoning_effort"] = "high"
-			default:
-				return nil, fmt.Errorf("invalid reasoning effort provided for %s operation", operation)
-			}
+			debug.Add("reasoning effort", strings.ToLower(reasoning))
+			//best effort, try to support any possible future-added values
+			fieldsToInject["reasoning_effort"] = strings.ToLower(reasoning)
 		}
 
 		if seed, err := utils.GetEnvInt(fmt.Sprintf("%s_SEED_OP_%s", prefix, operation), fmt.Sprintf("%s_SEED", prefix)); err == nil {

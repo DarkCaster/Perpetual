@@ -146,8 +146,9 @@ OPENAI_ON_FAIL_RETRIES="5"
 # OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
 # OPENAI_TEMPERATURE="0.5"
 
-# Reasoning effort control, option is unset and omited by default
-# Will work for models with reasoning capabilities, values: minimal, low, medium, high
+# Reasoning effort control, option is unset and omited by default, model dependent.
+# Should work for models with reasoning capabilities, enter supported OpenAI string here.
+# Example values: none, minimal, low, medium, high, xhigh.
 OPENAI_REASONING_EFFORT_OP_ANNOTATE="minimal"
 OPENAI_REASONING_EFFORT_OP_ANNOTATE_POST="low"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="medium"
