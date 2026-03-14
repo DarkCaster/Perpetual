@@ -46,6 +46,21 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # OPENAI_ENABLE_STREAMING_OP_EXPLAIN_STAGE2="0"
 # OPENAI_ENABLE_STREAMING="0"
 
+# Service tier option, you can use it to lower the expences or latency
+# If unset, then use openai defaults for your profile or project.
+# OPENAI_SERVICE_TIER_OP_ANNOTATE="default"
+# OPENAI_SERVICE_TIER_OP_ANNOTATE_POST="default"
+# OPENAI_SERVICE_TIER_OP_EMBED="default"
+# OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE1="default"
+# OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE2="default"
+# OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE3="default"
+# OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE4="default"
+# OPENAI_SERVICE_TIER_OP_DOC_STAGE1="default"
+# OPENAI_SERVICE_TIER_OP_DOC_STAGE2="default"
+# OPENAI_SERVICE_TIER_OP_EXPLAIN_STAGE1="default"
+# OPENAI_SERVICE_TIER_OP_EXPLAIN_STAGE2="default"
+# OPENAI_SERVICE_TIER="default"
+
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-5-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-5-mini" # used to process multiple response-variants if any

@@ -272,6 +272,11 @@ func NewOpenAILLMConnectorFromEnv(
 		}
 	}
 
+	if serviceTier, err := utils.GetEnvString(fmt.Sprintf("%s_SERVICE_TIER_OP_%s", prefix, operation), fmt.Sprintf("%s_SERVICE_TIER", prefix)); err == nil {
+		debug.Add("service tier", serviceTier)
+		fieldsToInject["service_tier"] = serviceTier
+	}
+
 	// make some additional tweaks to the schema according to
 	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
 	if outputFormat == OutputJson && !strings.HasPrefix(model, "codex") {
