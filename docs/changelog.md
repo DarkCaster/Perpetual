@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.9.0
+
+### Improvements
+
+- Improved default configuration for golang: added support for js, css, html files.
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your golang configuration by running `Perpetual init -l go`.
+
 ## v9.8.0
 
 ### Improvements
