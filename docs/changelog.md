@@ -21,6 +21,12 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.9.1
+
+### Bug Fixes
+
+- Build/test fixes
+
 ## v9.9.0
 
 ### Improvements
