@@ -14,6 +14,7 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
 	result[config.K_AnnotateStage1Prompts] = [][3]string{
+		{"(?i)^(.*(\\\\|\\/))?go\\.mod$", defaultAIAnnotatePrompt_Go_Mod, defaultAIAnnotatePrompt_Go_Mod_Short},
 		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests, defaultAIAnnotatePrompt_Go_Tests_Short},
 		{"(?i)^.*\\.go$", defaultAIAnnotatePrompt_Go, defaultAIAnnotatePrompt_Go_Short},
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
@@ -44,7 +45,10 @@ func (p *goPrompts) GetExplainConfig() map[string]interface{} {
 
 func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	result := getDefaultProjectConfigTemplate()
-	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.go$"}
+	result[config.K_ProjectFilesWhitelist] = []string{
+		"(?i)^.*\\.go$",
+		"(?i)^(.*(\\\\|\\/))?go\\.mod$",
+	}
 	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^vendor(\\\\|\\/).*"}
 	result[config.K_ProjectTestFilesBlacklist] = []string{
 		"(?i)^.*_test\\.go$",

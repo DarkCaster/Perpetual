@@ -13,6 +13,10 @@ const defaultAIAnnotatePrompt_Go = "Create a summary for the GO source file in m
 
 const defaultAIAnnotatePrompt_Go_Short = "Create a short summary for the GO source file in my next message. The summary should be up to 2 sentences long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
 
+const defaultAIAnnotatePrompt_Go_Mod = "Create a short summary for the go.mod file in my next message. The summary must only include the project/module name and must never include package references, dependencies, or versions. Use the following template exactly:\n\nProject: `<module name>`"
+
+const defaultAIAnnotatePrompt_Go_Mod_Short = defaultAIAnnotatePrompt_Go_Mod
+
 const defaultAIAnnotatePrompt_Go_Tests = "Create a summary for the GO unit-tests source file in my next message. The summary should be up to 3 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\nThis file contains unit tests for <list of entities the tests target>"
 
 const defaultAIAnnotatePrompt_Go_Tests_Short = "Create a short summary for the GO unit-tests source file in my next message. The summary should be up to 2 sentences long, and should include the package name. Use the following template for the summary:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
