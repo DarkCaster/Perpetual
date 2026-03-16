@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.8.0
+
+### Improvements
+
+- Improved default configuration for golang: include go.mod into files available by the LLM.
+
+**NOTE**: There are no incompatible configuration changes, but you can refresh your golang configuration by running `Perpetual init -l go`.
+
 ## v9.7.0
 
 ### Improvements
