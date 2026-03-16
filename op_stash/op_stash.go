@@ -241,7 +241,7 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 				logger.Errorf("Error getting file from cache (will retry to read it directly): %v", err)
 				backup, _, err = utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
 				if err != nil {
-					logger.Errorf("Error reading project file for backing up:", err)
+					logger.Errorf("Error reading project file for backing up: %v", err)
 				}
 			}
 			// Store file content to stash original files

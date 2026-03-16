@@ -91,10 +91,10 @@ func LoadEnvFiles(logger logging.ILogger, directories ...string) {
 			if os.IsNotExist(err) {
 				continue
 			}
-			logger.Panicf("Failed to access directory %s: %s", dir, err)
+			logger.Panicf("Failed to access directory %s: %v", dir, err)
 		}
 		if !dirInfo.IsDir() {
-			logger.Panicf("Not a directory:", dir)
+			logger.Panicf("Not a directory: %v", dir)
 			continue
 		}
 		// Read all files from directory

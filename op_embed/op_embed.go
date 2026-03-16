@@ -426,7 +426,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 		vectors, status, err := connector.CreateEmbeddings(llm.SearchEmbed, tag, content)
 		// Check for general error on query
 		if err != nil {
-			logger.Errorf("LLM query failed with status %d, error: %s", status, err)
+			logger.Errorf("LLM query failed with status %d, error: %v", status, err)
 			if status == llm.QueryInitFailed || onFailRetriesLeft < 1 {
 				return [][]float32{}, 0, err
 			}
@@ -435,7 +435,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 		// Check for hitting token limit, ideally should not occur at all for embedding models
 		if status == llm.QueryMaxTokens {
 			err := "LLM response(s) reached max tokens, that's probably an error with configuration of embedding model"
-			logger.Errorf(err)
+			logger.Errorln(err)
 			return [][]float32{}, 0, errors.New(err)
 		}
 		// Save search query vectors to cache
