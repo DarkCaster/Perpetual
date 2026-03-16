@@ -17,6 +17,9 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 		{"(?i)^(.*(\\\\|\\/))?go\\.mod$", defaultAIAnnotatePrompt_Go_Mod, defaultAIAnnotatePrompt_Go_Mod_Short},
 		{"(?i)^.*_test\\.go$", defaultAIAnnotatePrompt_Go_Tests, defaultAIAnnotatePrompt_Go_Tests_Short},
 		{"(?i)^.*\\.go$", defaultAIAnnotatePrompt_Go, defaultAIAnnotatePrompt_Go_Short},
+		{"(?i)^.*\\.css$", defaultAIAnnotatePrompt_CSS, defaultAIAnnotatePrompt_CSS_SHORT},
+		{"(?i)^.*\\.js$", defaultAIAnnotatePrompt_JS, defaultAIAnnotatePrompt_JS_SHORT},
+		{"(?i)^.*\\.html$", defaultAIAnnotatePrompt_HTML, defaultAIAnnotatePrompt_HTML_SHORT},
 		{"^.*$", defaultAIAnnotatePrompt_Generic, defaultAIAnnotatePrompt_Generic_Short},
 	}
 	return result
@@ -26,7 +29,11 @@ func (p *goPrompts) GetImplementConfig() map[string]interface{} {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer."
 	// redefine language-dependent prompt
-	result[config.K_ImplementCommentsRx] = []string{"^\\s*\\/\\/\\s*###IMPLEMENT###.*$"}
+	result[config.K_ImplementCommentsRx] = []string{
+		"^\\s*\\/\\/\\s*###IMPLEMENT###.*$",
+		"^\\s*\\/\\*\\s*###IMPLEMENT###\\s*\\*\\/.*$",
+		"^\\s*<!--\\s*###IMPLEMENT###\\s*-->.*$",
+	}
 	return result
 }
 
@@ -48,6 +55,9 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.go$",
 		"(?i)^(.*(\\\\|\\/))?go\\.mod$",
+		"(?i)^.*\\.html$",
+		"(?i)^.*\\.js$",
+		"(?i)^.*\\.css$",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{"(?i)^vendor(\\\\|\\/).*"}
 	result[config.K_ProjectTestFilesBlacklist] = []string{
@@ -57,9 +67,13 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	}
 	result[config.K_ProjectIndexPrompt] = "For your careful consideration, here is the structure of the project (in Go language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding."
 	// redefine language-dependent prompt
-	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
+	result[config.K_ProjectNoUploadCommentsRx] = []string{
+		"^\\s*\\/\\/\\s*###NOUPLOAD###.*$",
+		"^\\s*\\/\\*\\s*###NOUPLOAD###\\s*\\*\\/.*$",
+		"^\\s*<!--\\s*###NOUPLOAD###\\s*-->.*$",
+	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.go$", 4096},
+		{"(?i)^.*\\.(go|html|js|css)$", 8192},
 	}
 	return result
 }
