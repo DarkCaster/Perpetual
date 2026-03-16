@@ -13,8 +13,8 @@
   ],
   "files_incremental_mode_min_length": [
     [
-      "(?i)^.*\\.go$",
-      4096
+      "(?i)^.*\\.(go|html|js|css)$",
+      8192
     ]
   ],
   "files_incremental_mode_rx": [
@@ -30,7 +30,9 @@
   "medium_context_saving_random_percent": 25,
   "medium_context_saving_select_percent": 60,
   "noupload_comments_rx": [
-    "^\\s*\\/\\/\\s*###NOUPLOAD###.*$"
+    "^\\s*\\/\\/\\s*###NOUPLOAD###.*$",
+    "^\\s*\\/\\*\\s*###NOUPLOAD###\\s*\\*\\/.*$",
+    "^\\s*<!--\\s*###NOUPLOAD###\\s*-->.*$"
   ],
   "project_description_prompt": "Primary tasks will follow shortly. For your awareness, project description is provided:",
   "project_description_response": "I have carefully studied the information provided and will take it into account when working on the project tasks.",
@@ -39,7 +41,10 @@
   ],
   "project_files_whitelist": [
     "(?i)^.*\\.go$",
-    "(?i)^(.*(\\\\|\\/))?go\\.mod$"
+    "(?i)^(.*(\\\\|\\/))?go\\.mod$",
+    "(?i)^.*\\.html$",
+    "(?i)^.*\\.js$",
+    "(?i)^.*\\.css$"
   ],
   "project_index_prompt": "For your careful consideration, here is the structure of the project (in Go language). Brief descriptions of source code files are provided, including the file paths and entity descriptions. Please study this before proceeding.",
   "project_index_response": "I have carefully studied the information provided and will take it into account when working on the project tasks. Ready for your primary instructions.",

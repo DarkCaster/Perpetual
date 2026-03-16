@@ -18,6 +18,21 @@
       "Create a short summary for the GO source file in my next message. The summary should be up to 2 sentences long, and should include the package name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nPackage: `<package name>`\n\n<Description of what this file is used for, up to 2 sentences>"
     ],
     [
+      "(?i)^.*\\.css$",
+      "Create a summary for the CSS source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key selectors and their purposes, and main layout or styling features. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly.",
+      "Create a short summary for the CSS source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+    ],
+    [
+      "(?i)^.*\\.js$",
+      "Create a summary for the JavaScript source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, key functions, variables, and event listeners. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly.",
+      "Create a short summary for the JavaScript source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+    ],
+    [
+      "(?i)^.*\\.html$",
+      "Create a summary for the HTML source file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include brief general description, main structure (sections, containers), and key elements or components. List important elements as bullet points. If there are comments in the file with notes for creating this summary, follow them strictly.",
+      "Create a short summary for the HTML source file in my next message. The summary should be up to 2 sentences long. If there are comments in the file with notes for creating this summary, follow them strictly."
+    ],
+    [
       "^.*$",
       "Create a summary for the file in my next message. It should be as brief as possible, without unnecessary language structures. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\nThis file <description of file, 1 sentence>",
       "Create a short summary for the file in my next message. The summary should not include the name or path of the source file.\n\nFollow this template when creating description:\n\nFile format: `<format>`\n\n<Description of file, 1 sentence>"

@@ -3,7 +3,9 @@
   "code_response": "Understood. What's next?",
   "filename_embed_rx": "###FILENAME###",
   "implement_comments_rx": [
-    "^\\s*\\/\\/\\s*###IMPLEMENT###.*$"
+    "^\\s*\\/\\/\\s*###IMPLEMENT###.*$",
+    "^\\s*\\/\\*\\s*###IMPLEMENT###\\s*\\*\\/.*$",
+    "^\\s*<!--\\s*###IMPLEMENT###\\s*-->.*$"
   ],
   "stage1_analysis_json_mode_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and all the project information provided earlier and create a list of files from the project structure that you will need to see in addition to this source code to implement the tasks.",
   "stage1_analysis_prompt": "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and all the project information provided earlier and create a list of filenames from the project structure that you will need to see in addition to this source code to implement the tasks. Place each filename between <filename></filename> tags.",
