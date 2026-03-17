@@ -242,7 +242,7 @@ func Run(args []string, logger logging.ILogger) {
 		skipStage1 = true
 	} else if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving)
+		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
 		op_annotate.Run(op_annotate_params, true, logger, logger)
 		op_embed.Run(op_embed_params, true, logger, logger)
 	} else {

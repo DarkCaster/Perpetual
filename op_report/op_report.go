@@ -21,7 +21,7 @@ const (
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
-	var reportType, outputFile, userFilterFile, contextSaving string
+	var reportType, outputFile, userFilterFile, contextSaving, descFile string
 
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -29,6 +29,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
 	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stdout if not provided or empty)")
+	flags.StringVar(&descFile, "df", "", "Optional path to project description file for forwarding into annotate operation (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from report")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
@@ -113,7 +114,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var reportMessage llm.Message
 	if strings.ToUpper(reportType) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params, _ := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving)
+		op_annotate_params, _ := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
 		logger.Debugln("Rotating log file")
 		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
 			logger.Panicln("Failed to rotate log file:", err)

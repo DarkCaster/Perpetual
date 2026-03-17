@@ -75,7 +75,7 @@ func GetLocalSearchLimitsForContextSaving(contextSavingMode string, projectFileC
 	return 0, 0
 }
 
-func GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSavingMode string) ([]string, []string) {
+func GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSavingMode, descFile string) ([]string, []string) {
 	op_annotate_params := []string{}
 	op_embed_params := []string{}
 	if userFilterFile != "" {
@@ -84,6 +84,9 @@ func GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSavingMode string) (
 	}
 	if contextSavingMode != "AUTO" {
 		op_annotate_params = append(op_annotate_params, "-c", contextSavingMode)
+	}
+	if descFile != "" {
+		op_annotate_params = append(op_annotate_params, "-df", descFile)
 	}
 	return op_annotate_params, op_embed_params
 }

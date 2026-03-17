@@ -21,6 +21,12 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.10.0
+
+### Bug Fixes
+
+- Fixed a bug where `annotate` operation ignores custom description file location provided with `-df` flag when it was triggered from other operation.
+
 ## v9.9.1
 
 ### Bug Fixes
