@@ -61,6 +61,10 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # OPENAI_SERVICE_TIER_OP_EXPLAIN_STAGE2="default"
 # OPENAI_SERVICE_TIER="default"
 
+# Optional automatic fallback service tier. If set, it will be activated automatically after eligible OpenAI failures:
+# HTTP status 429, 500, 501, 502, 503, 520 or invalid finish_reason.
+# OPENAI_SERVICE_TIER_FALLBACK="default"
+
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-5-mini"
 OPENAI_MODEL_OP_ANNOTATE_POST="gpt-5-mini" # used to process multiple response-variants if any

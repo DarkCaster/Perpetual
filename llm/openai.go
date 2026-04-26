@@ -22,32 +22,34 @@ import (
 // Do not include anything below to the summary, just omit it completely
 
 type OpenAILLMConnector struct {
-	Subprofile            string
-	BaseURL               string
-	Token                 string
-	Model                 string
-	SystemPrompt          string
-	SystemPromptAck       string
-	StreamingPref         int
-	FilesToMdLangMappings utils.TextMatcher[string]
-	FieldsToInject        map[string]interface{}
-	OutputFormat          OutputFormat
-	IncrModeSupport       bool
-	MaxTokensSegments     int
-	OnFailRetries         int
-	RawMessageLogger      func(v ...any)
-	Options               []llms.CallOption
-	Variants              int
-	VariantStrategy       VariantSelectionStrategy
-	FieldsToRemove        []string
-	EmbedDocChunk         int
-	EmbedDocOverlap       int
-	EmbedSearchChunk      int
-	EmbedSearchOverlap    int
-	EmbedDimensions       int
-	EmbedThreshold        float32
-	Debug                 llmDebug
-	RateLimitDelayS       int
+	Subprofile                   string
+	BaseURL                      string
+	Token                        string
+	Model                        string
+	SystemPrompt                 string
+	SystemPromptAck              string
+	StreamingPref                int
+	FilesToMdLangMappings        utils.TextMatcher[string]
+	FieldsToInject               map[string]interface{}
+	ServiceTierFallback          string
+	ServiceTierFallbackActivated bool
+	OutputFormat                 OutputFormat
+	IncrModeSupport              bool
+	MaxTokensSegments            int
+	OnFailRetries                int
+	RawMessageLogger             func(v ...any)
+	Options                      []llms.CallOption
+	Variants                     int
+	VariantStrategy              VariantSelectionStrategy
+	FieldsToRemove               []string
+	EmbedDocChunk                int
+	EmbedDocOverlap              int
+	EmbedSearchChunk             int
+	EmbedSearchOverlap           int
+	EmbedDimensions              int
+	EmbedThreshold               float32
+	Debug                        llmDebug
+	RateLimitDelayS              int
 }
 
 func NewOpenAILLMConnectorFromEnv(
@@ -124,6 +126,7 @@ func NewOpenAILLMConnectorFromEnv(
 
 	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
+	var serviceTierFallback string = ""
 
 	variantStrategy := Short
 	incrModeSupport := true
@@ -267,6 +270,11 @@ func NewOpenAILLMConnectorFromEnv(
 		fieldsToInject["service_tier"] = serviceTier
 	}
 
+	if fallbackTier, err := utils.GetEnvString(fmt.Sprintf("%s_SERVICE_TIER_FALLBACK", prefix)); err == nil && fallbackTier != "" {
+		serviceTierFallback = fallbackTier
+		debug.Add("service tier fallback", fallbackTier)
+	}
+
 	// make some additional tweaks to the schema according to
 	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
 	if outputFormat == OutputJson && !strings.HasPrefix(model, "codex") {
@@ -283,33 +291,47 @@ func NewOpenAILLMConnectorFromEnv(
 	}
 
 	return &OpenAILLMConnector{
-		Subprofile:            subprofile,
-		BaseURL:               customBaseURL,
-		Token:                 token,
-		Model:                 model,
-		SystemPrompt:          systemPrompt,
-		SystemPromptAck:       systemPromptAck,
-		StreamingPref:         streaming,
-		FilesToMdLangMappings: filesToMdLangMappings,
-		FieldsToInject:        fieldsToInject,
-		OutputFormat:          outputFormat,
-		IncrModeSupport:       incrModeSupport,
-		MaxTokensSegments:     maxTokensSegments,
-		OnFailRetries:         onFailRetries,
-		RawMessageLogger:      llmRawMessageLogger,
-		Options:               extraOptions,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
-		FieldsToRemove:        fieldsToRemove,
-		EmbedDocChunk:         docChunk,
-		EmbedDocOverlap:       docOverlap,
-		EmbedSearchChunk:      searchChunk,
-		EmbedSearchOverlap:    searchOverlap,
-		EmbedDimensions:       embedDimensions,
-		EmbedThreshold:        embedThreshold,
-		Debug:                 debug,
-		RateLimitDelayS:       0,
+		Subprofile:                   subprofile,
+		BaseURL:                      customBaseURL,
+		Token:                        token,
+		Model:                        model,
+		SystemPrompt:                 systemPrompt,
+		SystemPromptAck:              systemPromptAck,
+		StreamingPref:                streaming,
+		FilesToMdLangMappings:        filesToMdLangMappings,
+		FieldsToInject:               fieldsToInject,
+		ServiceTierFallback:          serviceTierFallback,
+		ServiceTierFallbackActivated: false,
+		OutputFormat:                 outputFormat,
+		IncrModeSupport:              incrModeSupport,
+		MaxTokensSegments:            maxTokensSegments,
+		OnFailRetries:                onFailRetries,
+		RawMessageLogger:             llmRawMessageLogger,
+		Options:                      extraOptions,
+		Variants:                     variants,
+		VariantStrategy:              variantStrategy,
+		FieldsToRemove:               fieldsToRemove,
+		EmbedDocChunk:                docChunk,
+		EmbedDocOverlap:              docOverlap,
+		EmbedSearchChunk:             searchChunk,
+		EmbedSearchOverlap:           searchOverlap,
+		EmbedDimensions:              embedDimensions,
+		EmbedThreshold:               embedThreshold,
+		Debug:                        debug,
+		RateLimitDelayS:              0,
 	}, nil
+}
+
+func (p *OpenAILLMConnector) tryActivateServiceTierFallback(reason string) error {
+	if p.ServiceTierFallback == "" || p.ServiceTierFallbackActivated {
+		return nil
+	}
+	p.ServiceTierFallbackActivated = true
+	p.FieldsToInject["service_tier"] = p.ServiceTierFallback
+	if p.RawMessageLogger != nil {
+		p.RawMessageLogger("OpenAI: activating service tier fallback to %s (%s)\n\n\n", p.ServiceTierFallback, reason)
+	}
+	return errors.New("service tier fallback activated")
 }
 
 func (p *OpenAILLMConnector) GetEmbedScoreThreshold() float32 {
@@ -392,6 +414,9 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 	// Process status codes for rate limiting
 	switch statusCodeCollector.StatusCode {
 	case 429:
+		if fallbackErr := p.tryActivateServiceTierFallback("http status 429"); fallbackErr != nil {
+			return [][]float32{}, QueryFailed, fallbackErr
+		}
 		// rate limit hit, calculate the next sleep time interval
 		if p.RateLimitDelayS < 65 {
 			p.RateLimitDelayS = 65
@@ -413,6 +438,11 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 	case 502:
 		fallthrough
 	case 503:
+		fallthrough
+	case 520:
+		if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("http status %d", statusCodeCollector.StatusCode)); fallbackErr != nil {
+			return [][]float32{}, QueryFailed, fallbackErr
+		}
 		// server overload, calculate the next sleep time before next attempt
 		if p.RateLimitDelayS < 15 {
 			p.RateLimitDelayS = 15
@@ -646,6 +676,9 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	// Process status codes for rate limiting
 	switch statusCodeCollector.StatusCode {
 	case 429:
+		if fallbackErr := p.tryActivateServiceTierFallback("http status 429"); fallbackErr != nil {
+			return []string{}, QueryFailed, fallbackErr
+		}
 		// rate limit hit, calculate the next sleep time interval
 		if p.RateLimitDelayS < 65 {
 			p.RateLimitDelayS = 65
@@ -667,6 +700,11 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	case 502:
 		fallthrough
 	case 503:
+		fallthrough
+	case 520:
+		if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("http status %d", statusCodeCollector.StatusCode)); fallbackErr != nil {
+			return []string{}, QueryFailed, fallbackErr
+		}
 		// server overload, calculate the next sleep time before next attempt
 		if p.RateLimitDelayS < 15 {
 			p.RateLimitDelayS = 15
@@ -730,6 +768,9 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 
 		if choice.StopReason != "stop" && choice.StopReason != "tool_calls" && choice.StopReason != "function_call" {
 			if lastResort {
+				if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("invalid finish_reason: %s", choice.StopReason)); fallbackErr != nil {
+					return []string{}, QueryFailed, fallbackErr
+				}
 				return []string{}, QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
 			}
 			continue
