@@ -121,6 +121,9 @@ OLLAMA_CONTEXT_SIZE="24576"
 # OLLAMA_INCRMODE_SUPPORT="true"
 # OLLAMA_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
+# Number of retries to apply incremental mode changes, before switching to the full-file mode
+# OLLAMA_INCRMODE_RETRIES="0"
+
 # Options to enable/disable reasoning/thinking for models that support it (Qwen3, DeepSeek R1, gpt-oss).
 # For use with Ollama >= v0.9.0 and models/templates that support it. May return "400 Bad Request" error for unsupported models.
 # Supported values: true, false. Ollama >= 0.12.0 also support: low, medium, high - for some models (gpt-oss)

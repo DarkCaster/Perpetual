@@ -110,6 +110,9 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 # OPENAI_INCRMODE_SUPPORT="true"
 # OPENAI_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
+# Number of retries to apply incremental mode changes, before switching to the full-file mode
+# OPENAI_INCRMODE_RETRIES="0"
+
 # Options for limiting output tokens for different operations and stages, must be set.
 # Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.

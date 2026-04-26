@@ -57,6 +57,9 @@ ANTHROPIC_VARIANT_SELECTION="short" # will be used as fallback
 # ANTHROPIC_INCRMODE_SUPPORT="true"
 # ANTHROPIC_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
+# Number of retries to apply incremental mode changes, before switching to the full-file mode
+# ANTHROPIC_INCRMODE_RETRIES="0"
+
 # Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="1024"
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE_POST="1024"
