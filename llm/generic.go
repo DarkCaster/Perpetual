@@ -899,8 +899,12 @@ func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
 	return OutputPlain
 }
 
-func (p *GenericLLMConnector) GetIncrModeSupport() bool {
-	return p.IncrModeSupport
+func (p *GenericLLMConnector) GetIncrModeSupport() int {
+	if !p.IncrModeSupport {
+		return 0
+	}
+	tries := 1
+	return tries
 }
 
 func (p *GenericLLMConnector) GetDebugString() string {

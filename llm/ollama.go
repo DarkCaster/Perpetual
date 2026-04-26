@@ -1014,8 +1014,12 @@ func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OllamaLLMConnector) GetIncrModeSupport() bool {
-	return p.IncrModeSupport
+func (p *OllamaLLMConnector) GetIncrModeSupport() int {
+	if !p.IncrModeSupport {
+		return 0
+	}
+	tries := 1
+	return tries
 }
 
 func (p *OllamaLLMConnector) GetDebugString() string {

@@ -795,8 +795,12 @@ func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OpenAILLMConnector) GetIncrModeSupport() bool {
-	return p.IncrModeSupport
+func (p *OpenAILLMConnector) GetIncrModeSupport() int {
+	if !p.IncrModeSupport {
+		return 0
+	}
+	tries := 1
+	return tries
 }
 
 func (p *OpenAILLMConnector) GetDebugString() string {

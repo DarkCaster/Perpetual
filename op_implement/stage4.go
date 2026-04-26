@@ -116,28 +116,28 @@ func Stage4(projectRootDir string,
 			stage4ProcessIncrPrompt = cfg.String(config.K_ImplementStage4ProcessIncrPrompt)
 		}
 
-		useIncrMode := true
+		incrModeTries := 1
 		if noIncrMode {
-			useIncrMode = false
+			incrModeTries = 0
 		} else {
-			useIncrMode = connector.GetIncrModeSupport()
+			incrModeTries = connector.GetIncrModeSupport()
 		}
 
-		if useIncrMode {
+		if incrModeTries > 0 {
 			//detect if we can use incremental mode depending on file size and filename match
 			_, fileSize, err := llm.GetSourceFileFromCache(pendingFile)
 			if err != nil {
-				useIncrMode = false
+				incrModeTries = 0
 				logger.Infoln("Not using incremental mode, new file:", pendingFile)
 			} else {
 				matcher := prCfg.TextMatcherInteger(config.K_ProjectFilesIncrModeMinLen)
 				if ok, v := matcher.TryMatch(pendingFile); ok {
 					if fileSize < v[0] {
-						useIncrMode = false
+						incrModeTries = 0
 						logger.Infoln("Not using incremental mode, file too small:", pendingFile)
 					}
 				} else {
-					useIncrMode = false
+					incrModeTries = 0
 					logger.Infoln("Not using incremental mode for file:", pendingFile)
 				}
 			}
@@ -149,7 +149,7 @@ func Stage4(projectRootDir string,
 			// Create a copy, so it will be discarded on retry
 			stage4MessagesTry := utils.NewSlice(stage4Messages...)
 			// Create LLM message for incremental search-and-replace mode, or for regular mode
-			if useIncrMode {
+			if incrModeTries > 0 {
 				stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessIncrPrompt))
 			} else {
 				stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), stage4ProcessFilePrompt))
@@ -177,14 +177,18 @@ func Stage4(projectRootDir string,
 						break
 					}
 				} else if status == llm.QueryMaxTokens {
-					if useIncrMode {
+					if incrModeTries > 0 {
 						// Try to recover other parts of the file if reached max tokens
 						if onFailRetriesLeft < 1 {
 							logger.Errorln("LLM query reached token limit, no retries left!")
 						} else {
-							logger.Warnln("LLM query reached token limit, turning off incremental mode and retrying")
-							useIncrMode = false
+							incrModeTries--
 							fileRetry = true
+							if incrModeTries > 0 {
+								logger.Warnln("LLM query reached token limit, retrying")
+							} else {
+								logger.Warnln("LLM query reached token limit, turning off incremental mode and retrying")
+							}
 							break
 						}
 					} else if generateTry >= connector.GetMaxTokensSegments() {
@@ -209,7 +213,7 @@ func Stage4(projectRootDir string,
 				continue
 			}
 
-			if useIncrMode {
+			if incrModeTries > 0 {
 				// check we have inconsistent number of responses generated, this is an internal error on this step
 				if len(responses) != 1 {
 					logger.Panicln("Incorrect number if LLM responses was generated:", len(responses))
@@ -220,12 +224,16 @@ func Stage4(projectRootDir string,
 					if onFailRetriesLeft < 1 {
 						logger.Errorln("Error while parsing incremental search-and-replace blocks:", err)
 					} else {
-						logger.Warnln("Error while parsing incremental search-and-replace blocks, retrying in normal mode:", err)
-						useIncrMode = false
+						incrModeTries--
+						if incrModeTries > 0 {
+							logger.Warnln("Error while parsing incremental search-and-replace blocks, retrying:", err)
+						} else {
+							logger.Warnln("Error while parsing incremental search-and-replace blocks, retrying in normal mode:", err)
+						}
 						continue
 					}
 				} else if len(blocks) < 1 {
-					useIncrMode = false
+					incrModeTries = 0
 					logger.Infoln("No incremental search-and-replace blocks found in response, trying apply changes in full-file mode")
 				} else {
 					// apply additional code-blocks filter to the search-and-replace blocks
@@ -269,15 +277,19 @@ func Stage4(projectRootDir string,
 						if onFailRetriesLeft < 1 {
 							logger.Errorln("Error applying incremental changes to file")
 						} else {
-							logger.Warnln("Error applying incremental changes to file, retrying in normal mode")
-							useIncrMode = false
+							incrModeTries--
+							if incrModeTries > 0 {
+								logger.Warnln("Error applying incremental changes to file, retrying")
+							} else {
+								logger.Warnln("Error applying incremental changes to file, retrying in normal mode")
+							}
 							continue
 						}
 					}
 				}
 			}
 
-			if !useIncrMode {
+			if incrModeTries < 1 {
 				// Remove extra output tag from the start from non first response-fragments
 				for i := range responses {
 					if i > 0 {

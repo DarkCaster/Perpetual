@@ -477,8 +477,12 @@ func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *AnthropicLLMConnector) GetIncrModeSupport() bool {
-	return p.IncrModeSupport
+func (p *AnthropicLLMConnector) GetIncrModeSupport() int {
+	if !p.IncrModeSupport {
+		return 0
+	}
+	tries := 1
+	return tries
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
