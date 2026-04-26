@@ -21,6 +21,14 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.11.0
+
+### Improvements
+
+- Added support for Service Tier fallback to OpenAI LLM provider. Activated with env parameter `OPENAI_SERVICE_TIER_FALLBACK="<tier name>"`. Can be used to automatically fallback to another service tier level on API timeout errors.
+
+**NOTE**: There are no incompatible configuration changes. Using new env variables requires adding new entries to the `*.env` files, see updated `*.env.example` examples for more info.
+
 ## v9.10.0
 
 ### Bug Fixes
