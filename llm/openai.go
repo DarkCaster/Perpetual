@@ -34,7 +34,7 @@ type OpenAILLMConnector struct {
 	ServiceTierFallback          string
 	ServiceTierFallbackActivated bool
 	OutputFormat                 OutputFormat
-	IncrModeSupport              bool
+	IncrModeTries                int
 	MaxTokensSegments            int
 	OnFailRetries                int
 	RawMessageLogger             func(v ...any)
@@ -129,7 +129,7 @@ func NewOpenAILLMConnectorFromEnv(
 	var serviceTierFallback string = ""
 
 	variantStrategy := Short
-	incrModeSupport := true
+	incrModeTries := 1
 
 	if operation == "EMBED" {
 		fieldsToRemove = append(fieldsToRemove, "temperature")
@@ -181,14 +181,18 @@ func NewOpenAILLMConnectorFromEnv(
 			}
 		}
 	} else {
+		if incrModeRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_INCRMODE_RETRIES", prefix)); err == nil {
+			incrModeTries += incrModeRetries
+		}
+
 		if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
-			if incrMode == "FALSE" {
+			switch incrMode {
+			case "FALSE":
 				debug.Add("incr.mode", false)
-				incrModeSupport = false
-			} else if incrMode == "TRUE" {
-				debug.Add("incr.mode", true)
-				incrModeSupport = true
-			} else {
+				incrModeTries = 0
+			case "TRUE":
+				debug.Add("incr.mode tries", incrModeTries)
+			default:
 				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
 			}
 		}
@@ -303,7 +307,7 @@ func NewOpenAILLMConnectorFromEnv(
 		ServiceTierFallback:          serviceTierFallback,
 		ServiceTierFallbackActivated: false,
 		OutputFormat:                 outputFormat,
-		IncrModeSupport:              incrModeSupport,
+		IncrModeTries:                incrModeTries,
 		MaxTokensSegments:            maxTokensSegments,
 		OnFailRetries:                onFailRetries,
 		RawMessageLogger:             llmRawMessageLogger,
@@ -796,11 +800,7 @@ func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
 }
 
 func (p *OpenAILLMConnector) GetIncrModeTryCount() int {
-	if !p.IncrModeSupport {
-		return 0
-	}
-	tries := 1
-	return tries
+	return p.IncrModeTries
 }
 
 func (p *OpenAILLMConnector) GetDebugString() string {

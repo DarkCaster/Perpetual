@@ -28,7 +28,7 @@ type AnthropicLLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	OutputFormat          OutputFormat
-	IncrModeSupport       bool
+	IncrModeTries         int
 	MaxTokensSegments     int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
@@ -82,15 +82,19 @@ func NewAnthropicLLMConnectorFromEnv(
 	}
 	debug.Add("model", model)
 
-	incrModeSupport := true
+	incrModeTries := 1
+	if incrModeRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_INCRMODE_RETRIES", prefix)); err == nil {
+		incrModeTries += incrModeRetries
+	}
+
 	if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
-		if incrMode == "FALSE" {
+		switch incrMode {
+		case "FALSE":
 			debug.Add("incr.mode", false)
-			incrModeSupport = false
-		} else if incrMode == "TRUE" {
-			debug.Add("incr.mode", true)
-			incrModeSupport = true
-		} else {
+			incrModeTries = 0
+		case "TRUE":
+			debug.Add("incr.mode tries", incrModeTries)
+		default:
 			return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
 		}
 	}
@@ -195,7 +199,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		OutputFormat:          outputFormat,
-		IncrModeSupport:       incrModeSupport,
+		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -478,11 +482,7 @@ func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
 }
 
 func (p *AnthropicLLMConnector) GetIncrModeTryCount() int {
-	if !p.IncrModeSupport {
-		return 0
-	}
-	tries := 1
-	return tries
+	return p.IncrModeTries
 }
 
 func (p *AnthropicLLMConnector) GetDebugString() string {

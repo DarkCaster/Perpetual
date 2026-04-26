@@ -42,7 +42,7 @@ type GenericLLMConnector struct {
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
 	UrlQueriesToInject    map[string]string
-	IncrModeSupport       bool
+	IncrModeTries         int
 	MaxTokensSegments     int
 	OnFailRetries         int
 	Seed                  int
@@ -163,7 +163,7 @@ func NewGenericLLMConnectorFromEnv(
 
 	maxTokensFormat := MaxTokensOld
 	variantStrategy := Short
-	incrModeSupport := true
+	incrModeTries := 1
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
 	outRx := []*regexp.Regexp{}
@@ -244,14 +244,18 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
+		if incrModeRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_INCRMODE_RETRIES", prefix)); err == nil {
+			incrModeTries += incrModeRetries
+		}
+
 		if incrMode, err := utils.GetEnvUpperString(fmt.Sprintf("%s_INCRMODE_SUPPORT_OP_%s", prefix, operation), fmt.Sprintf("%s_INCRMODE_SUPPORT", prefix)); err == nil {
-			if incrMode == "FALSE" {
+			switch incrMode {
+			case "FALSE":
 				debug.Add("incr.mode", false)
-				incrModeSupport = false
-			} else if incrMode == "TRUE" {
-				debug.Add("incr.mode", true)
-				incrModeSupport = true
-			} else {
+				incrModeTries = 0
+			case "TRUE":
+				debug.Add("incr.mode tries", incrModeTries)
+			default:
 				return nil, fmt.Errorf("invalid incremental mode support value provided for %s operation, %s", operation, incrMode)
 			}
 		}
@@ -440,7 +444,7 @@ func NewGenericLLMConnectorFromEnv(
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
 		UrlQueriesToInject:    urlQueriesToInject,
-		IncrModeSupport:       incrModeSupport,
+		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
@@ -900,11 +904,7 @@ func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
 }
 
 func (p *GenericLLMConnector) GetIncrModeTryCount() int {
-	if !p.IncrModeSupport {
-		return 0
-	}
-	tries := 1
-	return tries
+	return p.IncrModeTries
 }
 
 func (p *GenericLLMConnector) GetDebugString() string {
