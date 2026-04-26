@@ -899,7 +899,7 @@ func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
 	return OutputPlain
 }
 
-func (p *GenericLLMConnector) GetIncrModeSupport() int {
+func (p *GenericLLMConnector) GetIncrModeTryCount() int {
 	if !p.IncrModeSupport {
 		return 0
 	}

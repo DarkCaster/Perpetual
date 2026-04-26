@@ -1014,7 +1014,7 @@ func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OllamaLLMConnector) GetIncrModeSupport() int {
+func (p *OllamaLLMConnector) GetIncrModeTryCount() int {
 	if !p.IncrModeSupport {
 		return 0
 	}

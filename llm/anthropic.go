@@ -477,7 +477,7 @@ func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *AnthropicLLMConnector) GetIncrModeSupport() int {
+func (p *AnthropicLLMConnector) GetIncrModeTryCount() int {
 	if !p.IncrModeSupport {
 		return 0
 	}

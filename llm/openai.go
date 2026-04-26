@@ -795,7 +795,7 @@ func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
 	return p.OutputFormat
 }
 
-func (p *OpenAILLMConnector) GetIncrModeSupport() int {
+func (p *OpenAILLMConnector) GetIncrModeTryCount() int {
 	if !p.IncrModeSupport {
 		return 0
 	}

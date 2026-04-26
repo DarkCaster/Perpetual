@@ -120,7 +120,7 @@ func Stage4(projectRootDir string,
 		if noIncrMode {
 			incrModeTries = 0
 		} else {
-			incrModeTries = connector.GetIncrModeSupport()
+			incrModeTries = connector.GetIncrModeTryCount()
 		}
 
 		if incrModeTries > 0 {
