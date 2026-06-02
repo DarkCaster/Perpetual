@@ -24,7 +24,7 @@ func ComposeMessageWithSourceFiles(projectRootDir, prompt string, targetFiles []
 func AppendSourceFileToMessage(message Message, projectRootDir, file string, filenameTags utils.TagPair, logger logging.ILogger) Message {
 	text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
 	if err != nil {
-		logger.Panicln("Failed to attach file to prompt:", err)
+		logger.Panicf("Failed to attach file '%s' to prompt: %v", file, err)
 	}
 	sourceFileCache[file] = text
 	return AddFileFragment(message, file, text, filenameTags)
