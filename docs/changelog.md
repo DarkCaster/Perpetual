@@ -21,12 +21,18 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Changelog
 
+## v9.12.1
+
+### Bug Fixes
+
+- Fixed a bug at stage 3 of the `implement` operation: files requested by the LLM are now additionally filtered with project whitelists and blacklists to disallow feeding files to the LLM that are outside the configured project scope.
+
 ## v9.12.0
 
 ### Improvements
 
-- Added per-provider support for incremental mode retries, controlled by `<provider>_INCRMODE_RETRIES` env variable.
-- Added support for Service Tier fallback to OpenAI LLM provider. Activated with env parameter `OPENAI_SERVICE_TIER_FALLBACK="<tier name>"`. Can be used to automatically fallback to another service tier level on API timeout errors.
+- Added per-provider support for incremental mode retries, controlled by the `<PROVIDER>_INCRMODE_RETRIES` env variable.
+- Added support for service tier fallback to the OpenAI LLM provider. Activated with the env parameter `OPENAI_SERVICE_TIER_FALLBACK="<tier name>"`. Can be used to automatically fallback to another service tier level on API timeout errors.
 
 **NOTE**: There are no incompatible configuration changes. Using new env variables requires adding new entries to the `*.env` files, see updated `*.env.example` examples for more info.
 
