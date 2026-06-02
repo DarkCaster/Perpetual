@@ -448,6 +448,8 @@ func Run(args []string, logger logging.ILogger) {
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
 		planningMode,
 		allFileNames,
+		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+		projectFilesBlacklist,
 		filesToReview,
 		targetFiles,
 		notEnforceTargetFiles,

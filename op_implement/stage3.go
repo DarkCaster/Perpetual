@@ -2,6 +2,7 @@ package op_implement
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -17,6 +18,8 @@ func Stage3(projectRootDir string,
 	filesToMdLangMappings utils.TextMatcher[string],
 	planningMode int,
 	allFileNames []string,
+	projectFilesWhitelist []*regexp.Regexp,
+	projectFilesBlacklist []*regexp.Regexp,
 	filesForReview []string,
 	targetFiles []string,
 	notEnforceTargetFiles bool,
@@ -230,7 +233,12 @@ func Stage3(projectRootDir string,
 					} else {
 						// Check if this file conflicts with any other file inside project directory
 						file, found = utils.CaseInsensitiveFileSearch(file, allFileNames)
-						if found {
+						// Check file against project black-list and white list
+						if fileWS, wsdr := utils.FilterFilesWithWhitelist([]string{file}, projectFilesWhitelist); len(wsdr) > 0 {
+							logger.Warnln("Skipping requested file, filtered by project whitelist:", file)
+						} else if _, bsdr := utils.FilterFilesWithBlacklist(fileWS, projectFilesBlacklist); len(bsdr) > 0 {
+							logger.Warnln("Skipping requested file, filtered by project blacklist:", file)
+						} else if found {
 							// Add extra prompt indicating addition of file content if using task mode
 							if task != "" && !extra_task_prompt_added {
 								extra_task_prompt_added = true
