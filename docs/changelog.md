@@ -69,10 +69,11 @@ Remove all multi-answer generation logic from LLM support code:
 
 Remove JSON mode support:
 
-- Only supported for generating file lists for review or modification, not for code or planning;
+- Only used for generating file lists for review or modification, not for code or planning;
 - Not working properly with some small local models or with some OpenAI-compatible providers;
 - JSON schemas may need patching for particular providers or models;
-- JSON schemas make per-project config `op_implement.json` bigger and harder to process with AI;
+- JSON schemas make per-project config `op_implement.json` bigger and harder to maintain by human or with AI (external agent, for example);
+- Does not provide any generation quality increase when used with modern LLM models, some LLM providers still not guarantee valid JSON output;
 - Hard to maintain.
 
 # Changelog
