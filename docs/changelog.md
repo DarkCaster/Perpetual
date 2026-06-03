@@ -78,6 +78,12 @@ Remove JSON mode support:
 
 # Changelog
 
+## v10.0.0 (in progress)
+
+### Removed Obsolete Features
+
+- Multi step annotation generation logic: obsolete and overcomplicated feature, most modern LLM models are able to generate decent file annotations/summaries with one call;
+
 ## v9.12.1
 
 ### Bug Fixes
