@@ -19,6 +19,62 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
   - Compatibility with earlier versions is not guaranteed.
   - Refer to additional notes on releases for more information.
 
+# Roadmap
+
+Add support for using `Perpetual` as a tool for writing code with an external agent:
+
+- Add `Skill.md`;
+- Unify and simplify command-line flags across different operations;
+- Add `op_onboard` (onboarding) support that can generate an initial default system-wide `.env` configuration, ready to use right after running the command;
+- Stop saving `.env.example` env-file examples into the `.perpetual` project-wide configuration directory.
+
+Adjust defaults to better suit my current use of the `implement` operation:
+
+- `-pr` mode by default;
+- Task mode by default;
+- Activate `###IMPLEMENT###` comment in-place mode (which is currently default) with a flag or remove it completely.
+
+Add step-by-step execution and stop/continue support for the `implement` operation:
+
+- On each stage, and after each file modification on stage 4, a JSON state file is generated containing the current execution state. This way, the `implement` operation can be resumed if it crashes in the middle;
+- The `implement` operation can stop at important moments (after stage 2, stage 3), so an external agent or user can examine the JSON state file and evaluate proposed changes, and then continue (or run `implement` from the very beginning, or from a previous stage).
+
+Add support for deleting files to the `implement` operation:
+
+- Currently it can only add or modify files inside the project directory;
+- When generating the file list for modification, allow marking files for removal;
+- If the same file is marked both for removal and modification, deletion has priority;
+- Delete files after making all modifications.
+
+(Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current diff format):
+
+- Generate changes in diff format closer to OpenAI diff
+- Apply with https://github.com/bluekeyes/go-gitdiff, or by using the external `patch` util (patch linux package, or patch from MSYS/GnuWin32), or implement manual diff resolver;
+- Add fuzzy merge logic for search-and-replace blocks: ignore tabs/spaces, ignore small inconsistencies in pre/post lines, etc.
+
+## Remove old and stale code / features that I do not use
+
+Remove multi-step annotation generation support:
+
+- Overcomplicated feature, only used for annotations;
+- All modern local LLM models are good enough to generate annotations with one call;
+- It is better to use context saving modes to generate smaller annotations than using multi-step annotation generation;
+- If using a commercial LLM provider, it will cause extra expenses.
+
+Remove all multi-answer generation logic from LLM support code:
+
+- This feature is only used with multi-step annotation;
+- When actually using this code path, it prevents continuing code generation when hitting max-token limits;
+- The whole support code is overcomplicated.
+
+Remove JSON mode support:
+
+- Only supported for generating file lists for review or modification, not for code or planning;
+- Not working properly with some small local models or with some OpenAI-compatible providers;
+- JSON schemas may need patching for particular providers or models;
+- JSON schemas make per-project config `op_implement.json` bigger and harder to process with AI;
+- Hard to maintain.
+
 # Changelog
 
 ## v9.12.1
