@@ -157,6 +157,14 @@
 			"args": ["doc","-a","write","-r","test.md","-vv"],
 		},
 		{
+			"name": "Launch Package: doc refine (changelog)",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["doc","-a","refine","-r","docs/changelog.md","-vv"],
+		},
+		{
 			"name": "Launch Package: report",
 			"type": "go",
 			"request": "launch",
