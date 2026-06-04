@@ -205,42 +205,42 @@ func processOpAnnotateConfig(cfg map[string]interface{}) error {
 		return err
 	}
 	//custom validation of annotate-prompt array
-	if err := validateOpAnnotateStage1Prompts(cfg[K_AnnotateStage1Prompts]); err != nil {
+	if err := validateOpAnnotateFilePrompts(cfg[K_AnnotateFilePrompts]); err != nil {
 		return err
 	}
-	//convert K_AnnotateStage1Prompts to the proper format
-	matcher, err := utils.NewRxMatcher[string](2, cfg[K_AnnotateStage1Prompts])
+	//convert K_AnnotateFilePrompts to the proper format
+	matcher, err := utils.NewRxMatcher[string](2, cfg[K_AnnotateFilePrompts])
 	if err != nil {
-		return fmt.Errorf("failed to parse %s: %v", K_AnnotateStage1Prompts, err)
+		return fmt.Errorf("failed to parse %s: %v", K_AnnotateFilePrompts, err)
 	}
 	//write back converted value for direct acceess
-	cfg[K_AnnotateStage1Prompts] = matcher
+	cfg[K_AnnotateFilePrompts] = matcher
 	return nil
 }
 
-func validateOpAnnotateStage1Prompts(value interface{}) error {
+func validateOpAnnotateFilePrompts(value interface{}) error {
 	arr, ok := value.([]interface{})
 	if !ok {
-		return fmt.Errorf("%s must be an array", K_AnnotateStage1Prompts)
+		return fmt.Errorf("%s must be an array", K_AnnotateFilePrompts)
 	}
 	if len(arr) == 0 {
-		return fmt.Errorf("%s must contain at least one element", K_AnnotateStage1Prompts)
+		return fmt.Errorf("%s must contain at least one element", K_AnnotateFilePrompts)
 	}
 	for i, outer := range arr {
 		innerArr, ok := outer.([]interface{})
 		if !ok {
-			return fmt.Errorf("%s[%d] must be an array", K_AnnotateStage1Prompts, i)
+			return fmt.Errorf("%s[%d] must be an array", K_AnnotateFilePrompts, i)
 		}
 		if len(innerArr) != 3 {
-			return fmt.Errorf("%s[%d] must contain exactly 3 elements", K_AnnotateStage1Prompts, i)
+			return fmt.Errorf("%s[%d] must contain exactly 3 elements", K_AnnotateFilePrompts, i)
 		}
 		for j, inner := range innerArr {
 			str, ok := inner.(string)
 			if !ok {
-				return fmt.Errorf("%s[%d][%d] must be a string", K_AnnotateStage1Prompts, i, j)
+				return fmt.Errorf("%s[%d][%d] must be a string", K_AnnotateFilePrompts, i, j)
 			}
 			if len(str) < 1 {
-				return fmt.Errorf("%s[%d][%d] is empty", K_AnnotateStage1Prompts, i, j)
+				return fmt.Errorf("%s[%d][%d] is empty", K_AnnotateFilePrompts, i, j)
 			}
 		}
 	}

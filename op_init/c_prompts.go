@@ -13,7 +13,7 @@ func (p *cPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled C programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][3]string{
+	result[config.K_AnnotateFilePrompts] = [][3]string{
 		{"(?i)^.*\\.c$", defaultAIAnnotatePrompt_C, defaultAIAnnotatePrompt_C_Short},
 		{"(?i)^.*\\.h$", defaultAIAnnotatePrompt_H, defaultAIAnnotatePrompt_H_Short},
 		{"(?i)^.*\\.(s|asm)$", defaultAIAnnotatePrompt_S, defaultAIAnnotatePrompt_S_Short},

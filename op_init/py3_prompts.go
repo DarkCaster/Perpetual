@@ -13,7 +13,7 @@ func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][3]string{
+	result[config.K_AnnotateFilePrompts] = [][3]string{
 		{"(?i)^.*\\.py$", defaultAIAnnotatePrompt_Py3, defaultAIAnnotatePrompt_Py3_Short},
 		{"(?i)^.*\\.pl$", defaultAIAnnotatePrompt_Perl, defaultAIAnnotatePrompt_Perl_Short},
 		{"(?i)^.*\\.(bat|cmd)$", defaultAIAnnotatePrompt_Bat, defaultAIAnnotatePrompt_Bat_Short},

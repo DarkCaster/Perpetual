@@ -175,8 +175,8 @@ func TestAnnotateConfigTemplateDoesNotContainObsoleteVariantKeys(t *testing.T) {
 		K_SystemPromptAck,
 		K_AnnotateTaskPrompt,
 		K_AnnotateTaskResponse,
-		K_AnnotateStage1Prompts,
-		K_AnnotateStage1Response,
+		K_AnnotateFilePrompts,
+		K_AnnotateFileResponse,
 	}
 
 	for _, key := range requiredKeys {
@@ -186,7 +186,7 @@ func TestAnnotateConfigTemplateDoesNotContainObsoleteVariantKeys(t *testing.T) {
 	}
 }
 
-func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
+func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   interface{}
@@ -229,9 +229,9 @@ func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateOpAnnotateStage1Prompts(tt.value)
+			err := validateOpAnnotateFilePrompts(tt.value)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validateAnnotateStage1Prompts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("validateAnnotateFilePrompts() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

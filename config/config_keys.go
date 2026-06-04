@@ -42,8 +42,8 @@ const K_Stage2ContinuePrompt = "stage2_continue_prompt"
 // Keys for annotate operation config file
 const K_AnnotateTaskPrompt = "annotate_task_prompt"
 const K_AnnotateTaskResponse = "annotate_task_response"
-const K_AnnotateStage1Prompts = "stage1_prompts"
-const K_AnnotateStage1Response = "stage1_response"
+const K_AnnotateFilePrompts = "annotate_file_prompts"
+const K_AnnotateFileResponse = "annotate_file_response"
 
 // Keys for implement operation config file
 const K_ImplementFilenameEmbedRx = "filename_embed_rx"

@@ -251,7 +251,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	for i, filePath := range filesToAnnotate {
 		annotatePrompt := ""
 		//detect actual prompt for annotating this particular file
-		if matched, values := annotateConfig.TextMatcherString(config.K_AnnotateStage1Prompts).TryMatch(filePath); matched {
+		if matched, values := annotateConfig.TextMatcherString(config.K_AnnotateFilePrompts).TryMatch(filePath); matched {
 			annotatePrompt = values[contextSavingMode]
 		} else {
 			logger.Errorln("Failed to detect annotation prompt for file:", filePath)
@@ -289,7 +289,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			annotatePrompt)
 		annotateSimulatedResponse := llm.AddPlainTextFragment(
 			llm.NewMessage(llm.SimulatedAIResponse),
-			annotateConfig.String(config.K_AnnotateStage1Response))
+			annotateConfig.String(config.K_AnnotateFileResponse))
 
 		// Add file contents
 		fileContentsRequest := llm.AddFileFragment(

@@ -13,7 +13,7 @@ func (p *dotNetPrompts) GetAnnotateConfig() map[string]interface{} {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
-	result[config.K_AnnotateStage1Prompts] = [][3]string{
+	result[config.K_AnnotateFilePrompts] = [][3]string{
 		{"(?i)^.*\\.cshtml$", defaultAIAnnotatePrompt_CSHTML, defaultAIAnnotatePrompt_CSHTML_SHORT},
 		{"(?i)^.*\\.cshtml\\.cs$", defaultAIAnnotatePrompt_CSHTML_CS, defaultAIAnnotatePrompt_CSHTML_CS_SHORT},
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS, defaultAIAnnotatePrompt_CS_Short},
