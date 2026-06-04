@@ -12,7 +12,6 @@ const templateFloat = 0.0
 var templateStringArray = [...]string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 var templateString2DArray = [...][]string{{"TEMPLATE VALUE_00", "TEMPLATE VALUE_01"}, {"TEMPLATE VALUE_10", "TEMPLATE VALUE_11"}}
 var templateStringInt2DArray = [...][]any{{"TEMPLATE VALUE_00", 0}, {"TEMPLATE VALUE_10", 1}}
-var templateObject = map[string]interface{}{"TEMPLATE_KEY": "TEMPLATE_VALUE"}
 
 func GetAnnotateConfigTemplate() map[string]interface{} {
 	result := map[string]interface{}{}
@@ -33,13 +32,7 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_SystemPromptAck] = templateString
 	// stage 1
 	result[K_ImplementStage1AnalysisPrompt] = templateString
-	result[K_ImplementStage1AnalysisJsonModePrompt] = templateString
 	result[K_ImplementTaskStage1AnalysisPrompt] = templateString
-	result[K_ImplementTaskStage1AnalysisJsonModePrompt] = templateString
-	result[K_Stage1OutputSchema] = templateObject
-	result[K_Stage1OutputKey] = templateString
-	result[K_Stage1OutputSchemaName] = templateString
-	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
 	result[K_CodePrompt] = templateString
 	result[K_CodeResponse] = templateString
@@ -51,16 +44,9 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	result[K_ImplementTaskStage2ReasoningsPromptFinal] = templateString
 	// stage 3
 	result[K_ImplementStage3PlanningPrompt] = templateString
-	result[K_ImplementStage3PlanningJsonModePrompt] = templateString
 	result[K_ImplementTaskStage3PlanningPrompt] = templateString
-	result[K_ImplementTaskStage3PlanningJsonModePrompt] = templateString
 	result[K_ImplementTaskStage3ExtraFilesPrompt] = templateString
 	result[K_ImplementStage3PlanningLitePrompt] = templateString
-	result[K_ImplementStage3PlanningLiteJsonModePrompt] = templateString
-	result[K_ImplementStage3OutputSchema] = templateObject
-	result[K_ImplementStage3OutputKey] = templateString
-	result[K_ImplementStage3OutputSchemaName] = templateString
-	result[K_ImplementStage3OutputSchemaDesc] = templateString
 	// stage 4
 	result[K_ImplementStage4ChangesDonePrompt] = templateString
 	result[K_ImplementStage4ChangesDoneResponse] = templateString
@@ -81,13 +67,7 @@ func GetDocConfigTemplate() map[string]interface{} {
 	result[K_DocExampleResponse] = templateString
 	// stage 1
 	result[K_DocStage1RefinePrompt] = templateString
-	result[K_DocStage1RefineJsonModePrompt] = templateString
 	result[K_DocStage1WritePrompt] = templateString
-	result[K_DocStage1WriteJsonModePrompt] = templateString
-	result[K_Stage1OutputSchema] = templateObject
-	result[K_Stage1OutputKey] = templateString
-	result[K_Stage1OutputSchemaName] = templateString
-	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
 	result[K_CodePrompt] = templateString
 	result[K_CodeResponse] = templateString
@@ -108,11 +88,6 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	result[K_ExplainOutQuestionHeader] = templateString
 	// stage 1
 	result[K_ExplainStage1QuestionPrompt] = templateString
-	result[K_ExplainStage1QuestionJsonModePrompt] = templateString
-	result[K_Stage1OutputSchema] = templateObject
-	result[K_Stage1OutputKey] = templateString
-	result[K_Stage1OutputSchemaName] = templateString
-	result[K_Stage1OutputSchemaDesc] = templateString
 	// stage 2
 	result[K_CodePrompt] = templateString
 	result[K_CodeResponse] = templateString

@@ -171,28 +171,6 @@ var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultIncrModeTagsRegexps = []string{"(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"}
 
-func getDefaultListOfFilesOutputSchema() map[string]interface{} {
-	return map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"list_of_files": map[string]interface{}{
-				"type":        "array",
-				"description": "List of files according to the request",
-				"items": map[string]string{
-					"type": "string",
-				},
-			},
-		},
-		"required": []string{
-			"list_of_files",
-		},
-	}
-}
-
-const defaultListOfFilesOutputKey = "list_of_files"
-const defaultListOfFilesOutputSchemaName = "get_files"
-const defaultListOfFilesOutputSchemaDesc = "Creates a list of files according to the request"
-
 func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result := config.GetAnnotateConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
@@ -207,14 +185,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	// stage 1
 	result[config.K_ImplementStage1AnalysisPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and all the project information provided earlier and create a list of filenames from the project structure that you will need to see in addition to this source code to implement the tasks. Place each filename between <filename></filename> tags."
-	result[config.K_ImplementStage1AnalysisJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Review source code contents and all the project information provided earlier and create a list of files from the project structure that you will need to see in addition to this source code to implement the tasks."
 	result[config.K_ImplementTaskStage1AnalysisPrompt] = "Below are the tasks that need to be implemented. Review the tasks and all the project information provided earlier and create a list of filenames from the project structure that you will need to see to implement the tasks. Place each filename between <filename></filename> tags. The tasks are:"
-	result[config.K_ImplementTaskStage1AnalysisJsonModePrompt] = "Below are the tasks that need to be implemented. Review the tasks and all the project information provided earlier and create a list of files from the project structure that you will need to see to implement the tasks. The tasks are:"
-
-	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
-	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
-	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
-	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 
 	// stage 2
 	result[config.K_CodePrompt] = "Here are the contents of the project's source code files that are likely relevant to the tasks you'll be working on."
@@ -230,17 +201,9 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 
 	// stage 3
 	result[config.K_ImplementStage3PlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the source code and other project information provided to you and create a list of filenames that will be changed or created by you as a result of implementing the tasks. Place each filename between <filename></filename> tags."
-	result[config.K_ImplementStage3PlanningJsonModePrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the source code and other project information provided to you and create a list of files that will be changed or created by you as a result of implementing the tasks."
 	result[config.K_ImplementTaskStage3PlanningPrompt] = "Below are the tasks that need to be implemented. Study all the source code and other project information provided to you and create a list of filenames that will be changed or created by you as a result of implementing the tasks. Place each filename between <filename></filename> tags. The tasks are:"
-	result[config.K_ImplementTaskStage3PlanningJsonModePrompt] = "Below are the tasks that need to be implemented. Study all the source code and other project information provided to you and create a list of files that will be changed or created by you as a result of implementing the tasks. The tasks are:"
 	result[config.K_ImplementStage3PlanningLitePrompt] = "Now create a list of filenames that will be changed or created by you as a result of implementing the tasks according to your work plan. Place each filename between <filename></filename> tags."
-	result[config.K_ImplementStage3PlanningLiteJsonModePrompt] = "Now create a list of files that will be changed or created by you as a result of implementing the tasks according to your work plan."
 	result[config.K_ImplementTaskStage3ExtraFilesPrompt] = "Below are the contents of additional source code files that may be relevant to the tasks."
-
-	result[config.K_ImplementStage3OutputSchema] = getDefaultListOfFilesOutputSchema()
-	result[config.K_ImplementStage3OutputKey] = defaultListOfFilesOutputKey
-	result[config.K_ImplementStage3OutputSchemaName] = defaultListOfFilesOutputSchemaName
-	result[config.K_ImplementStage3OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 
 	// stage 4
 	result[config.K_ImplementStage4ChangesDonePrompt] = "Here are the contents of the files with the changes already implemented."
@@ -264,13 +227,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 
 	//using the available information about the project, create a list of filenames from the project structure whose contents you need to see to answer the question.
 	result[config.K_DocStage1RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and, using the available information about the project, create a list of filenames from the project structure whose contents you need to see to work on the document. Place each filename between <filename></filename> tags. Full text of the document provided below:"
-	result[config.K_DocStage1RefineJsonModePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". Review the document and, using the available information about the project, create a list of files from the project structure whose contents you need to see to work on the document. Full text of the document provided below:"
 	result[config.K_DocStage1WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and, using the available information about the project, create a list of filenames from the project structure whose contents you need to see to work on the document. Place each filename between <filename></filename> tags. The text of the document in its current state provided below:"
-	result[config.K_DocStage1WriteJsonModePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. Review the document and, using the available information about the project, create a list of files from the project structure whose contents you need to see to work on the document. The text of the document in its current state provided below:"
-	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
-	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
-	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
-	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 	// stage 2
 	result[config.K_DocStage2RefinePrompt] = "Below is a project document that you will need to refine. The document is already finished but it needs to be refined and updated according to the current project codebase. It also may contain notes for you marked as \"Notes on implementation\". The project information and relevant source code needed to work on the document have been provided to you previously. Refine and update the document from its curent state: study all the provided info and add missing information to the document or fix the inconsistences you found. Don't rewrite or change the document too much, just refine it according to the instructions, correct grammatical errors if any. Make other changes only if you are absolutely sure that they are necessary. If something can't be done due to lack of information, just leave those parts of the document as is. For additional instructions, see the notes inside the document, if any. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. Full text of the document provided below:"
 	result[config.K_DocStage2WritePrompt] = "Below is a project document that you will need to write, complete and improve. The document is in a work in progress, it may contain draft sections and already written sections. It also may contain notes marked as \"Notes on implementation\" regarding its topic, sections, content, style, length, and detail. The project information and relevant source code needed to work on the document have been provided to you previously. Complete the document from its curent state: write the required sections, improve already written text if needed. Use the notes across the document for instructions, be creative. Output the entire resulting document with the changes you made. The response should only contain the final document that you have made in accordance with the task, and nothing else. The text of the document in its current state provided below:"
@@ -288,11 +245,6 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	result[config.K_ExplainOutQuestionHeader] = "# Question"
 	// stage 1
 	result[config.K_ExplainStage1QuestionPrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and, using the available information about the project, create a list of filenames from the project structure whose contents you need to see to answer the question. Place each filename between <filename></filename> tags. The question is:"
-	result[config.K_ExplainStage1QuestionJsonModePrompt] = "Here is a question about the project's codebase that you need to answer. Study the question and, using the available information about the project, create a list of files from the project structure whose contents you need to see to answer the question. The question is:"
-	result[config.K_Stage1OutputSchema] = getDefaultListOfFilesOutputSchema()
-	result[config.K_Stage1OutputKey] = defaultListOfFilesOutputKey
-	result[config.K_Stage1OutputSchemaName] = defaultListOfFilesOutputSchemaName
-	result[config.K_Stage1OutputSchemaDesc] = defaultListOfFilesOutputSchemaDesc
 	// stage 2
 	result[config.K_CodePrompt] = "Here are the contents of the project's source code files that are likely relevant to the question you'll be working on."
 	result[config.K_CodeResponse] = defaultAIAcknowledge

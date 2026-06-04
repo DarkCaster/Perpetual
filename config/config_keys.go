@@ -33,10 +33,6 @@ const K_SystemPromptAck = "system_prompt_ack"
 const K_CodePrompt = "code_prompt"
 const K_CodeResponse = "code_response"
 
-const K_Stage1OutputSchema = "stage1_output_schema"
-const K_Stage1OutputSchemaName = "stage1_output_schema_name"
-const K_Stage1OutputSchemaDesc = "stage1_output_schema_desc"
-const K_Stage1OutputKey = "stage1_output_key"
 const K_Stage2ContinuePrompt = "stage2_continue_prompt"
 
 // Keys for annotate operation config file
@@ -51,9 +47,7 @@ const K_ImplementCommentsRx = "implement_comments_rx"
 
 // Implement stage 1
 const K_ImplementStage1AnalysisPrompt = "stage1_analysis_prompt"
-const K_ImplementStage1AnalysisJsonModePrompt = "stage1_analysis_json_mode_prompt"
 const K_ImplementTaskStage1AnalysisPrompt = "stage1_task_analysis_prompt"
-const K_ImplementTaskStage1AnalysisJsonModePrompt = "stage1_task_analysis_json_mode_prompt"
 
 // Implement stage 2
 const K_ImplementStage2NoPlanningPrompt = "stage2_noplanning_prompt"
@@ -65,17 +59,10 @@ const K_ImplementTaskStage2ReasoningsPromptFinal = "stage2_task_reasonings_promp
 
 // Implement stage 3, prompts to generate list of files that will be changed, with attaching target files. Used when extra reasonings disabled
 const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"
-const K_ImplementStage3PlanningJsonModePrompt = "stage3_planning_json_mode_prompt"
 const K_ImplementTaskStage3PlanningPrompt = "stage3_task_planning_prompt"
-const K_ImplementTaskStage3PlanningJsonModePrompt = "stage3_task_planning_json_mode_prompt"
 
 // Implement stage 3, prompt to generate list of files that will be changed, continuation of stage 2 with reasonings - not attaching target files
 const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
-const K_ImplementStage3PlanningLiteJsonModePrompt = "stage3_planning_lite_json_mode_prompt"
-const K_ImplementStage3OutputSchema = "stage3_output_schema"
-const K_ImplementStage3OutputSchemaName = "stage3_output_schema_name"
-const K_ImplementStage3OutputSchemaDesc = "stage3_output_schema_desc"
-const K_ImplementStage3OutputKey = "stage3_output_key"
 
 // Extra prompt when adding unexpected source file to the prompts on late stage 3
 const K_ImplementTaskStage3ExtraFilesPrompt = "stage3_task_extra_files_prompt"
@@ -91,9 +78,7 @@ const K_ImplementStage4ProcessIncrPrompt = "stage4_process_incremental_prompt"
 const K_DocExamplePrompt = "example_doc_prompt"
 const K_DocExampleResponse = "example_doc_response"
 const K_DocStage1RefinePrompt = "stage1_refine_prompt"
-const K_DocStage1RefineJsonModePrompt = "stage1_refine_json_mode_prompt"
 const K_DocStage1WritePrompt = "stage1_write_prompt"
-const K_DocStage1WriteJsonModePrompt = "stage1_write_json_mode_prompt"
 const K_DocStage2RefinePrompt = "stage2_refine_prompt"
 const K_DocStage2WritePrompt = "stage2_write_prompt"
 
@@ -104,7 +89,6 @@ const K_ExplainOutFilteredFilenameTags = "output_filtered_filename_tags"
 const K_ExplainOutAnswerHeader = "output_answer_header"
 const K_ExplainOutQuestionHeader = "output_question_header"
 const K_ExplainStage1QuestionPrompt = "stage1_question_prompt"
-const K_ExplainStage1QuestionJsonModePrompt = "stage1_question_json_mode_prompt"
 const K_ExplainStage2QuestionPrompt = "stage2_question_prompt"
 
 // Keys for report operation config file
