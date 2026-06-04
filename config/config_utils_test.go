@@ -155,6 +155,37 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 	}
 }
 
+func TestAnnotateConfigTemplateDoesNotContainObsoleteVariantKeys(t *testing.T) {
+	template := GetAnnotateConfigTemplate()
+
+	obsoleteKeys := []string{
+		"stage2_prompt_variant",
+		"stage2_prompt_combine",
+		"stage2_prompt_best",
+	}
+
+	for _, key := range obsoleteKeys {
+		if _, ok := template[key]; ok {
+			t.Errorf("GetAnnotateConfigTemplate() contains obsolete key %q", key)
+		}
+	}
+
+	requiredKeys := []string{
+		K_SystemPrompt,
+		K_SystemPromptAck,
+		K_AnnotateTaskPrompt,
+		K_AnnotateTaskResponse,
+		K_AnnotateStage1Prompts,
+		K_AnnotateStage1Response,
+	}
+
+	for _, key := range requiredKeys {
+		if _, ok := template[key]; !ok {
+			t.Errorf("GetAnnotateConfigTemplate() missing required key %q", key)
+		}
+	}
+}
+
 func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -178,7 +209,7 @@ func TestValidateOpAnnotateStage1Prompts(t *testing.T) {
 		},
 		{
 			name:    "inner array wrong length",
-			value:   []interface{}{[]interface{}{"one"}},
+			value:   []interface{}{"one"},
 			wantErr: true,
 		},
 		{
