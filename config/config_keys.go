@@ -44,9 +44,6 @@ const K_AnnotateTaskPrompt = "annotate_task_prompt"
 const K_AnnotateTaskResponse = "annotate_task_response"
 const K_AnnotateStage1Prompts = "stage1_prompts"
 const K_AnnotateStage1Response = "stage1_response"
-const K_AnnotateStage2PromptVariant = "stage2_prompt_variant"
-const K_AnnotateStage2PromptCombine = "stage2_prompt_combine"
-const K_AnnotateStage2PromptBest = "stage2_prompt_best"
 
 // Keys for implement operation config file
 const K_ImplementFilenameEmbedRx = "filename_embed_rx"

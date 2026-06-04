@@ -199,9 +199,6 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	result[config.K_AnnotateTaskPrompt] = "Create detailed summary of the tasks marked with \"###IMPLEMENT###\" comments in the source code file provided in my next message. Also provide keywords that describe the tasks, areas, and dependent entities that can be traced in the source code file. In addition to the code, the file name is also provided between the <filename></filename> tags. When creating summary follow this template strictly:\n\nTasks:\n- <task description>\n- <task description>\n\nKeywords: <comma separated list of keywords>"
 	result[config.K_AnnotateTaskResponse] = "Waiting for file contents"
 	result[config.K_AnnotateStage1Response] = "Waiting for file contents"
-	result[config.K_AnnotateStage2PromptVariant] = "Create another summary variant"
-	result[config.K_AnnotateStage2PromptCombine] = "Evaluate the summaries you have created and rework them into a final summary that better matches the original instructions. Try to keep it short but informative according to initial instructions. Include only the text of the final summary in your response, nothing more."
-	result[config.K_AnnotateStage2PromptBest] = "Evaluate the summaries you have created and choose summary variant that better matches the original instructions. Output the text of the selected summary variant in the response, nothing more."
 	return result
 }
 

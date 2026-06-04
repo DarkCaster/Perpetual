@@ -24,10 +24,6 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	// generate annotation for file
 	result[K_AnnotateStage1Prompts] = templateString2DArray
 	result[K_AnnotateStage1Response] = templateString
-	// prompt to generate another annotation variant
-	result[K_AnnotateStage2PromptVariant] = templateString
-	result[K_AnnotateStage2PromptCombine] = templateString
-	result[K_AnnotateStage2PromptBest] = templateString
 	return result
 }
 
