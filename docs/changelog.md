@@ -46,21 +46,17 @@ Add support for deleting files to the `implement` operation:
 - If the same file is marked both for removal and modification, deletion has priority;
 - Delete files after making all modifications.
 
-(Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current diff format):
+(Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
-- Generate changes in diff format closer to OpenAI diff
-- Apply with https://github.com/bluekeyes/go-gitdiff, or by using the external `patch` util (patch linux package, or patch from MSYS/GnuWin32), or implement manual diff resolver;
+- Generate changes in a diff format closer to OpenAI diffs;
+- Apply with https://github.com/bluekeyes/go-gitdiff, or by using the external `patch` utility (patch Linux package, or patch from MSYS/GnuWin32), or implement a manual diff resolver;
 - Add fuzzy merge logic for search-and-replace blocks: ignore tabs/spaces, ignore small inconsistencies in pre/post lines, etc.
 
 ## Remove old and stale code / features that I do not use
 
-Remove multi-step annotation generation support (in progress):
-
-- current progress: support code was removed, needs refactor leftover annotate config references, docs
-
 Remove all multi-answer generation logic from LLM support code:
 
-- This feature is only used with multi-step annotation;
+- This feature was only used with multi-step annotation;
 - When actually using this code path, it prevents continuing code generation when hitting max-token limits;
 - The whole support code is overcomplicated.
 
@@ -70,7 +66,7 @@ Remove JSON mode support:
 - Not working properly with some small local models or with some OpenAI-compatible providers;
 - JSON schemas may need patching for particular providers or models;
 - JSON schemas make per-project config `op_implement.json` bigger and harder to maintain by human or with AI (external agent, for example);
-- Does not provide any generation quality increase when used with modern LLM models, some LLM providers still not guarantee valid JSON output;
+- Does not provide any generation quality increase when used with modern LLM models, and some LLM providers still do not guarantee valid JSON output;
 - Hard to maintain.
 
 # Changelog
@@ -79,7 +75,10 @@ Remove JSON mode support:
 
 ### Removed Obsolete Features
 
-- Multi step annotation generation logic: obsolete and overcomplicated feature, most modern LLM models are able to generate decent file annotations/summaries with one call;
+- Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call.
+- Removed obsolete multi-variant annotation configuration and environment options from the default generated config examples.
+
+**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old `op_annotate.json` files containing removed multi-step or multi-variant annotation keys may fail validation.
 
 ## v9.12.1
 
