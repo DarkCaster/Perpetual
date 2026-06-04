@@ -6,9 +6,9 @@ This document outlines the current technical limitations. These limitations may 
 
 Given `Perpetual`'s focus on direct codebase interaction and to maintain its simplicity, it has some limitations on file operations:
 
-- Cannot delete files
+- Cannot delete project files
 - Cannot run external tools or commands on the user's system
-- Cannot interact with version control systems (e.g., Git, SVN)
+- Cannot directly interact with version control systems (e.g., Git, SVN)
 - Cannot install packages (e.g., npm, NuGet)
 
 These limitations are in place to ensure a controlled and safe environment for code manipulation.
@@ -34,6 +34,7 @@ When writing files, `Perpetual` attempts to use the same encoding that was used 
 
 - If the file was originally read as one of the supported UTF encodings, it will be written back in that same encoding (including BOM if originally present)
 - If the file was read using the fallback encoding, it will be written back using the fallback encoding
+- New files, or files that were not previously loaded by `Perpetual`, are written as plain UTF-8
 
 This ensures that the file encoding remains consistent across read and write operations, minimizing unnecessary changes to the file encoding.
 
@@ -49,13 +50,13 @@ This ensures that the file encoding remains consistent across read and write ope
 
 This behavior is similar to Git's `core.autocrlf = true` setting.
 
-**Important**: Mixed line endings within a file are not preserved during modifications. This is because the LLM generates the entire source file content at once, potentially altering the original line ending style.
+**Important**: Mixed line endings within a file are not preserved during modifications. This is because files are normalized during loading and saving, and generated or modified content is written back using the platform-specific line ending style. This applies both to full-file generation and to incremental search-and-replace modifications.
 
 ## Symlinks
 
 `Perpetual` has specific limitations regarding symlinks:
 
-- Files inside the project that contain symlinks within their relative path are ignored
+- Symlinked files and symlinked directories inside the project are not followed or processed by project file scanning
 - The project root directory cannot be a symlink
 - Parent directories of the project root can be symlinks
 
@@ -84,6 +85,8 @@ When handling filenames, `Perpetual` attempts to:
 - The project root directory cannot be a symlink
 - Can be overridden using the `PERPETUAL_DIR` environment variable
 
+When `PERPETUAL_DIR` is used, it defines the Perpetual configuration directory, and the current working directory is treated as the project root.
+
 This approach ensures that `Perpetual` operates within the intended project scope.
 
 ## Project Size Limitations
@@ -98,7 +101,7 @@ When working with your codebase, Perpetual doesn't attempt to feed all source co
 - Technically impossible for large projects due to token limits
 - Unnecessarily expensive in terms of API usage
 
-Instead, Perpetual uses a multi-stage approach:
+Instead, Perpetual uses a staged workflow:
 
 1. **Annotation Phase**: The `annotate` operation generates concise summaries for each source file, capturing their purpose and functionality.
 2. **Project Index**: These annotations form a project index that serves as a map of your codebase.
@@ -133,66 +136,44 @@ Most operations support the `-c` flag to control context usage and annotation ve
 
 - `auto` (default): Applies context saving automatically based on file count thresholds defined in project configuration. Recommended.
 - `off`: Disable context saving regardless of project size
-- `medium`: Use medium context saving measures, should not lead to degraded results if used with larger projects, not recommended to use with smaller projects
-- `high`: Use maximum possible context saving measures, may lead to lower quality results, recommended to use only for large projects
+- `medium`: Use medium context saving measures; should not lead to degraded results if used with larger projects, but is not recommended for smaller projects
+- `high`: Use maximum possible context saving measures; may lead to lower quality results, recommended only for large projects
 
 Currently, for large projects, the system automatically applies context saving based on configurable file count thresholds.
 
-Each operation or sub-operation may have its own context saving measures. For now `annotate` operation tries to generate shorter annotations to save tokens on stage 1 for other operations, while `implement`, `doc`, and `explain` operations use project-files pre-selection/pre-filtering with local similarity search to cut-off files not relevant to the task and also save tokens on stage 1.
+Each operation or sub-operation may have its own context saving measures. For now, the `annotate` operation generates shorter annotations when context saving is active, while `implement`, `doc`, and `explain` operations use project-file pre-selection/pre-filtering with local similarity search to cut off files that are unlikely to be relevant to the task and save tokens during stage 1.
 
-**Important**: If manually setting context saving mode, it is recommended to reannotate your project with the `-f` flag to regenerate all annotations with the new verbosity level. Also recommended to reannotate your project files if project reached thresholds when context saving mode changed from `off` to `medium` automatically. This behavior may be addressed in next updates. For now, currently used context saving mode is not saved - if you want to set it manually, you need to use `-c` on each invocation of `perpetual` utility.
+**Important**: If manually setting context saving mode, it is recommended to reannotate your project with the `-f` flag to regenerate all annotations with the new verbosity level. It is also recommended to reannotate your project files if the project reaches thresholds where context saving mode changes automatically from regular annotations to shorter annotations. This behavior may be addressed in future updates. For now, the currently used context saving mode is not saved; if you want to set it manually, you need to use `-c` on each invocation of the `perpetual` utility.
 
 #### 2. Local Similarity Search
 
-Operations like `implement`, `doc`, and `explain` may use additional local search using embeddings in order to add files to review that LLM may have missed, or to locally reduce annotations count sent to LLM if context saving measures enabled. Local similarity search:
+Operations like `implement`, `doc`, and `explain` may use additional local search with embeddings in order to add files to review that the LLM may have missed, or to locally reduce the annotation count sent to the LLM if context saving measures are enabled. Local similarity search:
 
 - Uses embeddings to find files semantically related to the current task
 - Supports both aggressive and conservative selection strategies
 - Helps reduce the number of files the LLM needs to process
 - Is particularly useful for projects with many files where only a subset is relevant
 
-In order to use similarity search you need to enable embeddings support for your provider. You can use embeddings generated by one provider with tasks processed with another provider, because all the search using embeddings is performed locally. You must rebuild embeddings if you change embeddings model or its settings. See [`embed`](op_embed.md) operation doc for more info.
+In order to use similarity search, you need to enable embeddings support for your provider. You can use embeddings generated by one provider with tasks processed by another provider, because all searching with embeddings is performed locally. You must rebuild embeddings if you change the embeddings model or its settings. See the [`embed`](op_embed.md) operation documentation for more info.
 
-If embeddings are disabled or not configured, all local similarity search features will be disabled. This mostly affects context saving features for `implement` operation, and can also worsen its results a bit.
+If embeddings are disabled or not configured, all local similarity search features will be disabled. This affects context saving features for `implement`, `doc`, and `explain`, and can also worsen results because Perpetual cannot locally add semantically related files that the LLM may have missed.
 
-#### 3. Multi-pass annotation
+#### 3. Multi-pass file-selection
 
-Perpetual employs a sophisticated multi-pass annotation system to optimize the quality and efficiency of file annotations, particularly valuable for large projects.
+Operations like `implement`, `doc`, and `explain` support multi-pass file selection to select relevant files in multiple passes and improve the quality of the final result.
 
-**Two-Stage Processing:**
+- Use multi-pass selection (`-sp` flag) to improve file selection quality. This will result in more API calls and tokens, but may improve quality for complex tasks.
 
-- **First Stage**: Generates multiple annotation variants using the primary LLM connector
-- **Second Stage**: Uses a secondary LLM connector (annotate_post operation) to apply intelligent selection or combination of these variants to create the final annotation
+#### 4. Using local LLM with Ollama to generate annotations
 
-**Variant Selection Strategies:**
-Perpetual supports several strategies for processing annotation variants, controlled by the LLM configuration:
+It is now possible to use a local LLM and models like `qwen3:8b` or `qwen3:14b` to generate annotations. These models provide results good enough to be used with Perpetual for most supported programming languages. This allows you to save on costs by using a local LLM in large projects while reserving more expensive cloud-based models for the final implementation stages.
 
-- **Short Strategy**: Selects the most concise annotation variant, prioritizing token efficiency. This is the fallback strategy when other approaches fail and is particularly useful for very large projects where context space is at a premium.
-
-- **Long Strategy**: Chooses the most detailed annotation variant, providing more comprehensive information when context space permits.
-
-- **Combine Strategy**: Uses the LLM to intelligently merge multiple annotation variants, creating a synthesis that captures the most important information from each variant while avoiding redundancy.
-
-- **Best Strategy**: Leverages the LLM's judgment to select the highest-quality annotation among the variants based on factors like informativeness, accuracy, and conciseness.
-
-Multi-pass annotations must be enabled per-LLM basis using your `.env` configuration file or ENV variables by setting variant count greater than 1 and choosing an appropriate variant selection strategy.
-
-#### 4. Multi-pass file-selection
-
-Operations like `implement`, `doc`, and `explain` support multi-pass file-selection to select relevant files in multiple passes to improve quality of final result.
-
-- Use multi-pass selection (`-sp` flag) to improve file selection quality. This will result in more API calls and tokens, but may improve quality for the complex tasks.
-
-#### 5. Using local LLM with Ollama to generate annotations
-
-It is now possible to use local LLM and models like `qwen3:8b` or `qwen3:14b` to generate annotations. These models provide results good enough to be used with Perpetual for most supported programming languages. This allows you to save on costs by using local LLM in large projects while reserving more expensive cloud-based models for the final implementation stages.
-
-#### 6. Selective File Processing
+#### 5. Selective File Processing
 
 Consider these additional approaches for very large projects:
 
 - Work with logical subsets of your project rather than the entire codebase
-- Do not include unit-test files into processing unless needed (use `-u` flag to include them)
+- Do not include unit-test files in processing unless needed (use the `-u` flag to include them where supported)
 - Apply custom filters with the `-x` flag to focus on specific parts of your codebase
 
 ### Future Improvements

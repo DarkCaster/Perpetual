@@ -1,6 +1,6 @@
 # Explain Operation
 
-The `explain` operation is designed to provide insightful answers to questions and clarifications about your project based on a thorough analysis of its source code. This operation examines your project's structure and code to generate comprehensive explanations, aiding developers in understanding complex codebases, identifying potential issues, implementing new features, and more.
+The `explain` operation is designed to provide insightful answers to questions and clarifications about your project based on analysis of its source code. This operation examines your project's structure, annotations, selected source files, and optional project description to generate comprehensive explanations, aiding developers in understanding complex codebases, identifying potential issues, planning changes, and more.
 
 ## Usage
 
@@ -15,17 +15,17 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 - `-i <file>`: Specify the input file containing the question to be answered. If omitted, the operation reads the question from standard input (stdin).  
 - `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.  
 - `-df <file>`: Optional path to project description file for adding into LLM context. Valid values are `file-path` to specify a custom description file, or `disabled` to explicitly disable loading the project description. If omitted, the operation attempts to load the default `description.md` file from the `.perpetual` directory.  
-- `-e <file>`: Read instructions from a text or markdown file that will be used in stage 1 to select relevant files. Use this flag if the original question is too complex or not clear enough for the LLM to select relevant files, allowing you to provide separate instructions for the file selection process.  
+- `-e <file>`: Read instructions from a text or markdown file that will be used in stage 1 to select relevant files. Use this flag if the original question is too complex or not clear enough for the LLM to select relevant files, allowing you to provide separate instructions for the file selection process. The final answer is still generated for the original question from `-i` or stdin.  
 - `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are `auto`, `off`, `medium`, or `high` (default: `auto`).  
-- `-a`: Enable the addition of full project annotations in the request along with the files requested by the LLM for analysis. This flag enhances the quality of answers by providing the LLM with additional context from annotated source files. It is disabled by default to save tokens and reduce the context window size requirement.  
-- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files relevant to the question based on project annotations (produced with the `annotate` operation). This mode may be useful when performing simple semantic file-search queries. Note that the file-search task is always performed during stage 1 of a full explanation.  
-- `-n`: Enable "No Annotate" mode, which skips the re-annotation of changed files and utilizes existing annotations if available. This can reduce API calls but may lower the quality of the explanations.  
-- `-f`: Override the 'no-upload' file filter to include files marked as 'no-upload' for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.  
-- `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded to focus on primary source code.  
+- `-a`: Add project annotations in stage 2 in addition to the source files requested by the LLM. This can improve answer quality by providing the LLM with additional project-wide context, but it is disabled by default to save tokens and reduce context window requirements.  
+- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files considered relevant to the question after stage 1 file selection and local similarity search. The output is one filename per line, with no markdown formatting. In this mode, the operation stops before stage 2 and does not upload selected source files for final answer generation.  
+- `-n`: Enable "No Annotate" mode, which skips the automatic refresh of annotations and embeddings before processing. Existing annotations and embeddings are used if available. This can reduce API calls but may lower the quality of file selection and explanations.  
+- `-f`: Override the `no-upload` file filter to include files marked as `no-upload` for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.  
+- `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded using the project test-file blacklist.  
 - `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).  
-- `-s <n>`: Limit number of files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.  
-- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.  
-- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question.  
+- `-s <n>`: Limit the number of additional files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.  
+- `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values may select more files, compensating for possible LLM errors when finding relevant files, but will cost more tokens and context use.  
+- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question. Files filtered out by the `no-upload` rule are marked using the configured filtered filename tags.  
 - `-h`: Display the help message, detailing all available flags and their descriptions.  
 - `-v`: Enable debug logging to receive detailed output about the operation's execution process.  
 - `-vv`: Activate both debug and trace logging for the highest level of verbosity, offering an in-depth view of the operation's internal workings.  
@@ -46,7 +46,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    echo "What modules handle data processing?" | Perpetual explain -l
    ```
 
-   Instead of an answer, this command produces a list of files related to data processing based on project annotations.
+   Instead of an answer, this command produces a list of files related to data processing.
 
 3. **Generate an explanation with additional annotations and debug logging enabled:**
 
@@ -60,7 +60,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    Perpetual explain -i questions/query.txt -r explanations/test_data_flow.md -u
    ```
 
-5. **Override the 'no-upload' filter to include all files for explanation:**
+5. **Override the `no-upload` filter to include all selected files for explanation:**
 
    ```sh
    Perpetual explain -i questions/query.txt -r explanations/full_data_flow.md -f
@@ -72,7 +72,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    Perpetual explain -i questions/query.txt -r explanations/detailed_answer.md -q
    ```
 
-7. **Use separate instructions file for relevant files selection:**
+7. **Use a separate instructions file for relevant files selection:**
 
    ```sh
    Perpetual explain -i questions/query.txt -e instructions/file_selection.txt -r explanations/targeted_answer.md
@@ -86,28 +86,51 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 
 ## LLM Configuration
 
-The effectiveness of the `explain` operation relies on the configuration of the underlying LLM. Environment variables defined in the `.env` file dictate the behavior and performance of the LLM during the explanation process. Proper configuration ensures accurate, relevant, and comprehensive explanations tailored to your project's specific needs.
+The effectiveness of the `explain` operation relies on the configuration of the underlying LLM. Environment variables defined in `.env` files dictate the behavior and performance of the LLM during the explanation process. Proper configuration ensures accurate, relevant, and comprehensive explanations tailored to your project's specific needs.
+
+Perpetual loads `.env` files from the project `.perpetual` directory and from the global Perpetual config directory. Environment variables already exported in the system environment take precedence over `.env` values.
 
 1. **LLM Provider:**
    - `LLM_PROVIDER_OP_EXPLAIN_STAGE1`: Specifies the LLM provider for the first stage of the `explain` operation.
    - `LLM_PROVIDER_OP_EXPLAIN_STAGE2`: Specifies the LLM provider for the second stage of the operation.
    - If not set, both stages default to the general `LLM_PROVIDER`.
 
-2. **Model Selection:**
-   - `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2`: Define the Anthropic models used in each stage (for example, "claude-3-7-sonnet-latest" for stage 1 and "claude-sonnet-4-20250514" for stage 2).
-   - `OPENAI_MODEL_OP_EXPLAIN_STAGE1`, `OPENAI_MODEL_OP_EXPLAIN_STAGE2`: Specify the OpenAI models for each stage (for example, "gpt-4.1" for stage 1 and "o4-mini" for stage 2).
-   - `OLLAMA_MODEL_OP_EXPLAIN_STAGE1`, `OLLAMA_MODEL_OP_EXPLAIN_STAGE2`: Specify the Ollama models for each stage (for example, "qwen3:32b" for both stages).
-   - `GENERIC_MODEL_OP_EXPLAIN_STAGE1`, `GENERIC_MODEL_OP_EXPLAIN_STAGE2`: Specify the models for the Generic (OpenAI compatible) provider.
+   Supported provider families include `anthropic`, `openai`, `ollama`, and `generic`.
 
-3. **Token Limits:**
-   - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of tokens for each stage when using Anthropic (typically 1024 for stage 1 and 8192 for stage 2).
-   - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using OpenAI (typically 1024 for stage 1 and 8192 for stage 2).
-   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama (typically 1024 for stage 1 and 8192 for stage 2).
+2. **Model Selection:**
+   - `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2`: Define the Anthropic models used in each stage.
+   - `OPENAI_MODEL_OP_EXPLAIN_STAGE1`, `OPENAI_MODEL_OP_EXPLAIN_STAGE2`: Specify the OpenAI models for each stage.
+   - `OLLAMA_MODEL_OP_EXPLAIN_STAGE1`, `OLLAMA_MODEL_OP_EXPLAIN_STAGE2`: Specify the Ollama models for each stage.
+   - `GENERIC_MODEL_OP_EXPLAIN_STAGE1`, `GENERIC_MODEL_OP_EXPLAIN_STAGE2`: Specify the models for the Generic OpenAI-compatible provider.
+
+3. **Embeddings and Local Similarity Search:**
+   - Local similarity search requires embeddings generated by the `embed` operation.
+   - Configure the embedding model with provider-specific `*_MODEL_OP_EMBED` variables, for example:
+     - `OPENAI_MODEL_OP_EMBED`
+     - `OLLAMA_MODEL_OP_EMBED`
+     - `GENERIC_MODEL_OP_EMBED`
+   - Anthropic does not provide embedding support in this project. If you use Anthropic for `explain`, configure `LLM_PROVIDER_OP_EMBED` with another provider if you want local similarity search.
+   - Embedding behavior can be tuned with provider-specific variables such as:
+     - `*_EMBED_DOC_CHUNK_SIZE`
+     - `*_EMBED_DOC_CHUNK_OVERLAP`
+     - `*_EMBED_SEARCH_CHUNK_SIZE`
+     - `*_EMBED_SEARCH_CHUNK_OVERLAP`
+     - `*_EMBED_DIMENSIONS`
+     - `*_EMBED_SCORE_THRESHOLD`
+     - `*_EMBED_DOC_PREFIX`
+     - `*_EMBED_SEARCH_PREFIX`
+
+4. **Token Limits:**
+   - `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Set the maximum number of output tokens for each stage when using Anthropic.
+   - `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using OpenAI.
+   - `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `OLLAMA_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage when using Ollama.
    - `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1`, `GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2`: Define token limits for each stage with the Generic provider.
    - `ANTHROPIC_MAX_TOKENS_SEGMENTS`, `OPENAI_MAX_TOKENS_SEGMENTS`, `OLLAMA_MAX_TOKENS_SEGMENTS`, `GENERIC_MAX_TOKENS_SEGMENTS`: Limit the number of continuation segments if token limits are reached, preventing excessive API calls.
 
-4. **JSON Structured Output Mode:**
-   Enable JSON-structured output mode for faster and more cost-effective responses at stage 1 by setting the following variables:
+   Stage 1 usually needs a smaller token limit because it only returns a file list. Stage 2 often needs a larger token limit because it generates the final answer.
+
+5. **JSON Structured Output Mode:**
+   Enable JSON-structured output mode for stage 1 by setting one of the following variables:
 
    ```sh
    ANTHROPIC_FORMAT_OP_EXPLAIN_STAGE1="json"
@@ -115,55 +138,69 @@ The effectiveness of the `explain` operation relies on the configuration of the 
    OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
    ```
 
-   Ensure that the selected models support JSON-structured output for reliable performance. This setting is somewhat experimental and may improve or worsen the ability to obtain a list of files related to the question, depending on the model used. The Generic (OpenAI compatible) provider profile does not support JSON-structured output mode at this time.
+   Ensure that the selected models support JSON-structured output for reliable performance. This setting may improve or worsen the ability to obtain a list of files related to the question, depending on the model used. The Generic OpenAI-compatible provider profile does not support JSON-structured output mode at this time.
 
-5. **Retry Settings:**
-   - `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define the number of retry attempts on failure for each stage with Anthropic (typically 2 for stage 1 and 10 for stage 2).
-   - `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with OpenAI (typically 2 for stage 1 and 10 for stage 2).
-   - `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Ollama (typically 3 for both stages).
+6. **Retry Settings:**
+   - `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define the number of retry attempts on failure for each stage with Anthropic.
+   - `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with OpenAI.
+   - `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `OLLAMA_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with Ollama.
    - `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1`, `GENERIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2`: Define retry attempts on failure for each stage with the Generic provider.
 
-6. **Temperature:**
-   - `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Anthropic (typically 0.2 for stage 1 and 0.7 for stage 2).
-   - `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using OpenAI (typically 0.2 for stage 1 and 0.7 for stage 2).
-   - `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Ollama (typically 0.2 for stage 1 and 0.7 for stage 2).
+7. **Temperature:**
+   - `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Anthropic.
+   - `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using OpenAI.
+   - `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE1`, `OLLAMA_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using Ollama.
    - `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE1`, `GENERIC_TEMPERATURE_OP_EXPLAIN_STAGE2`: Set the temperature for each stage when using the Generic provider.
 
-   Lower values (e.g., 0.2–0.3) yield more focused and consistent explanations, while higher values (0.7–1.0) can produce more creative and varied outputs.
+   Lower values (for example, 0.2–0.3) yield more focused and consistent file selection and explanations, while higher values (0.7–1.0) can produce more creative and varied outputs.
 
-7. **Special Features:**
-   - `ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2`: Set thinking token budget for Anthropic models that support extended thinking (typically 4096 for answer generation).
-   - `OLLAMA_THINK_OP_EXPLAIN_STAGE2`: Enable or disable reasoning/thinking for Ollama models that support it (e.g., Qwen3, DeepSeek R1).
+8. **Reasoning and Thinking Features:**
+   - `ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2`: Set a thinking token budget for Anthropic models that support extended thinking.
+   - `OPENAI_REASONING_EFFORT_OP_EXPLAIN_STAGE1`, `OPENAI_REASONING_EFFORT_OP_EXPLAIN_STAGE2`: Configure reasoning effort for OpenAI reasoning-capable models.
+   - `OLLAMA_THINK_OP_EXPLAIN_STAGE1`, `OLLAMA_THINK_OP_EXPLAIN_STAGE2`: Enable or disable reasoning/thinking for Ollama models that support it. Supported values depend on the Ollama version and model; examples include `true`, `false`, `low`, `medium`, and `high`.
+   - `GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE1`, `GENERIC_REASONING_EFFORT_OP_EXPLAIN_STAGE2`: Configure reasoning effort for compatible Generic provider APIs.
 
-8. **Other LLM Parameters:**
-   - `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`: Customize these parameters for each stage by appending `_OP_EXPLAIN_STAGE1` or `_OP_EXPLAIN_STAGE2` to the variable names (for example, `ANTHROPIC_TOP_K_OP_EXPLAIN_STAGE1`). These are particularly useful for fine-tuning outputs from different models.
+9. **Other LLM Parameters:**
+   Provider-specific parameters can be customized per stage by appending `_OP_EXPLAIN_STAGE1` or `_OP_EXPLAIN_STAGE2` to the variable names. Examples include:
+   - `*_TOP_P`
+   - `*_TOP_K` where supported
+   - `*_SEED` where supported
+   - `*_REPEAT_PENALTY` where supported
+   - `*_FREQ_PENALTY`
+   - `*_PRESENCE_PENALTY`
+   - OpenAI-specific service tier settings such as `OPENAI_SERVICE_TIER_OP_EXPLAIN_STAGE1`, `OPENAI_SERVICE_TIER_OP_EXPLAIN_STAGE2`, and `OPENAI_SERVICE_TIER_FALLBACK`.
 
 ### Example Configuration in `.env` File
 
 ```sh
 LLM_PROVIDER="openai"
 
-...
+OPENAI_API_KEY="<your api key goes here>"
+OPENAI_BASE_URL="https://api.openai.com/v1"
 
-OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-4.1"
-OPENAI_MODEL_OP_EXPLAIN_STAGE2="o4-mini"
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024"
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="8192"
+OPENAI_MODEL_OP_EXPLAIN_STAGE1="<model-for-file-selection>"
+OPENAI_MODEL_OP_EXPLAIN_STAGE2="<model-for-answer-generation>"
+OPENAI_MODEL_OP_EMBED="text-embedding-3-small"
+
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="4096"
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="32768"
 OPENAI_MAX_TOKENS_SEGMENTS="3"
+
 OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE1="0.2"
 OPENAI_TEMPERATURE_OP_EXPLAIN_STAGE2="0.7"
+
 OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE1="2"
 OPENAI_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10"
 
-# Enable JSON-structured output mode
+# Enable JSON-structured output mode for stage 1 if the selected model supports it
 OPENAI_FORMAT_OP_EXPLAIN_STAGE1="json"
 ```
 
-This configuration sets the `openai` provider with the `gpt-4.1` model for stage 1 and `o4-mini` for stage 2, defines appropriate token limits, sets temperatures to balance creativity and consistency, enables JSON-structured output mode for stage 1, and allows for retries on failure.
+This configuration sets the `openai` provider, configures separate models for file selection and answer generation, enables embeddings for local similarity search, defines token limits, sets temperatures to balance consistency and creativity, enables JSON-structured output mode for stage 1, and allows retries on failure.
 
 ## Prompts Configuration
 
-Customization of LLM prompts for the `explain` operation is managed through the `.perpetual/op_explain.json` configuration file. This file is initialized using the `init` operation, which sets up default prompts tailored to various aspects of your project. Adjusting these prompts can significantly influence the quality and relevance of the explanations generated by the LLM.
+Customization of LLM prompts for the `explain` operation is managed through the `.perpetual/op_explain.json` configuration file. This file is initialized using the `init` operation, which sets up default prompts tailored to your project language. Adjusting these prompts can significantly influence the quality and relevance of the explanations generated by the LLM.
 
 **Key Parameters:**
 
@@ -173,9 +210,9 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 
 - **`code_prompt`**: Prompt used in stage 2 when presenting the source code files selected for review to the LLM. This prompt instructs the LLM on how to process and analyze the provided source code files.
 
-- **`code_response`**: Simulated acknowledgment response from the LLM after receiving the source code files, used to maintain conversation flow in the multi-stage dialogue.
+- **`code_response`**: Simulated acknowledgment response from the LLM after receiving the source code files, used to maintain conversation flow before the final question is asked.
 
-- **`stage1_question_prompt`**: Frames the specific question to be addressed in stage 1 of the explanation process, prompting the LLM to generate a list of files from annotations related to the question.
+- **`stage1_question_prompt`**: Frames the specific question or file-selection instructions in stage 1, prompting the LLM to generate a list of project files related to the question.
 
 - **`stage1_question_json_mode_prompt`**: Alternative prompt for JSON-structured output mode in stage 1.
 
@@ -185,41 +222,54 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 
 - **`output_question_header`**, **`output_files_header`**, **`output_answer_header`**: Headers used when the `-q` flag is enabled to structure the output with question, relevant files list, and answer sections.
 
-- **`output_filename_tags`**, **`output_filtered_filename_tags`**: Tags used to format filenames in the output, with special formatting for filtered files when using the `-q` flag.
+- **`output_filename_tags`**, **`output_filtered_filename_tags`**: Tags used to format filenames in the output when the `-q` flag is enabled. `output_filtered_filename_tags` are used for files selected as relevant but filtered out from upload by the `no-upload` rule.
 
 - **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters that define the schema and structure of stage 1 outputs when JSON-structured output mode is enabled.
 
 ## Workflow
 
-The `explain` operation is divided into two main stages:
+The `explain` operation is divided into preparation and two main processing stages:
 
-1. **Stage 1: Index Analysis:**
-   - **Project Index Request:** Sends a request to the LLM to analyze the project annotations/index and determine which files are related to the question asked.
-   - **Response Handling:** Parses the LLM's response to extract a list of files that require further examination, ensuring they reside within the project's scope and adhere to filtering rules.
-   - **Local Similarity Search:** If embeddings are available and local search is enabled, performs cosine similarity search to find additional relevant files based on semantic similarity to the question.
+1. **Preparation:**
+   - **Project Setup:** Finds the project root and `.perpetual` directory, loads project and operation configuration, and loads the optional project description.
+   - **File List Preparation:** Builds the project file list using project whitelist/blacklist rules, user-supplied filters, and the test-file blacklist unless `-u` is specified.
+   - **Question Loading:** Reads the question from `-i` or stdin. If `-e` is supplied, reads separate file-selection instructions for stage 1.
+   - **Annotation and Embedding Refresh:** Unless `-n` is specified, runs `annotate` and `embed` internally to refresh annotations and embeddings used for file selection and local similarity search.
+   - **Context Saving Preselection:** If context saving is enabled and embeddings are available, preselects a subset of project files for stage 1 to reduce context usage on large projects.
 
-   If the `-l` flag is specified, execution stops at this stage, outputting only the list of files.
+2. **Stage 1: Relevant File Selection:**
+   - **Project Index Request:** Sends the project index, annotations for the preselected files, optional project description, and the question or separate stage 1 instructions to the LLM.
+   - **Response Handling:** Parses the LLM's response to extract a list of files that require further examination. The resulting paths are validated against the project file list, duplicates are removed, filename case is normalized where possible, and invalid paths are rejected.
+   - **Local Similarity Search:** If embeddings are available and local search is enabled with `-s`, performs cosine similarity search to find additional relevant files based on semantic similarity to the question.
+   - **Multiple Passes:** If `-sp` is greater than 1, stage 1 runs multiple times and merges the selected file lists.
 
-2. **Stage 2: Detailed Explanation:**
-   - **Content Compilation:** Aggregates the contents of the identified files, preparing them for detailed analysis by the LLM. Files marked with 'no-upload' comments are filtered out unless the `-f` flag is used.
+   If the `-l` flag is specified, execution stops after this stage and outputs only the selected file list.
+
+3. **Stage 2: Detailed Explanation:**
+   - **No-Upload Filtering:** Files marked with `no-upload` comments are filtered out before source content is sent to the LLM unless the `-f` flag is used.
+   - **Content Compilation:** Aggregates the contents of the selected files and prepares them for detailed analysis by the LLM.
+   - **Optional Annotation Context:** If `-a` is enabled, adds project annotations to the stage 2 context.
    - **Source Code Review:** If files were selected in stage 1, presents them to the LLM using the `code_prompt` to establish context about the relevant source code.
-   - **Question Processing:** Sends the main question along with the relevant file contents to the LLM to generate a comprehensive explanation.
+   - **Question Processing:** Sends the main question to the LLM to generate a comprehensive explanation using the provided project context and selected source files.
    - **Response Handling:** Receives and compiles the LLM's response, handling scenarios where token limits are reached by utilizing continuation segments as configured.
-   - **Output Formatting:** If the `-q` flag is enabled, formats the output to include the original question, list of relevant files (with indicators for filtered files), and the generated answer.
+   - **Output Formatting:** If the `-q` flag is enabled, formats the output to include the original question, list of relevant files, indicators for files filtered out by the `no-upload` rule, and the generated answer.
 
 ## Best Practices
 
 1. **Craft Clear and Specific Questions:**
    - Formulate precise and well-defined questions to guide the LLM in generating accurate and relevant explanations. Ambiguous queries may lead to generalized or off-target responses. You can control answer verbosity by adding instructions at the end of your question, such as "Answer with a detail level of 5 out of 10" or "Provide a brief explanation."
 
-2. **Protect Sensitive Information:**
-   - Use the `-f` flag cautiously to include files marked as 'no-upload' only when necessary. Avoid exposing sensitive or proprietary code to the LLM provider unless absolutely essential for the explanation task.
+2. **Use Separate File-Selection Instructions When Needed:**
+   - If the final question is broad, abstract, or phrased in a way that makes file selection difficult, use `-e` to provide a more direct description of which part of the codebase should be inspected.
 
-3. **Enable Verbose Logging During Development:**
+3. **Protect Sensitive Information:**
+   - Use the `-f` flag cautiously to include files marked as `no-upload` only when necessary. Avoid exposing sensitive or proprietary code to the LLM provider unless absolutely essential for the explanation task.
+
+4. **Enable Verbose Logging During Development:**
    - When setting up or troubleshooting the `explain` operation, enable debug or trace logging to gain insights into the operation's internal processes and to identify potential issues.
 
-4. **Optimize Local Search:**
-   - Use the `-s` parameter to control the number of files returned by local similarity search. Setting it to 0 disables local search entirely, while higher values may include more context but could also introduce noise.
+5. **Optimize Local Search:**
+   - Use the `-s` parameter to control the number of additional files returned by local similarity search. Setting it to `0` disables local search entirely, while higher values may include more context but can also introduce noise.
 
-5. **Use Context Saving Mode for Large Projects:**
-   - For large codebases, use the `-c` parameter to control context usage. The `auto` mode automatically balances between aggressive and conservative file selection based on the number of files found in stage 1.
+6. **Use Context Saving Mode for Large Projects:**
+   - For large codebases, use the `-c` parameter to control context usage. The `auto` mode uses project file-count thresholds from `project.json` to decide when to preselect a smaller subset of files before stage 1. Use `medium` or `high` to force stronger context-saving behavior, or `off` to disable preselection.

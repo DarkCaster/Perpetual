@@ -2,7 +2,7 @@
 
 The `report` operation generates a comprehensive report of the project's source code that can be manually copied and pasted into an LLM user interface for further analysis or added to its internal knowledge base. The operation provides two types of reports: a detailed code report and a brief summary report.
 
-The `report` operation relies on both the `op_report` and `project` configurations and heavily depends on the `annotate` operation internally for optimal results. In the case of the brief report type, the `annotate` operation is executed first to ensure that all file annotations are up-to-date.
+The `report` operation relies on both the `op_report` and `project` configurations. For the brief report type, the `annotate` operation is executed first to ensure that all file annotations are up-to-date before the report is generated.
 
 ## Usage
 
@@ -20,13 +20,15 @@ The `report` operation supports several command-line flags to customize its beha
   - `code` (default): Generates a detailed report containing the full source code of the project files.
   - `brief`: Generates a concise report from generated source code annotations, providing a summary of each file's contents and purpose.
 
-- `-r <file>`: Specify the file path to write the report to. If not provided or empty, the report will be written to stdout (with all logging output sent to stderr).
+- `-r <file>`: Specify the file path to write the report to. If not provided or empty, the report will be written to stdout, with all logging output sent to stderr.
+
+- `-df <file|disabled>`: Optional path to a project description file to forward into the `annotate` operation when generating a brief report. Use `disabled` to explicitly disable loading the project description.
 
 - `-u`: Include unit test source files in the report. By default, unit test sources are excluded.
 
 - `-x <file>`: Specify a path to a user-supplied regex filter file for excluding certain files from the report. See more info about using the filter [here](user_filter.md).
 
-- `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are:
+- `-c <mode>`: Set the context saving mode used when the brief report type runs annotation generation. Valid values are:
   - `auto` (default)
   - `off`
   - `medium`
@@ -68,9 +70,15 @@ The `report` operation supports several command-line flags to customize its beha
    Perpetual report -x custom_filter.json
    ```
 
-When executed, the `report` operation will process the project files and generate the requested report type. The report will include all files that match the project's whitelist and are not excluded by the blacklist, as defined in the project's configuration.
+6. **Generate a brief report while forwarding a custom project description to annotation generation:**
 
-It is important to note that the `code` report type will include the contents of all project files, including those that might contain sensitive information. This is something to keep in mind before uploading the report to an external LLM provider.
+   ```sh
+   Perpetual report -t brief -df ./docs/project_description.md
+   ```
+
+When executed, the `report` operation will process the project files and generate the requested report type. The report will include all files that match the project's whitelist and are not excluded by the project blacklist, unit-test blacklist, or user-supplied blacklist, as defined in the project's configuration and command-line flags.
+
+It is important to note that the `code` report type will include the contents of all selected project files, including files that might contain sensitive information. The `report` operation itself does not apply the `no-upload` comment filter, so use the project blacklist or a user filter file if particular files must never be included in generated reports.
 
 For the `brief` report type, the operation will first run the `annotate` operation to ensure that all file annotations are current before generating the report. The `annotate` operation may also process files marked as no-upload, so it is possible to configure it to use a local LLM for privacy if needed.
 

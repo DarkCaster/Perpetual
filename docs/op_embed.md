@@ -2,9 +2,11 @@
 
 The `embed` operation generates vector embeddings for your project's source files, enabling local semantic search and similarity queries. By converting file contents into numerical vectors, `embed` allows Perpetual to find files related by meaning rather than just name or pattern, improving search relevance for other operations.
 
+Generated embeddings are stored in `.perpetual/.embeddings.msgpack`.
+
 ## Usage
 
-The `embed` operation is optional and will only function when an embedding model is configured via environment variables in your `.env` file. It is supported with OpenAI, Ollama, and Generic providers but not with the Anthropic provider.
+The `embed` operation is optional and will only function when an embedding model is configured via environment variables in your `.env` file. It is supported with OpenAI, Ollama, and Generic providers, depending on the specific provider/model capabilities. Anthropic does not support embeddings.
 
 ```sh
 Perpetual embed [flags]
@@ -16,7 +18,7 @@ The `embed` operation has two primary modes:
 
 2. **Question/Search Mode:** Performs semantic search using existing embeddings to find files relevant to a specific question or query.
 
-When invoked without question flags, `embed` processes your project files and is also called internally by other operations (such as `doc`, `explain`, and `implement`) to complement LLM-driven file selection with local similarity search using the project's existing embeddings. When properly set up, you generally do not need to run the `embed` operation manually.
+When invoked without question flags, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
 
 Available flags:
 
@@ -24,31 +26,31 @@ Available flags:
   Force regeneration of all embeddings, even if up to date. Useful when you change embedding parameters in your `.env`.
 
 - `-d`  
-  Dry run: list files that **would** be processed without performing embeddings.
+  Dry run: list files that **would** be processed without generating embeddings.
 
 - `-r <file>`  
-  Generate embeddings for a single file, even if its embedding already exists (implies `-f`).
+  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project.
 
 - `-q`  
-  Read question from stdin and find files relevant to it using semantic search.
+  Read a question from stdin and find files relevant to it using semantic search.
 
 - `-i <file>`  
-  Read question from file (plain text or markdown format) and find relevant files (implies `-q`).
+  Read a question from a file, in plain text or markdown format, and find relevant files. Implies `-q`.
 
 - `-s <limit>`  
-  Limit on the number of files returned that are relevant to the question (default: 5). Only used with `-q` or `-i`.
+  Limit the number of files returned that are relevant to the question (default: 5). Used with `-q` or `-i`.
 
 - `-u`  
-  Do not exclude unit-test source files from processing. Only used with `-q` or `-i`.
+  Do not exclude unit-test source files from search results. Used with `-q` or `-i`.
 
 - `-x <file>`  
-  Path to a JSON file containing regex filters to exclude files from embedding.
+  Path to a JSON file containing regex filters used to exclude files. In embedding generation mode, matching files are skipped for embedding. In question/search mode, matching files are skipped from search results.
 
 - `-v`  
-  Enable debug logging (Debug level).
+  Enable debug logging.
 
 - `-vv`  
-  Enable both debug and trace logging (Debug + Trace levels).
+  Enable both debug and trace logging.
 
 - `-h`  
   Show help message and exit.
@@ -67,7 +69,7 @@ Available flags:
    Perpetual embed -f
    ```
 
-3. **Embed only a single file (e.g., `main.go`):**
+3. **Embed only a single file:**
 
    ```sh
    Perpetual embed -r cmd/main.go
@@ -85,7 +87,7 @@ Available flags:
    Perpetual embed -i question.txt -s 3
    ```
 
-6. **Exclude files via user-supplied filter:**
+6. **Exclude files via a user-supplied filter:**
 
    ```sh
    Perpetual embed -x filters/skip_patterns.json
@@ -93,15 +95,17 @@ Available flags:
 
 ## LLM Configuration
 
-To enable embeddings, set the appropriate model and parameters in your `.perpetual/.env` or global `.env` file. Embedding is supported for OpenAI, Ollama, and Generic providers (depending on the specific provider's capabilities); Anthropic does not support embeddings.
+To enable embeddings, set the appropriate model and parameters in your `.perpetual/.env` or global `.env` file. Embedding is supported for OpenAI, Ollama, and Generic providers, depending on the selected model and API endpoint. Anthropic does not support embeddings.
 
 ### Key Environment Variables
 
 - **Provider Selection:**  
   `LLM_PROVIDER_OP_EMBED` (fallback to `LLM_PROVIDER`)
 
-- **Model:**  
+- **Embedding Model:**  
   `<PROVIDER>_MODEL_OP_EMBED`
+
+  For the `embed` operation, the operation-specific model variable must be set for OpenAI, Ollama, and Generic providers. The generic `<PROVIDER>_MODEL` fallback is not used for embedding mode.
 
 - **Document Chunking:**  
   `<PROVIDER>_EMBED_DOC_CHUNK_SIZE` (default: 1024)  
@@ -114,35 +118,43 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
 - **Score Threshold:**  
   `<PROVIDER>_EMBED_SCORE_THRESHOLD` (default: 0.0)
 
-- **Embedding Dimensions (OpenAI and Generic):**  
-  `OPENAI_EMBED_DIMENSIONS` or `GENERIC_EMBED_DIMENSIONS`
+- **Embedding Dimensions:**  
+  `OPENAI_EMBED_DIMENSIONS`  
+  `GENERIC_EMBED_DIMENSIONS`  
+  `OLLAMA_EMBED_DIMENSIONS`
 
-- **Ollama Embedding Dimensions:**  
-  `OLLAMA_EMBED_DIMENSIONS` (may not be supported by all models)
+  Dimension overrides are model/provider dependent and may not be supported by all embedding models.
 
 - **Retries:**  
   `<PROVIDER>_ON_FAIL_RETRIES_OP_EMBED` (fallback to `<PROVIDER>_ON_FAIL_RETRIES`, default: 3)
 
 - **Generic Provider Prefixes:**  
-  You can set `GENERIC_EMBED_DOC_PREFIX` and `GENERIC_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some embedding models may expect a specific prompt prefix. Refer to the model's documentation or its Hugging Face model card for recommended prefixes.
+  You can set `GENERIC_EMBED_DOC_PREFIX` and `GENERIC_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some embedding models expect a specific prefix. Refer to the model's documentation or Hugging Face model card for recommended prefixes.
 
 - **Ollama Prefixes:**  
-  You can optionally set `OLLAMA_EMBED_DOC_PREFIX` and `OLLAMA_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some Ollama embedding models (e.g., `nomic-embed-text-v1.5`) may expect a specific prompt prefix. Refer to the model's documentation or its Hugging Face model card for recommended prefixes. **NOTE:** `snowflake-arctic-embed2` does not require any prefixes to be set.
+  You can set `OLLAMA_EMBED_DOC_PREFIX` and `OLLAMA_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some Ollama embedding models require this for good results. For example, `nomic-embed-text-v1.5` commonly uses `search_document:` and `search_query:` prefixes. `snowflake-arctic-embed2` does not require prefixes.
 
 ## Example Configurations in `.env` Files
 
 ```sh
 # OpenAI embeddings
 LLM_PROVIDER_OP_EMBED="openai"
+OPENAI_API_KEY="<your api key goes here>"
+OPENAI_BASE_URL="https://api.openai.com/v1"
+
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small"
-# Document chunk size / overlap (in characters)
+
+# Document chunk size / overlap, in characters
 OPENAI_EMBED_DOC_CHUNK_SIZE="1024"
 OPENAI_EMBED_DOC_CHUNK_OVERLAP="64"
-# Search query chunk size / overlap (in characters)
+
+# Search query chunk size / overlap, in characters
 OPENAI_EMBED_SEARCH_CHUNK_SIZE="4096"
 OPENAI_EMBED_SEARCH_CHUNK_OVERLAP="128"
-# Set dimension count of generated vectors (optional)
+
+# Set dimension count of generated vectors, optional and model-dependent
 OPENAI_EMBED_DIMENSIONS="1536"
+
 # Cosine similarity threshold
 OPENAI_EMBED_SCORE_THRESHOLD="0.0"
 ```
@@ -150,28 +162,46 @@ OPENAI_EMBED_SCORE_THRESHOLD="0.0"
 ```sh
 # Ollama embeddings
 LLM_PROVIDER_OP_EMBED="ollama"
+OLLAMA_BASE_URL="http://127.0.0.1:11434"
+
 OLLAMA_MODEL_OP_EMBED="nomic-embed-text-v1.5"
+
 OLLAMA_EMBED_DOC_CHUNK_SIZE="1024"
 OLLAMA_EMBED_DOC_CHUNK_OVERLAP="64"
 OLLAMA_EMBED_SEARCH_CHUNK_SIZE="1024"
 OLLAMA_EMBED_SEARCH_CHUNK_OVERLAP="64"
+
+# Optional and model-dependent
 OLLAMA_EMBED_DIMENSIONS="1024"
+
 OLLAMA_EMBED_SCORE_THRESHOLD="0.0"
-# Optional Ollama prefixes for models that require them (needed for nomic-embed-text, for example)
+
+# Optional Ollama prefixes for models that require them
 OLLAMA_EMBED_DOC_PREFIX="search_document:\n"
 OLLAMA_EMBED_SEARCH_PREFIX="search_query:\n"
 ```
 
 ```sh
-# Generic provider embeddings
+# Generic OpenAI-compatible provider embeddings
 LLM_PROVIDER_OP_EMBED="generic"
-GENERIC_MODEL_OP_EMBED="deepseek-r1"
+
+GENERIC_BASE_URL="https://your-provider.example.com/v1"
+GENERIC_AUTH_TYPE="Bearer"
+GENERIC_AUTH="<your api key or token goes here>"
+
+GENERIC_MODEL_OP_EMBED="<your embedding model>"
+
 GENERIC_EMBED_DOC_CHUNK_SIZE="1024"
 GENERIC_EMBED_DOC_CHUNK_OVERLAP="64"
 GENERIC_EMBED_SEARCH_CHUNK_SIZE="4096"
 GENERIC_EMBED_SEARCH_CHUNK_OVERLAP="128"
+
+# Optional and provider/model-dependent
 GENERIC_EMBED_DIMENSIONS="1024"
+
 GENERIC_EMBED_SCORE_THRESHOLD="0.0"
+
+# Optional model-specific prefixes
 GENERIC_EMBED_DOC_PREFIX="Process following document:\n"
 GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 ```
@@ -184,60 +214,63 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
    Locate the project root and Perpetual directory (`.perpetual`).
 
 2. **File Listing & Filtering**  
-   Gather all project files, apply built-in whitelist/blacklist rules and any user-supplied filters.
+   Gather project files and apply project whitelist/blacklist rules from `project.json`.
 
 3. **Checksum Calculation**  
    Compute SHA-256 checksums for files to detect content changes.
 
 4. **Load Existing Embeddings**  
-   Read stored embeddings and checksums from the `.embeddings.msgpack` file.
+   Read stored embeddings and checksums from `.perpetual/.embeddings.msgpack`.
 
 5. **Determine Files to Embed**  
    - With `-r`, select the specified file.  
    - With `-f`, select all project files.  
-   - Otherwise, detect files whose checksums have changed.
+   - Otherwise, select files whose checksums have changed or whose embeddings are missing.
 
-6. **Apply Blacklist Filters**  
-   Exclude files matching user-provided regex patterns, but preserve their old checksums for future runs.
+6. **Apply User Filters**  
+   Exclude files matching user-provided regex patterns from `-x`. For skipped files, old checksums are preserved where possible so they can be reconsidered on later runs.
 
 7. **Dry Run (optional)**  
-   If `-d`, output the list of files to be embedded and exit.
+   If `-d` is specified, output the list of files to be embedded and exit.
 
 8. **Generate Embeddings**  
-   For each file:  
+   For each selected file:  
    - Read file content.  
-   - Split into chunks with overlap based on configuration.  
-   - Call the LLM provider to create embeddings (with retry logic).  
-   - Validate vector dimensions consistency.
+   - Split it into chunks with overlap based on configuration.  
+   - Call the configured embedding provider.  
+   - Retry transient failures according to provider retry settings.  
+   - Validate vector dimension consistency.
 
 9. **Save Embeddings**  
-   Update the embeddings storage file and checksums if any embeddings changed.
+   Update `.perpetual/.embeddings.msgpack` if any embeddings changed.
 
 ### Question/Search Mode
 
-When using `-q` or `-i` flags:
+When using `-q` or `-i`:
 
 1. **Read Question**  
-   Load the question from stdin (with `-q`) or from a file (with `-i`).
+   Load the question from stdin with `-q` or from a file with `-i`.
 
-2. **Apply Test File Filtering**  
-   If `-u` is not specified, exclude test files from the search using project blacklist patterns.
+2. **Apply Search Filters**  
+   Apply user filters from `-x`. If `-u` is not specified, also exclude files matching the project test-file blacklist.
 
 3. **Generate Question Embeddings**  
-   Create embeddings for the input question using the same LLM provider. Search query embeddings are cached to avoid recomputation.
+   Create embeddings for the input question using the configured embedding provider. Search query embeddings are cached in memory during the current process to avoid recomputation.
 
 4. **Load Project Embeddings**  
-   Read existing project file embeddings from storage.
+   Read existing project file embeddings from `.perpetual/.embeddings.msgpack`.
 
 5. **Perform Similarity Search**  
-   Calculate cosine similarity between the question embedding and all project file embeddings. The search can use both the direct query and annotations of target files (if available) to form additional search queries.
+   Calculate cosine similarity between the question embedding and stored project file embeddings.
 
 6. **Return Results**  
-   Output the top files (limited by `-s` parameter) that exceed the similarity threshold, sorted by relevance score.
+   Print selected matching files, one per line, limited by `-s` and filtered by the configured similarity threshold.
 
 ### Internal Use for Local Search
 
-Other operations invoke `embed` internally to perform local similarity search, combining these embeddings with LLM-driven file selection for improved relevance. Search query embeddings are cached to improve performance during repeated searches.
+Other operations use embeddings for local similarity search in addition to LLM-based file selection. This is used to improve relevance and reduce context pressure, especially when context saving is enabled.
+
+Internal searches may use more than just a direct query. Depending on the operation, Perpetual can also compose search queries from task text, target-file annotations, or generated task summaries. These searches use the same embedding storage and provider configuration as the standalone `embed` operation.
 
 ## Best Practices
 
@@ -245,10 +278,10 @@ Other operations invoke `embed` internally to perform local similarity search, c
   - **Ollama:**  
     `snowflake-arctic-embed2` is recommended for high-quality local embeddings.  
   - **OpenAI:**  
-    `text-embedding-3-small` is a minimum recommended model. Adjust `OPENAI_EMBED_DIMENSIONS` (e.g., to 1024) if RAM usage is a concern.
+    `text-embedding-3-small` is a practical minimum recommended model. Adjust `OPENAI_EMBED_DIMENSIONS` if RAM or disk usage is a concern.
 
 - **Chunk Settings:**  
-  Default optimal values are:
+  Default values are:
 
   ```sh
   <PROVIDER>_EMBED_DOC_CHUNK_SIZE=1024
@@ -257,13 +290,17 @@ Other operations invoke `embed` internally to perform local similarity search, c
   <PROVIDER>_EMBED_SEARCH_CHUNK_OVERLAP=128
   ```
 
-  Smaller overlaps reduce redundant vectors; larger overlaps can improve continuity at chunk boundaries. These defaults work well for general use (for `text-embedding-3-small` and `snowflake-arctic-embed2`). For some Ollama models, you may need to lower `SEARCH_CHUNK_SIZE` to avoid context-window overflow/crashes.
+  Smaller overlaps reduce redundant vectors; larger overlaps can improve continuity at chunk boundaries. These defaults work well for general use with models such as `text-embedding-3-small` and `snowflake-arctic-embed2`. For some Ollama models, you may need to lower `SEARCH_CHUNK_SIZE` to avoid context-window overflow or model errors.
 
 - **Resource Optimization:**  
-  For very large projects (500+ files), consider increasing `DOC_CHUNK_SIZE` to reduce the number of generated vectors (trading off granularity for performance). You can also experiment with higher `SEARCH_CHUNK_SIZE` for large queries if your provider supports it without errors.
+  For very large projects, consider increasing `DOC_CHUNK_SIZE` to reduce the number of generated vectors, trading off granularity for performance. You can also experiment with higher `SEARCH_CHUNK_SIZE` for large queries if your provider supports it without errors.
 
 - **Model-Specific Prefixes:**  
-  Some embedding models require specific prefixes for optimal performance. Check your model's documentation for recommended prefixes. For example:
-  - `nomic-embed-text-v1.5`: Use `search_document:` and `search_query:` prefixes
-  - `mxbai-embed-large-v1`: No prefix needed for documents, but use `Represent this sentence for searching relevant passages:` for search queries
-  - `qwen3-embedding-8b`: Use `Instruct: retrieve code fragments relevant to the query\nQuery:` for search queries
+  Some embedding models require specific prefixes for optimal performance. Check your model's documentation for recommended prefixes. Examples:
+
+  - `nomic-embed-text-v1.5`: use `search_document:` and `search_query:` prefixes.
+  - `mxbai-embed-large-v1`: no document prefix is usually needed, but search queries can use `Represent this sentence for searching relevant passages:\n`.
+  - `qwen3-embedding-8b`: search queries can use `Instruct: retrieve code fragments relevant to the query\nQuery:\n`.
+
+- **Sensitive Files:**  
+  The `embed` operation sends file contents to the configured embedding provider. It does not use `no-upload` source comments as a filter. Use project whitelist/blacklist rules or the `-x` user filter file to exclude files that must not be embedded.
