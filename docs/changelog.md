@@ -54,12 +54,6 @@ Add support for deleting files to the `implement` operation:
 
 ## Remove old and stale code / features that I do not use
 
-Remove all multi-answer generation logic from LLM support code:
-
-- This feature was only used with multi-step annotation;
-- When actually using this code path, it prevents continuing code generation when hitting max-token limits;
-- The whole support code is overcomplicated.
-
 Remove JSON mode support:
 
 - Only used for generating file lists for review or modification, not for code or planning;
