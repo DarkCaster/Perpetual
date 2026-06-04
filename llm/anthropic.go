@@ -33,8 +33,6 @@ type AnthropicLLMConnector struct {
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
-	Variants              int
-	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
 	Debug                 llmDebug
 	RateLimitDelayS       int
@@ -155,28 +153,6 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("top p", topP)
 	}
 
-	variants := 1
-	if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-		variants = curVariants
-		debug.Add("variants", variants)
-	}
-
-	variantStrategy := Short
-	if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-		debug.Add("strategy", curStrategy)
-		if curStrategy == "SHORT" {
-			variantStrategy = Short
-		} else if curStrategy == "LONG" {
-			variantStrategy = Long
-		} else if curStrategy == "COMBINE" {
-			variantStrategy = Combine
-		} else if curStrategy == "BEST" {
-			variantStrategy = Best
-		} else {
-			return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
-		}
-	}
-
 	// make some additional tweaks to the schema according to
 	// https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 	if outputFormat == OutputJson {
@@ -204,8 +180,6 @@ func NewAnthropicLLMConnectorFromEnv(
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               extraOptions,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
@@ -487,14 +461,6 @@ func (p *AnthropicLLMConnector) GetIncrModeTryCount() int {
 
 func (p *AnthropicLLMConnector) GetDebugString() string {
 	return p.Debug.Format()
-}
-
-func (p *AnthropicLLMConnector) GetVariantCount() int {
-	return p.Variants
-}
-
-func (p *AnthropicLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
-	return p.VariantStrategy
 }
 
 func (p *AnthropicLLMConnector) GetPerfString() string {

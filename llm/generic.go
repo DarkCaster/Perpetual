@@ -48,8 +48,6 @@ type GenericLLMConnector struct {
 	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
-	Variants              int
-	VariantStrategy       VariantSelectionStrategy
 	FieldsToRemove        []string
 	EmbedDocChunk         int
 	EmbedDocOverlap       int
@@ -149,7 +147,6 @@ func NewGenericLLMConnectorFromEnv(
 	var searchChunk int = 4096
 	var searchOverlap int = 128
 	var seed int = math.MaxInt
-	var variants int = 1
 
 	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
@@ -162,7 +159,6 @@ func NewGenericLLMConnectorFromEnv(
 	var userPromptSuffix = ""
 
 	maxTokensFormat := MaxTokensOld
-	variantStrategy := Short
 	incrModeTries := 1
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
@@ -344,27 +340,6 @@ func NewGenericLLMConnectorFromEnv(
 			fieldsToInject["reasoning_effort"] = strings.ToLower(reasoning)
 		}
 
-		if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-			variants = curVariants
-			debug.Add("variants", variants)
-		}
-
-		if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-			debug.Add("strategy", curStrategy)
-			switch curStrategy {
-			case "SHORT":
-				variantStrategy = Short
-			case "LONG":
-				variantStrategy = Long
-			case "COMBINE":
-				variantStrategy = Combine
-			case "BEST":
-				variantStrategy = Best
-			default:
-				return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation: %s", operation, curStrategy)
-			}
-		}
-
 		if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
 			debug.Add("system prompt role", curSystemPromptRole)
 			switch curSystemPromptRole {
@@ -450,8 +425,6 @@ func NewGenericLLMConnectorFromEnv(
 		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               extraOptions,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
 		FieldsToRemove:        fieldsToRemove,
 		EmbedDocChunk:         docChunk,
 		EmbedDocOverlap:       docOverlap,
@@ -909,14 +882,6 @@ func (p *GenericLLMConnector) GetIncrModeTryCount() int {
 
 func (p *GenericLLMConnector) GetDebugString() string {
 	return p.Debug.Format()
-}
-
-func (p *GenericLLMConnector) GetVariantCount() int {
-	return p.Variants
-}
-
-func (p *GenericLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
-	return p.VariantStrategy
 }
 
 func (p *GenericLLMConnector) GetPerfString() string {

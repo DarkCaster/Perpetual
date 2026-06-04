@@ -222,18 +222,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Failed to create LLM connector:", err)
 	}
 
-	// Create new connector for "annotate_post" operation (stage2)
-	connectorPost, err := llm.NewLLMConnector(OpName+"_post",
-		annotateConfig.String(config.K_SystemPrompt),
-		annotateConfig.String(config.K_SystemPromptAck),
-		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{},
-		"", "",
-		llm.GetSimpleRawMessageLogger(perpetualDir))
-	if err != nil {
-		logger.Panicln("Failed to create LLM connector:", err)
-	}
-
 	// Generate file annotations
 	logger.Infoln("Annotating files, count:", len(filesToAnnotate))
 
@@ -244,21 +232,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		}
 	}
 
-	if len(filesToAnnotate) > 0 && connector.GetVariantCount() <= 1 {
+	if len(filesToAnnotate) > 0 {
 		debugString := connector.GetDebugString()
 		logger.Notifyln(debugString)
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", debugString))
-	}
-
-	if len(filesToAnnotate) > 0 && connector.GetVariantCount() > 1 {
-		logger.Infoln("Annotate LLM config for generating summary variants:")
-		debugString := connector.GetDebugString()
-		logger.Notifyln(debugString)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate (1-st pass): %s\n", debugString))
-		logger.Infoln("Annotate LLM config for post-processing:")
-		debugString = connectorPost.GetDebugString()
-		logger.Notifyln(debugString)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate (2-nd pass): %s\n\n\n", debugString))
 	}
 
 	logger.Debugln("Sorting files according to sizes")
@@ -329,10 +306,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
-			// Get max number of variants to generate on query
-			variantCount := connector.GetVariantCount()
 			// Perform actual query
-			annotationVariants, status, err := connector.Query(variantCount, messages...)
+			annotationResponses, status, err := connector.Query(1, messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -345,9 +320,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				}
 				continue
 			}
-			// Check for hitting token limit - there are no response variants below token limit, we will try to regenerate from scratch if possible
+			// Check for hitting token limit - there are no responses below token limit, we will try to regenerate from scratch if possible
 			if status == llm.QueryMaxTokens {
-				logger.Errorln("LLM response(s) reached max tokens, consider increasing the limit")
+				logger.Errorln("LLM response reached max tokens, consider increasing the limit")
 				//TODO: find out do we have seed parameter set, because regenerating with same seed will fail again, so if true -> make onFailRetriesLeft = 0
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = oldChecksums[filePath]
@@ -355,10 +330,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				}
 				continue
 			}
-			// Some final filtering and preparations of produced annotation variants
-			finalVariants := utils.FilterAndTrimResponses(annotationVariants, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+			// Some final filtering and preparations of produced annotation response
+			finalResponses := utils.FilterAndTrimResponses(annotationResponses, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
-			if len(finalVariants) < 1 {
+			if len(finalResponses) < 1 {
 				logger.Errorln("No LLM responses available")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = oldChecksums[filePath]
@@ -366,87 +341,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				}
 				continue
 			}
-			// Exit here if only one variant is available after filtering
-			if len(finalVariants) == 1 {
-				newAnnotations[filePath] = finalVariants[0]
-				break
-			}
 
-			variantSelectionStrategy := connector.GetVariantSelectionStrategy()
-
-			// Combine the annotation using LLM
-			if variantSelectionStrategy == llm.Combine || variantSelectionStrategy == llm.Best {
-				// Create message-chain for request including project description
-				combinedMessages := utils.NewSlice(messages...)
-				for i, variant := range finalVariants {
-					combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), variant))
-					if i < len(finalVariants)-1 {
-						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
-							llm.NewMessage(llm.UserRequest),
-							annotateConfig.String(config.K_AnnotateStage2PromptVariant)))
-					} else if variantSelectionStrategy == llm.Combine {
-						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
-							llm.NewMessage(llm.UserRequest),
-							annotateConfig.String(config.K_AnnotateStage2PromptCombine)))
-					} else if variantSelectionStrategy == llm.Best {
-						combinedMessages = append(combinedMessages, llm.AddPlainTextFragment(
-							llm.NewMessage(llm.UserRequest),
-							annotateConfig.String(config.K_AnnotateStage2PromptBest)))
-					}
-				}
-				// Perform the query
-				combinedAnnotation, status, err := connectorPost.Query(1, combinedMessages...)
-				if perfString := connectorPost.GetPerfString(); perfString != "" {
-					logger.Traceln(perfString)
-				}
-				// Check for general error on query, switch for using "short" variant selection strategy on error
-				if err != nil {
-					logger.Warnf("LLM query failed with status %d, error: %s", status, err)
-					variantSelectionStrategy = llm.Short
-				} else if status == llm.QueryMaxTokens {
-					logger.Warnf("LLM combined annotation reached max tokens")
-					variantSelectionStrategy = llm.Short
-				} else if blocks, err := utils.ParseMultiTaggedTextRx(
-					combinedAnnotation[0],
-					utils.GetEvenRegexps(projectConfig.RegexpArray(config.K_ProjectCodeTagsRx)),
-					utils.GetOddRegexps(projectConfig.RegexpArray(config.K_ProjectCodeTagsRx)),
-					true); err != nil || len(blocks) > 0 {
-					logger.Warnln("LLM combined annotation contains code blocks, which is not allowed")
-					variantSelectionStrategy = llm.Short
-				} else {
-					// Trim unneded symbols from both ends of annotation
-					trimmedAnnotation := strings.Trim(combinedAnnotation[0], " \t\n") //note: there is a space character first, do not remove it
-					if len(trimmedAnnotation) < 1 {
-						logger.Warnln("LLM combined annotation is empty")
-						variantSelectionStrategy = llm.Short
-					} else {
-						// Finally save our post-processed annotation
-						newAnnotations[filePath] = combinedAnnotation[0]
-						break
-					}
-				}
-			}
-
-			// Longest variant
-			if variantSelectionStrategy == llm.Long {
-				longestVariant := finalVariants[0]
-				for _, variant := range finalVariants[1:] {
-					if len(variant) > len(longestVariant) {
-						longestVariant = variant
-					}
-				}
-				newAnnotations[filePath] = longestVariant
-				break
-			}
-
-			// Select shortest variant
-			shortestVariant := finalVariants[0]
-			for _, variant := range finalVariants[1:] {
-				if len(variant) < len(shortestVariant) {
-					shortestVariant = variant
-				}
-			}
-			newAnnotations[filePath] = shortestVariant
+			newAnnotations[filePath] = finalResponses[0]
 			break
 		}
 	}

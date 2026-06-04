@@ -39,8 +39,6 @@ type OpenAILLMConnector struct {
 	OnFailRetries                int
 	RawMessageLogger             func(v ...any)
 	Options                      []llms.CallOption
-	Variants                     int
-	VariantStrategy              VariantSelectionStrategy
 	FieldsToRemove               []string
 	EmbedDocChunk                int
 	EmbedDocOverlap              int
@@ -122,13 +120,10 @@ func NewOpenAILLMConnectorFromEnv(
 	var searchChunk int = 4096
 	var searchOverlap int = 128
 
-	var variants int = 1
-
 	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
 	var serviceTierFallback string = ""
 
-	variantStrategy := Short
 	incrModeTries := 1
 
 	if operation == "EMBED" {
@@ -248,25 +243,6 @@ func NewOpenAILLMConnectorFromEnv(
 			debug.Add("presence penalty", presencePenalty)
 		}
 
-		if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-			variants = curVariants
-			debug.Add("variants", variants)
-		}
-
-		if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-			debug.Add("strategy", curStrategy)
-			if curStrategy == "SHORT" {
-				variantStrategy = Short
-			} else if curStrategy == "LONG" {
-				variantStrategy = Long
-			} else if curStrategy == "COMBINE" {
-				variantStrategy = Combine
-			} else if curStrategy == "BEST" {
-				variantStrategy = Best
-			} else {
-				return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
-			}
-		}
 	}
 
 	if serviceTier, err := utils.GetEnvString(fmt.Sprintf("%s_SERVICE_TIER_OP_%s", prefix, operation), fmt.Sprintf("%s_SERVICE_TIER", prefix)); err == nil {
@@ -312,8 +288,6 @@ func NewOpenAILLMConnectorFromEnv(
 		OnFailRetries:                onFailRetries,
 		RawMessageLogger:             llmRawMessageLogger,
 		Options:                      extraOptions,
-		Variants:                     variants,
-		VariantStrategy:              variantStrategy,
 		FieldsToRemove:               fieldsToRemove,
 		EmbedDocChunk:                docChunk,
 		EmbedDocOverlap:              docOverlap,
@@ -805,14 +779,6 @@ func (p *OpenAILLMConnector) GetIncrModeTryCount() int {
 
 func (p *OpenAILLMConnector) GetDebugString() string {
 	return p.Debug.Format()
-}
-
-func (p *OpenAILLMConnector) GetVariantCount() int {
-	return p.Variants
-}
-
-func (p *OpenAILLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
-	return p.VariantStrategy
 }
 
 func (p *OpenAILLMConnector) GetPerfString() string {

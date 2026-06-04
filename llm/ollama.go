@@ -51,8 +51,6 @@ type OllamaLLMConnector struct {
 	Seed                  int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
-	Variants              int
-	VariantStrategy       VariantSelectionStrategy
 	OptionsToRemove       []string
 	EmbedDocChunk         int
 	EmbedDocOverlap       int
@@ -151,7 +149,6 @@ func NewOllamaLLMConnectorFromEnv(
 
 	var seed int = math.MaxInt
 	var maxTokens int = 0
-	var variants int = 1
 	var docChunk int = 1024
 	var docOverlap int = 64
 	var searchChunk int = 4096
@@ -166,7 +163,6 @@ func NewOllamaLLMConnectorFromEnv(
 	var systemPromptSuffix = ""
 	var userPromptSuffix = ""
 
-	variantStrategy := Short
 	incrModeTries := 1
 	systemPromptRole := SystemRole
 	thinkRx := []*regexp.Regexp{}
@@ -358,26 +354,6 @@ func NewOllamaLLMConnectorFromEnv(
 			debug.Add("presence penalty", presencePenalty)
 		}
 
-		if curVariants, err := utils.GetEnvInt(fmt.Sprintf("%s_VARIANT_COUNT_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_COUNT", prefix)); err == nil {
-			variants = curVariants
-			debug.Add("variants", variants)
-		}
-
-		if curStrategy, err := utils.GetEnvUpperString(fmt.Sprintf("%s_VARIANT_SELECTION_OP_%s", prefix, operation), fmt.Sprintf("%s_VARIANT_SELECTION", prefix)); err == nil {
-			debug.Add("strategy", curStrategy)
-			if curStrategy == "SHORT" {
-				variantStrategy = Short
-			} else if curStrategy == "LONG" {
-				variantStrategy = Long
-			} else if curStrategy == "COMBINE" {
-				variantStrategy = Combine
-			} else if curStrategy == "BEST" {
-				variantStrategy = Best
-			} else {
-				return nil, fmt.Errorf("invalid variant selection strategy provided for %s operation, %s", operation, curStrategy)
-			}
-		}
-
 		if outputFormat == OutputJson {
 			debug.Add("format", "json")
 			fieldsToInject["format"] = outputSchema
@@ -482,8 +458,6 @@ func NewOllamaLLMConnectorFromEnv(
 		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               extraOptions,
-		Variants:              variants,
-		VariantStrategy:       variantStrategy,
 		OptionsToRemove:       optionsToRemove,
 		EmbedDocChunk:         docChunk,
 		EmbedDocOverlap:       docOverlap,
@@ -1024,14 +998,6 @@ func (p *OllamaLLMConnector) GetIncrModeTryCount() int {
 
 func (p *OllamaLLMConnector) GetDebugString() string {
 	return p.Debug.Format()
-}
-
-func (p *OllamaLLMConnector) GetVariantCount() int {
-	return p.Variants
-}
-
-func (p *OllamaLLMConnector) GetVariantSelectionStrategy() VariantSelectionStrategy {
-	return p.VariantStrategy
 }
 
 func (p *OllamaLLMConnector) GetPerfString() string {

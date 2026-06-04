@@ -29,15 +29,6 @@ const (
 	OutputJson
 )
 
-type VariantSelectionStrategy int
-
-const (
-	Short VariantSelectionStrategy = iota
-	Long
-	Combine
-	Best
-)
-
 type EmbedMode int
 
 const (
@@ -73,9 +64,6 @@ type LLMConnector interface {
 	GetPerfString() string
 	GetOutputFormat() OutputFormat
 	GetIncrModeTryCount() int // 0 - do not use increment mode at all
-	// Results variant-count management.
-	GetVariantCount() int
-	GetVariantSelectionStrategy() VariantSelectionStrategy
 }
 
 func NewLLMConnector(operation string,
