@@ -75,8 +75,7 @@ Remove JSON mode support:
 
 ### Removed Obsolete Features
 
-- Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call.
-- Removed obsolete multi-variant annotation configuration and environment options from the default generated config examples.
+- Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed multi-variant annotation configuration and environment options from the default config examples.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old `op_annotate.json` files containing removed multi-step or multi-variant annotation keys may fail validation.
 
