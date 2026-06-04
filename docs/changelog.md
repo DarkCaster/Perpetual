@@ -54,12 +54,9 @@ Add support for deleting files to the `implement` operation:
 
 ## Remove old and stale code / features that I do not use
 
-Remove multi-step annotation generation support:
+Remove multi-step annotation generation support (in progress):
 
-- Overcomplicated feature, only used for annotations;
-- All modern local LLM models are good enough to generate annotations with one call;
-- It is better to use context saving modes to generate smaller annotations than using multi-step annotation generation;
-- If using a commercial LLM provider, it will cause extra expenses.
+- current progress: support code was removed, needs refactor leftover annotate config references, docs
 
 Remove all multi-answer generation logic from LLM support code:
 
