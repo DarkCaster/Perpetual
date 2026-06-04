@@ -307,7 +307,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
 			// Perform actual query
-			annotationResponses, status, err := connector.Query(1, messages...)
+			annotationResponses, status, err := connector.Query(messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}

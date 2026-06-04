@@ -137,7 +137,7 @@ func Stage3(projectRootDir string,
 			if connector.GetOutputFormat() == llm.OutputJson {
 				targetMessages = jsonModeMessages
 			}
-			aiResponses, status, err := connector.Query(1, targetMessages...)
+			aiResponses, status, err := connector.Query(targetMessages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}

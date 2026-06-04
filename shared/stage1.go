@@ -131,7 +131,7 @@ func Stage1(
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		aiResponses, status, err := connector.Query(1, messages...)
+		aiResponses, status, err := connector.Query(messages...)
 		if perfString := connector.GetPerfString(); perfString != "" {
 			logger.Traceln(perfString)
 		}

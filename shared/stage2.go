@@ -159,7 +159,7 @@ func Stage2(
 		for continueGeneration && !fileRetry {
 			// Run query
 			continueGeneration = false
-			aiResponses, status, err := connector.Query(1, messagesTry...)
+			aiResponses, status, err := connector.Query(messagesTry...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}

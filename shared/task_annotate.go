@@ -77,7 +77,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Perform actual query
-			annotationVariants, status, err := connector.Query(1, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotationVariants, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}

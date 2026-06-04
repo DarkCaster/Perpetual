@@ -653,14 +653,11 @@ func (p *OllamaLLMConnector) GrowContextSize() {
 	}
 }
 
-func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
 	p.PerfString = ""
 
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
-	}
-	if maxCandidates < 1 {
-		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	ollamaOptions := utils.NewSlice(ollama.WithModel(p.Model))
@@ -759,223 +756,194 @@ func (p *OllamaLLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	finalContent := []string{}
 	var perfLineBuilder strings.Builder
 
-	for i := 0; i < maxCandidates; i++ {
-		//make a pause, if we need to wait to recover from previous error
-		if p.RateLimitDelayS > 0 {
-			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
-		}
-
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-		}
-
-		finalOptions := utils.NewSlice(p.Options...)
-
-		//fake streaming func to enable streaming
-		finalOptions = append(finalOptions, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error { return nil }))
-
-		// Generate new seed for each response if seed is set
-		if p.Seed != math.MaxInt {
-			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
-		}
-
-		// Perform LLM query
-		response, err := model.GenerateContent(
-			context.Background(),
-			llmMessages,
-			finalOptions...,
-		)
-
-		lastResort := len(finalContent) < 1 && i == maxCandidates-1
-
-		// Process status codes, probably not applicable for private ollama instances
-		// but still may be used with public instances wrapped with https reverse-proxy
-		switch statusCodeCollector.StatusCode {
-		case 429:
-			// rate limit hit, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 65 {
-				p.RateLimitDelayS = 65
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if err == nil {
-				err = errors.New("ratelimit hit")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		case 500:
-			fallthrough
-		case 501:
-			fallthrough
-		case 502:
-			fallthrough
-		case 503:
-			// server overload, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 15 {
-				p.RateLimitDelayS = 15
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if err == nil {
-				err = errors.New("server overload")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		}
-
-		//handle regular errors
-		if err != nil {
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		}
-
-		// At this point we most probably have some or all streaming chunks logged, so add separator to the log-file
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("\n\n\n")
-		}
-
-		//handle errors detected while reading response stream with custom stream-reader
-		contextOverflow := false
-		if respErr := responseStreamer.GetCompletionError(); respErr != nil {
-			if contextOverflowExpected {
-				contextOverflow = true
-			} else {
-				if lastResort {
-					return []string{}, QueryFailed, respErr
-				}
-				continue
-			}
-		}
-
-		//reset rate limit delay
-		p.RateLimitDelayS = 0
-
-		if len(response.Choices) < 1 {
-			if lastResort {
-				return []string{}, QueryFailed, errors.New("received empty response from model")
-			}
-			continue
-		}
-		choice := response.Choices[0]
-
-		// prompt tokens from langchaingo generation stats seem to include thinking content, so we need to add it to promptSize
-		thinkingSize := utf8.RuneCountInString(responseStreamer.GetThinkingContent())
-		promptSize += thinkingSize
-		promptSize = max(1, promptSize)
-
-		//check for context overflow
-		if p.ContextSize > 0 {
-			//get context size
-			ctxSz := p.ContextSize
-			if p.ContextSizeOverride > 0 {
-				ctxSz = p.ContextSizeOverride
-			}
-			//first check overflow by comparing total tokens with current context size, may not always work well
-			if totalTokens, exist := choice.GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
-				contextOverflow = true
-			}
-			//token limit check: if we expecting overflow to occur, then hitting token limit is a sign of context overflow
-			if responseTokens, exist := choice.GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
-				contextOverflow = true
-			}
-			//check prompt char-size to token-size multiplier from current stats, value too low is a sign of context overflow
-			if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
-				mult := float64(promptTokens) / float64(promptSize)
-				if mult < p.ContextSizeMultMin {
-					contextOverflow = true
-				}
-			}
-			//handle overflow
-			if contextOverflow {
-				if !p.CanGrowContextSize() {
-					return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
-				}
-				p.GrowContextSize()
-				return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
-			}
-		}
-
-		//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
-		//so, instead we compare actual returned message length in tokens with currently defined token limit
-		responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
-		if !ok {
-			responseTokens = p.MaxTokens
-		}
-		//and compare
-		if responseTokens >= p.MaxTokens {
-			if lastResort {
-				if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
-					//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
-					//also, return error if extra answer filtering is required
-					return []string{}, QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
-				}
-				return []string{choice.Content}, QueryMaxTokens, nil
-			}
-			continue
-		}
-
-		content := choice.Content
-		//remove reasoning, if we have setup corresponding regexps
-		if len(p.ThinkRemoveRx) > 1 {
-			filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
-				utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
-			if filteredText != "" {
-				content = filteredText
-			}
-		}
-
-		//cut output, if we have setup corresponding regexps
-		if len(p.OutputExtractRx) > 1 {
-			content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
-			content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
-		}
-
-		finalContent = append(finalContent, content)
-
-		//update performance report
-		pfTime, respGenTime := responseStreamer.GetPerfReport()
-		if maxCandidates > 1 {
-			perfLineBuilder.WriteString(fmt.Sprintf("#%d: ", i+1))
-		}
-		perfLineBuilder.WriteString(fmt.Sprintf("prefill %03.1f s, gen %03.1f s, ", pfTime, respGenTime))
-
-		//add more values to performance report
-		//update counters for context size estimation, will be used on the next call to provide better estimation
-		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
-			curMult := float64(promptTokens) / float64(promptSize)
-			// get approx size of thinking in tokens using calculated multiplier
-			thinkingTokens := int(float64(thinkingSize) * curMult)
-			// update mean values
-			totalResponseTokens := thinkingTokens + responseTokens
-			p.ContextSizeEstMultAvg = (p.ContextSizeEstMultAvg*float64(p.CompletedQueriesCount) + curMult) / float64(p.CompletedQueriesCount+1)
-			p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.CompletedQueriesCount) + float64(totalResponseTokens)) / float64(p.CompletedQueriesCount+1)
-			p.CompletedQueriesCount += 1
-			// add token estimation metrics to perfLineBuilder
-			perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
-			perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
-			perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think %d tk), ", totalResponseTokens, thinkingTokens))
-			perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
-			perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg))
-			// update multiplier for context size estimation
-			p.ContextSizeEstMultSel = max(p.ContextSizeEstMult, p.ContextSizeEstMultAvg)
-		}
-
-		p.PerfString = perfLineBuilder.String()
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
 	}
+
+	finalOptions := utils.NewSlice(p.Options...)
+
+	//fake streaming func to enable streaming
+	finalOptions = append(finalOptions, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error { return nil }))
+
+	// Use configured seed if set
+	if p.Seed != math.MaxInt {
+		finalOptions = append(finalOptions, llms.WithSeed(p.Seed))
+	}
+
+	// Perform LLM query
+	response, err := model.GenerateContent(
+		context.Background(),
+		llmMessages,
+		finalOptions...,
+	)
+
+	// Process status codes, probably not applicable for private ollama instances
+	// but still may be used with public instances wrapped with https reverse-proxy
+	switch statusCodeCollector.StatusCode {
+	case 429:
+		// rate limit hit, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return []string{}, QueryFailed, err
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
+	case 503:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return []string{}, QueryFailed, err
+	}
+
+	//handle regular errors
+	if err != nil {
+		return []string{}, QueryFailed, err
+	}
+
+	// At this point we most probably have some or all streaming chunks logged, so add separator to the log-file
+	if p.RawMessageLogger != nil {
+		p.RawMessageLogger("\n\n\n")
+	}
+
+	//handle errors detected while reading response stream with custom stream-reader
+	contextOverflow := false
+	if respErr := responseStreamer.GetCompletionError(); respErr != nil {
+		if contextOverflowExpected {
+			contextOverflow = true
+		} else {
+			return []string{}, QueryFailed, respErr
+		}
+	}
+
+	//reset rate limit delay
+	p.RateLimitDelayS = 0
+
+	if len(response.Choices) < 1 {
+		return []string{}, QueryFailed, errors.New("received empty response from model")
+	}
+	choice := response.Choices[0]
+
+	// prompt tokens from langchaingo generation stats seem to include thinking content, so we need to add it to promptSize
+	thinkingSize := utf8.RuneCountInString(responseStreamer.GetThinkingContent())
+	promptSize += thinkingSize
+	promptSize = max(1, promptSize)
+
+	//check for context overflow
+	if p.ContextSize > 0 {
+		//get context size
+		ctxSz := p.ContextSize
+		if p.ContextSizeOverride > 0 {
+			ctxSz = p.ContextSizeOverride
+		}
+		//first check overflow by comparing total tokens with current context size, may not always work well
+		if totalTokens, exist := choice.GenerationInfo["TotalTokens"].(int); exist && totalTokens >= ctxSz {
+			contextOverflow = true
+		}
+		//token limit check: if we expecting overflow to occur, then hitting token limit is a sign of context overflow
+		if responseTokens, exist := choice.GenerationInfo["CompletionTokens"].(int); exist && contextOverflowExpected && responseTokens >= p.MaxTokens {
+			contextOverflow = true
+		}
+		//check prompt char-size to token-size multiplier from current stats, value too low is a sign of context overflow
+		if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
+			mult := float64(promptTokens) / float64(promptSize)
+			if mult < p.ContextSizeMultMin {
+				contextOverflow = true
+			}
+		}
+		//handle overflow
+		if contextOverflow {
+			if !p.CanGrowContextSize() {
+				return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
+			}
+			p.GrowContextSize()
+			return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+		}
+	}
+
+	//NOTE: langchain library for ollama doesn't seem to return a stop reason when reaching max tokens ("done_reason":"length")
+	//so, instead we compare actual returned message length in tokens with currently defined token limit
+	responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
+	if !ok {
+		responseTokens = p.MaxTokens
+	}
+	//and compare
+	if responseTokens >= p.MaxTokens {
+		if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
+			//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
+			//also, return error if extra answer filtering is required
+			return []string{}, QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
+		}
+		return []string{choice.Content}, QueryMaxTokens, nil
+	}
+
+	content := choice.Content
+	//remove reasoning, if we have setup corresponding regexps
+	if len(p.ThinkRemoveRx) > 1 {
+		filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
+			utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
+		if filteredText != "" {
+			content = filteredText
+		}
+	}
+
+	//cut output, if we have setup corresponding regexps
+	if len(p.OutputExtractRx) > 1 {
+		content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
+		content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
+	}
+
+	finalContent = append(finalContent, content)
+
+	//update performance report
+	pfTime, respGenTime := responseStreamer.GetPerfReport()
+	perfLineBuilder.WriteString(fmt.Sprintf("prefill %03.1f s, gen %03.1f s, ", pfTime, respGenTime))
+
+	//add more values to performance report
+	//update counters for context size estimation, will be used on the next call to provide better estimation
+	if promptTokens, exist := choice.GenerationInfo["PromptTokens"].(int); exist {
+		curMult := float64(promptTokens) / float64(promptSize)
+		// get approx size of thinking in tokens using calculated multiplier
+		thinkingTokens := int(float64(thinkingSize) * curMult)
+		// update mean values
+		totalResponseTokens := thinkingTokens + responseTokens
+		p.ContextSizeEstMultAvg = (p.ContextSizeEstMultAvg*float64(p.CompletedQueriesCount) + curMult) / float64(p.CompletedQueriesCount+1)
+		p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.CompletedQueriesCount) + float64(totalResponseTokens)) / float64(p.CompletedQueriesCount+1)
+		p.CompletedQueriesCount += 1
+		// add token estimation metrics to perfLineBuilder
+		perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
+		perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
+		perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think %d tk), ", totalResponseTokens, thinkingTokens))
+		perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
+		perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg))
+		// update multiplier for context size estimation
+		p.ContextSizeEstMultSel = max(p.ContextSizeEstMult, p.ContextSizeEstMultAvg)
+	}
+
+	p.PerfString = perfLineBuilder.String()
 
 	return finalContent, QueryOk, nil
 }

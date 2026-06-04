@@ -240,6 +240,10 @@ func NewGenericLLMConnectorFromEnv(
 			debug.Add("embed search prefix", "set")
 		}
 	} else {
+		// Always request a single response from OpenAI-compatible APIs.
+		// This also removes an "n" value that may be injected via GENERIC_ADD_JSON.
+		fieldsToRemove = append(fieldsToRemove, "n")
+
 		if incrModeRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_INCRMODE_RETRIES", prefix)); err == nil {
 			incrModeTries += incrModeRetries
 		}
@@ -607,12 +611,9 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 	return embeddings, QueryOk, nil
 }
 
-func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
-	}
-	if maxCandidates < 1 {
-		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	providerOptions := utils.NewSlice(openai.WithModel(p.Model))
@@ -681,6 +682,7 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 	}
 
 	processingReasonings := false
+	responseHeaderWritten := false
 	streamFunc := func(ctx context.Context, reasoningChunk []byte, chunk []byte) error {
 		if p.RawMessageLogger != nil {
 			// reasoning chunk received
@@ -696,8 +698,14 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 			if len(chunk) > 0 {
 				if processingReasonings {
 					processingReasonings = false
-					//add header, because it going after reasonings block - delimit it with newlines at the beginning
-					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+					if !responseHeaderWritten {
+						responseHeaderWritten = true
+						//add header, because it going after reasonings block - delimit it with newlines at the beginning
+						p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+					}
+				} else if !responseHeaderWritten {
+					responseHeaderWritten = true
+					p.RawMessageLogger("AI response:\n\n\n")
 				}
 				p.RawMessageLogger(string(chunk))
 			}
@@ -705,163 +713,141 @@ func (p *GenericLLMConnector) Query(maxCandidates int, messages ...Message) ([]s
 		return nil
 	}
 
-	finalContent := []string{}
-	for i := 0; i < maxCandidates; i++ {
-		//make a pause, if we need to wait to recover from previous error
-		if p.RateLimitDelayS > 0 {
-			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
-		}
-
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-		}
-
-		finalOptions := utils.NewSlice(p.Options...)
-		if p.Streaming {
-			finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))
-		}
-		// Generate new seed for each response if seed is set
-		if p.Seed != math.MaxInt {
-			finalOptions = append(finalOptions, llms.WithSeed(p.Seed+i))
-		}
-
-		// Perform LLM query
-		response, err := model.GenerateContent(context.Background(), llmMessages, finalOptions...)
-		lastResort := len(finalContent) < 1 && i == maxCandidates-1
-
-		// Process status codes
-		switch statusCodeCollector.StatusCode {
-		//we may not know exact error because of API difference on various providers, act as if we hit rate-limit
-		case 400:
-			fallthrough
-		case 429:
-			// rate limit hit, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 65 {
-				p.RateLimitDelayS = 65
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if err == nil {
-				err = errors.New("ratelimit hit")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		//we may not know exact error because of API difference on various providers, act as if we hit server overload
-		case 500:
-			fallthrough
-		case 501:
-			fallthrough
-		case 502:
-			fallthrough
-		case 503:
-			// server overload, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 15 {
-				p.RateLimitDelayS = 15
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if err == nil {
-				err = errors.New("server overload")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		}
-
-		if err != nil {
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		}
-
-		//reset rate limit delay
-		p.RateLimitDelayS = 0
-
-		if len(response.Choices) < 1 {
-			if lastResort {
-				return []string{}, QueryFailed, errors.New("received empty response from model")
-			}
-			continue
-		}
-
-		// There was a message received, log it
-		if p.RawMessageLogger != nil {
-			if !p.Streaming {
-				if response.Choices[0].ReasoningContent != "" {
-					p.RawMessageLogger("AI thinking:\n\n\n")
-					p.RawMessageLogger(response.Choices[0].ReasoningContent)
-					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
-				}
-				if response.Choices[0].Content != "" {
-					p.RawMessageLogger(response.Choices[0].Content)
-				}
-			}
-			if len(response.Choices[0].Content) < 1 {
-				p.RawMessageLogger("<empty response>")
-			}
-			// add separator
-			p.RawMessageLogger("\n\n\n")
-		}
-
-		//not all providers return correct stop reason "length"
-		//try to compare actual returned message length in tokens with limit defined in options
-		callOpts := llms.CallOptions{}
-		for _, opt := range finalOptions {
-			opt(&callOpts)
-		}
-		maxTokens := callOpts.MaxTokens
-		if maxTokens < 1 {
-			maxTokens = math.MaxInt
-		}
-		//get generates message size in tokens
-		responseTokens, ok := response.Choices[0].GenerationInfo["CompletionTokens"].(int)
-		if !ok {
-			responseTokens = maxTokens
-		}
-		//and compare
-		if responseTokens >= maxTokens || response.Choices[0].StopReason == "length" {
-			if lastResort {
-				if len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
-					return []string{}, QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
-				}
-				return []string{response.Choices[0].Content}, QueryMaxTokens, nil
-			}
-			continue
-		}
-
-		content := response.Choices[0].Content
-
-		//remove reasoning, if we have setup corresponding regexps
-		if len(p.ThinkRemoveRx) > 1 {
-			filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
-				utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
-			if filteredText != "" {
-				content = filteredText
-			}
-		}
-
-		//cut output, if we have setup corresponding regexps
-		if len(p.OutputExtractRx) > 1 {
-			content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
-			content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
-		}
-
-		finalContent = append(finalContent, content)
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
 	}
 
-	return finalContent, QueryOk, nil
+	finalOptions := utils.NewSlice(p.Options...)
+	if p.Streaming {
+		finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))
+	}
+	if p.Seed != math.MaxInt {
+		finalOptions = append(finalOptions, llms.WithSeed(p.Seed))
+	}
+
+	// Perform LLM query
+	response, err := model.GenerateContent(context.Background(), llmMessages, finalOptions...)
+
+	// Process status codes
+	switch statusCodeCollector.StatusCode {
+	//we may not know exact error because of API difference on various providers, act as if we hit rate-limit
+	case 400:
+		fallthrough
+	case 429:
+		// rate limit hit, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return []string{}, QueryFailed, err
+	//we may not know exact error because of API difference on various providers, act as if we hit server overload
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
+	case 503:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return []string{}, QueryFailed, err
+	}
+
+	if err != nil {
+		return []string{}, QueryFailed, err
+	}
+
+	//reset rate limit delay
+	p.RateLimitDelayS = 0
+
+	if response == nil || len(response.Choices) < 1 {
+		return []string{}, QueryFailed, errors.New("received empty response from model")
+	}
+
+	choice := response.Choices[0]
+
+	// There was a message received, log it
+	if p.RawMessageLogger != nil {
+		if !p.Streaming {
+			if choice.ReasoningContent != "" {
+				p.RawMessageLogger("AI thinking:\n\n\n")
+				p.RawMessageLogger(choice.ReasoningContent)
+				p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+			} else if choice.Content != "" {
+				p.RawMessageLogger("AI response:\n\n\n")
+			}
+			if choice.Content != "" {
+				p.RawMessageLogger(choice.Content)
+			}
+		}
+		if len(choice.Content) < 1 {
+			p.RawMessageLogger("<empty response>")
+		}
+		// add separator
+		p.RawMessageLogger("\n\n\n")
+	}
+
+	//not all providers return correct stop reason "length"
+	//try to compare actual returned message length in tokens with limit defined in options
+	callOpts := llms.CallOptions{}
+	for _, opt := range finalOptions {
+		opt(&callOpts)
+	}
+	maxTokens := callOpts.MaxTokens
+	if maxTokens < 1 {
+		maxTokens = math.MaxInt
+	}
+	//get generated message size in tokens
+	responseTokens, ok := choice.GenerationInfo["CompletionTokens"].(int)
+	if !ok {
+		responseTokens = maxTokens
+	}
+	//and compare
+	if responseTokens >= maxTokens || choice.StopReason == "length" {
+		if len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
+			return []string{}, QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
+		}
+		return []string{choice.Content}, QueryMaxTokens, nil
+	}
+
+	content := choice.Content
+
+	//remove reasoning, if we have setup corresponding regexps
+	if len(p.ThinkRemoveRx) > 1 {
+		filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
+			utils.GetTextAfterLastMatchRx(content, p.ThinkRemoveRx[1])
+		if filteredText != "" {
+			content = filteredText
+		}
+	}
+
+	//cut output, if we have setup corresponding regexps
+	if len(p.OutputExtractRx) > 1 {
+		content = utils.GetTextAfterFirstMatchRx(content, p.OutputExtractRx[0])
+		content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
+	}
+
+	return []string{content}, QueryOk, nil
 }
 
 func (p *GenericLLMConnector) GetMaxTokensSegments() int {

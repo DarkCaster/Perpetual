@@ -163,7 +163,7 @@ func Stage4(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				aiResponses, status, err := connector.Query(1, stage4MessagesTry...)
+				aiResponses, status, err := connector.Query(stage4MessagesTry...)
 				if perfString := connector.GetPerfString(); perfString != "" {
 					logger.Traceln(perfString)
 				}

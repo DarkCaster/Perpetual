@@ -56,7 +56,7 @@ type LLMConnector interface {
 	CreateEmbeddings(mode EmbedMode, tag, content string) ([][]float32, QueryStatus, error)
 	GetEmbedScoreThreshold() float32
 	// Generate text messages
-	Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error)
+	Query(messages ...Message) ([]string, QueryStatus, error)
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
 	GetMaxTokensSegments() int
 	GetOnFailureRetryLimit() int

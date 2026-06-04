@@ -459,12 +459,9 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
 
-func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
-	}
-	if maxCandidates < 1 {
-		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithModel(p.Model))
@@ -537,7 +534,6 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 		//TODO: remove this custom responses-API handling logic when it will be implemented at langchain-go library (if ever)
 		//remove unsupported parameters of responses API, too hard to implement and maintain
 		streamingSupported = false
-		maxCandidates = 1
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
 			"n",
 			"response_format",
@@ -632,10 +628,7 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	streamingEnabled := false
 
 	// Perform LLM query
-	if maxCandidates > 1 {
-		// for multiple output variants, do not enable streaming, too expensive for me to support
-		finalOptions = append(finalOptions, llms.WithN(maxCandidates))
-	} else if streamingSupported {
+	if streamingSupported {
 		finalOptions = append(finalOptions, llms.WithStreamingReasoningFunc(streamFunc))
 		streamingEnabled = true
 	}
@@ -706,59 +699,47 @@ func (p *OpenAILLMConnector) Query(maxCandidates int, messages ...Message) ([]st
 	//reset rate limit delay
 	p.RateLimitDelayS = 0
 
-	if len(response.Choices) < 1 {
+	if response == nil || len(response.Choices) < 1 {
 		return []string{}, QueryFailed, errors.New("received empty response from model")
 	}
 
-	var finalContent []string
+	choice := response.Choices[0]
 
-	for i, choice := range response.Choices {
-		if p.RawMessageLogger != nil {
-			if !streamingEnabled {
-				p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-				if choice.ReasoningContent != "" {
-					p.RawMessageLogger("AI thinking:\n\n\n")
-					p.RawMessageLogger(choice.ReasoningContent)
-					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
-				}
-				if choice.Content != "" {
-					p.RawMessageLogger(choice.Content)
-				}
+	if p.RawMessageLogger != nil {
+		if !streamingEnabled {
+			if choice.ReasoningContent != "" {
+				p.RawMessageLogger("AI thinking:\n\n\n")
+				p.RawMessageLogger(choice.ReasoningContent)
+				p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+			} else if choice.Content != "" {
+				p.RawMessageLogger("AI response:\n\n\n")
 			}
-			if len(choice.Content) < 1 {
-				p.RawMessageLogger("<empty response>")
+			if choice.Content != "" {
+				p.RawMessageLogger(choice.Content)
 			}
-			p.RawMessageLogger("\n\n\n")
 		}
-
-		lastResort := len(finalContent) < 1 && i >= len(response.Choices)-1
-
-		if choice.StopReason == "length" {
-			if lastResort {
-				if p.OutputFormat == OutputJson {
-					//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
-					return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
-				}
-				return []string{choice.Content}, QueryMaxTokens, nil
-			}
-			continue
+		if len(choice.Content) < 1 {
+			p.RawMessageLogger("<empty response>")
 		}
-
-		if choice.StopReason != "stop" && choice.StopReason != "tool_calls" && choice.StopReason != "function_call" {
-			if lastResort {
-				if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("invalid finish_reason: %s", choice.StopReason)); fallbackErr != nil {
-					return []string{}, QueryFailed, fallbackErr
-				}
-				return []string{}, QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
-			}
-			continue
-		}
-
-		finalContent = append(finalContent, choice.Content)
+		p.RawMessageLogger("\n\n\n")
 	}
 
-	//return finalContent
-	return finalContent, QueryOk, nil
+	if choice.StopReason == "length" {
+		if p.OutputFormat == OutputJson {
+			//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
+			return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+		}
+		return []string{choice.Content}, QueryMaxTokens, nil
+	}
+
+	if choice.StopReason != "stop" && choice.StopReason != "tool_calls" && choice.StopReason != "function_call" {
+		if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("invalid finish_reason: %s", choice.StopReason)); fallbackErr != nil {
+			return []string{}, QueryFailed, fallbackErr
+		}
+		return []string{}, QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
+	}
+
+	return []string{choice.Content}, QueryOk, nil
 }
 
 func (p *OpenAILLMConnector) GetMaxTokensSegments() int {

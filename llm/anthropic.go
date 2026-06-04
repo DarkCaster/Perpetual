@@ -194,12 +194,9 @@ func (p *AnthropicLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content st
 	return [][]float32{}, QueryInitFailed, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 }
 
-func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([]string, QueryStatus, error) {
+func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return []string{}, QueryInitFailed, errors.New("no prompts to query")
-	}
-	if maxCandidates < 1 {
-		return []string{}, QueryInitFailed, errors.New("maxCandidates is zero or negative value")
 	}
 
 	// Create anthropic model
@@ -250,12 +247,19 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 	}
 
 	processingReasonings := false
+	responseHeaderWritten := false
 	streamFunc := func(ctx context.Context, chunk []byte) error {
 		if p.RawMessageLogger != nil {
 			if processingReasonings {
 				processingReasonings = false
-				//add header, because it going after reasonings block - delimit it with newlines at the beginning
-				p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				if !responseHeaderWritten {
+					responseHeaderWritten = true
+					//add header, because it going after reasonings block - delimit it with newlines at the beginning
+					p.RawMessageLogger("\n\n\nAI response:\n\n\n")
+				}
+			} else if !responseHeaderWritten {
+				responseHeaderWritten = true
+				p.RawMessageLogger("AI response:\n\n\n")
 			}
 			p.RawMessageLogger(string(chunk))
 		}
@@ -280,167 +284,136 @@ func (p *AnthropicLLMConnector) Query(maxCandidates int, messages ...Message) ([
 		return nil
 	}
 
-	finalContent := []string{}
-
-	for i := 0; i < maxCandidates; i++ {
-		//make a pause, if we need to wait to recover from previous error
-		if p.RateLimitDelayS > 0 {
-			time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
-		}
-
-		if p.RawMessageLogger != nil {
-			p.RawMessageLogger("AI response candidate #%d:\n\n\n", i+1)
-		}
-
-		finalOptions := utils.NewSlice(p.Options...)
-		finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc), llms.WithStreamingReasoningFunc(streamReasoningFunc))
-
-		// Perform LLM query
-		responses, err := model.GenerateContent(
-			context.Background(),
-			llmMessages,
-			finalOptions...,
-		)
-		choices := []*llms.ContentChoice{}
-		if responses != nil && responses.Choices != nil {
-			for _, choice := range responses.Choices {
-				if len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
-					choice.Content = choice.ToolCalls[0].FunctionCall.Arguments
-					choices = append([]*llms.ContentChoice{choice}, choices...)
-				} else if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
-					choices = append(choices, choice)
-				}
-			}
-		}
-
-		lastResort := len(finalContent) < 1 && i == maxCandidates-1
-
-		// Add empty response notification, tool_use response and raw separator if we received no http error
-		if (responseStreamCollector.StatusCode < 400 || responseStreamCollector.StatusCode > 900) && p.RawMessageLogger != nil {
-			if len(choices) < 1 {
-				p.RawMessageLogger("<empty response>")
-			} else if p.OutputFormat == OutputJson && len(choices) > 0 {
-				// Log tool use response, because it is not streamed properly
-				p.RawMessageLogger(choices[0].Content)
-			}
-			// Separator
-			p.RawMessageLogger("\n\n\n")
-		}
-
-		// Process status codes
-		switch responseStreamCollector.StatusCode {
-		case 400:
-			fallthrough
-		case 401:
-			fallthrough
-		case 403:
-			fallthrough
-		case 404:
-			fallthrough
-		case 413:
-			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
-		case 429:
-			// rate limit hit, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 65 {
-				p.RateLimitDelayS = 65
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if responseStreamCollector.ErrorMessage != "" {
-				err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
-			}
-			if err == nil {
-				err = errors.New("ratelimit hit")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		case 500:
-			fallthrough
-		case 501:
-			fallthrough
-		case 502:
-			fallthrough
-		case 503:
-			fallthrough
-		case 529:
-			// server overload, calculate the next sleep time before next attempt
-			if p.RateLimitDelayS < 15 {
-				p.RateLimitDelayS = 15
-			} else {
-				p.RateLimitDelayS *= 2
-			}
-			// limit the upper limit, so it will not wait forever
-			if p.RateLimitDelayS > 300 {
-				p.RateLimitDelayS = 300
-			}
-			if responseStreamCollector.ErrorMessage != "" {
-				err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
-			}
-			if err == nil {
-				err = errors.New("server overload")
-			}
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		case 998:
-			//network error, only stop here if langchain parsing logic also failed
-			if err != nil {
-				if lastResort {
-					return []string{}, QueryFailed, errors.New(responseStreamCollector.ErrorMessage)
-				}
-				continue
-			}
-		case 999:
-			//stream parsing error, this most probably an internal error that needs to be addressed
-			if lastResort {
-				return []string{}, QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
-			}
-			continue
-		}
-
-		if err != nil {
-			if lastResort {
-				return []string{}, QueryFailed, err
-			}
-			continue
-		}
-
-		//reset rate limit delay
-		p.RateLimitDelayS = 0
-
-		var content string
-		if len(choices) < 1 || choices[0].Content == "" {
-			if lastResort {
-				return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
-			}
-			continue
-		} else {
-			content = choices[0].Content
-			// Check for max tokens
-			if choices[0].StopReason == "max_tokens" {
-				if lastResort {
-					if p.OutputFormat == OutputJson {
-						//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
-						return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
-					}
-					return []string{content}, QueryMaxTokens, nil
-				}
-				continue
-			}
-		}
-
-		finalContent = append(finalContent, content)
+	//make a pause, if we need to wait to recover from previous error
+	if p.RateLimitDelayS > 0 {
+		time.Sleep(time.Duration(p.RateLimitDelayS) * time.Second)
 	}
 
-	//return finalContent
-	return finalContent, QueryOk, nil
+	finalOptions := utils.NewSlice(p.Options...)
+	finalOptions = append(finalOptions, llms.WithStreamingFunc(streamFunc), llms.WithStreamingReasoningFunc(streamReasoningFunc))
+
+	// Perform LLM query
+	responses, err := model.GenerateContent(
+		context.Background(),
+		llmMessages,
+		finalOptions...,
+	)
+	choices := []*llms.ContentChoice{}
+	if responses != nil && responses.Choices != nil {
+		for _, choice := range responses.Choices {
+			if len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
+				choice.Content = choice.ToolCalls[0].FunctionCall.Arguments
+				choices = append([]*llms.ContentChoice{choice}, choices...)
+			} else if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
+				choices = append(choices, choice)
+			}
+		}
+	}
+
+	// Add empty response notification, tool_use response and raw separator if we received no http error
+	if (responseStreamCollector.StatusCode < 400 || responseStreamCollector.StatusCode > 900) && p.RawMessageLogger != nil {
+		if len(choices) < 1 {
+			p.RawMessageLogger("<empty response>")
+		} else if p.OutputFormat == OutputJson && len(choices) > 0 {
+			// Log tool use response, because it is not streamed properly
+			if !responseHeaderWritten {
+				responseHeaderWritten = true
+				p.RawMessageLogger("AI response:\n\n\n")
+			}
+			p.RawMessageLogger(choices[0].Content)
+		}
+		// Separator
+		p.RawMessageLogger("\n\n\n")
+	}
+
+	// Process status codes
+	switch responseStreamCollector.StatusCode {
+	case 400:
+		fallthrough
+	case 401:
+		fallthrough
+	case 403:
+		fallthrough
+	case 404:
+		fallthrough
+	case 413:
+		err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+	case 429:
+		// rate limit hit, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 65 {
+			p.RateLimitDelayS = 65
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if responseStreamCollector.ErrorMessage != "" {
+			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+		}
+		if err == nil {
+			err = errors.New("ratelimit hit")
+		}
+		return []string{}, QueryFailed, err
+	case 500:
+		fallthrough
+	case 501:
+		fallthrough
+	case 502:
+		fallthrough
+	case 503:
+		fallthrough
+	case 529:
+		// server overload, calculate the next sleep time before next attempt
+		if p.RateLimitDelayS < 15 {
+			p.RateLimitDelayS = 15
+		} else {
+			p.RateLimitDelayS *= 2
+		}
+		// limit the upper limit, so it will not wait forever
+		if p.RateLimitDelayS > 300 {
+			p.RateLimitDelayS = 300
+		}
+		if responseStreamCollector.ErrorMessage != "" {
+			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+		}
+		if err == nil {
+			err = errors.New("server overload")
+		}
+		return []string{}, QueryFailed, err
+	case 998:
+		//network error, only stop here if langchain parsing logic also failed
+		if err != nil {
+			return []string{}, QueryFailed, errors.New(responseStreamCollector.ErrorMessage)
+		}
+	case 999:
+		//stream parsing error, this most probably an internal error that needs to be addressed
+		return []string{}, QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
+	}
+
+	if err != nil {
+		return []string{}, QueryFailed, err
+	}
+
+	//reset rate limit delay
+	p.RateLimitDelayS = 0
+
+	if len(choices) < 1 || choices[0].Content == "" {
+		return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
+	}
+
+	content := choices[0].Content
+	// Check for max tokens
+	if choices[0].StopReason == "max_tokens" {
+		if p.OutputFormat == OutputJson {
+			//reaching max tokens with structured output produces partial json output, which cannot be deserialized, so, return regular error instead
+			return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+		}
+		return []string{content}, QueryMaxTokens, nil
+	}
+
+	return []string{content}, QueryOk, nil
 }
 
 func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
