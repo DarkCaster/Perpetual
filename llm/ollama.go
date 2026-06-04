@@ -653,11 +653,11 @@ func (p *OllamaLLMConnector) GrowContextSize() {
 	}
 }
 
-func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
+func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
 	p.PerfString = ""
 
 	if len(messages) < 1 {
-		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+		return "", QueryInitFailed, errors.New("no prompts to query")
 	}
 
 	ollamaOptions := utils.NewSlice(ollama.WithModel(p.Model))
@@ -672,7 +672,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 			promptSize += utf8.RuneCountInString(str)
 		}
 	} else {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 
 	contextOverflowExpected := false
@@ -695,7 +695,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 					p.GrowContextSize()
 					ctxSz = p.ContextSizeOverride
 				}
-				return []string{}, QueryFailed, fmt.Errorf("context overflow predicted with %d tokens needed for answer, context size increased to %d", totalTokens, p.ContextSizeOverride)
+				return "", QueryFailed, fmt.Errorf("context overflow predicted with %d tokens needed for answer, context size increased to %d", totalTokens, p.ContextSizeOverride)
 			}
 		}
 	}
@@ -733,7 +733,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 
 	model, err := ollama.New(ollamaOptions...)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 
 	llmMessages := utils.NewSlice(
@@ -742,7 +742,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -753,7 +753,6 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		}
 	}
 
-	finalContent := []string{}
 	var perfLineBuilder strings.Builder
 
 	//make a pause, if we need to wait to recover from previous error
@@ -795,7 +794,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if err == nil {
 			err = errors.New("ratelimit hit")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	case 500:
 		fallthrough
 	case 501:
@@ -816,12 +815,12 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if err == nil {
 			err = errors.New("server overload")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	//handle regular errors
 	if err != nil {
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	// At this point we most probably have some or all streaming chunks logged, so add separator to the log-file
@@ -835,7 +834,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if contextOverflowExpected {
 			contextOverflow = true
 		} else {
-			return []string{}, QueryFailed, respErr
+			return "", QueryFailed, respErr
 		}
 	}
 
@@ -843,7 +842,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 	p.RateLimitDelayS = 0
 
 	if len(response.Choices) < 1 {
-		return []string{}, QueryFailed, errors.New("received empty response from model")
+		return "", QueryFailed, errors.New("received empty response from model")
 	}
 	choice := response.Choices[0]
 
@@ -877,10 +876,10 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		//handle overflow
 		if contextOverflow {
 			if !p.CanGrowContextSize() {
-				return []string{}, QueryFailed, errors.New("context overflow detected, not increasing context size")
+				return "", QueryFailed, errors.New("context overflow detected, not increasing context size")
 			}
 			p.GrowContextSize()
-			return []string{}, QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
+			return "", QueryFailed, fmt.Errorf("context overflow detected, context size increased to %d", p.ContextSizeOverride)
 		}
 	}
 
@@ -895,12 +894,13 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
 			//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
 			//also, return error if extra answer filtering is required
-			return []string{}, QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
+			return "", QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
 		}
-		return []string{choice.Content}, QueryMaxTokens, nil
+		return choice.Content, QueryMaxTokens, nil
 	}
 
 	content := choice.Content
+
 	//remove reasoning, if we have setup corresponding regexps
 	if len(p.ThinkRemoveRx) > 1 {
 		filteredText := utils.GetTextBeforeFirstMatchRx(content, p.ThinkRemoveRx[0]) +
@@ -916,11 +916,9 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
 	}
 
-	finalContent = append(finalContent, content)
-
 	//update performance report
 	pfTime, respGenTime := responseStreamer.GetPerfReport()
-	perfLineBuilder.WriteString(fmt.Sprintf("prefill %03.1f s, gen %03.1f s, ", pfTime, respGenTime))
+	fmt.Fprintf(&perfLineBuilder, "prefill %03.1f s, gen %03.1f s, ", pfTime, respGenTime)
 
 	//add more values to performance report
 	//update counters for context size estimation, will be used on the next call to provide better estimation
@@ -934,18 +932,18 @@ func (p *OllamaLLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		p.ResponseTokensAvg = (p.ResponseTokensAvg*float64(p.CompletedQueriesCount) + float64(totalResponseTokens)) / float64(p.CompletedQueriesCount+1)
 		p.CompletedQueriesCount += 1
 		// add token estimation metrics to perfLineBuilder
-		perfLineBuilder.WriteString(fmt.Sprintf("speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime))
-		perfLineBuilder.WriteString(fmt.Sprintf("prompt %d tk, ", promptTokens-thinkingTokens))
-		perfLineBuilder.WriteString(fmt.Sprintf("out %d tk (think %d tk), ", totalResponseTokens, thinkingTokens))
-		perfLineBuilder.WriteString(fmt.Sprintf("avg out %d tk, ", int(p.ResponseTokensAvg)))
-		perfLineBuilder.WriteString(fmt.Sprintf("cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg))
+		fmt.Fprintf(&perfLineBuilder, "speed %03.1f tk/s, ", float64(totalResponseTokens)/respGenTime)
+		fmt.Fprintf(&perfLineBuilder, "prompt %d tk, ", promptTokens-thinkingTokens)
+		fmt.Fprintf(&perfLineBuilder, "out %d tk (think %d tk), ", totalResponseTokens, thinkingTokens)
+		fmt.Fprintf(&perfLineBuilder, "avg out %d tk, ", int(p.ResponseTokensAvg))
+		fmt.Fprintf(&perfLineBuilder, "cur mult %05.3f, avg mult %05.3f; ", curMult, p.ContextSizeEstMultAvg)
 		// update multiplier for context size estimation
 		p.ContextSizeEstMultSel = max(p.ContextSizeEstMult, p.ContextSizeEstMultAvg)
 	}
 
 	p.PerfString = perfLineBuilder.String()
 
-	return finalContent, QueryOk, nil
+	return content, QueryOk, nil
 }
 
 func (p *OllamaLLMConnector) GetMaxTokensSegments() int {

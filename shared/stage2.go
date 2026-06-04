@@ -159,7 +159,7 @@ func Stage2(
 		for continueGeneration && !fileRetry {
 			// Run query
 			continueGeneration = false
-			aiResponses, status, err := connector.Query(messagesTry...)
+			aiResponse, status, err := connector.Query(messagesTry...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -182,7 +182,7 @@ func Stage2(
 					generateTry++
 				}
 				// Add partial response to stage2 messages, with request to continue
-				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
+				messagesTry = append(messagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
 				messagesTry = append(messagesTry, llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_Stage2ContinuePrompt)))
 			} else if status == llm.QueryMaxTokens {
 				if onFailRetriesLeft < 1 {
@@ -194,7 +194,7 @@ func Stage2(
 				break
 			}
 			// Append response fragment
-			responses = append(responses, aiResponses[0])
+			responses = append(responses, aiResponse)
 		}
 		if fileRetry {
 			continue
@@ -202,8 +202,8 @@ func Stage2(
 		response = strings.Join(responses, "")
 		if filterResponseWithCodeRx {
 			// Filter-out code blocks from response
-			filteredResponses := utils.FilterAndTrimResponses([]string{response}, prCfg.RegexpArray(config.K_ProjectCodeTagsRx), logger)
-			if len(filteredResponses) < 1 || filteredResponses[0] == "" {
+			filteredResponse := utils.FilterAndTrimResponse(response, prCfg.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+			if len(filteredResponse) < 1 {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Filtered reasonings response from AI is empty or invalid")
 				} else {
@@ -211,7 +211,7 @@ func Stage2(
 				}
 				continue
 			}
-			response = filteredResponses[0]
+			response = filteredResponse
 		}
 		if mainPromptFinal == "" {
 			// Add request message to history

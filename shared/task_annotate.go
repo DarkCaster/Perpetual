@@ -77,7 +77,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Perform actual query
-			annotationResponses, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotationResponse, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -98,25 +98,16 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 				continue
 			}
 			// Some final filtering and preparations of produced annotation response
-			finalResponses := utils.FilterAndTrimResponses(annotationResponses, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+			finalResponse := utils.FilterAndTrimResponse(annotationResponse, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
-			if len(finalResponses) < 1 {
+			if len(finalResponse) < 1 {
 				if onFailRetriesLeft < 1 {
-					logger.Panicln("No LLM responses available")
+					logger.Panicln("LLM response is empty")
 				}
-				logger.Errorln("No LLM responses available")
+				logger.Errorln("LLM response is empty")
 				continue
 			}
-			// Exit here if only one response is available after filtering
-			if len(finalResponses) != 1 {
-				if onFailRetriesLeft < 1 {
-					logger.Panicln("Invalid count of LLM responses detected:", len(finalResponses))
-				}
-				logger.Errorln("Invalid count of LLM responses detected:", len(finalResponses))
-				continue
-			}
-
-			results = append(results, finalResponses[0])
+			results = append(results, finalResponse)
 			break
 		}
 	}

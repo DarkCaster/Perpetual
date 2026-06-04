@@ -131,7 +131,7 @@ func Stage1(
 		onFailRetriesLeft = 1
 	}
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		aiResponses, status, err := connector.Query(messages...)
+		aiResponse, status, err := connector.Query(messages...)
 		if perfString := connector.GetPerfString(); perfString != "" {
 			logger.Traceln(perfString)
 		}
@@ -152,7 +152,7 @@ func Stage1(
 			continue
 		}
 		// Handle empty response
-		if len(aiResponses) < 1 || aiResponses[0] == "" {
+		if len(aiResponse) < 1 {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("Got empty response from AI")
 			} else {
@@ -162,10 +162,10 @@ func Stage1(
 		}
 		if connector.GetOutputFormat() == llm.OutputJson {
 			// Use json-mode parsing
-			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_Stage1OutputKey))
+			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponse, opCfg.String(config.K_Stage1OutputKey))
 		} else {
 			// Use regular parsing to extract file-list
-			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponses[0],
+			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponse,
 				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
 				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
 				false)

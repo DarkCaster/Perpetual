@@ -459,9 +459,9 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
 
-func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
+func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+		return "", QueryInitFailed, errors.New("no prompts to query")
 	}
 
 	openAiOptions := utils.NewSlice(openai.WithToken(p.Token), openai.WithModel(p.Model))
@@ -499,7 +499,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 			if err == nil {
 				date = date.Add(time.Hour)
 			} else {
-				return []string{}, QueryInitFailed, errors.New("failed to parse date from model name string")
+				return "", QueryInitFailed, errors.New("failed to parse date from model name string")
 			}
 		}
 		newFormatMark, _ := time.Parse("2006-01-02", "2024-12-17")
@@ -579,7 +579,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 
 	model, err := openai.New(openAiOptions...)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 
 	llmMessages := utils.NewSlice(
@@ -588,7 +588,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -648,7 +648,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 	switch statusCodeCollector.StatusCode {
 	case 429:
 		if fallbackErr := p.tryActivateServiceTierFallback("http status 429"); fallbackErr != nil {
-			return []string{}, QueryFailed, fallbackErr
+			return "", QueryFailed, fallbackErr
 		}
 		// rate limit hit, calculate the next sleep time interval
 		if p.RateLimitDelayS < 65 {
@@ -663,7 +663,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if err == nil {
 			err = errors.New("ratelimit hit")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	case 500:
 		fallthrough
 	case 501:
@@ -674,7 +674,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		fallthrough
 	case 520:
 		if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("http status %d", statusCodeCollector.StatusCode)); fallbackErr != nil {
-			return []string{}, QueryFailed, fallbackErr
+			return "", QueryFailed, fallbackErr
 		}
 		// server overload, calculate the next sleep time before next attempt
 		if p.RateLimitDelayS < 15 {
@@ -689,18 +689,18 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 		if err == nil {
 			err = errors.New("server overload")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	if err != nil {
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	//reset rate limit delay
 	p.RateLimitDelayS = 0
 
 	if response == nil || len(response.Choices) < 1 {
-		return []string{}, QueryFailed, errors.New("received empty response from model")
+		return "", QueryFailed, errors.New("received empty response from model")
 	}
 
 	choice := response.Choices[0]
@@ -727,19 +727,19 @@ func (p *OpenAILLMConnector) Query(messages ...Message) ([]string, QueryStatus, 
 	if choice.StopReason == "length" {
 		if p.OutputFormat == OutputJson {
 			//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
-			return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+			return "", QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
 		}
-		return []string{choice.Content}, QueryMaxTokens, nil
+		return choice.Content, QueryMaxTokens, nil
 	}
 
 	if choice.StopReason != "stop" && choice.StopReason != "tool_calls" && choice.StopReason != "function_call" {
 		if fallbackErr := p.tryActivateServiceTierFallback(fmt.Sprintf("invalid finish_reason: %s", choice.StopReason)); fallbackErr != nil {
-			return []string{}, QueryFailed, fallbackErr
+			return "", QueryFailed, fallbackErr
 		}
-		return []string{}, QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
+		return "", QueryFailed, fmt.Errorf("invalid finish_reason received in response from OpenAI: %s", choice.StopReason)
 	}
 
-	return []string{choice.Content}, QueryOk, nil
+	return choice.Content, QueryOk, nil
 }
 
 func (p *OpenAILLMConnector) GetMaxTokensSegments() int {

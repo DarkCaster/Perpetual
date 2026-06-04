@@ -194,9 +194,9 @@ func (p *AnthropicLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content st
 	return [][]float32{}, QueryInitFailed, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 }
 
-func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
+func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+		return "", QueryInitFailed, errors.New("no prompts to query")
 	}
 
 	// Create anthropic model
@@ -227,7 +227,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatu
 
 	model, err := anthropic.New(anthropicOptions...)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 
 	llmMessages := utils.NewSlice(
@@ -235,7 +235,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatu
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -355,7 +355,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatu
 		if err == nil {
 			err = errors.New("ratelimit hit")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	case 500:
 		fallthrough
 	case 501:
@@ -381,26 +381,26 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatu
 		if err == nil {
 			err = errors.New("server overload")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	case 998:
 		//network error, only stop here if langchain parsing logic also failed
 		if err != nil {
-			return []string{}, QueryFailed, errors.New(responseStreamCollector.ErrorMessage)
+			return "", QueryFailed, errors.New(responseStreamCollector.ErrorMessage)
 		}
 	case 999:
 		//stream parsing error, this most probably an internal error that needs to be addressed
-		return []string{}, QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
+		return "", QueryFailed, fmt.Errorf("event parsing: %s", responseStreamCollector.ErrorMessage)
 	}
 
 	if err != nil {
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	//reset rate limit delay
 	p.RateLimitDelayS = 0
 
 	if len(choices) < 1 || choices[0].Content == "" {
-		return []string{}, QueryFailed, fmt.Errorf("received empty response from model")
+		return "", QueryFailed, fmt.Errorf("received empty response from model")
 	}
 
 	content := choices[0].Content
@@ -408,12 +408,12 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) ([]string, QueryStatu
 	if choices[0].StopReason == "max_tokens" {
 		if p.OutputFormat == OutputJson {
 			//reaching max tokens with structured output produces partial json output, which cannot be deserialized, so, return regular error instead
-			return []string{}, QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
+			return "", QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
 		}
-		return []string{content}, QueryMaxTokens, nil
+		return content, QueryMaxTokens, nil
 	}
 
-	return []string{content}, QueryOk, nil
+	return content, QueryOk, nil
 }
 
 func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {

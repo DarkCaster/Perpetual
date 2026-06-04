@@ -611,9 +611,9 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 	return embeddings, QueryOk, nil
 }
 
-func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus, error) {
+func (p *GenericLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
-		return []string{}, QueryInitFailed, errors.New("no prompts to query")
+		return "", QueryInitFailed, errors.New("no prompts to query")
 	}
 
 	providerOptions := utils.NewSlice(openai.WithModel(p.Model))
@@ -661,7 +661,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 
 	model, err := openai.New(providerOptions...)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 
 	llmMessages := utils.NewSlice(
@@ -670,7 +670,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 	// Convert messages to send into LangChain format
 	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
-		return []string{}, QueryInitFailed, err
+		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
@@ -748,7 +748,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 		if err == nil {
 			err = errors.New("ratelimit hit")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	//we may not know exact error because of API difference on various providers, act as if we hit server overload
 	case 500:
 		fallthrough
@@ -770,18 +770,18 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 		if err == nil {
 			err = errors.New("server overload")
 		}
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	if err != nil {
-		return []string{}, QueryFailed, err
+		return "", QueryFailed, err
 	}
 
 	//reset rate limit delay
 	p.RateLimitDelayS = 0
 
 	if response == nil || len(response.Choices) < 1 {
-		return []string{}, QueryFailed, errors.New("received empty response from model")
+		return "", QueryFailed, errors.New("received empty response from model")
 	}
 
 	choice := response.Choices[0]
@@ -825,9 +825,9 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 	//and compare
 	if responseTokens >= maxTokens || choice.StopReason == "length" {
 		if len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
-			return []string{}, QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
+			return "", QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
 		}
-		return []string{choice.Content}, QueryMaxTokens, nil
+		return choice.Content, QueryMaxTokens, nil
 	}
 
 	content := choice.Content
@@ -847,7 +847,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) ([]string, QueryStatus,
 		content = utils.GetTextBeforeLastMatchRx(content, p.OutputExtractRx[1])
 	}
 
-	return []string{content}, QueryOk, nil
+	return content, QueryOk, nil
 }
 
 func (p *GenericLLMConnector) GetMaxTokensSegments() int {

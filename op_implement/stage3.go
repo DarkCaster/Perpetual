@@ -137,7 +137,7 @@ func Stage3(projectRootDir string,
 			if connector.GetOutputFormat() == llm.OutputJson {
 				targetMessages = jsonModeMessages
 			}
-			aiResponses, status, err := connector.Query(targetMessages...)
+			aiResponse, status, err := connector.Query(targetMessages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -156,7 +156,7 @@ func Stage3(projectRootDir string,
 				}
 				continue
 			}
-			if len(aiResponses) < 1 || aiResponses[0] == "" {
+			if len(aiResponse) < 1 {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Got empty response from AI")
 				} else {
@@ -167,11 +167,11 @@ func Stage3(projectRootDir string,
 			// Process response, parse files that will be created
 			if connector.GetOutputFormat() == llm.OutputJson {
 				// Use json-mode parsing
-				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponses[0], opCfg.String(config.K_ImplementStage3OutputKey))
+				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponse, opCfg.String(config.K_ImplementStage3OutputKey))
 			} else {
 				// Use regular parsing to extract file-list
 				filesToProcessRaw, err = utils.ParseTaggedTextRx(
-					aiResponses[0],
+					aiResponse,
 					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
 					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
 					false)

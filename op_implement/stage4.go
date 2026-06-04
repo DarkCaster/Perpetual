@@ -163,7 +163,7 @@ func Stage4(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				aiResponses, status, err := connector.Query(stage4MessagesTry...)
+				aiResponse, status, err := connector.Query(stage4MessagesTry...)
 				if perfString := connector.GetPerfString(); perfString != "" {
 					logger.Traceln(perfString)
 				}
@@ -201,13 +201,13 @@ func Stage4(projectRootDir string,
 						ignoreUnclosedTagErrors = true
 					}
 					// Add partial response to stage4 messages, with request to continue
-					stage4MessagesTry = append(stage4MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponses[0]))
+					stage4MessagesTry = append(stage4MessagesTry, llm.SetRawResponse(llm.NewMessage(llm.SimulatedAIResponse), aiResponse))
 					stage4MessagesTry = append(stage4MessagesTry, llm.AddPlainTextFragment(
 						llm.NewMessage(llm.UserRequest),
 						cfg.String(config.K_ImplementStage4ContinuePrompt)))
 				}
 				// Append response fragment
-				responses = append(responses, aiResponses[0])
+				responses = append(responses, aiResponse)
 			}
 			if fileRetry {
 				continue

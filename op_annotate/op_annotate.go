@@ -307,7 +307,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
 			// Perform actual query
-			annotationResponses, status, err := connector.Query(messages...)
+			annotationResponse, status, err := connector.Query(messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -331,10 +331,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				continue
 			}
 			// Some final filtering and preparations of produced annotation response
-			finalResponses := utils.FilterAndTrimResponses(annotationResponses, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+			finalResponse := utils.FilterAndTrimResponse(annotationResponse, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
-			if len(finalResponses) < 1 {
-				logger.Errorln("No LLM responses available")
+			if len(finalResponse) < 1 {
+				logger.Errorln("No LLM response available")
 				if onFailRetriesLeft < 1 {
 					fileChecksums[filePath] = oldChecksums[filePath]
 					errorFlag = true
@@ -342,7 +342,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				continue
 			}
 
-			newAnnotations[filePath] = finalResponses[0]
+			newAnnotations[filePath] = finalResponse
 			break
 		}
 	}
