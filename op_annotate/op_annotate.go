@@ -210,7 +210,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		os.Exit(0)
 	}
 
-	// Create llm connector for annotate stage1
+	// Create LLM connector for annotation generation
 	connector, err := llm.NewLLMConnector(OpName,
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),

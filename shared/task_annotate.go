@@ -30,7 +30,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
 	annotateConfig := config.LoadOpAnnotateConfig(perpetualDir, logger)
 
-	// Create llm connector for annotate stage1
+	// Create LLM connector for task annotation generation
 	connector, err := llm.NewLLMConnector("annotate",
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),
@@ -77,7 +77,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Perform actual query
-			annotationVariants, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+			annotationResponses, status, err := connector.Query(annotateRequest, annotateSimulatedResponse, fileContentsRequest)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -89,34 +89,34 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
 				continue
 			}
-			// Check for hitting token limit - there are no response variants below token limit, we will try to regenerate from scratch if possible
+			// Check for hitting token limit - there are no responses below token limit, we will try to regenerate from scratch if possible
 			if status == llm.QueryMaxTokens {
 				if onFailRetriesLeft < 1 {
-					logger.Panicln("LLM response(s) reached max tokens, consider increasing the limit")
+					logger.Panicln("LLM response reached max tokens, consider increasing the limit")
 				}
-				logger.Errorln("LLM response(s) reached max tokens, consider increasing the limit")
+				logger.Errorln("LLM response reached max tokens, consider increasing the limit")
 				continue
 			}
-			// Some final filtering and preparations of produced annotation variants
-			finalVariants := utils.FilterAndTrimResponses(annotationVariants, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+			// Some final filtering and preparations of produced annotation response
+			finalResponses := utils.FilterAndTrimResponses(annotationResponses, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
 			// Stop there if no responses available for further processing
-			if len(finalVariants) < 1 {
+			if len(finalResponses) < 1 {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("No LLM responses available")
 				}
 				logger.Errorln("No LLM responses available")
 				continue
 			}
-			// Exit here if only one variant is available after filtering
-			if len(finalVariants) != 1 {
+			// Exit here if only one response is available after filtering
+			if len(finalResponses) != 1 {
 				if onFailRetriesLeft < 1 {
-					logger.Panicln("Invalid count of LLM responses detected:", len(finalVariants))
+					logger.Panicln("Invalid count of LLM responses detected:", len(finalResponses))
 				}
-				logger.Errorln("Invalid count of LLM responses detected:", len(finalVariants))
+				logger.Errorln("Invalid count of LLM responses detected:", len(finalResponses))
 				continue
 			}
 
-			results = append(results, finalVariants[0])
+			results = append(results, finalResponses[0])
 			break
 		}
 	}
