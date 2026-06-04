@@ -17,13 +17,11 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 				"key1": "string",
 				"key2": "string",
 				"key3": []string{"arr"},
-				"key4": map[string]interface{}{},
 			},
 			config: map[string]interface{}{
 				"key1": "value1",
 				"key2": "value2",
 				"key3": []interface{}{"value3"},
-				"key4": map[string]interface{}{"nested": "value"},
 			},
 			wantErr: false,
 		},
@@ -84,16 +82,6 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "wrong type for object value",
-			template: map[string]interface{}{
-				"key": map[string]interface{}{},
-			},
-			config: map[string]interface{}{
-				"key": "not an object",
-			},
-			wantErr: true,
-		},
-		{
 			name: "nil type for integer value",
 			template: map[string]interface{}{
 				"key": 1,
@@ -107,16 +95,6 @@ func TestValidateConfigAgainstTemplate(t *testing.T) {
 			name: "nil type for float value",
 			template: map[string]interface{}{
 				"key": 1.1,
-			},
-			config: map[string]interface{}{
-				"key": nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "nil type for object value",
-			template: map[string]interface{}{
-				"key": map[string]interface{}{},
 			},
 			config: map[string]interface{}{
 				"key": nil,
@@ -209,12 +187,12 @@ func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 		},
 		{
 			name:    "inner array wrong length",
-			value:   []interface{}{"one"},
+			value:   []interface{}{[]interface{}{"one"}},
 			wantErr: true,
 		},
 		{
 			name:    "inner element not string",
-			value:   []interface{}{[]interface{}{1, "two"}},
+			value:   []interface{}{[]interface{}{1, "two", "three"}},
 			wantErr: true,
 		},
 		{

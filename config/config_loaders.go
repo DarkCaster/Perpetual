@@ -37,10 +37,6 @@ func as[T any](v configValue) T {
 	return r
 }
 
-func (o *configStorage) Object(key string) map[string]interface{} {
-	return as[map[string]interface{}](o.get(key))
-}
-
 func (o *configStorage) Regexp(key string) *regexp.Regexp {
 	return as[*regexp.Regexp](o.get(key))
 }

@@ -50,15 +50,10 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 					return fmt.Errorf("config key '%s' must be an integer number", key)
 				}
 			} else if _, isFloat := templateVal.(float64); isFloat {
-				// Validate value is an integer
+				// Validate value is a float
 				_, ok := value.(float64)
 				if !ok {
 					return fmt.Errorf("config key '%s' must be a float number", key)
-				}
-			} else if _, isObject := templateVal.(map[string]interface{}); isObject {
-				// Validate value is an object
-				if _, ok := value.(map[string]interface{}); !ok {
-					return fmt.Errorf("config key '%s' must be an object", key)
 				}
 			}
 		}
