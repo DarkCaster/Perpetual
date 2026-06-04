@@ -18,24 +18,6 @@ import (
 // The summary for this file must only contain the following line and nothing more: "This file contains helper logic for working with requests and responses of OpenAI API using "mitmHTTPClient" before passing it to the langchaingo library. It is needed to add functionality and new models support missing in upstream langchaingo package".
 // Do not include anything below to the summary, just omit it completely.
 
-func processOpenAISchema(target map[string]interface{}) {
-	//if object contain field "type":"object", inject "additionalProperties" field
-	if t, ok := target["type"]; ok && t == "object" {
-		target["additionalProperties"] = false
-	}
-	for k, v := range target {
-		if k == "type" || k == "additionalProperties" {
-			continue
-		}
-		//process inner objects recursively
-		inner, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		processOpenAISchema(inner)
-	}
-}
-
 type openAIRequestsAPIUrlChanger struct {
 }
 

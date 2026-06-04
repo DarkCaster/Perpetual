@@ -43,7 +43,6 @@ type OllamaLLMConnector struct {
 	SystemPromptRole      systemPromptRole
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
-	OutputFormat          OutputFormat
 	IncrModeTries         int
 	MaxTokens             int
 	MaxTokensSegments     int
@@ -76,8 +75,6 @@ func NewOllamaLLMConnectorFromEnv(
 	systemPrompt string,
 	systemPromptAck string,
 	filesToMdLangMappings utils.TextMatcher[string],
-	outputSchema map[string]interface{},
-	outputFormat OutputFormat,
 	llmRawMessageLogger func(v ...any)) (*OllamaLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
@@ -354,14 +351,6 @@ func NewOllamaLLMConnectorFromEnv(
 			debug.Add("presence penalty", presencePenalty)
 		}
 
-		if outputFormat == OutputJson {
-			debug.Add("format", "json")
-			fieldsToInject["format"] = outputSchema
-		} else {
-			debug.Add("format", "plain")
-			outputFormat = OutputPlain
-		}
-
 		if curSystemPromptRole, err := utils.GetEnvUpperString(fmt.Sprintf("%s_SYSPROMPT_ROLE_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSPROMPT_ROLE", prefix)); err == nil {
 			debug.Add("system prompt role", curSystemPromptRole)
 			switch curSystemPromptRole {
@@ -374,41 +363,38 @@ func NewOllamaLLMConnectorFromEnv(
 			}
 		}
 
-		// output extracting for reasoning-models will only work with plain output mode
-		if outputFormat == OutputPlain {
-			thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
-			thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
-			thinkLRx, errLC := regexp.Compile(thinkLRxStr)
-			thinkRRx, errRC := regexp.Compile(thinkRRxStr)
-			if errL == nil && errR == nil && errLC == nil && errRC == nil {
-				thinkRx = append(thinkRx, thinkLRx)
-				thinkRx = append(thinkRx, thinkRRx)
-			} else if errL != nil && errR == nil {
-				return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
-			} else if errL == nil && errR != nil {
-				return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
-			} else if errL == nil && errR == nil && errLC != nil {
-				return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
-			} else if errL == nil && errR == nil && errRC != nil {
-				return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
-			}
+		thinkLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_L", prefix))
+		thinkRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_THINK_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_RX_R", prefix))
+		thinkLRx, errLC := regexp.Compile(thinkLRxStr)
+		thinkRRx, errRC := regexp.Compile(thinkRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			thinkRx = append(thinkRx, thinkLRx)
+			thinkRx = append(thinkRx, thinkRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for removing think-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for removing think-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for removing think-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for removing think-block from response for %s operation, %s", operation, errRC)
+		}
 
-			outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
-			outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
-			outLRx, errLC := regexp.Compile(outLRxStr)
-			outRRx, errRC := regexp.Compile(outRRxStr)
-			if errL == nil && errR == nil && errLC == nil && errRC == nil {
-				outRx = append(outRx, outLRx)
-				outRx = append(outRx, outRRx)
-			} else if errL != nil && errR == nil {
-				return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
-			} else if errL == nil && errR != nil {
-				return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
-			} else if errL == nil && errR == nil && errLC != nil {
-				return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
-			} else if errL == nil && errR == nil && errRC != nil {
-				return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
-			}
+		outLRxStr, errL := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_L_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_L", prefix))
+		outRRxStr, errR := utils.GetEnvString(fmt.Sprintf("%s_OUT_RX_R_OP_%s", prefix, operation), fmt.Sprintf("%s_OUT_RX_R", prefix))
+		outLRx, errLC := regexp.Compile(outLRxStr)
+		outRRx, errRC := regexp.Compile(outRRxStr)
+		if errL == nil && errR == nil && errLC == nil && errRC == nil {
+			outRx = append(outRx, outLRx)
+			outRx = append(outRx, outRRx)
+		} else if errL != nil && errR == nil {
+			return nil, fmt.Errorf("failed to read left regexp for extracting output-block from response for %s operation, %s", operation, errL)
+		} else if errL == nil && errR != nil {
+			return nil, fmt.Errorf("failed to read right regexp for extracting output-block from response for %s operation, %s", operation, errR)
+		} else if errL == nil && errR == nil && errLC != nil {
+			return nil, fmt.Errorf("failed to compile left regexp for extracting output-block from response for %s operation, %s", operation, errLC)
+		} else if errL == nil && errR == nil && errRC != nil {
+			return nil, fmt.Errorf("failed to compile right regexp for extracting output-block from response for %s operation, %s", operation, errRC)
 		}
 
 		systemPromptPrefix, err = utils.GetEnvString(fmt.Sprintf("%s_SYSTEM_PFX_OP_%s", prefix, operation), fmt.Sprintf("%s_SYSTEM_PFX", prefix))
@@ -450,7 +436,6 @@ func NewOllamaLLMConnectorFromEnv(
 		SystemPromptRole:      systemPromptRole,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
-		OutputFormat:          outputFormat,
 		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
 		MaxTokens:             maxTokens,
@@ -891,10 +876,8 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 	//and compare
 	if responseTokens >= p.MaxTokens {
-		if p.OutputFormat == OutputJson || len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
-			//reaching max tokens with ollama produce partial json output, which cannot be deserialized, so, return regular error instead
-			//also, return error if extra answer filtering is required
-			return "", QueryFailed, errors.New("token limit reached with structured output format or with reasoning model, result is invalid")
+		if len(p.ThinkRemoveRx) > 0 || len(p.OutputExtractRx) > 0 {
+			return "", QueryFailed, errors.New("token limit reached with reasoning model, result is invalid")
 		}
 		return choice.Content, QueryMaxTokens, nil
 	}
@@ -952,10 +935,6 @@ func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
-}
-
-func (p *OllamaLLMConnector) GetOutputFormat() OutputFormat {
-	return p.OutputFormat
 }
 
 func (p *OllamaLLMConnector) GetIncrModeTryCount() int {

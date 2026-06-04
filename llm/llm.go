@@ -22,13 +22,6 @@ const (
 	QueryFailed
 )
 
-type OutputFormat int
-
-const (
-	OutputPlain OutputFormat = iota
-	OutputJson
-)
-
 type EmbedMode int
 
 const (
@@ -62,17 +55,14 @@ type LLMConnector interface {
 	GetOnFailureRetryLimit() int
 	GetDebugString() string
 	GetPerfString() string
-	GetOutputFormat() OutputFormat
 	GetIncrModeTryCount() int // 0 - do not use increment mode at all
 }
 
-func NewLLMConnector(operation string,
+func NewLLMConnector(
+	operation string,
 	systemPrompt string,
 	systemPromptAck string,
 	filesToMdLangMappings utils.TextMatcher[string],
-	outputSchema map[string]interface{},
-	outputSchemaName string,
-	outputSchemaDesc string,
 	llmRawMessageLogger func(v ...any)) (LLMConnector, error) {
 	// Input parameters check
 	if operation == "" {
@@ -112,32 +102,6 @@ func NewLLMConnector(operation string,
 		subProfile = matches[2]
 	}
 
-	prefix := fmt.Sprintf("%s%s", strings.ToUpper(provider), strings.ToUpper(subProfile))
-	outputFormat := OutputPlain
-
-	// try to setup output format from config and outputschema if applicable
-	// particular llm provider can still switch to plain format if schema is invalid or structured JSON output format is not supported
-	if format, err := utils.GetEnvUpperString(fmt.Sprintf("%s_FORMAT_OP_%s", prefix, operation)); err == nil {
-		if format == "JSON" {
-			if len(outputSchema) < 1 {
-				return nil, fmt.Errorf("output schema is empty, cannot use JSON mode")
-			}
-			if len(outputSchemaName) < 1 {
-				return nil, fmt.Errorf("output schema name is empty, cannot use JSON mode")
-			}
-			if len(outputSchemaDesc) < 1 {
-				return nil, fmt.Errorf("output schema description is empty, cannot use JSON mode")
-			}
-			outputFormat = OutputJson
-		} else {
-			outputFormat = OutputPlain
-			outputSchema = map[string]interface{}{}
-		}
-	} else {
-		outputFormat = OutputPlain
-		outputSchema = map[string]interface{}{}
-	}
-
 	switch provider {
 	case "ANTHROPIC":
 		return NewAnthropicLLMConnectorFromEnv(
@@ -145,10 +109,6 @@ func NewLLMConnector(operation string,
 			operation,
 			systemPrompt,
 			filesToMdLangMappings,
-			outputSchema,
-			outputSchemaName,
-			outputSchemaDesc,
-			outputFormat,
 			llmRawMessageLogger)
 	case "OPENAI":
 		return NewOpenAILLMConnectorFromEnv(
@@ -157,10 +117,6 @@ func NewLLMConnector(operation string,
 			systemPrompt,
 			systemPromptAck,
 			filesToMdLangMappings,
-			outputSchema,
-			outputSchemaName,
-			outputSchemaDesc,
-			outputFormat,
 			llmRawMessageLogger)
 	case "OLLAMA":
 		return NewOllamaLLMConnectorFromEnv(
@@ -169,8 +125,6 @@ func NewLLMConnector(operation string,
 			systemPrompt,
 			systemPromptAck,
 			filesToMdLangMappings,
-			outputSchema,
-			outputFormat,
 			llmRawMessageLogger)
 	case "GENERIC":
 		return NewGenericLLMConnectorFromEnv(

@@ -27,7 +27,6 @@ type AnthropicLLMConnector struct {
 	SystemPrompt          string
 	FilesToMdLangMappings utils.TextMatcher[string]
 	FieldsToInject        map[string]interface{}
-	OutputFormat          OutputFormat
 	IncrModeTries         int
 	MaxTokensSegments     int
 	OnFailRetries         int
@@ -43,10 +42,6 @@ func NewAnthropicLLMConnectorFromEnv(
 	operation string,
 	systemPrompt string,
 	filesToMdLangMappings utils.TextMatcher[string],
-	outputSchema map[string]interface{},
-	outputSchemaName string,
-	outputSchemaDesc string,
-	outputFormat OutputFormat,
 	llmRawMessageLogger func(v ...any)) (*AnthropicLLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
@@ -153,19 +148,6 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("top p", topP)
 	}
 
-	// make some additional tweaks to the schema according to
-	// https://docs.anthropic.com/en/docs/build-with-claude/tool-use
-	if outputFormat == OutputJson {
-		debug.Add("output format", "json")
-		fieldsToInject["tool_choice"] = map[string]string{"type": "tool", "name": outputSchemaName}
-		toolSchema := map[string]interface{}{"name": outputSchemaName, "description": outputSchemaDesc}
-		toolSchema["input_schema"] = outputSchema
-		fieldsToInject["tools"] = []map[string]interface{}{toolSchema}
-	} else {
-		debug.Add("format", "plain")
-		outputFormat = OutputPlain
-	}
-
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -174,7 +156,6 @@ func NewAnthropicLLMConnectorFromEnv(
 		SystemPrompt:          systemPrompt,
 		FilesToMdLangMappings: filesToMdLangMappings,
 		FieldsToInject:        fieldsToInject,
-		OutputFormat:          outputFormat,
 		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
 		OnFailRetries:         onFailRetries,
@@ -301,26 +282,16 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 	choices := []*llms.ContentChoice{}
 	if responses != nil && responses.Choices != nil {
 		for _, choice := range responses.Choices {
-			if len(choice.ToolCalls) > 0 && choice.ToolCalls[0].FunctionCall != nil {
-				choice.Content = choice.ToolCalls[0].FunctionCall.Arguments
-				choices = append([]*llms.ContentChoice{choice}, choices...)
-			} else if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
+			if _, ok := choice.GenerationInfo["OutputContent"]; ok && choice.GenerationInfo["OutputContent"] != "" {
 				choices = append(choices, choice)
 			}
 		}
 	}
 
-	// Add empty response notification, tool_use response and raw separator if we received no http error
+	// Add empty response notification and raw separator if we received no http error
 	if (responseStreamCollector.StatusCode < 400 || responseStreamCollector.StatusCode > 900) && p.RawMessageLogger != nil {
 		if len(choices) < 1 {
 			p.RawMessageLogger("<empty response>")
-		} else if p.OutputFormat == OutputJson && len(choices) > 0 {
-			// Log tool use response, because it is not streamed properly
-			if !responseHeaderWritten {
-				responseHeaderWritten = true
-				p.RawMessageLogger("AI response:\n\n\n")
-			}
-			p.RawMessageLogger(choices[0].Content)
 		}
 		// Separator
 		p.RawMessageLogger("\n\n\n")
@@ -406,10 +377,6 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 	content := choices[0].Content
 	// Check for max tokens
 	if choices[0].StopReason == "max_tokens" {
-		if p.OutputFormat == OutputJson {
-			//reaching max tokens with structured output produces partial json output, which cannot be deserialized, so, return regular error instead
-			return "", QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
-		}
 		return content, QueryMaxTokens, nil
 	}
 
@@ -422,10 +389,6 @@ func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 
 func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
-}
-
-func (p *AnthropicLLMConnector) GetOutputFormat() OutputFormat {
-	return p.OutputFormat
 }
 
 func (p *AnthropicLLMConnector) GetIncrModeTryCount() int {

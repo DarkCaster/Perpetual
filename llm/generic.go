@@ -858,10 +858,6 @@ func (p *GenericLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }
 
-func (p *GenericLLMConnector) GetOutputFormat() OutputFormat {
-	return OutputPlain
-}
-
 func (p *GenericLLMConnector) GetIncrModeTryCount() int {
 	return p.IncrModeTries
 }

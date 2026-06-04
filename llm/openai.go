@@ -33,7 +33,6 @@ type OpenAILLMConnector struct {
 	FieldsToInject               map[string]interface{}
 	ServiceTierFallback          string
 	ServiceTierFallbackActivated bool
-	OutputFormat                 OutputFormat
 	IncrModeTries                int
 	MaxTokensSegments            int
 	OnFailRetries                int
@@ -56,10 +55,6 @@ func NewOpenAILLMConnectorFromEnv(
 	systemPrompt string,
 	systemPromptAck string,
 	filesToMdLangMappings utils.TextMatcher[string],
-	outputSchema map[string]interface{},
-	outputSchemaName string,
-	outputSchemaDesc string,
-	outputFormat OutputFormat,
 	llmRawMessageLogger func(v ...any)) (*OpenAILLMConnector, error) {
 	operation = strings.ToUpper(operation)
 
@@ -255,21 +250,6 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("service tier fallback", fallbackTier)
 	}
 
-	// make some additional tweaks to the schema according to
-	// https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
-	if outputFormat == OutputJson && !strings.HasPrefix(model, "codex") {
-		debug.Add("format", "json")
-		jsonSchema := map[string]interface{}{"type": "json_schema"}
-		innerSchema := map[string]interface{}{"strict": true, "name": outputSchemaName, "description": outputSchemaDesc}
-		jsonSchema["json_schema"] = innerSchema
-		fieldsToInject["response_format"] = jsonSchema
-		innerSchema["schema"] = outputSchema
-		processOpenAISchema(outputSchema)
-	} else {
-		debug.Add("format", "plain")
-		outputFormat = OutputPlain
-	}
-
 	return &OpenAILLMConnector{
 		Subprofile:                   subprofile,
 		BaseURL:                      customBaseURL,
@@ -282,7 +262,6 @@ func NewOpenAILLMConnectorFromEnv(
 		FieldsToInject:               fieldsToInject,
 		ServiceTierFallback:          serviceTierFallback,
 		ServiceTierFallbackActivated: false,
-		OutputFormat:                 outputFormat,
 		IncrModeTries:                incrModeTries,
 		MaxTokensSegments:            maxTokensSegments,
 		OnFailRetries:                onFailRetries,
@@ -725,10 +704,6 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 	}
 
 	if choice.StopReason == "length" {
-		if p.OutputFormat == OutputJson {
-			//reaching max tokens may produce partial json output, which cannot be deserialized, so, return regular error instead
-			return "", QueryFailed, errors.New("token limit reached with structured output format, result is invalid")
-		}
 		return choice.Content, QueryMaxTokens, nil
 	}
 
@@ -748,10 +723,6 @@ func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 
 func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
-}
-
-func (p *OpenAILLMConnector) GetOutputFormat() OutputFormat {
-	return p.OutputFormat
 }
 
 func (p *OpenAILLMConnector) GetIncrModeTryCount() int {
