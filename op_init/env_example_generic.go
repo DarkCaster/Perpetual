@@ -39,7 +39,6 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # Streaming support: 0 - disabled (default), 1 - enabled. Value depends on provider support and/or model.
 # May affect error-handling, timeouts and costs.
 # GENERIC_ENABLE_STREAMING_OP_ANNOTATE="0"
-# GENERIC_ENABLE_STREAMING_OP_ANNOTATE_POST="0"
 # GENERIC_ENABLE_STREAMING_OP_EMBED="0"
 # GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE1="0"
 # GENERIC_ENABLE_STREAMING_OP_IMPLEMENT_STAGE2="0"
@@ -54,7 +53,6 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # Format of max-tokens API parameter: old (default), new. Value depends on provider support and/or model.
 # Old is "max_tokens=<value>", New is "max_completion_tokens=<value>"
 # GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE="old"
-# GENERIC_MAXTOKENS_FORMAT_OP_ANNOTATE_POST="old"
 # GENERIC_MAXTOKENS_FORMAT_OP_EMBED="old"
 # GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE1="old"
 # GENERIC_MAXTOKENS_FORMAT_OP_IMPLEMENT_STAGE2="old"
@@ -71,7 +69,6 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 #  https://learn.microsoft.com/en-us/azure/ai-foundry/openai/api-version-lifecycle?tabs=key
 # For Azure - support of this parameter depends on endpoint being used
 # GENERIC_API_VERSION_OP_ANNOTATE="preview"
-# GENERIC_API_VERSION_OP_ANNOTATE_POST="preview"
 # GENERIC_API_VERSION_OP_EMBED="preview"
 # GENERIC_API_VERSION_OP_IMPLEMENT_STAGE1="preview"
 # GENERIC_API_VERSION_OP_IMPLEMENT_STAGE2="preview"
@@ -85,7 +82,6 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 
 # Model selection for different operations and stages
 # GENERIC_MODEL_OP_ANNOTATE="deepseek-chat"
-# GENERIC_MODEL_OP_ANNOTATE_POST="deepseek-chat" # used to process multiple response-variants if any
 # GENERIC_MODEL_OP_EMBED="unknown" # depends on provider
 # GENERIC_MODEL_OP_IMPLEMENT_STAGE1="deepseek-chat"
 GENERIC_MODEL_OP_IMPLEMENT_STAGE2="deepseek-reasoner"
@@ -96,10 +92,6 @@ GENERIC_MODEL_OP_DOC_STAGE2="deepseek-reasoner"
 # GENERIC_MODEL_OP_EXPLAIN_STAGE1="deepseek-chat"
 GENERIC_MODEL_OP_EXPLAIN_STAGE2="deepseek-reasoner"
 GENERIC_MODEL="deepseek-chat"
-GENERIC_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
-GENERIC_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
-GENERIC_VARIANT_COUNT="1" # will be used as fallback
-GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search or may not work at all. Highly model-dependent.
@@ -131,7 +123,6 @@ GENERIC_VARIANT_SELECTION="short" # will be used as fallback
 
 # Options for limiting output tokens for different operations and stages, must be set
 GENERIC_MAX_TOKENS_OP_ANNOTATE="1024" # you shoud keep the summary short.
-GENERIC_MAX_TOKENS_OP_ANNOTATE_POST="2048" # additional tokens may be needed for thinking.
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="12288" # work plan generation may consume pretty much tokens if using deepseek-reasoner model
 GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
@@ -157,7 +148,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # GENERIC_TEMPERATURE_OP_ANNOTATE="0.5"
-# GENERIC_TEMPERATURE_OP_ANNOTATE_POST="0.5"
 # GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
 # GENERIC_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
@@ -172,7 +162,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # Should work for models with reasoning capabilities, enter supported string here.
 # Example values: none, minimal, low, medium, high, xhigh.
 # GENERIC_REASONING_EFFORT_OP_ANNOTATE="medium"
-# GENERIC_REASONING_EFFORT_OP_ANNOTATE_POST="medium"
 # GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="medium"
 # GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="medium"
 # GENERIC_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="medium"
@@ -187,7 +176,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # Valid values: system, developer, user. default: system.
 # When using "user" role, system prompt will be converted to user-query + ai-acknowledge message sequence
 # GENERIC_SYSPROMPT_ROLE_OP_ANNOTATE="system"
-# GENERIC_SYSPROMPT_ROLE_OP_ANNOTATE_POST="system"
 # GENERIC_SYSPROMPT_ROLE_OP_IMPLEMENT_STAGE1="system"
 # GENERIC_SYSPROMPT_ROLE_OP_IMPLEMENT_STAGE2="system"
 # GENERIC_SYSPROMPT_ROLE_OP_IMPLEMENT_STAGE3="system"
@@ -201,7 +189,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # Optional extra JSON object to inject into outgoing LLM request, per operation
 # Must be a valid JSON object, will silently overwrite objects with matching names
 # GENERIC_ADD_JSON_OP_ANNOTATE=""
-# GENERIC_ADD_JSON_OP_ANNOTATE_POST=""
 # GENERIC_ADD_JSON_OP_EMBED=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE1=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE2=""
@@ -219,10 +206,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_SYSTEM_SFX_OP_ANNOTATE=""
 # GENERIC_USER_PFX_OP_ANNOTATE=""
 # GENERIC_USER_SFX_OP_ANNOTATE=""
-# GENERIC_SYSTEM_PFX_OP_ANNOTATE_POST=""
-# GENERIC_SYSTEM_SFX_OP_ANNOTATE_POST=""
-# GENERIC_USER_PFX_OP_ANNOTATE_POST=""
-# GENERIC_USER_SFX_OP_ANNOTATE_POST=""
 # GENERIC_SYSTEM_PFX_OP_IMPLEMENT_STAGE1=""
 # GENERIC_SYSTEM_SFX_OP_IMPLEMENT_STAGE1=""
 # GENERIC_USER_PFX_OP_IMPLEMENT_STAGE1=""
@@ -267,10 +250,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_THINK_RX_R_OP_ANNOTATE="(?mi)^\\s*</think>\\s*\$"
 # GENERIC_OUT_RX_L_OP_ANNOTATE="(?mi)^\\s*<output>\\s*\$"
 # GENERIC_OUT_RX_R_OP_ANNOTATE="(?mi)^\\s*</output>\\s*\$"
-# GENERIC_THINK_RX_L_OP_ANNOTATE_POST="(?mi)^\\s*<think>\\s*\$"
-# GENERIC_THINK_RX_R_OP_ANNOTATE_POST="(?mi)^\\s*</think>\\s*\$"
-# GENERIC_OUT_RX_L_OP_ANNOTATE_POST="(?mi)^\\s*<output>\\s*\$"
-# GENERIC_OUT_RX_R_OP_ANNOTATE_POST="(?mi)^\\s*</output>\\s*\$"
 # GENERIC_THINK_RX_L_OP_IMPLEMENT_STAGE1="(?mi)^\\s*<think>\\s*\$"
 # GENERIC_THINK_RX_R_OP_IMPLEMENT_STAGE1="(?mi)^\\s*</think>\\s*\$"
 # GENERIC_OUT_RX_L_OP_IMPLEMENT_STAGE1="(?mi)^\\s*<output>\\s*\$"
@@ -310,7 +289,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 
 # Remaining options may or may not work, depending on LLM provider
 # GENERIC_TOP_K_OP_ANNOTATE="40"
-# GENERIC_TOP_K_OP_ANNOTATE_POST="40"
 # GENERIC_TOP_K_OP_IMPLEMENT_STAGE1="40"
 # GENERIC_TOP_K_OP_IMPLEMENT_STAGE2="40"
 # GENERIC_TOP_K_OP_IMPLEMENT_STAGE3="40"
@@ -321,7 +299,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_TOP_K_OP_EXPLAIN_STAGE2="40"
 # GENERIC_TOP_K="40"
 # GENERIC_TOP_P_OP_ANNOTATE="0.9"
-# GENERIC_TOP_P_OP_ANNOTATE_POST="0.9"
 # GENERIC_TOP_P_OP_IMPLEMENT_STAGE1="0.9"
 # GENERIC_TOP_P_OP_IMPLEMENT_STAGE2="0.9"
 # GENERIC_TOP_P_OP_IMPLEMENT_STAGE3="0.9"
@@ -332,7 +309,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_TOP_P_OP_EXPLAIN_STAGE2="0.9"
 # GENERIC_TOP_P="0.9"
 # GENERIC_SEED_OP_ANNOTATE="42"
-# GENERIC_SEED_OP_ANNOTATE_POST="42"
 # GENERIC_SEED_OP_IMPLEMENT_STAGE1="42"
 # GENERIC_SEED_OP_IMPLEMENT_STAGE2="42"
 # GENERIC_SEED_OP_IMPLEMENT_STAGE3="42"
@@ -343,7 +319,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_SEED_OP_EXPLAIN_STAGE2="42"
 # GENERIC_SEED="42"
 # GENERIC_REPEAT_PENALTY_OP_ANNOTATE="1.2"
-# GENERIC_REPEAT_PENALTY_OP_ANNOTATE_POST="1.2"
 # GENERIC_REPEAT_PENALTY_OP_IMPLEMENT_STAGE1="1.2"
 # GENERIC_REPEAT_PENALTY_OP_IMPLEMENT_STAGE2="1.5"
 # GENERIC_REPEAT_PENALTY_OP_IMPLEMENT_STAGE3="1.0"
@@ -354,7 +329,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_REPEAT_PENALTY_OP_EXPLAIN_STAGE2="1.1"
 # GENERIC_REPEAT_PENALTY="1.1" # try enabling for deepseek-reasoner models if experiencing problems with infinite reasoning loops
 # GENERIC_FREQ_PENALTY_OP_ANNOTATE="1.0"
-# GENERIC_FREQ_PENALTY_OP_ANNOTATE_POST="1.0"
 # GENERIC_FREQ_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
 # GENERIC_FREQ_PENALTY_OP_IMPLEMENT_STAGE2="1.0"
 # GENERIC_FREQ_PENALTY_OP_IMPLEMENT_STAGE3="1.0"
@@ -365,7 +339,6 @@ GENERIC_ON_FAIL_RETRIES="5"
 # GENERIC_FREQ_PENALTY_OP_EXPLAIN_STAGE2="1.0"
 # GENERIC_FREQ_PENALTY="1.0"
 # GENERIC_PRESENCE_PENALTY_OP_ANNOTATE="1.0"
-# GENERIC_PRESENCE_PENALTY_OP_ANNOTATE_POST="1.0"
 # GENERIC_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
 # GENERIC_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE2="1.0"
 # GENERIC_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE3="1.0"

@@ -34,7 +34,6 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # Streaming support override:
 # 0 - disabled, positive number - enabled, negative number - use model-specific setting (default)
 # OPENAI_ENABLE_STREAMING_OP_ANNOTATE="0"
-# OPENAI_ENABLE_STREAMING_OP_ANNOTATE_POST="0"
 # OPENAI_ENABLE_STREAMING_OP_EMBED="0"
 # OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE1="0"
 # OPENAI_ENABLE_STREAMING_OP_IMPLEMENT_STAGE2="0"
@@ -49,7 +48,6 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # Service tier option, you can use it to lower the expences or latency
 # If unset, then use openai defaults for your profile or project.
 # OPENAI_SERVICE_TIER_OP_ANNOTATE="default"
-# OPENAI_SERVICE_TIER_OP_ANNOTATE_POST="default"
 # OPENAI_SERVICE_TIER_OP_EMBED="default"
 # OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE1="default"
 # OPENAI_SERVICE_TIER_OP_IMPLEMENT_STAGE2="default"
@@ -67,7 +65,6 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-5.4-mini"
-OPENAI_MODEL_OP_ANNOTATE_POST="gpt-5.4-mini" # used to process multiple response-variants if any
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.4"
 # OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.4"
@@ -78,10 +75,6 @@ OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable emb
 # OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5.4"
 # OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-5.4"
 OPENAI_MODEL="gpt-5.4"
-OPENAI_VARIANT_COUNT_OP_ANNOTATE="1" # how much annotate-response variants to generate
-OPENAI_VARIANT_SELECTION_OP_ANNOTATE="short" # how to select final variant: short, long, combine, best
-OPENAI_VARIANT_COUNT="1" # will be used as fallback
-OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search.
@@ -116,7 +109,6 @@ OPENAI_VARIANT_SELECTION="short" # will be used as fallback
 # Options for limiting output tokens for different operations and stages, must be set.
 # Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.
-OPENAI_MAX_TOKENS_OP_ANNOTATE_POST="3072"
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="4096" # file-list for review, long list is probably an error
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="24576" # work-plan generation
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="8192" # file-list for processing, long list is probably an error
@@ -142,7 +134,6 @@ OPENAI_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
 # OPENAI_TEMPERATURE_OP_ANNOTATE="0.5"
-# OPENAI_TEMPERATURE_OP_ANNOTATE_POST="0.5"
 # OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE2="0.5"
 # OPENAI_TEMPERATURE_OP_IMPLEMENT_STAGE3="0.2" # less creative for file-list output
@@ -157,7 +148,6 @@ OPENAI_ON_FAIL_RETRIES="5"
 # If using with unsupported model - unset global OPENAI_REASONING_EFFORT value.
 # Example values: none, minimal, low, medium, high, xhigh.
 OPENAI_REASONING_EFFORT_OP_ANNOTATE="none"
-OPENAI_REASONING_EFFORT_OP_ANNOTATE_POST="none"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="medium"
 OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="high"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="medium"
@@ -170,7 +160,6 @@ OPENAI_REASONING_EFFORT="medium"
 
 # Advanced options for finetuning. Generally you do not need them.
 # OPENAI_TOP_P_OP_ANNOTATE="0.9"
-# OPENAI_TOP_P_OP_ANNOTATE_POST="0.9"
 # OPENAI_TOP_P_OP_IMPLEMENT_STAGE1="0.9"
 # OPENAI_TOP_P_OP_IMPLEMENT_STAGE2="0.9"
 # OPENAI_TOP_P_OP_IMPLEMENT_STAGE3="0.9"
@@ -181,7 +170,6 @@ OPENAI_REASONING_EFFORT="medium"
 # OPENAI_TOP_P_OP_EXPLAIN_STAGE2="0.9"
 # OPENAI_TOP_P="0.9"
 # OPENAI_SEED_OP_ANNOTATE="42"
-# OPENAI_SEED_OP_ANNOTATE_POST="42"
 # OPENAI_SEED_OP_IMPLEMENT_STAGE1="42"
 # OPENAI_SEED_OP_IMPLEMENT_STAGE2="42"
 # OPENAI_SEED_OP_IMPLEMENT_STAGE3="42"
@@ -192,7 +180,6 @@ OPENAI_REASONING_EFFORT="medium"
 # OPENAI_SEED_OP_EXPLAIN_STAGE2="42"
 # OPENAI_SEED="42"
 # OPENAI_FREQ_PENALTY_OP_ANNOTATE="1.0"
-# OPENAI_FREQ_PENALTY_OP_ANNOTATE_POST="1.0"
 # OPENAI_FREQ_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
 # OPENAI_FREQ_PENALTY_OP_IMPLEMENT_STAGE2="1.0"
 # OPENAI_FREQ_PENALTY_OP_IMPLEMENT_STAGE3="1.0"
@@ -203,7 +190,6 @@ OPENAI_REASONING_EFFORT="medium"
 # OPENAI_FREQ_PENALTY_OP_EXPLAIN_STAGE2="1.0"
 # OPENAI_FREQ_PENALTY="1.0"
 # OPENAI_PRESENCE_PENALTY_OP_ANNOTATE="1.0"
-# OPENAI_PRESENCE_PENALTY_OP_ANNOTATE_POST="1.0"
 # OPENAI_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE1="1.0"
 # OPENAI_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE2="1.0"
 # OPENAI_PRESENCE_PENALTY_OP_IMPLEMENT_STAGE3="1.0"

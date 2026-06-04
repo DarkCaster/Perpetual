@@ -31,7 +31,6 @@ const dotEnvExample = `# Configuration files should have ".env" extensions and i
 # Per-operation provider selection
 
 # LLM_PROVIDER_OP_ANNOTATE="anthropic"
-# LLM_PROVIDER_OP_ANNOTATE_POST="anthropic"
 # LLM_PROVIDER_OP_EMBED="ollama"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE1="anthropic"
 # LLM_PROVIDER_OP_IMPLEMENT_STAGE2="anthropic"
