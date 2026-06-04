@@ -215,8 +215,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		annotateConfig.String(config.K_SystemPrompt),
 		annotateConfig.String(config.K_SystemPromptAck),
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{},
-		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create LLM connector:", err)

@@ -47,8 +47,6 @@ func Stage2(
 		opCfg.String(config.K_SystemPrompt),
 		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		map[string]interface{}{},
-		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage2 LLM connector:", err)

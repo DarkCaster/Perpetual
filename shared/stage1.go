@@ -28,8 +28,7 @@ func Stage1(
 	preQueriesPrompts []string,
 	preQueriesBodies []string,
 	preQueriesResponses []string,
-	mainPromptPlain string,
-	mainPromptJson string,
+	mainPrompt string,
 	mainPromptBody string,
 	targetFiles []string,
 	pass int,
@@ -50,9 +49,6 @@ func Stage1(
 		opCfg.String(config.K_SystemPrompt),
 		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		opCfg.Object(config.K_Stage1OutputSchema),
-		opCfg.String(config.K_Stage1OutputSchemaName),
-		opCfg.String(config.K_Stage1OutputSchemaDesc),
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage1 LLM connector:", err)
@@ -102,11 +98,7 @@ func Stage1(
 		logger.Debugf("Created simulated response for pre-request message #%d", i)
 	}
 
-	prompt := mainPromptPlain
-	if connector.GetOutputFormat() == llm.OutputJson {
-		prompt = mainPromptJson
-	}
-	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), prompt)
+	analysisRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), mainPrompt)
 	// Add main body
 	if mainPromptBody != "" {
 		analysisRequest = llm.AddPlainTextFragment(analysisRequest, mainPromptBody)
@@ -160,16 +152,11 @@ func Stage1(
 			}
 			continue
 		}
-		if connector.GetOutputFormat() == llm.OutputJson {
-			// Use json-mode parsing
-			filesForReviewRaw, err = utils.ParseListFromJSON(aiResponse, opCfg.String(config.K_Stage1OutputKey))
-		} else {
-			// Use regular parsing to extract file-list
-			filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponse,
-				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
-				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
-				false)
-		}
+		// Use regular parsing to extract file-list
+		filesForReviewRaw, err = utils.ParseTaggedTextRx(aiResponse,
+			prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
+			prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
+			false)
 		if err != nil {
 			if onFailRetriesLeft < 1 {
 				logger.Panicln("Failed to parse list of files for review", err)

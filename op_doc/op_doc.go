@@ -218,14 +218,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Panicln("Error reading annotations:", err)
 		}
 
-		var docPromptPlain string
-		var docPromptJson string
+		var docPrompt string
 		if action == "WRITE" {
-			docPromptPlain = docConfig.String(config.K_DocStage1WritePrompt)
-			docPromptJson = docConfig.String(config.K_DocStage1WriteJsonModePrompt)
+			docPrompt = docConfig.String(config.K_DocStage1WritePrompt)
 		} else if action == "REFINE" {
-			docPromptPlain = docConfig.String(config.K_DocStage1RefinePrompt)
-			docPromptJson = docConfig.String(config.K_DocStage1RefineJsonModePrompt)
+			docPrompt = docConfig.String(config.K_DocStage1RefinePrompt)
 		} else {
 			logger.Panicln("Invalid action:", action)
 		}
@@ -266,8 +263,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				[]string{docConfig.String(config.K_DocExamplePrompt)},
 				[]string{docExampleContent},
 				[]string{docConfig.String(config.K_DocExampleResponse)},
-				docPromptPlain,
-				docPromptJson,
+				docPrompt,
 				docContent,
 				[]string{},
 				pass+1,
@@ -314,7 +310,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			}
 		}
 
-		docPrompt := docConfig.String(config.K_DocStage2WritePrompt)
+		docPrompt = docConfig.String(config.K_DocStage2WritePrompt)
 		if action == "REFINE" {
 			docPrompt = docConfig.String(config.K_DocStage2RefinePrompt)
 		}

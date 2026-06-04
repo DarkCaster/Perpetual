@@ -260,7 +260,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			annotations,
 			[]string{}, []string{}, []string{},
 			explainConfig.String(config.K_ExplainStage1QuestionPrompt),
-			explainConfig.String(config.K_ExplainStage1QuestionJsonModePrompt),
 			stage1query,
 			[]string{},
 			pass+1,

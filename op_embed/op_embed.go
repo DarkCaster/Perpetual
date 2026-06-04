@@ -96,7 +96,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	// So we can stop right here if embeddings not supported or disabled
 	connector, err := llm.NewLLMConnector(OpName, "", "",
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{}, "", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		if innerCall {
@@ -401,7 +400,6 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 	// Create llm connector for generating embeddings
 	connector, err := llm.NewLLMConnector(OpName, "", "",
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		map[string]interface{}{}, "", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		return [][]float32{}, 0, err
@@ -447,6 +445,6 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 }
 
 func CheckEmbedSupport() bool {
-	_, err := llm.NewLLMConnector(OpName, "", "", nil, map[string]interface{}{}, "", "", func(v ...any) {})
+	_, err := llm.NewLLMConnector(OpName, "", "", nil, func(v ...any) {})
 	return err == nil
 }

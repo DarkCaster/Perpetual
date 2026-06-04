@@ -270,14 +270,11 @@ func Run(args []string, logger logging.ILogger) {
 				nonTargetFilesAnnotationsCount++
 			}
 		}
-		var promptPlain string
-		var promptJson string
+		var prompt string
 		if task != "" {
-			promptPlain = implementConfig.String(config.K_ImplementTaskStage1AnalysisPrompt)
-			promptJson = implementConfig.String(config.K_ImplementTaskStage1AnalysisJsonModePrompt)
+			prompt = implementConfig.String(config.K_ImplementTaskStage1AnalysisPrompt)
 		} else if len(targetFiles) > 0 {
-			promptPlain = implementConfig.String(config.K_ImplementStage1AnalysisPrompt)
-			promptJson = implementConfig.String(config.K_ImplementStage1AnalysisJsonModePrompt)
+			prompt = implementConfig.String(config.K_ImplementStage1AnalysisPrompt)
 		} else {
 			logger.Panicln("No task or files with implement-comments provided for processing, cannot continue!")
 		}
@@ -317,8 +314,7 @@ func Run(args []string, logger logging.ILogger) {
 					projectDesc,
 					annotations,
 					[]string{}, []string{}, []string{},
-					promptPlain,
-					promptJson,
+					prompt,
 					task,
 					targetFiles,
 					pass+1,

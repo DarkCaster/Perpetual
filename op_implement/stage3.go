@@ -36,9 +36,6 @@ func Stage3(projectRootDir string,
 		opCfg.String(config.K_SystemPrompt),
 		opCfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		opCfg.Object(config.K_ImplementStage3OutputSchema),
-		opCfg.String(config.K_ImplementStage3OutputSchemaName),
-		opCfg.String(config.K_ImplementStage3OutputSchemaDesc),
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage3 LLM connector:", err)
@@ -61,12 +58,8 @@ func Stage3(projectRootDir string,
 		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
 	}
 
-	// Declare jsonModeMessages, it will be used as messages history sent to llm when using json mode
-	jsonModeMessages := utils.NewSlice(messages...)
-
 	// When using planning without reasoning, create request that will include target files content
 	if planningMode == 1 {
-		// Create normal mode request and add it to history
 		var request llm.Message
 		if task == "" {
 			request = llm.ComposeMessageWithSourceFiles(
@@ -84,35 +77,13 @@ func Stage3(projectRootDir string,
 		}
 		messages = append(messages, request)
 		msgIndexToAddExtraFiles = len(messages) - 1
-
-		// Create json mode request and add it to json mode history
-		var jsonModeRequest llm.Message
-		if task == "" {
-			jsonModeRequest = llm.ComposeMessageWithSourceFiles(
-				projectRootDir,
-				opCfg.String(config.K_ImplementStage3PlanningJsonModePrompt),
-				targetFiles,
-				prCfg.Tags(config.K_ProjectFilenameTags),
-				logger)
-		} else {
-			jsonModeRequest = llm.AddPlainTextFragment(
-				llm.AddPlainTextFragment(
-					llm.NewMessage(llm.UserRequest),
-					opCfg.String(config.K_ImplementTaskStage3PlanningJsonModePrompt)),
-				task)
-		}
-		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (full)")
 	}
 
 	// When using planning WITH reasoning, create request that will only ask to create list of files to be changed
 	if planningMode == 2 {
-		// Create normal mode request and add it to history
 		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningLitePrompt))
 		messages = append(messages, request)
-		// Create json mode request and add it to json mode history
-		jsonModeRequest := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningLiteJsonModePrompt))
-		jsonModeMessages = append(jsonModeMessages, jsonModeRequest)
 		logger.Debugln("Files-to-change request message created (simplified)")
 	}
 
@@ -124,20 +95,12 @@ func Stage3(projectRootDir string,
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 3): %s\n\n\n", debugString))
 
 		var filesToProcessRaw []string
-		onFailRetriesLeft := connector.GetOnFailureRetryLimit()
-		if onFailRetriesLeft < 1 {
-			onFailRetriesLeft = 1
-		}
+		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		// Make request and retry on errors
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Request LLM to provide file list that will be modified (or created) while implementing code
 			var status llm.QueryStatus
-			// Select messages to send, depending on mode
-			targetMessages := messages
-			if connector.GetOutputFormat() == llm.OutputJson {
-				targetMessages = jsonModeMessages
-			}
-			aiResponse, status, err := connector.Query(targetMessages...)
+			aiResponse, status, err := connector.Query(messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
@@ -165,17 +128,11 @@ func Stage3(projectRootDir string,
 				continue
 			}
 			// Process response, parse files that will be created
-			if connector.GetOutputFormat() == llm.OutputJson {
-				// Use json-mode parsing
-				filesToProcessRaw, err = utils.ParseListFromJSON(aiResponse, opCfg.String(config.K_ImplementStage3OutputKey))
-			} else {
-				// Use regular parsing to extract file-list
-				filesToProcessRaw, err = utils.ParseTaggedTextRx(
-					aiResponse,
-					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
-					prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
-					false)
-			}
+			filesToProcessRaw, err = utils.ParseTaggedTextRx(
+				aiResponse,
+				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
+				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[1],
+				false)
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("Failed to parse list of files for review", err)

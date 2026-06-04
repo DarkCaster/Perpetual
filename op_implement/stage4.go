@@ -31,8 +31,6 @@ func Stage4(projectRootDir string,
 		cfg.String(config.K_SystemPrompt),
 		cfg.String(config.K_SystemPromptAck),
 		filesToMdLangMappings,
-		map[string]interface{}{},
-		"", "",
 		llm.GetSimpleRawMessageLogger(perpetualDir))
 	if err != nil {
 		logger.Panicln("Failed to create stage4 LLM connector:", err)
