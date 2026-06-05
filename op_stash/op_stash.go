@@ -14,14 +14,22 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
+const StashVersion = 1
+
 type Stash struct {
-	OriginalFiles []FileEntry `json:"original_files"`
-	ModifiedFiles []FileEntry `json:"modified_files"`
+	Version int         `json:"version"`
+	Files   []FileEntry `json:"files"`
 }
 
 type FileEntry struct {
-	Filename string `json:"filename"`
-	Contents string `json:"contents"`
+	Filename string    `json:"filename"`
+	Original FileState `json:"original"`
+	Modified FileState `json:"modified"`
+}
+
+type FileState struct {
+	Exists   bool   `json:"exists"`
+	Contents string `json:"contents,omitempty"`
 }
 
 const OpName = "stash"
@@ -30,6 +38,60 @@ const OpDesc = "Rollback or re-apply generated code"
 func stashFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	return flags
+}
+
+func validateStash(stash Stash) error {
+	if stash.Version != StashVersion {
+		return fmt.Errorf("unsupported stash version: %d, expected: %d", stash.Version, StashVersion)
+	}
+	return nil
+}
+
+func loadStash(stashFile string) (Stash, error) {
+	var stash Stash
+	err := utils.LoadJsonFile(stashFile, &stash)
+	if err != nil {
+		return stash, err
+	}
+	if err := validateStash(stash); err != nil {
+		return stash, err
+	}
+	return stash, nil
+}
+
+func resolveTargetFile(projectRootDir, sourceFile, targetFile string) (string, error) {
+	target := sourceFile
+	if targetFile != "" {
+		target = targetFile
+	}
+	return utils.MakePathRelative(projectRootDir, target, true)
+}
+
+func applyFileState(projectRootDir string, filename string, state FileState, logger logging.ILogger) {
+	targetPath := filepath.Join(projectRootDir, filename)
+
+	if !state.Exists {
+		logger.Infoln("Deleting:", filename)
+		if err := os.Remove(targetPath); err != nil && !os.IsNotExist(err) {
+			logger.Errorf("Failed to delete file %s: %v", filename, err)
+		}
+		return
+	}
+
+	targetDir := filepath.Dir(targetPath)
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		logger.Errorf("Failed to create directory %s: %v", targetDir, err)
+		return
+	}
+
+	logger.Infoln(filename)
+	wrn, err := utils.SaveTextFile(targetPath, state.Contents)
+	if err != nil {
+		logger.Errorf("Failed to save file %s: %v", filename, err)
+	}
+	if wrn != "" {
+		logger.Warnf("%s: %s", filename, wrn)
+	}
 }
 
 func Run(args []string, innerCall bool, logger logging.ILogger) {
@@ -133,75 +195,59 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	if _, err := os.Stat(stashFile); os.IsNotExist(err) {
 		outerCallLogger.Panicln("Stash not found:", name)
 	}
-	var stash Stash
-	err = utils.LoadJsonFile(stashFile, &stash)
+	stash, err := loadStash(stashFile)
 	if err != nil {
 		outerCallLogger.Panicln("Error loading stash:", err)
 	}
 
 	if listFiles {
 		logger.Infoln("Listing files in stash:", name)
-		for _, entry := range stash.OriginalFiles {
-			fmt.Println("Original:", entry.Filename)
-		}
-		for _, entry := range stash.ModifiedFiles {
-			fmt.Println("Modified:", entry.Filename)
+		for _, entry := range stash.Files {
+			if entry.Original.Exists {
+				fmt.Println("Original:", entry.Filename)
+			} else {
+				fmt.Println("Original (absent):", entry.Filename)
+			}
+			if entry.Modified.Exists {
+				fmt.Println("Modified:", entry.Filename)
+			} else {
+				fmt.Println("Modified (deleted):", entry.Filename)
+			}
 		}
 		return
 	}
 
-	writeFiles := func(entries []FileEntry) {
-		for _, entry := range entries {
+	applyStates := func(useModifiedState bool) {
+		for _, entry := range stash.Files {
 			if fileName != "" && entry.Filename != fileName {
 				continue
 			}
-			target := entry.Filename
-			if fileName != "" && targetFile != "" {
-				target = targetFile
-				target, err := utils.MakePathRelative(projectRootDir, target, true)
-				if err != nil {
-					outerCallLogger.Panicln("Requested file is not inside project root", target)
-				}
-			}
-			// Get base dir
-			targetDir := filepath.Dir(target)
-			// Split the corrected targetDir into path components
-			pathComponents := strings.Split(targetDir, string(os.PathSeparator))
-			if len(pathComponents) > 0 && pathComponents[0] == "." {
-				pathComponents = pathComponents[1:]
-			}
-			// Recursively create leading dirs
-			fileDir := ""
-			for _, dir := range pathComponents {
-				fileDir = filepath.Join(fileDir, dir)
-				err := os.Mkdir(filepath.Join(projectRootDir, fileDir), 0755)
-				if err != nil && !os.IsExist(err) {
-					outerCallLogger.Errorln("Failed to create directory:", fileDir, err)
-				}
-			}
-			// Write file
-			outerCallLogger.Infoln(target)
-			wrn, err := utils.SaveTextFile(filepath.Join(projectRootDir, target), entry.Contents)
+
+			target, err := resolveTargetFile(projectRootDir, entry.Filename, targetFile)
 			if err != nil {
-				outerCallLogger.Errorf("Failed to save file %s: %v", target, err)
+				outerCallLogger.Panicln("Requested file is not inside project root", target)
 			}
-			if wrn != "" {
-				logger.Warnf("%s: %s", target, wrn)
+
+			state := entry.Original
+			if useModifiedState {
+				state = entry.Modified
 			}
+
+			applyFileState(projectRootDir, target, state, outerCallLogger)
 		}
 	}
 
 	if apply {
 		logger.Infoln("Applying changes")
-		writeFiles(stash.ModifiedFiles)
+		applyStates(true)
 	} else if rollback {
 		logger.Infoln("Rolling back changes")
-		writeFiles(stash.OriginalFiles)
+		applyStates(false)
 	}
 }
 
 // This function creates new stash from code generation results
-func CreateStash(results map[string]string, projectFiles []string, logger logging.ILogger) string {
+func CreateStash(results map[string]string, projectFiles []string, filesToDelete []string, logger logging.ILogger) string {
 	logger.Traceln("CreateStash: Starting")
 	defer logger.Traceln("CreateStash: Finished")
 
@@ -219,9 +265,31 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		}
 	}
 
-	logger.Infoln("Creating new stash from generated results")
-	var stash Stash
-	for filePathInitial, fileContent := range results {
+	readOriginalState := func(filePath string) FileState {
+		_, err := os.Stat(filepath.Join(projectRootDir, filePath))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return FileState{Exists: false}
+			}
+			logger.Panicf("Error checking project file for backing up %s: %v", filePath, err)
+		}
+
+		backup, _, err := llm.GetSourceFileFromCache(filePath)
+		if err != nil {
+			logger.Errorf("Error getting file from cache (will retry to read it directly): %v", err)
+			backup, _, err = utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
+			if err != nil {
+				logger.Panicf("Error reading project file for backing up %s: %v", filePath, err)
+			}
+		}
+
+		return FileState{
+			Exists:   true,
+			Contents: backup,
+		}
+	}
+
+	normalizeFilePath := func(filePathInitial string) string {
 		// getting leading directories, case insensitive, trying to fix its cases from closest match from the projectFiles
 		leadingDirs := utils.CaseInsensitiveLeadingDirectoriesSearch(filePathInitial, projectFiles)
 		// recursively create leading dirs
@@ -231,30 +299,66 @@ func CreateStash(results map[string]string, projectFiles []string, logger loggin
 		}
 		// getting final file path
 		fileName := filepath.Base(filePathInitial)
-		filePathFinal := filepath.Join(fileDir, fileName)
-		// Check file exist on disk
-		_, err := os.Stat(filepath.Join(projectRootDir, filePathFinal))
-		if err == nil {
-			// Read file from cache or disk
-			backup, _, err := llm.GetSourceFileFromCache(filePathFinal)
-			if err != nil {
-				logger.Errorf("Error getting file from cache (will retry to read it directly): %v", err)
-				backup, _, err = utils.LoadTextFile(filepath.Join(projectRootDir, filePathFinal))
-				if err != nil {
-					logger.Errorf("Error reading project file for backing up: %v", err)
-				}
-			}
-			// Store file content to stash original files
-			stash.OriginalFiles = append(stash.OriginalFiles, FileEntry{Filename: filePathFinal, Contents: backup})
-		}
-		// Store file content to stash modified files
-		stash.ModifiedFiles = append(stash.ModifiedFiles, FileEntry{Filename: filePathFinal, Contents: fileContent})
+		return filepath.Join(fileDir, fileName)
 	}
 
-	if len(stash.OriginalFiles) > 0 {
-		logger.Debugln("Files backed up:")
-		for _, entry := range stash.OriginalFiles {
-			logger.Debugln(entry.Filename)
+	logger.Infoln("Creating new stash from generated results")
+	stash := Stash{
+		Version: StashVersion,
+	}
+
+	entriesByFile := make(map[string]int)
+
+	addOrReplaceEntry := func(entry FileEntry) {
+		if index, ok := entriesByFile[entry.Filename]; ok {
+			stash.Files[index] = entry
+			return
+		}
+		entriesByFile[entry.Filename] = len(stash.Files)
+		stash.Files = append(stash.Files, entry)
+	}
+
+	for filePathInitial, fileContent := range results {
+		filePathFinal := normalizeFilePath(filePathInitial)
+
+		addOrReplaceEntry(FileEntry{
+			Filename: filePathFinal,
+			Original: readOriginalState(filePathFinal),
+			Modified: FileState{
+				Exists:   true,
+				Contents: fileContent,
+			},
+		})
+	}
+
+	for _, filePathInitial := range filesToDelete {
+		filePathFinal := normalizeFilePath(filePathInitial)
+
+		if _, ok := entriesByFile[filePathFinal]; ok {
+			logger.Warnln("File is both modified and deleted in stash, deletion will take precedence:", filePathFinal)
+		}
+
+		addOrReplaceEntry(FileEntry{
+			Filename: filePathFinal,
+			Original: readOriginalState(filePathFinal),
+			Modified: FileState{
+				Exists: false,
+			},
+		})
+	}
+
+	if len(stash.Files) > 0 {
+		logger.Debugln("Files in stash:")
+		for _, entry := range stash.Files {
+			if entry.Original.Exists && entry.Modified.Exists {
+				logger.Debugln("Modified:", entry.Filename)
+			} else if !entry.Original.Exists && entry.Modified.Exists {
+				logger.Debugln("Created:", entry.Filename)
+			} else if entry.Original.Exists && !entry.Modified.Exists {
+				logger.Debugln("Deleted:", entry.Filename)
+			} else {
+				logger.Debugln("Unchanged absent:", entry.Filename)
+			}
 		}
 	}
 
