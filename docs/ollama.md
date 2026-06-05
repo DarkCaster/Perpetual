@@ -13,9 +13,11 @@ OLLAMA_FLASH_ATTENTION="1"
 OLLAMA_KV_CACHE_TYPE="q8_0"
 ```
 
-This configuration sets KV cache quantization to 8-bit, allowing larger context window sizes with some quality loss. It is recommended for GPUs with a low amount of VRAM.
+This configuration sets KV cache quantization to 8-bit, allowing larger context window sizes with some quality loss. It is recommended for GPUs with limited VRAM.
 
 For models that support Ollama thinking/reasoning controls, `Perpetual` can use `OLLAMA_THINK` or per-operation variables such as `OLLAMA_THINK_OP_ANNOTATE`. Supported values are `true`, `false`, and, with newer Ollama versions and supported models, `low`, `medium`, and `high`.
+
+For larger prompts, configure Ollama context-size options in the `.env` file, such as `OLLAMA_CONTEXT_SIZE_OP_*`, `OLLAMA_CONTEXT_SIZE`, `OLLAMA_CONTEXT_SIZE_LIMIT`, and `OLLAMA_CONTEXT_MULT`. If context size is not configured, `Perpetual` will use the model default and context overflow detection will be disabled.
 
 ## Models
 
@@ -29,7 +31,7 @@ Download with:
 ollama pull gpt-oss:20b
 ```
 
-The 20b gpt-oss model can be used for generating annotations, providing results good enough for use in other stages and operations. You need to set the environment variable `OLLAMA_THINK_OP_ANNOTATE` or `OLLAMA_THINK` to `low` in order to fit annotations in a smaller context. It may be used for stage 1 of other operations in `plain` non-JSON mode with small projects, but results may be unstable. Consider using the `-sp` flag for multi-step file selection.
+The 20b gpt-oss model can be used for generating annotations, providing results good enough for use in other stages and operations. You need to set the environment variable `OLLAMA_THINK_OP_ANNOTATE` or `OLLAMA_THINK` to `low` in order to fit annotations in a smaller context. It may be used for stage 1 of other operations with small projects, but results may be unstable. Consider using the `-sp` flag for multi-step file selection.
 
 ### qwen3:8b / qwen3:14b
 

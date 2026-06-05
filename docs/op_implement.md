@@ -202,32 +202,20 @@ The `implement` operation can be fine-tuned using environment variables in `.env
    - Similar variables exist for OpenAI, Ollama, and Generic providers.
    - `<PROVIDER>_MAX_TOKENS_SEGMENTS`: Controls how many continuation segments may be attempted for operations that support continuation after token-limit truncation.
 
-4. **JSON Structured Output Mode**  
-   JSON structured output mode is supported for Stages 1 and 3 for some LLM providers. This mode can provide faster responses and slightly lower costs, and may produce better results sometimes when used with Ollama. To enable it for different providers, add to your `.env` file:
-
-   ```sh
-   ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
-   ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
-   OPENAI_FORMAT_OP_IMPLEMENT_STAGE1="json"
-   OPENAI_FORMAT_OP_IMPLEMENT_STAGE3="json"
-   OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
-   OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
-   ```
-
-5. **Retry Settings**  
+4. **Retry Settings**  
    - `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE4`: Specify retry attempts for each stage.  
    - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
-6. **Incremental Mode Settings**  
+5. **Incremental Mode Settings**  
    - `<PROVIDER>_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4`: Enable or disable incremental search-and-replace mode support for Stage 4.  
    - `<PROVIDER>_INCRMODE_SUPPORT`: Default incremental mode support setting for the provider.  
    - `<PROVIDER>_INCRMODE_RETRIES`: Number of retry attempts for incremental mode before falling back to full-file generation.
 
-7. **Temperature**  
+6. **Temperature**  
    - `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE3`, `ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE4`: Set temperature for each stage.  
    - Similar variables exist for OpenAI, Ollama, and Generic providers.
 
-8. **Other LLM Parameters**  
+7. **Other LLM Parameters**  
    - Provider-specific options such as `TOP_K`, `TOP_P`, `SEED`, `REPEAT_PENALTY`, `FREQ_PENALTY`, `PRESENCE_PENALTY`, reasoning controls, prompt role controls, and prompt prefixes/suffixes can be set for each stage by using the corresponding provider-specific environment variable names. Consult the generated `*.env.example` files for details.
 
 **Example configuration in `.env` file:**
@@ -266,9 +254,7 @@ The prompt configuration is organized by stages, with each stage having specific
 Stage 1 is responsible for analyzing the project context and identifying relevant files for code implementation. It creates a project index using file annotations and determines which additional files should be reviewed to provide proper context for the implementation task.
 
 - **`stage1_analysis_prompt`**: Main prompt for regular mode that asks the LLM to identify which project files are relevant for implementing the specified tasks.
-- **`stage1_analysis_json_mode_prompt`**: Alternative version of the analysis prompt designed for JSON structured output mode, providing the same functionality with formatted output.
 - **`stage1_task_analysis_prompt`**: Analysis prompt specifically for task mode when implementation instructions are provided directly rather than through `###IMPLEMENT###` comments.
-- **`stage1_task_analysis_json_mode_prompt`**: JSON-formatted version of the task analysis prompt for structured output in task mode.
 
 ### Stage 2 Prompts
 
@@ -288,11 +274,8 @@ Stage 2 handles the gathering of source code context and, optionally, the genera
 Stage 3 determines which files will be modified or created during the implementation process. This stage analyzes the requirements and optional work plan to produce a list of files that need changes.
 
 - **`stage3_planning_prompt`**: Main prompt for determining file modifications when using planning mode with full file content analysis.
-- **`stage3_planning_json_mode_prompt`**: JSON-structured version of the planning prompt for providers that support structured output.
 - **`stage3_planning_lite_prompt`**: Simplified planning prompt used when reasoning has already been generated in Stage 2, requiring less detailed analysis.
-- **`stage3_planning_lite_json_mode_prompt`**: JSON version of the simplified planning prompt.
 - **`stage3_task_planning_prompt`**: Planning prompt specifically designed for task mode implementations.
-- **`stage3_task_planning_json_mode_prompt`**: JSON-structured version of the task planning prompt.
 - **`stage3_task_extra_files_prompt`**: Additional prompt used in task mode when extra files need to be included in the context to prevent overwriting existing code.
 
 ### Stage 4 Prompts
@@ -312,9 +295,7 @@ System-level configuration options that apply across all stages:
 - **`system_prompt`**: The primary system prompt that establishes the LLM's role and general behavior for the implement operation.
 - **`system_prompt_ack`**: Acknowledgment response that the LLM should provide to confirm understanding of the system prompt.
 - **`filename_embed_rx`**: Regular expression pattern used to embed the filename into file implementation requests.  
-- **`implement_comments_rx`**: Regular expressions to detect `###IMPLEMENT###` comments.  
-- **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_name`**, **`stage1_output_schema_desc`**: Parameters for JSON-structured output in Stage 1.  
-- **`stage3_output_key`**, **`stage3_output_schema`**, **`stage3_output_schema_name`**, **`stage3_output_schema_desc`**: Parameters for JSON-structured output in Stage 3.
+- **`implement_comments_rx`**: Regular expressions to detect `###IMPLEMENT###` comments.
 
 ## Project Configuration
 
@@ -383,7 +364,7 @@ Configuration for incremental search-and-replace mode in Stage 4:
 ## Error Handling and Retries
 
 1. **LLM Query Failures**: Retries up to the number specified in `<PROVIDER>_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE<NUMBER>`.  
-2. **Token Limit Handling**: Stage 4 can continue full-file generation if the LLM response reaches the token limit, up to the configured segment limit. Other stages generally retry or fail when token limits are reached, especially when structured output or incremental parsing would make partial responses invalid.  
+2. **Token Limit Handling**: Stage 4 can continue full-file generation if the LLM response reaches the token limit, up to the configured segment limit. Other stages generally retry or fail when token limits are reached, especially when partial responses would make filename-list parsing or incremental parsing invalid.  
 3. **Invalid Responses**: Checks for properly formatted filename lists, code blocks, or incremental search-and-replace blocks and retries when valid output cannot be parsed.  
 4. **Incremental Mode Fallback**: If incremental search-and-replace output cannot be parsed or applied, Perpetual may retry incremental mode and then fall back to full-file generation.
 

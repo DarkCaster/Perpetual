@@ -66,7 +66,7 @@ Use the generated `*.env.example` files as templates. Common settings include:
 - **Model Selection**
   - `<PROFILE>_MODEL`: Default model name.
   - `<PROFILE>_MODEL_OP_<OPERATION>`: Model override for a specific operation or stage.
-  - Embedding operations usually require an explicit `<PROFILE>_MODEL_OP_EMBED` value.
+  - Embedding operations usually require an explicit `<PROFILE>_MODEL_OP_EMBED` value. Anthropic does not provide embedding support in Perpetual.
 
 - **Common Generation Parameters**
   - `<PROFILE>_MAX_TOKENS`: Default maximum output tokens.
@@ -78,10 +78,11 @@ Use the generated `*.env.example` files as templates. Common settings include:
   - `<PROFILE>_TEMPERATURE_OP_<OPERATION>`: Operation-specific sampling temperature.
   - `<PROFILE>_TOP_P`, `<PROFILE>_TOP_K`, `<PROFILE>_SEED`, `<PROFILE>_REPEAT_PENALTY`, `<PROFILE>_FREQ_PENALTY`, `<PROFILE>_PRESENCE_PENALTY`: Provider-dependent tuning options where supported.
 
-- **Structured Output**
-  - `<PROFILE>_FORMAT_OP_<OPERATION>`: Response format for supported operations, usually `plain` or `json`.
+- **Streaming**
+  - `<PROFILE>_ENABLE_STREAMING`
+  - `<PROFILE>_ENABLE_STREAMING_OP_<OPERATION>`
 
-  JSON mode is only valid for operations/stages that provide an output schema, such as file-list selection stages. If JSON mode is enabled for an operation without a schema, connector creation fails.
+  Streaming support is provider- and model-dependent. OpenAI and Generic providers expose streaming controls. Ollama uses streaming internally for response handling.
 
 - **Incremental File-Change Mode**
   - `<PROFILE>_INCRMODE_SUPPORT`: Enables or disables incremental search-and-replace file modification mode.
@@ -91,16 +92,17 @@ Use the generated `*.env.example` files as templates. Common settings include:
 - **Reasoning / Thinking Options**
   - Anthropic: `<PROFILE>_THINK_TOKENS` and `<PROFILE>_THINK_TOKENS_OP_<OPERATION>`.
   - Ollama: `<PROFILE>_THINK` and `<PROFILE>_THINK_OP_<OPERATION>`.
-  - OpenAI/Generic: reasoning-effort options may be available depending on provider and model.
+  - OpenAI/Generic: `<PROFILE>_REASONING_EFFORT` and `<PROFILE>_REASONING_EFFORT_OP_<OPERATION>` where supported by the provider and model.
+  - Generic/Ollama response filtering: `<PROFILE>_THINK_RX_L`, `<PROFILE>_THINK_RX_R`, `<PROFILE>_OUT_RX_L`, and `<PROFILE>_OUT_RX_R`, with operation-specific variants, can be used to remove or extract parts of responses from models that include reasoning markup in plain text.
 
 - **System Prompt Role**
   - `<PROFILE>_SYSPROMPT_ROLE`: Controls how the system prompt is sent for providers/models that need it.
-  - Supported values are provider-dependent. Some providers support `system`, `developer`, and/or `user`.
+  - Supported values are provider-dependent. Generic supports `system`, `developer`, and `user`; Ollama supports `system` and `user`.
 
 - **Prompt Prefixes and Suffixes**
   - `<PROFILE>_SYSTEM_PFX`, `<PROFILE>_SYSTEM_SFX`
   - `<PROFILE>_USER_PFX`, `<PROFILE>_USER_SFX`
-  - Operation-specific variants are also supported with `_OP_<OPERATION>`.
+  - Operation-specific variants are also supported with `_OP_<OPERATION>` where implemented.
 
 - **Embedding Settings**
   - `<PROFILE>_EMBED_DOC_CHUNK_SIZE`
@@ -111,6 +113,22 @@ Use the generated `*.env.example` files as templates. Common settings include:
   - `<PROFILE>_EMBED_SCORE_THRESHOLD`
   - `<PROFILE>_EMBED_DOC_PREFIX`
   - `<PROFILE>_EMBED_SEARCH_PREFIX`
+
+- **Provider-Specific Request Options**
+  - Generic provider:
+    - `GENERIC_MAXTOKENS_FORMAT`: Selects old or new max-token request field format.
+    - `GENERIC_API_VERSION`: Adds an `api-version` URL query parameter where needed.
+    - `GENERIC_ADD_JSON`: Injects an additional JSON object into outgoing requests.
+  - OpenAI provider:
+    - `OPENAI_SERVICE_TIER`
+    - `OPENAI_SERVICE_TIER_FALLBACK`
+  - Ollama provider:
+    - `OLLAMA_CONTEXT_SIZE`
+    - `OLLAMA_CONTEXT_SIZE_OP_<OPERATION>`
+    - `OLLAMA_CONTEXT_SIZE_LIMIT`
+    - `OLLAMA_CONTEXT_MULT`
+    - `OLLAMA_CONTEXT_ESTIMATE_MULT`
+    - `OLLAMA_CONTEXT_MULT_MIN`
 
 Refer to the comments within the generated `*.env.example` files for provider-specific defaults and additional options. You may create a single `.env` file or multiple `.env` files with settings for the providers you use.
 
@@ -128,9 +146,9 @@ Project configuration files allow you to customize Perpetual's behavior on a per
 
 - **Operation-Specific Settings**
   - `op_annotate.json`: Prompts for source-file annotation and task annotation.
-  - `op_implement.json`: Prompts, schemas, tags, and regexes for code implementation.
-  - `op_doc.json`: Prompts and schemas for documentation generation and refinement.
-  - `op_explain.json`: Prompts, schemas, and output formatting for project explanation.
+  - `op_implement.json`: Prompts and regexes for code implementation.
+  - `op_doc.json`: Prompts for documentation generation and refinement.
+  - `op_explain.json`: Prompts and output formatting for project explanation.
   - `op_report.json`: Prompts and filename formatting for report generation.
 
 Perpetual validates these JSON files against built-in templates when loading them. Missing required keys or extra unknown keys cause configuration loading to fail.
@@ -155,7 +173,7 @@ File path regular expressions are matched against project-root-relative paths. F
 
 - `project_files_whitelist`: Array of regex patterns for files to include.
 - `project_files_blacklist`: Array of regex patterns for files to exclude.
-- `project_test_files_blacklist`: Array of regex patterns used to exclude test files unless an operation is run with the option to include tests.
+- `project_test_files_blacklist`: Array of regex patterns used by operations that support excluding test files unless the operation is run with the option to include tests.
 - `files_to_md_code_mappings`: A 2D array of `[pattern, language]` mappings for Markdown code blocks. If no mapping matches, Perpetual falls back to built-in extension-based mappings.
 - `project_index_prompt`: Prompt used when presenting the project file index and annotations to the LLM.
 - `project_index_response`: Simulated response paired with the project index prompt.
@@ -172,7 +190,7 @@ File path regular expressions are matched against project-root-relative paths. F
 - `high_context_saving_select_percent`: Percentage of files to preselect in high context-saving mode.
 - `high_context_saving_random_percent`: Percentage of randomized files in high context-saving mode, calculated relative to the selected set.
 - `files_incremental_mode_min_length`: 2D array of `[pattern, min_length]` records defining when incremental file-change mode may be used for a matching file.
-- `files_incremental_mode_rx`: Regex patterns for parsing incremental search-and-replace blocks.
+- `files_incremental_mode_rx`: Regex patterns for parsing incremental search-and-replace blocks. The default format uses `SEARCH>>>`, `<<<REPLACE>>>`, and `<<<DONE`.
 
 Partial example excerpt:
 
@@ -227,7 +245,7 @@ For annotation generation, context saving selects the shorter prompt variant fro
 
 ### `op_*.json` Parameters
 
-Operation configuration files define prompts, response schemas, parsing tags, and operation-specific behavior.
+Operation configuration files define prompts, parsing tags, and operation-specific behavior.
 
 #### Common Prompt Fields
 
@@ -237,21 +255,6 @@ Many operation configs include:
 - `system_prompt_ack`: A simulated acknowledgment used when a provider/model requires the system prompt to be represented as a user/assistant exchange.
 - `code_prompt`: Prompt used before providing relevant source files to the LLM.
 - `code_response`: Simulated response paired with `code_prompt`.
-
-#### Response Schemas for JSON Mode
-
-Some operations support structured JSON output:
-
-- `stage1_output_schema`
-- `stage1_output_key`
-- `stage1_output_schema_name`
-- `stage1_output_schema_desc`
-- `stage3_output_schema`
-- `stage3_output_key`
-- `stage3_output_schema_name`
-- `stage3_output_schema_desc`
-
-These schemas define the expected JSON structure when `<PROFILE>_FORMAT_OP_<OPERATION>` is set to `json`. Perpetual extracts lists from the configured output key.
 
 #### `op_annotate.json`
 
@@ -274,16 +277,12 @@ Implementation configuration includes prompts and parsing settings for the imple
 Stage 1 file-selection prompts:
 
 - `stage1_analysis_prompt`
-- `stage1_analysis_json_mode_prompt`
 - `stage1_task_analysis_prompt`
-- `stage1_task_analysis_json_mode_prompt`
-- `stage1_output_schema`
-- `stage1_output_key`
-- `stage1_output_schema_name`
-- `stage1_output_schema_desc`
 
 Stage 2 review/planning prompts:
 
+- `code_prompt`
+- `code_response`
 - `stage2_noplanning_prompt`
 - `stage2_noplanning_response`
 - `stage2_reasonings_prompt`
@@ -294,16 +293,9 @@ Stage 2 review/planning prompts:
 Stage 3 file-modification list prompts:
 
 - `stage3_planning_prompt`
-- `stage3_planning_json_mode_prompt`
 - `stage3_task_planning_prompt`
-- `stage3_task_planning_json_mode_prompt`
 - `stage3_planning_lite_prompt`
-- `stage3_planning_lite_json_mode_prompt`
 - `stage3_task_extra_files_prompt`
-- `stage3_output_schema`
-- `stage3_output_key`
-- `stage3_output_schema_name`
-- `stage3_output_schema_desc`
 
 Stage 4 code generation prompts:
 
@@ -317,16 +309,12 @@ Stage 4 code generation prompts:
 
 Documentation configuration includes:
 
+- `system_prompt`
+- `system_prompt_ack`
 - `example_doc_prompt`
 - `example_doc_response`
 - `stage1_refine_prompt`
-- `stage1_refine_json_mode_prompt`
 - `stage1_write_prompt`
-- `stage1_write_json_mode_prompt`
-- `stage1_output_schema`
-- `stage1_output_key`
-- `stage1_output_schema_name`
-- `stage1_output_schema_desc`
 - `code_prompt`
 - `code_response`
 - `stage2_refine_prompt`
@@ -337,17 +325,14 @@ Documentation configuration includes:
 
 Explanation configuration includes:
 
+- `system_prompt`
+- `system_prompt_ack`
 - `output_files_header`
 - `output_filename_tags`
 - `output_filtered_filename_tags`
 - `output_answer_header`
 - `output_question_header`
 - `stage1_question_prompt`
-- `stage1_question_json_mode_prompt`
-- `stage1_output_schema`
-- `stage1_output_key`
-- `stage1_output_schema_name`
-- `stage1_output_schema_desc`
 - `code_prompt`
 - `code_response`
 - `stage2_question_prompt`
@@ -365,8 +350,8 @@ Report configuration includes:
 
 ## Version Control and Customization
 
-- Commit `project.json` and `op_*.json` files so all contributors use the same prompts, filters, schemas, and parsing rules.
+- Commit `project.json` and `op_*.json` files so all contributors use the same prompts, filters, and parsing rules.
 - Do not commit real `.env` files.
 - Review `description.md` before committing it, especially if it contains sensitive project details.
 - Use the generated `*.env.example` files as references, but keep provider credentials and local model settings in `.env` files.
-- You can customize prompts, regexes, schemas, and file filters to fit your project, but keep the required JSON keys intact because Perpetual rejects missing or extra keys during config loading.
+- You can customize prompts, regexes, and file filters to fit your project, but keep the required JSON keys intact because Perpetual rejects missing or extra keys during config loading.

@@ -2,7 +2,7 @@
 
 The `annotate` operation is a crucial part of `Perpetual`. It generates annotations for a project's source code files, creating a summary of each file's contents and purpose. This operation is primarily used to maintain an up-to-date index of the project's structure and content, which is then utilized by other operations within `Perpetual`. The project index is stored in the `.perpetual` directory as `.annotations.json` and is only updated when necessary, saving you costs and time on LLM API access.
 
-While the `annotate` operation is an essential component of the `Perpetual` workflow, it is not typically necessary to run it manually. Other operations, such as `implement`, `doc`, and `explain`, automatically trigger the `annotate` operation when needed to ensure that the project's annotations are current before proceeding with their tasks.
+While the `annotate` operation is an essential component of the `Perpetual` workflow, it is not typically necessary to run it manually. Other operations, such as `implement`, `doc`, `explain`, and brief `report` generation, trigger the `annotate` operation when needed to ensure that the project's annotations are current before proceeding with their tasks. Some operations provide a no-annotate mode to skip this automatic update.
 
 ## Usage
 
@@ -86,7 +86,7 @@ Configuration files with the `.env` extension may be placed in:
 - the global Perpetual configuration directory;
 - or values may be exported directly to the process environment.
 
-Operation-specific variables have priority over provider-wide defaults when supported by the selected provider.
+Environment variables already exported to the process environment have the highest priority. Project-local `.env` files are loaded before global `.env` files. Within each directory, `.env` files are loaded in alphabetical order, with previously loaded values taking precedence. Operation-specific variables have priority over provider-wide defaults when supported by the selected provider.
 
 ### Key configuration options
 
@@ -146,8 +146,10 @@ Operation-specific variables have priority over provider-wide defaults when supp
 
    - `ANTHROPIC_TOP_K_OP_ANNOTATE`
    - `ANTHROPIC_TOP_P_OP_ANNOTATE`
+   - `ANTHROPIC_THINK_TOKENS_OP_ANNOTATE`
    - `OPENAI_REASONING_EFFORT_OP_ANNOTATE`
    - `OPENAI_TOP_P_OP_ANNOTATE`
+   - `OPENAI_SERVICE_TIER_OP_ANNOTATE`
    - `OLLAMA_TOP_K_OP_ANNOTATE`
    - `OLLAMA_TOP_P_OP_ANNOTATE`
    - `OLLAMA_SEED_OP_ANNOTATE`
@@ -178,9 +180,7 @@ This configuration uses the Anthropic provider with the Claude 3 Haiku model, se
 
 Note that if operation-specific variables with the `_OP_ANNOTATE` suffix are not set, the `annotate` operation will generally fall back to provider-wide variables for the chosen LLM provider. This allows you to set general defaults and override them specifically for annotation when needed.
 
-Do not enable JSON structured output mode for the `annotate` operation. Annotation generation uses plain text output and does not provide a JSON output schema.
-
-**Warning:** The `annotate` operation processes project files selected by the project whitelist and blacklist, including source-code files marked with `###NOUPLOAD###` comments. To improve privacy, you may configure `Perpetual` to use a local LLM with Ollama for the `annotate` operation.
+**Warning:** The `annotate` operation processes project files selected by the project whitelist and blacklist, including source-code files marked with `###NOUPLOAD###` comments. To improve privacy, you may configure `Perpetual` to use a local LLM with Ollama for the `annotate` operation, or use a user filter file with `-x` to exclude sensitive files from annotation.
 
 ## Prompts Configuration
 
@@ -227,7 +227,7 @@ The key parameters within this configuration file are:
 }
 ```
 
-The `annotate_file_prompts` entries are matched against project-relative file paths. When context saving is inactive, the normal annotation prompt is used. When context saving is active, the shorter prompt is used.
+The `annotate_file_prompts` entries are matched against project-relative file paths in the order they appear in the configuration. The first matching regular expression determines which prompts are used. When context saving is inactive, the normal annotation prompt is used. When context saving is active, the shorter prompt is used.
 
 Related project-level configuration is stored in `.perpetual/project.json`. Important keys for annotation include:
 
@@ -241,7 +241,7 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
 
 - **`files_to_md_code_mappings`**: Optional filename-to-Markdown-code-language mappings used when rendering source files in LLM prompts.
 
-- **`code_tags_rx`**: Regex tag pairs used to filter LLM responses and remove unwanted code block wrapping.
+- **`code_tags_rx`**: Regex tag pairs used to detect and reject annotation responses that contain unwanted tagged text or code block wrapping.
 
 - **Context-saving thresholds and percentages**, such as `medium_context_saving_file_count` and `high_context_saving_file_count`, which control automatic context-saving behavior.
 
@@ -293,7 +293,7 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
    - If a file fails to be annotated after all retries, its original checksum is preserved so it will be retried in a later run.
    - Processing continues with remaining files.
    - An error flag is set to indicate partial failure.
-   - Empty or invalid LLM responses are treated as failures for the affected file.
+   - Empty responses, invalid responses, and responses containing forbidden code block or tag patterns are treated as failures for the affected file.
 
 7. **Annotation Storage:**
    - Existing annotations are loaded from `.perpetual/.annotations.json`.

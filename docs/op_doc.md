@@ -26,13 +26,13 @@ Available flags:
 - `-c <mode>`  
   Context saving mode: `auto` (default), `off`, `medium`, or `high`. Controls how aggressively LLM context usage is reduced on large projects.
 - `-s <limit>`  
-  Limit number of files for local similarity search via embeddings (default: 7; 0 disables local search and only uses LLM-requested files).
+  Limit number of files for local similarity search via embeddings (default: 7; 0 disables post-Stage 1 local similarity expansion).
 - `-sp <count>`  
-  Set number of passes for related files selection at Stage 1 (default: 1). Higher pass-count values will select more files, compensating for possible LLM errors when finding relevant files, but it will cost you more tokens and context use.
+  Set number of passes for related files selection at Stage 1 (default: 1). Higher pass-count values can select more files, compensating for possible LLM errors when finding relevant files, but they cost more tokens and context.
 - `-f`  
   Disable the `no-upload` file filter and include such files for review if requested.
 - `-n`  
-  No-annotate mode: skip re-annotating changed files and use current annotations and embeddings if available.
+  No-annotate mode: skip re-annotating changed files and skip updating embeddings; use current annotations and embeddings if available.
 - `-u`  
   Include unit-test source files in processing (tests excluded by default).
 - `-x <file>`  
@@ -98,7 +98,7 @@ Available flags:
 
 ## How It Works
 
-When executed, the `doc` operation will analyze your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage LLM process for `write` and `refine` actions:
+When executed, the `doc` operation analyzes your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage LLM process for `write` and `refine` actions:
 
 1. **Stage 1:** Analyzes the project index, target document content, optional project description, optional example document, and any embedded instructions. It determines which project files are relevant for the documentation task.
 2. **Stage 2:** Generates or refines the document content based on the selected source files, project annotations, the specified action, the target document, and any provided example document.
@@ -114,7 +114,9 @@ If embeddings are not configured or fail, the operation falls back to using the 
 
 ## LLM Configuration
 
-The `doc` operation can be configured using environment variables defined in `.env` files. Project-local `.env` files are loaded from `.perpetual`, and global `.env` files are loaded from the Perpetual configuration directory. These variables allow you to customize the behavior of the LLM used for generating documentation. Here are the key configuration options that affect the `doc` operation:
+The `doc` operation can be configured using environment variables defined in `.env` files. Project-local `.env` files are loaded from `.perpetual`, and global `.env` files are loaded from the Perpetual configuration directory. Environment variables already exported in the system have priority over `.env` files. The `.env` files are loaded in alphabetical order, with earlier loaded values taking precedence.
+
+These variables allow you to customize the behavior of the LLM used for generating documentation. Here are the key configuration options that affect the `doc` operation:
 
 1. **LLM Provider:**
    - `LLM_PROVIDER_OP_DOC_STAGE1`: Specifies the LLM provider to use for the first stage of the `doc` operation.
@@ -133,20 +135,7 @@ The `doc` operation can be configured using environment variables defined in `.e
 
    For comprehensive documentation, consider using higher token limits for Stage 2 to allow for detailed content generation. `Perpetual` will try to continue document generation if token limits are hit, but results may be suboptimal. If generating a smaller document, it is generally better to set a larger token limit and limit document size with embedded instructions starting with `Notes on implementation:` inside the document.
 
-4. **JSON Structured Output Mode:**
-   JSON-structured output can be enabled for Stage 1 for providers that support it. It can make file-list extraction more reliable for compatible models, but not all models support or work reliably with structured output.
-
-   **Enable JSON-structured output mode:**
-
-   ```sh
-   ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
-   OPENAI_FORMAT_OP_DOC_STAGE1="json"
-   OLLAMA_FORMAT_OP_DOC_STAGE1="json"
-   ```
-
-   The Generic provider currently uses plain text output mode for documentation stages.
-
-5. **Embeddings and Local Similarity Search:**
+4. **Embeddings and Local Similarity Search:**
    The `doc` operation may call the `embed` operation internally to update embeddings unless `-n` is used. Embeddings are used for local similarity search and context-saving preselection.
 
    Relevant variables include:
@@ -161,7 +150,7 @@ The `doc` operation can be configured using environment variables defined in `.e
 
    Anthropic does not provide embedding support in Perpetual. OpenAI, Ollama, and Generic providers may support embeddings depending on the configured model and API.
 
-6. **Authentication and API Settings:**
+5. **Authentication and API Settings:**
    - For the Generic provider:
      - `GENERIC_BASE_URL`: Required. Base URL for the API endpoint.
      - `GENERIC_AUTH_TYPE`: Authentication type (`basic` or `bearer`).
@@ -172,7 +161,7 @@ The `doc` operation can be configured using environment variables defined in `.e
 
    Similar authentication options exist for the Ollama provider, for use with public instances wrapped with an HTTPS reverse proxy. OpenAI also supports service tier configuration through `OPENAI_SERVICE_TIER_OP_DOC_STAGE1`, `OPENAI_SERVICE_TIER_OP_DOC_STAGE2`, and related fallback settings.
 
-7. **Common Parameters for Providers:**
+6. **Common Parameters for Providers:**
    - `<PROVIDER>_ON_FAIL_RETRIES_OP_DOC_STAGE1`, `<PROVIDER>_ON_FAIL_RETRIES_OP_DOC_STAGE2`: Number of retries on failure.
    - `<PROVIDER>_TEMPERATURE_OP_DOC_STAGE1`, `<PROVIDER>_TEMPERATURE_OP_DOC_STAGE2`: Temperature setting.
    - `<PROVIDER>_TOP_K_OP_DOC_STAGE1`, `<PROVIDER>_TOP_K_OP_DOC_STAGE2`: Top-K sampling parameter, where supported.
@@ -212,7 +201,7 @@ GENERIC_ENABLE_STREAMING="1"
 GENERIC_SYSPROMPT_ROLE="system"
 ```
 
-This configuration uses the Generic provider configured for DeepSeek LLM, sets appropriate token limits and continuation segments, uses slightly different temperatures, and allows for retries on failure.
+This configuration uses the Generic provider configured for DeepSeek LLM, sets token limits and continuation segments, uses slightly different temperatures, and allows retries on failure.
 
 Note that if stage-specific variables are not set, the `doc` operation will fall back to the general variables for the chosen LLM provider. This flexible configuration allows you to set general defaults while overriding them specifically for each stage of the `doc` operation if needed.
 
@@ -220,9 +209,16 @@ Note that if stage-specific variables are not set, the `doc` operation will fall
 
 Customization of LLM prompts for the `doc` operation is handled through the `.perpetual/op_doc.json` configuration file. This file is populated using the `init` operation, which sets up default language-specific prompts tailored to your project's needs. Since the `doc` operation is experimental and requires a robust and intelligent LLM model to work effectively, you may want to alter some of the prompts to better suit your process.
 
-Other important parameters (not recommended to change unless you are experiencing problems):
+Important prompt keys in `.perpetual/op_doc.json` include:
 
-- **`stage1_output_key`**, **`stage1_output_schema`**, **`stage1_output_schema_desc`**, **`stage1_output_schema_name`**: Parameters used if JSON-structured output mode is enabled for Stage 1 of the operation.
+- `system_prompt` and `system_prompt_ack`: System prompt and acknowledgment used to initialize the model conversation.
+- `example_doc_prompt` and `example_doc_response`: Prompt and simulated response used when an example document is provided with `-e`.
+- `stage1_write_prompt` and `stage1_refine_prompt`: Stage 1 prompts used to ask the model which project files are relevant.
+- `code_prompt` and `code_response`: Prompt and simulated response used when providing selected source files to the model.
+- `stage2_write_prompt` and `stage2_refine_prompt`: Stage 2 prompts used to generate or refine the final document.
+- `stage2_continue_prompt`: Prompt used when Stage 2 hits the token limit and Perpetual attempts to continue generation.
+
+Project-wide behavior used by the `doc` operation is also affected by `.perpetual/project.json`, including project file whitelist/blacklist rules, test-file blacklist rules, filename and code-block tags, project description prompts, project index prompts, Markdown code-block mappings, `no-upload` comment regexes, and context-saving thresholds.
 
 ## Workflow
 

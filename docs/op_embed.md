@@ -16,7 +16,7 @@ The `embed` operation has two primary modes:
 
 1. **Embedding Generation Mode (default):** Processes your project files, detects changes, and regenerates embeddings as needed.
 
-2. **Question/Search Mode:** Performs semantic search using existing embeddings to find files relevant to a specific question or query.
+2. **Question/Search Mode:** Updates embeddings as needed and then performs semantic search to find files relevant to a specific question or query.
 
 When invoked without question flags, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
 
@@ -29,7 +29,7 @@ Available flags:
   Dry run: list files that **would** be processed without generating embeddings.
 
 - `-r <file>`  
-  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project.
+  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project and must pass the project whitelist/blacklist filters.
 
 - `-q`  
   Read a question from stdin and find files relevant to it using semantic search.
@@ -38,13 +38,13 @@ Available flags:
   Read a question from a file, in plain text or markdown format, and find relevant files. Implies `-q`.
 
 - `-s <limit>`  
-  Limit the number of files returned that are relevant to the question (default: 5). Used with `-q` or `-i`.
+  Limit the number of files returned that are relevant to the question (default: 5). Used with `-q` or `-i`. A value of `0` disables similarity search output.
 
 - `-u`  
-  Do not exclude unit-test source files from search results. Used with `-q` or `-i`.
+  In question/search mode, do not exclude files matching the project test-file blacklist. This flag has no additional effect in default embedding generation mode.
 
 - `-x <file>`  
-  Path to a JSON file containing regex filters used to exclude files. In embedding generation mode, matching files are skipped for embedding. In question/search mode, matching files are skipped from search results.
+  Path to a JSON file containing an array of regex filters used to exclude files. In embedding generation mode, matching files are skipped for embedding. In question/search mode, matching files are skipped both from embedding updates and from search results.
 
 - `-v`  
   Enable debug logging.
@@ -101,6 +101,8 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
 
 - **Provider Selection:**  
   `LLM_PROVIDER_OP_EMBED` (fallback to `LLM_PROVIDER`)
+
+  Numbered provider profiles are supported in the same way as other operations, for example `LLM_PROVIDER_OP_EMBED="ollama1"` with variables using the `OLLAMA1_` prefix.
 
 - **Embedding Model:**  
   `<PROVIDER>_MODEL_OP_EMBED`
@@ -224,7 +226,7 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
 5. **Determine Files to Embed**  
    - With `-r`, select the specified file.  
-   - With `-f`, select all project files.  
+   - With `-f`, remove the old embeddings storage and select all project files.  
    - Otherwise, select files whose checksums have changed or whose embeddings are missing.
 
 6. **Apply User Filters**  
@@ -246,7 +248,7 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
 ### Question/Search Mode
 
-When using `-q` or `-i`:
+When using `-q` or `-i`, Perpetual still performs the embedding generation workflow first, so changed or missing embeddings are updated before searching.
 
 1. **Read Question**  
    Load the question from stdin with `-q` or from a file with `-i`.
@@ -254,16 +256,19 @@ When using `-q` or `-i`:
 2. **Apply Search Filters**  
    Apply user filters from `-x`. If `-u` is not specified, also exclude files matching the project test-file blacklist.
 
-3. **Generate Question Embeddings**  
+3. **Update Needed Embeddings**  
+   Generate or refresh embeddings for changed files that are still eligible after filtering.
+
+4. **Generate Question Embeddings**  
    Create embeddings for the input question using the configured embedding provider. Search query embeddings are cached in memory during the current process to avoid recomputation.
 
-4. **Load Project Embeddings**  
-   Read existing project file embeddings from `.perpetual/.embeddings.msgpack`.
+5. **Load Project Embeddings**  
+   Read project file embeddings from `.perpetual/.embeddings.msgpack`.
 
-5. **Perform Similarity Search**  
+6. **Perform Similarity Search**  
    Calculate cosine similarity between the question embedding and stored project file embeddings.
 
-6. **Return Results**  
+7. **Return Results**  
    Print selected matching files, one per line, limited by `-s` and filtered by the configured similarity threshold.
 
 ### Internal Use for Local Search
