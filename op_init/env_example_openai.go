@@ -106,9 +106,9 @@ OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="12288" # file-list for review, includes t
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="24576" # work-plan generation
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="8192" # file-list for processing, include tokens for thinking
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="65536" # generated code output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_DOC_STAGE1="12288" # file-list for review, includes tokens for high-thinking of gpt-5.4-mini
+OPENAI_MAX_TOKENS_OP_DOC_STAGE1="24576" # file-list for review, includes tokens for high-thinking of gpt-5.4-mini
 OPENAI_MAX_TOKENS_OP_DOC_STAGE2="65536" # generated document output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="12288" # file-list for review, includes tokens for high-thinking of gpt-5.4-mini
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="24576" # file-list for review, includes tokens for high-thinking of gpt-5.4-mini
 OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="65536" # generated answer output limit
 OPENAI_MAX_TOKENS="4096" # default limit
 
