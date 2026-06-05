@@ -10,7 +10,7 @@ package op_init
 const genericEnvExampleFileName = "generic.env.example"
 
 const genericEnvExample = `# Options for generic provider with OpenAI compatible API
-# JSON structured output mode is not supported for now, embeddings support depends on the provider.
+# Embeddings support depends on the provider.
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:
 # Project local config: <Project root>/.perpetual/*.env

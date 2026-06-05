@@ -101,14 +101,6 @@ OLLAMA_CONTEXT_SIZE_OP_EXPLAIN_STAGE1="24576"
 OLLAMA_CONTEXT_SIZE_OP_EXPLAIN_STAGE2="24576"
 OLLAMA_CONTEXT_SIZE="24576"
 
-# Switch to use structured JSON output format for some operations, may work better with some models (or not work at all)
-# Supported values: plain, json. Default: plain
-# Enabling reasoning/thinking (below) may be incompatible with json output format
-# OLLAMA_FORMAT_OP_IMPLEMENT_STAGE1="json"
-# OLLAMA_FORMAT_OP_IMPLEMENT_STAGE3="json"
-# OLLAMA_FORMAT_OP_DOC_STAGE1="json"
-# OLLAMA_FORMAT_OP_EXPLAIN_STAGE1="json"
-
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
 # Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed

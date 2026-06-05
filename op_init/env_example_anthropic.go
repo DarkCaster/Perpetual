@@ -39,13 +39,6 @@ ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
 # ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2="claude-sonnet-4-5-20250929"
 ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
 
-# Switch to use structured JSON output format for supported operations, supported values: plain, json. Default: plain
-# Anthropic models works better with plain mode, not recommended to use json output here, it often fails.
-# ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE1="json"
-# ANTHROPIC_FORMAT_OP_IMPLEMENT_STAGE3="json"
-# ANTHROPIC_FORMAT_OP_DOC_STAGE1="json"
-# ANTHROPIC_FORMAT_OP_EXPLAIN_STAGE1="json"
-
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
 # Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed

@@ -164,6 +164,66 @@ func TestAnnotateConfigTemplateDoesNotContainObsoleteVariantKeys(t *testing.T) {
 	}
 }
 
+func TestOperationConfigTemplatesDoNotContainJsonModeKeys(t *testing.T) {
+	stage1OutputKeys := []string{
+		"stage1_output_schema",
+		"stage1_output_schema_name",
+		"stage1_output_schema_desc",
+		"stage1_output_key",
+	}
+
+	tests := []struct {
+		name         string
+		templateName string
+		template     map[string]interface{}
+		obsoleteKeys []string
+	}{
+		{
+			name:         "implement",
+			templateName: "GetImplementConfigTemplate",
+			template:     GetImplementConfigTemplate(),
+			obsoleteKeys: append([]string{
+				"stage1_analysis_json_mode_prompt",
+				"stage1_task_analysis_json_mode_prompt",
+				"stage3_planning_json_mode_prompt",
+				"stage3_task_planning_json_mode_prompt",
+				"stage3_planning_lite_json_mode_prompt",
+				"stage3_output_schema",
+				"stage3_output_schema_name",
+				"stage3_output_schema_desc",
+				"stage3_output_key",
+			}, stage1OutputKeys...),
+		},
+		{
+			name:         "doc",
+			templateName: "GetDocConfigTemplate",
+			template:     GetDocConfigTemplate(),
+			obsoleteKeys: append([]string{
+				"stage1_refine_json_mode_prompt",
+				"stage1_write_json_mode_prompt",
+			}, stage1OutputKeys...),
+		},
+		{
+			name:         "explain",
+			templateName: "GetExplainConfigTemplate",
+			template:     GetExplainConfigTemplate(),
+			obsoleteKeys: append([]string{
+				"stage1_question_json_mode_prompt",
+			}, stage1OutputKeys...),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, key := range tt.obsoleteKeys {
+				if _, ok := tt.template[key]; ok {
+					t.Errorf("%s() contains obsolete JSON-mode key %q", tt.templateName, key)
+				}
+			}
+		})
+	}
+}
+
 func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 	tests := []struct {
 		name    string
