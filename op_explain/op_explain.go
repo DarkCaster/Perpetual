@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -337,7 +338,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		annotations,
 		addAnnotations,
 		[]string{},
-		[]interface{}{},
+		[]any{},
 		[]string{},
 		explainConfig.String(config.K_ExplainStage2QuestionPrompt),
 		"",
@@ -361,11 +362,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		// Add files with status indicators
 		for _, file := range requestedFiles {
 			var isFiltered bool = true
-			for _, filteredFile := range filteredRequestedFiles {
-				if file == filteredFile {
-					isFiltered = false
-					break
-				}
+			if slices.Contains(filteredRequestedFiles, file) {
+				isFiltered = false
 			}
 			if isFiltered {
 				outputMessage = llm.AddTaggedFragment(outputMessage, file, explainConfig.Tags(config.K_ExplainOutFilteredFilenameTags))

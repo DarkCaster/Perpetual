@@ -42,7 +42,7 @@ type OllamaLLMConnector struct {
 	SystemPromptAck       string
 	SystemPromptRole      systemPromptRole
 	FilesToMdLangMappings utils.TextMatcher[string]
-	FieldsToInject        map[string]interface{}
+	FieldsToInject        map[string]any
 	IncrModeTries         int
 	MaxTokens             int
 	MaxTokensSegments     int
@@ -136,7 +136,7 @@ func NewOllamaLLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var optionsToRemove []string
-	fieldsToInject := map[string]interface{}{}
+	fieldsToInject := map[string]any{}
 
 	var numCtxLimit int = 0
 	var numCtxMult float64 = 1
@@ -302,7 +302,7 @@ func NewOllamaLLMConnectorFromEnv(
 			//Hovewer, langchaingo seem to set this value incorrectly inside options json object, but it must be top-level option
 			//Maybe this will be fixed at future langchaingo library versions, or already fixed at newer Ollama vesions
 			//TODO: recheck: maybe we need to set both options for compat with different ollama versions ?
-			var value interface{}
+			var value any
 			switch strings.ToUpper(thinkMode) {
 			case "TRUE":
 				value = true

@@ -40,7 +40,7 @@ type GenericLLMConnector struct {
 	SystemPromptRole      systemPromptRole
 	Streaming             bool
 	FilesToMdLangMappings utils.TextMatcher[string]
-	FieldsToInject        map[string]interface{}
+	FieldsToInject        map[string]any
 	UrlQueriesToInject    map[string]string
 	IncrModeTries         int
 	MaxTokensSegments     int
@@ -138,7 +138,7 @@ func NewGenericLLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
-	fieldsToInject := map[string]interface{}{}
+	fieldsToInject := map[string]any{}
 	urlQueriesToInject := map[string]string{}
 
 	var streaming int = 0

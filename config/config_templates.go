@@ -13,8 +13,8 @@ var templateStringArray = [...]string{"TEMPLATE VALUE, MUST BE REDEFINED"}
 var templateString2DArray = [...][]string{{"TEMPLATE VALUE_00", "TEMPLATE VALUE_01"}, {"TEMPLATE VALUE_10", "TEMPLATE VALUE_11"}}
 var templateStringInt2DArray = [...][]any{{"TEMPLATE VALUE_00", 0}, {"TEMPLATE VALUE_10", 1}}
 
-func GetAnnotateConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetAnnotateConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
 	// task annotate
@@ -26,8 +26,8 @@ func GetAnnotateConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetImplementConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetImplementConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
 	// stage 1
@@ -59,8 +59,8 @@ func GetImplementConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetDocConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetDocConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
 	result[K_DocExamplePrompt] = templateString
@@ -77,8 +77,8 @@ func GetDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetExplainConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetExplainConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_SystemPrompt] = templateString
 	result[K_SystemPromptAck] = templateString
 	result[K_ExplainOutFilesHeader] = templateString
@@ -96,16 +96,16 @@ func GetExplainConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func GetReportConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetReportConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_ReportBriefPrompt] = templateString
 	result[K_ReportCodePrompt] = templateString
 	result[K_ReportFilenameTags] = templateStringArray
 	return result
 }
 
-func GetProjectConfigTemplate() map[string]interface{} {
-	result := map[string]interface{}{}
+func GetProjectConfigTemplate() map[string]any {
+	result := map[string]any{}
 	result[K_ProjectFilesBlacklist] = templateStringArray
 	result[K_ProjectFilesWhitelist] = templateStringArray
 	result[K_ProjectTestFilesBlacklist] = templateStringArray

@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type flutterPrompts struct{}
 
-func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
+func (p *flutterPrompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -39,7 +39,7 @@ func (p *flutterPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *flutterPrompts) GetImplementConfig() map[string]interface{} {
+func (p *flutterPrompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer."
 	// redefine language-dependent prompt
@@ -47,19 +47,19 @@ func (p *flutterPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *flutterPrompts) GetDocConfig() map[string]interface{} {
+func (p *flutterPrompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *flutterPrompts) GetExplainConfig() map[string]interface{} {
+func (p *flutterPrompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Flutter/Dart software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
-func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
+func (p *flutterPrompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
 		// dart files
@@ -118,7 +118,7 @@ func (p *flutterPrompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *flutterPrompts) GetReportConfig() map[string]interface{} {
+func (p *flutterPrompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the Flutter/Dart project. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result

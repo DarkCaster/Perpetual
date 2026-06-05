@@ -30,7 +30,7 @@ type OpenAILLMConnector struct {
 	SystemPromptAck              string
 	StreamingPref                int
 	FilesToMdLangMappings        utils.TextMatcher[string]
-	FieldsToInject               map[string]interface{}
+	FieldsToInject               map[string]any
 	ServiceTierFallback          string
 	ServiceTierFallbackActivated bool
 	IncrModeTries                int
@@ -107,7 +107,7 @@ func NewOpenAILLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
-	fieldsToInject := map[string]interface{}{}
+	fieldsToInject := map[string]any{}
 
 	var streaming int = 0
 	var docChunk int = 1024
@@ -531,7 +531,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 			"top_p",
 		}))
 		//add system prompt and make responses API not to store generated response (we cannot reuse it anyway)
-		transformers = append(transformers, newTopLevelBodyValuesInjector(map[string]interface{}{
+		transformers = append(transformers, newTopLevelBodyValuesInjector(map[string]any{
 			"instructions": systemPrompt,
 			"store":        false,
 		}))

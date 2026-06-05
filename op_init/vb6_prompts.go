@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type vb6Prompts struct{}
 
-func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
+func (p *vb6Prompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -22,7 +22,7 @@ func (p *vb6Prompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *vb6Prompts) GetImplementConfig() map[string]interface{} {
+func (p *vb6Prompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it."
 	// redefine language-dependent prompt
@@ -30,19 +30,19 @@ func (p *vb6Prompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *vb6Prompts) GetDocConfig() map[string]interface{} {
+func (p *vb6Prompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *vb6Prompts) GetExplainConfig() map[string]interface{} {
+func (p *vb6Prompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Visual Basic 6 software developer with excellent knowledge of legacy VB6 (Visual Basic 6) programming language and various legacy windows technologies like COM/OLE/ActiveX that often used with it. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
-func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
+func (p *vb6Prompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{"(?i)^.*\\.(frm|cls|bas)$"}
 	result[config.K_ProjectMdCodeMappings] = [][2]string{{"(?i)^.*\\.(frm|cls|bas)$", "vb"}}
@@ -61,7 +61,7 @@ func (p *vb6Prompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *vb6Prompts) GetReportConfig() map[string]interface{} {
+func (p *vb6Prompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the project in the Visual Basic 6 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result

@@ -171,7 +171,7 @@ var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultIncrModeTagsRegexps = []string{"(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"}
 
-func getDefaultAnnotateConfigTemplate() map[string]interface{} {
+func getDefaultAnnotateConfigTemplate() map[string]any {
 	result := config.GetAnnotateConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_AnnotateTaskPrompt] = "Create detailed summary of the tasks marked with \"###IMPLEMENT###\" comments in the source code file provided in my next message. Also provide keywords that describe the tasks, areas, and dependent entities that can be traced in the source code file. In addition to the code, the file name is also provided between the <filename></filename> tags. When creating summary follow this template strictly:\n\nTasks:\n- <task description>\n- <task description>\n\nKeywords: <comma separated list of keywords>"
@@ -180,7 +180,7 @@ func getDefaultAnnotateConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultImplementConfigTemplate() map[string]interface{} {
+func getDefaultImplementConfigTemplate() map[string]any {
 	result := config.GetImplementConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	// stage 1
@@ -216,7 +216,7 @@ func getDefaultImplementConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultDocConfigTemplate() map[string]interface{} {
+func getDefaultDocConfigTemplate() map[string]any {
 	result := config.GetDocConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_DocExamplePrompt] = "Below is a document that you will use as an example when you work on the target document later. Look at the example document provided and study its style, format, and structure. When you work on your target document later, use a similar style, format, and structure to what you learned from this example. Full text of the example provided below:"
@@ -235,7 +235,7 @@ func getDefaultDocConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultExplainConfigTemplate() map[string]interface{} {
+func getDefaultExplainConfigTemplate() map[string]any {
 	result := config.GetExplainConfigTemplate()
 	result[config.K_SystemPromptAck] = defaultAISystemPromptAcknowledge
 	result[config.K_ExplainOutFilesHeader] = "# Relevant Files"
@@ -253,14 +253,14 @@ func getDefaultExplainConfigTemplate() map[string]interface{} {
 	return result
 }
 
-func getDefaultReportConfigTemplate() map[string]interface{} {
+func getDefaultReportConfigTemplate() map[string]any {
 	result := config.GetReportConfigTemplate()
 	result[config.K_ReportCodePrompt] = "This document contains the project's source code files."
 	result[config.K_ReportFilenameTags] = []string{"### File: ", ""}
 	return result
 }
 
-func getDefaultProjectConfigTemplate() map[string]interface{} {
+func getDefaultProjectConfigTemplate() map[string]any {
 	result := config.GetProjectConfigTemplate()
 	result[config.K_ProjectFilesBlacklist] = []string{}
 	result[config.K_ProjectTestFilesBlacklist] = []string{}

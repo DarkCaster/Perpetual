@@ -118,10 +118,7 @@ func Stage1(
 
 	// Perform LLM query
 	var filesForReviewRaw []string
-	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
-	if onFailRetriesLeft < 1 {
-		onFailRetriesLeft = 1
-	}
+	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		aiResponse, status, err := connector.Query(messages...)
 		if perfString := connector.GetPerfString(); perfString != "" {

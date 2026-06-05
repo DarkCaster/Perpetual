@@ -329,7 +329,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			annotations,
 			true,
 			[]string{docConfig.String(config.K_DocExamplePrompt)},
-			[]interface{}{docExampleContent},
+			[]any{docExampleContent},
 			[]string{docConfig.String(config.K_DocExampleResponse)},
 			docPrompt,
 			"",

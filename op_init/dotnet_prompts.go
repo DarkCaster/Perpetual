@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type dotNetPrompts struct{}
 
-func (p *dotNetPrompts) GetAnnotateConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -27,7 +27,7 @@ func (p *dotNetPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *dotNetPrompts) GetImplementConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages."
 	// redefine language-dependent prompt
@@ -39,19 +39,19 @@ func (p *dotNetPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *dotNetPrompts) GetDocConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *dotNetPrompts) GetExplainConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled .NET software developer with excellent knowledge of C# and VB.NET programming languages. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
-func (p *dotNetPrompts) GetProjectConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html)$",
@@ -80,7 +80,7 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *dotNetPrompts) GetReportConfig() map[string]interface{} {
+func (p *dotNetPrompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the project in the .NET programming languages (C# and VB.NET). Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result

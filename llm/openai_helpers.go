@@ -25,7 +25,7 @@ func newOpenAIRequestsAPIUrlChanger() requestTransformer {
 	return &openAIRequestsAPIUrlChanger{}
 }
 
-func (p *openAIRequestsAPIUrlChanger) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *openAIRequestsAPIUrlChanger) ProcessBody(body map[string]any) map[string]any {
 	return body
 }
 
@@ -118,13 +118,13 @@ func newInnerBodyReader(inner io.ReadCloser) *innerBodyReader {
 
 func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 	//try decoding response from responses api
-	var input map[string]interface{}
+	var input map[string]any
 	if err := json.Unmarshal([]byte(inputBytes), &input); err != nil {
 		return nil, errors.New("response JSON object is malformed")
 	}
 
 	//generate completions-compatible output
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	output["id"] = input["id"]
 	output["object"] = "chat.completion"
 	output["created"] = input["created_at"]
@@ -138,20 +138,20 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("response status indicates an error: %s", status)
 	}
 
-	var targetMessages []interface{}
-	outputArray, ok := input["output"].([]interface{})
+	var targetMessages []any
+	outputArray, ok := input["output"].([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid output-field type detected in response")
 	}
 	for _, iMessage := range outputArray {
-		message, ok := iMessage.(map[string]interface{})
+		message, ok := iMessage.(map[string]any)
 		if !ok {
 			continue
 		}
 		if message["type"] != "message" || message["status"] != "completed" || message["role"] != "assistant" {
 			continue
 		}
-		targetMessages, ok = message["content"].([]interface{})
+		targetMessages, ok = message["content"].([]any)
 		if ok {
 			break
 		}
@@ -162,7 +162,7 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 
 	finalMessage := ""
 	for _, msg := range targetMessages {
-		assistantResponse, ok := msg.(map[string]interface{})
+		assistantResponse, ok := msg.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -176,10 +176,10 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 	}
 
 	//create final completion-api output
-	output["choices"] = []map[string]interface{}{
+	output["choices"] = []map[string]any{
 		{
 			"index": 0,
-			"message": map[string]interface{}{
+			"message": map[string]any{
 				"role":    "assistant",
 				"content": finalMessage,
 			},
@@ -188,8 +188,8 @@ func convertOpenAIResponsesApiResponse(inputBytes []byte) ([]byte, error) {
 	}
 
 	//create usage object
-	usage := make(map[string]interface{})
-	if respUsage, ok := input["usage"].(map[string]interface{}); ok {
+	usage := make(map[string]any)
+	if respUsage, ok := input["usage"].(map[string]any); ok {
 		usage["prompt_tokens"] = respUsage["input_tokens"]
 		usage["completion_tokens"] = respUsage["output_tokens"]
 		usage["total_tokens"] = respUsage["total_tokens"]

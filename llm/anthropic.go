@@ -26,7 +26,7 @@ type AnthropicLLMConnector struct {
 	Model                 string
 	SystemPrompt          string
 	FilesToMdLangMappings utils.TextMatcher[string]
-	FieldsToInject        map[string]interface{}
+	FieldsToInject        map[string]any
 	IncrModeTries         int
 	MaxTokensSegments     int
 	OnFailRetries         int
@@ -111,7 +111,7 @@ func NewAnthropicLLMConnectorFromEnv(
 
 	var extraOptions []llms.CallOption
 	var fieldsToRemove []string
-	fieldsToInject := map[string]interface{}{}
+	fieldsToInject := map[string]any{}
 
 	if temperature, err := utils.GetEnvFloat(fmt.Sprintf("%s_TEMPERATURE_OP_%s", prefix, operation), fmt.Sprintf("%s_TEMPERATURE", prefix)); err == nil {
 		extraOptions = append(extraOptions, llms.WithTemperature(temperature))
@@ -133,7 +133,7 @@ func NewAnthropicLLMConnectorFromEnv(
 			fieldsToRemove = append(fieldsToRemove, "thinking")
 			debug.Add("think", "disabled")
 		} else {
-			fieldsToInject["thinking"] = map[string]interface{}{"budget_tokens": thinkTokens, "type": "enabled"}
+			fieldsToInject["thinking"] = map[string]any{"budget_tokens": thinkTokens, "type": "enabled"}
 			debug.Add("think tokens", thinkTokens)
 		}
 	}

@@ -7,116 +7,116 @@ import (
 func TestValidateConfigAgainstTemplate(t *testing.T) {
 	tests := []struct {
 		name     string
-		template map[string]interface{}
-		config   map[string]interface{}
+		template map[string]any
+		config   map[string]any
 		wantErr  bool
 	}{
 		{
 			name: "valid config with all required keys",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key1": "string",
 				"key2": "string",
 				"key3": []string{"arr"},
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key1": "value1",
 				"key2": "value2",
-				"key3": []interface{}{"value3"},
+				"key3": []any{"value3"},
 			},
 			wantErr: false,
 		},
 		{
 			name: "missing required key",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"required": "yes",
 			},
-			config:  map[string]interface{}{},
+			config:  map[string]any{},
 			wantErr: true,
 		},
 		{
 			name:     "extra key",
-			template: map[string]interface{}{},
-			config: map[string]interface{}{
+			template: map[string]any{},
+			config: map[string]any{
 				"extra": "yes",
 			},
 			wantErr: true,
 		},
 		{
 			name: "wrong type for string value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": "string",
 			},
-			config: map[string]interface{}{
-				"key": []interface{}{},
+			config: map[string]any{
+				"key": []any{},
 			},
 			wantErr: true,
 		},
 		{
 			name: "wrong type for array value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": []string{},
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": "not an array",
 			},
 			wantErr: true,
 		},
 		{
 			name: "wrong type for integer value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": 1,
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": 1.1,
 			},
 			wantErr: true,
 		},
 		{
 			name: "wrong type for float value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": 1.1,
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": 1,
 			},
 			wantErr: true,
 		},
 		{
 			name: "nil type for integer value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": 1,
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "nil type for float value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": 1.1,
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "nil type for array value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": []string{},
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "nil type for string value",
-			template: map[string]interface{}{
+			template: map[string]any{
 				"key": "string",
 			},
-			config: map[string]interface{}{
+			config: map[string]any{
 				"key": nil,
 			},
 			wantErr: true,
@@ -175,7 +175,7 @@ func TestOperationConfigTemplatesDoNotContainJsonModeKeys(t *testing.T) {
 	tests := []struct {
 		name         string
 		templateName string
-		template     map[string]interface{}
+		template     map[string]any
 		obsoleteKeys []string
 	}{
 		{
@@ -227,7 +227,7 @@ func TestOperationConfigTemplatesDoNotContainJsonModeKeys(t *testing.T) {
 func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 	tests := []struct {
 		name    string
-		value   interface{}
+		value   any
 		wantErr bool
 	}{
 		{
@@ -237,29 +237,29 @@ func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 		},
 		{
 			name:    "empty array",
-			value:   []interface{}{},
+			value:   []any{},
 			wantErr: true,
 		},
 		{
 			name:    "inner element not an array",
-			value:   []interface{}{"not array"},
+			value:   []any{"not array"},
 			wantErr: true,
 		},
 		{
 			name:    "inner array wrong length",
-			value:   []interface{}{[]interface{}{"one"}},
+			value:   []any{[]any{"one"}},
 			wantErr: true,
 		},
 		{
 			name:    "inner element not string",
-			value:   []interface{}{[]interface{}{1, "two", "three"}},
+			value:   []any{[]any{1, "two", "three"}},
 			wantErr: true,
 		},
 		{
 			name: "valid structure",
-			value: []interface{}{
-				[]interface{}{"prompt1", "response1", "response1short"},
-				[]interface{}{"prompt2", "response2", "response2short"},
+			value: []any{
+				[]any{"prompt1", "response1", "response1short"},
+				[]any{"prompt2", "response2", "response2short"},
 			},
 			wantErr: false,
 		},
@@ -278,7 +278,7 @@ func TestValidateOpAnnotateFilePrompts(t *testing.T) {
 func TestValidateEvenStringArray(t *testing.T) {
 	tests := []struct {
 		name    string
-		value   interface{}
+		value   any
 		arrName string
 		wantErr bool
 	}{
@@ -290,19 +290,19 @@ func TestValidateEvenStringArray(t *testing.T) {
 		},
 		{
 			name:    "odd number of elements",
-			value:   []interface{}{"one", "two", "three"},
+			value:   []any{"one", "two", "three"},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "non-string element",
-			value:   []interface{}{"one", 2},
+			value:   []any{"one", 2},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "valid even string array",
-			value:   []interface{}{"one", "two", "three", "four"},
+			value:   []any{"one", "two", "three", "four"},
 			arrName: "test",
 			wantErr: false,
 		},
@@ -321,7 +321,7 @@ func TestValidateEvenStringArray(t *testing.T) {
 func TestValidateNonEmptyStringArray(t *testing.T) {
 	tests := []struct {
 		name    string
-		value   interface{}
+		value   any
 		arrName string
 		wantErr bool
 	}{
@@ -333,37 +333,37 @@ func TestValidateNonEmptyStringArray(t *testing.T) {
 		},
 		{
 			name:    "empty array",
-			value:   []interface{}{},
+			value:   []any{},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "empty-string only element",
-			value:   []interface{}{""},
+			value:   []any{""},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "empty-string element",
-			value:   []interface{}{"valid", ""},
+			value:   []any{"valid", ""},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "non-string element",
-			value:   []interface{}{"valid", 123, "invalid"},
+			value:   []any{"valid", 123, "invalid"},
 			arrName: "test",
 			wantErr: true,
 		},
 		{
 			name:    "valid single element",
-			value:   []interface{}{"valid"},
+			value:   []any{"valid"},
 			arrName: "test",
 			wantErr: false,
 		},
 		{
 			name:    "valid multiple elements",
-			value:   []interface{}{"one", "two", "three"},
+			value:   []any{"one", "two", "three"},
 			arrName: "test",
 			wantErr: false,
 		},

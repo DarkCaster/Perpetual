@@ -439,9 +439,9 @@ func CheckForPathSeparatorsInFilenames(fileNames []string) bool {
 	// Iterate over filenames
 	for _, fileName := range fileNames {
 		// Split full filename to its components
-		components := strings.Split(fileName, string(os.PathSeparator))
+		components := strings.SplitSeq(fileName, string(os.PathSeparator))
 		// Check that each component does not contain following characters: / or \
-		for _, component := range components {
+		for component := range components {
 			if strings.ContainsAny(component, "/\\") {
 				return false
 			}

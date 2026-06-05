@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type py3Prompts struct{}
 
-func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
+func (p *py3Prompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -26,7 +26,7 @@ func (p *py3Prompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *py3Prompts) GetImplementConfig() map[string]interface{} {
+func (p *py3Prompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer."
 	// redefine language-dependent prompt
@@ -34,19 +34,19 @@ func (p *py3Prompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *py3Prompts) GetDocConfig() map[string]interface{} {
+func (p *py3Prompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *py3Prompts) GetExplainConfig() map[string]interface{} {
+func (p *py3Prompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Python 3 programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
-func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
+func (p *py3Prompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.py$",
@@ -81,7 +81,7 @@ func (p *py3Prompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *py3Prompts) GetReportConfig() map[string]interface{} {
+func (p *py3Prompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the project in the Python 3 programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result

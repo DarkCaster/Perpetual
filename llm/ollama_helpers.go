@@ -65,7 +65,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 					if r == '\n' {
 						line := lineBuilder.String()
 						// try decoding data and test for "done" value that marks response as completed
-						var jsonObj map[string]interface{}
+						var jsonObj map[string]any
 						if err := json.Unmarshal([]byte(line), &jsonObj); err != nil {
 							readerr = errors.New("response data-chunk JSON object is malformed")
 							break
@@ -81,7 +81,7 @@ func (o *ollamaResponseBodyReader) Read(p []byte) (int, error) {
 							break
 						}
 						//Try reading message object and its content and actually stream it with streaming func
-						if msgObj, exists := jsonObj["message"].(map[string]interface{}); exists {
+						if msgObj, exists := jsonObj["message"].(map[string]any); exists {
 							//start timer on first message
 							if !timerStarted {
 								o.prefillTimeSec = time.Since(o.requestTime).Seconds()

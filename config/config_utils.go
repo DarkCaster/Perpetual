@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func validateConfigAgainstTemplate(template, config map[string]interface{}) error {
+func validateConfigAgainstTemplate(template, config map[string]any) error {
 	// Check that all required keys from template exist in config
 	for key := range template {
 		if _, exists := config[key]; !exists {
@@ -28,7 +28,7 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 		if templateVal, exists := template[key]; exists && templateVal != nil {
 			if _, isArray := templateVal.([]string); isArray {
 				// Validate value is an array
-				if _, ok := value.([]interface{}); !ok {
+				if _, ok := value.([]any); !ok {
 					return fmt.Errorf("config key '%s' must be an array", key)
 				}
 			} else if _, isString := templateVal.(string); isString {
@@ -62,8 +62,8 @@ func validateConfigAgainstTemplate(template, config map[string]interface{}) erro
 	return nil
 }
 
-func validateEvenStringArray(value interface{}, name string) error {
-	arr, ok := value.([]interface{})
+func validateEvenStringArray(value any, name string) error {
+	arr, ok := value.([]any)
 	if !ok {
 		return fmt.Errorf("%s must be an array", name)
 	}
@@ -81,8 +81,8 @@ func validateEvenStringArray(value interface{}, name string) error {
 	return nil
 }
 
-func validateNonEmptyStringArray(value interface{}, name string) error {
-	arr, ok := value.([]interface{})
+func validateNonEmptyStringArray(value any, name string) error {
+	arr, ok := value.([]any)
 	if !ok {
 		return fmt.Errorf("%s must be an array", name)
 	}
@@ -116,8 +116,8 @@ func compileRegexArray(source []string, name string) ([]*regexp.Regexp, error) {
 	return result, nil
 }
 
-func interfaceToStringArray(source interface{}) []string {
-	sourceArray := source.([]interface{})
+func interfaceToStringArray(source any) []string {
+	sourceArray := source.([]any)
 	target := make([]string, len(sourceArray), cap(sourceArray))
 	for i, element := range sourceArray {
 		target[i] = element.(string)

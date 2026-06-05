@@ -11,13 +11,13 @@ import (
 
 type configStorage struct {
 	fileName  string
-	cfgValues map[string]interface{}
+	cfgValues map[string]any
 	logger    logging.ILogger
 }
 
 type configValue struct {
 	config *configStorage
-	value  interface{}
+	value  any
 	key    string
 }
 
@@ -50,7 +50,7 @@ func (o *configStorage) String(key string) string {
 }
 
 func (o *configStorage) Tags(key string) utils.TagPair {
-	sourceArray := o.get(key).value.([]interface{})
+	sourceArray := o.get(key).value.([]any)
 	if len(sourceArray) != 2 {
 		panic(fmt.Errorf("invalid length of array %s: %d", key, len(sourceArray)))
 	}
@@ -74,7 +74,7 @@ func (o *configStorage) TextMatcherInteger(key string) utils.TextMatcher[int] {
 }
 
 func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpAnnotateConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", OpAnnotateConfigFile, err)
 	}
@@ -85,7 +85,7 @@ func LoadOpAnnotateConfig(baseDir string, logger logging.ILogger) Config {
 }
 
 func LoadProjectConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, ProjectConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", ProjectConfigFile, err)
 	}
@@ -96,7 +96,7 @@ func LoadProjectConfig(baseDir string, logger logging.ILogger) Config {
 }
 
 func LoadOpDocConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpDocConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", OpDocConfigFile, err)
 	}
@@ -107,7 +107,7 @@ func LoadOpDocConfig(baseDir string, logger logging.ILogger) Config {
 }
 
 func LoadOpExplainConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpExplainConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", OpExplainConfigFile, err)
 	}
@@ -118,7 +118,7 @@ func LoadOpExplainConfig(baseDir string, logger logging.ILogger) Config {
 }
 
 func LoadOpImplementConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpImplementConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", OpImplementConfigFile, err)
 	}
@@ -129,7 +129,7 @@ func LoadOpImplementConfig(baseDir string, logger logging.ILogger) Config {
 }
 
 func LoadOpReportConfig(baseDir string, logger logging.ILogger) Config {
-	storageObject := map[string]interface{}{}
+	storageObject := map[string]any{}
 	if err := utils.LoadJsonFile(filepath.Join(baseDir, OpReportConfigFile), &storageObject); err != nil {
 		logger.Panicf("Error loading %s config: %v", OpReportConfigFile, err)
 	}
@@ -139,7 +139,7 @@ func LoadOpReportConfig(baseDir string, logger logging.ILogger) Config {
 	return &configStorage{cfgValues: storageObject, logger: logger, fileName: OpReportConfigFile}
 }
 
-func processOpReportConfig(cfg map[string]interface{}) error {
+func processOpReportConfig(cfg map[string]any) error {
 	//validate against config template
 	template := GetReportConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
@@ -152,7 +152,7 @@ func processOpReportConfig(cfg map[string]interface{}) error {
 	return nil
 }
 
-func processOpImplementConfig(cfg map[string]interface{}) error {
+func processOpImplementConfig(cfg map[string]any) error {
 	//validate against config template
 	template := GetImplementConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
@@ -176,7 +176,7 @@ func processOpImplementConfig(cfg map[string]interface{}) error {
 	return nil
 }
 
-func processOpExplainConfig(cfg map[string]interface{}) error {
+func processOpExplainConfig(cfg map[string]any) error {
 	// validate against config template
 	template := GetExplainConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
@@ -185,7 +185,7 @@ func processOpExplainConfig(cfg map[string]interface{}) error {
 	return nil
 }
 
-func processOpDocConfig(cfg map[string]interface{}) error {
+func processOpDocConfig(cfg map[string]any) error {
 	//validate against config template
 	template := GetDocConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
@@ -194,7 +194,7 @@ func processOpDocConfig(cfg map[string]interface{}) error {
 	return nil
 }
 
-func processOpAnnotateConfig(cfg map[string]interface{}) error {
+func processOpAnnotateConfig(cfg map[string]any) error {
 	//validate against config template
 	template := GetAnnotateConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {
@@ -214,8 +214,8 @@ func processOpAnnotateConfig(cfg map[string]interface{}) error {
 	return nil
 }
 
-func validateOpAnnotateFilePrompts(value interface{}) error {
-	arr, ok := value.([]interface{})
+func validateOpAnnotateFilePrompts(value any) error {
+	arr, ok := value.([]any)
 	if !ok {
 		return fmt.Errorf("%s must be an array", K_AnnotateFilePrompts)
 	}
@@ -223,7 +223,7 @@ func validateOpAnnotateFilePrompts(value interface{}) error {
 		return fmt.Errorf("%s must contain at least one element", K_AnnotateFilePrompts)
 	}
 	for i, outer := range arr {
-		innerArr, ok := outer.([]interface{})
+		innerArr, ok := outer.([]any)
 		if !ok {
 			return fmt.Errorf("%s[%d] must be an array", K_AnnotateFilePrompts, i)
 		}
@@ -243,7 +243,7 @@ func validateOpAnnotateFilePrompts(value interface{}) error {
 	return nil
 }
 
-func processProjectConfig(cfg map[string]interface{}) error {
+func processProjectConfig(cfg map[string]any) error {
 	//validate against config template
 	template := GetProjectConfigTemplate()
 	if err := validateConfigAgainstTemplate(template, cfg); err != nil {

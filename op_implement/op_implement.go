@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
@@ -259,13 +260,7 @@ func Run(args []string, logger logging.ILogger) {
 		// Find out do we have annotations for files not in targetFiles
 		nonTargetFilesAnnotationsCount := 0
 		for filename := range annotations {
-			found := false
-			for _, targetFile := range targetFiles {
-				if filename == targetFile {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(targetFiles, filename)
 			if !found {
 				nonTargetFilesAnnotationsCount++
 			}
@@ -360,19 +355,19 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	stage2TargetFilesPrompts := []string{}
-	stage2TargetFilesNames := []interface{}{}
+	stage2TargetFilesNames := []any{}
 	stage2TargetFilesResponses := []string{}
 
 	var stage2MainPrompt string
 	var stage2MainPromptFinal string
-	var stage2MainPromptBody interface{}
+	var stage2MainPromptBody any
 
 	// planning entirely disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
 	if planningMode == 0 {
 		logger.Infoln("Running stage2: planning disabled, not generating work plan")
 		// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
 		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
-		stage2TargetFilesNames = []interface{}{targetFiles}
+		stage2TargetFilesNames = []any{targetFiles}
 		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
 		// make main prompt empty to skip workplan generation
 		stage2MainPrompt = ""
@@ -385,7 +380,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Infoln("Running stage2: using basic planning, not generating work plan")
 		// this will produce messages only with related file-list
 		stage2TargetFilesPrompts = []string{}
-		stage2TargetFilesNames = []interface{}{}
+		stage2TargetFilesNames = []any{}
 		stage2TargetFilesResponses = []string{}
 		// make main prompt empty to skip workplan generation
 		stage2MainPrompt = ""
@@ -398,7 +393,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Infoln("Running stage2: using extended planning, generating work plan")
 		// this will produce messages with related file-list
 		stage2TargetFilesPrompts = []string{}
-		stage2TargetFilesNames = []interface{}{}
+		stage2TargetFilesNames = []any{}
 		stage2TargetFilesResponses = []string{}
 		// fill-up main prompts to generate workplan
 		if task == "" {
@@ -488,13 +483,7 @@ func Run(args []string, logger logging.ILogger) {
 	var filteredResults = make(map[string]string)
 	finalFilesToModify := append(utils.NewSlice(targetFilesToModify...), otherFilesToModify...)
 	for file, content := range results {
-		skip := true
-		for _, targetFile := range finalFilesToModify {
-			if file == targetFile {
-				skip = false
-				break
-			}
-		}
+		skip := !slices.Contains(finalFilesToModify, file)
 		if skip {
 			logger.Warnln("Skipping file from results that not among files to modify:", file)
 			continue

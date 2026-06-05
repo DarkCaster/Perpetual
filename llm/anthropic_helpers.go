@@ -115,13 +115,13 @@ func (o *anthropicStreamReader) ParseAnthropicStreamEvents() (bool, error) {
 				o.errorFunc(999, errStr)
 				return false, errors.New(errStr)
 			}
-			var dataObj map[string]interface{}
+			var dataObj map[string]any
 			if err := json.Unmarshal([]byte(dataJson), &dataObj); err != nil {
 				errStr := fmt.Sprintf("failed to decode event: %v", err)
 				o.errorFunc(999, errStr)
 				return false, errors.New(errStr)
 			}
-			if errorBlock, ok := dataObj["error"].(map[string]interface{}); ok {
+			if errorBlock, ok := dataObj["error"].(map[string]any); ok {
 				eType := ""
 				if eType, ok = errorBlock["type"].(string); !ok {
 					eType = "<unknown error>"
@@ -205,11 +205,11 @@ func (p *anthropicStreamCollector) CollectResponse(requestTime time.Time, respon
 				break
 			}
 		}
-		var dataObj map[string]interface{}
+		var dataObj map[string]any
 		if err := json.Unmarshal(dataBuf.Bytes(), &dataObj); err != nil {
 			p.ErrorMessage = fmt.Sprintf("failed to decode error response: %v", err)
 			return errors.New(p.ErrorMessage)
-		} else if errObj, ok := dataObj["error"].(map[string]interface{}); ok {
+		} else if errObj, ok := dataObj["error"].(map[string]any); ok {
 			if errMessage, ok := errObj["message"].(string); ok {
 				p.ErrorMessage = errMessage
 			} else {

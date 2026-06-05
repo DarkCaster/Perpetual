@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type arduinoPrompts struct{}
 
-func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -23,7 +23,7 @@ func (p *arduinoPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer."
 	// redefine language-dependent prompt
@@ -31,19 +31,19 @@ func (p *arduinoPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *arduinoPrompts) GetDocConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *arduinoPrompts) GetExplainConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Arduino C++ programming language software developer and embedded systems engineer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 	return result
 }
 
-func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.(cpp|ino)$",
@@ -69,7 +69,7 @@ func (p *arduinoPrompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *arduinoPrompts) GetReportConfig() map[string]interface{} {
+func (p *arduinoPrompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the Arduino project in C++ programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result

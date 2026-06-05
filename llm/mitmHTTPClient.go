@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -15,7 +16,7 @@ import (
 
 type requestTransformer interface {
 	ProcessURL(url string) string
-	ProcessBody(body map[string]interface{}) map[string]interface{}
+	ProcessBody(body map[string]any) map[string]any
 	ProcessHeader(header http.Header) http.Header
 }
 
@@ -38,11 +39,11 @@ func newInnerBodyValuesRemover(path, valuesToRemove []string) requestTransformer
 	}
 }
 
-func (p *bodyValuesRemover) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *bodyValuesRemover) ProcessBody(body map[string]any) map[string]any {
 	current := body
 	// Navigate down the path
 	for i, key := range p.Path {
-		if val, ok := current[key].(map[string]interface{}); ok {
+		if val, ok := current[key].(map[string]any); ok {
 			current = val
 		} else if i < len(p.Path)-1 {
 			// Path doesn't exist, return original
@@ -87,11 +88,11 @@ func newInnerBodyValueRenamer(path []string, oldName, newName string) requestTra
 	}
 }
 
-func (p *bodyValuesRenamer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *bodyValuesRenamer) ProcessBody(body map[string]any) map[string]any {
 	current := body
 	// Navigate down the path
 	for i, key := range p.Path {
-		if val, ok := current[key].(map[string]interface{}); ok {
+		if val, ok := current[key].(map[string]any); ok {
 			current = val
 		} else if i < len(p.Path)-1 {
 			// Path doesn't exist, return original
@@ -116,20 +117,18 @@ func (p *bodyValuesRenamer) ProcessURL(url string) string {
 }
 
 type bodyValuesInjector struct {
-	ValuesToInject map[string]interface{}
+	ValuesToInject map[string]any
 }
 
-func newTopLevelBodyValuesInjector(valuesToInject map[string]interface{}) requestTransformer {
+func newTopLevelBodyValuesInjector(valuesToInject map[string]any) requestTransformer {
 	return &bodyValuesInjector{
 		ValuesToInject: valuesToInject,
 	}
 }
 
-func (p *bodyValuesInjector) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *bodyValuesInjector) ProcessBody(body map[string]any) map[string]any {
 	// inject new values to body json at the top level
-	for name, value := range p.ValuesToInject {
-		body[name] = value
-	}
+	maps.Copy(body, p.ValuesToInject)
 	return body
 }
 
@@ -152,7 +151,7 @@ func newUrlQueriesInjector(queriesToInject map[string]string) requestTransformer
 	}
 }
 
-func (p *urlQueriesInjector) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *urlQueriesInjector) ProcessBody(body map[string]any) map[string]any {
 	// No body modifications for this transformer
 	return body
 }
@@ -188,7 +187,7 @@ func newBasicAuthTransformer(auth string) requestTransformer {
 	}
 }
 
-func (p *basicAuthTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *basicAuthTransformer) ProcessBody(body map[string]any) map[string]any {
 	// No body modifications for this transformer
 	return body
 }
@@ -218,7 +217,7 @@ func newTokenAuthTransformer(token string) requestTransformer {
 	}
 }
 
-func (p *tokenAuthTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *tokenAuthTransformer) ProcessBody(body map[string]any) map[string]any {
 	// No body modifications for this transformer
 	return body
 }
@@ -249,17 +248,17 @@ func newSystemMessageTransformer(newSystemMessageRole, extraAcknowledge string) 
 	}
 }
 
-func (p *systemMessageTransformer) ProcessBody(body map[string]interface{}) map[string]interface{} {
+func (p *systemMessageTransformer) ProcessBody(body map[string]any) map[string]any {
 	// find messages array to mess with
-	iMessages, exist := body["messages"].([]interface{})
+	iMessages, exist := body["messages"].([]any)
 	if !exist {
 		return body
 	}
 	// deserialze each message and find system prompt position
-	var messages []map[string]interface{}
+	var messages []map[string]any
 	sysMsgIdx := -1
 	for i, imsg := range iMessages {
-		msg := imsg.(map[string]interface{})
+		msg := imsg.(map[string]any)
 		if msg["role"] == "system" {
 			sysMsgIdx = i
 			//do not add system message if it's new role is empty
@@ -278,7 +277,7 @@ func (p *systemMessageTransformer) ProcessBody(body map[string]interface{}) map[
 		messages[sysMsgIdx]["role"] = p.ChangeTo
 		// insert extra acknowledge message as "assistant" message if needed
 		if p.ExtraAck != "" {
-			messages = slices.Insert(messages, sysMsgIdx+1, map[string]interface{}{"role": "assistant", "content": p.ExtraAck})
+			messages = slices.Insert(messages, sysMsgIdx+1, map[string]any{"role": "assistant", "content": p.ExtraAck})
 		}
 	}
 	//set new messages object to body
@@ -368,7 +367,7 @@ func (t *mitmTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	} else {
 		return t.Transport.RoundTrip(req)
 	}
-	bodyObj := map[string]interface{}{}
+	bodyObj := map[string]any{}
 	if err := json.Unmarshal(bodyData, &bodyObj); err != nil {
 		return nil, err
 	}

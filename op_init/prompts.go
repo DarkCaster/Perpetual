@@ -7,13 +7,13 @@ import (
 
 type prompts interface {
 	// Project config - for selecting project files for proccessing, setting correct file type at markdown code-blocks
-	GetProjectConfig() map[string]interface{}
+	GetProjectConfig() map[string]any
 	// Configs for operations
-	GetAnnotateConfig() map[string]interface{}
-	GetImplementConfig() map[string]interface{}
-	GetDocConfig() map[string]interface{}
-	GetReportConfig() map[string]interface{}
-	GetExplainConfig() map[string]interface{}
+	GetAnnotateConfig() map[string]any
+	GetImplementConfig() map[string]any
+	GetDocConfig() map[string]any
+	GetReportConfig() map[string]any
+	GetExplainConfig() map[string]any
 }
 
 // Create particular Prompts implementation depending on requested language

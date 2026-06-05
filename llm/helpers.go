@@ -50,7 +50,7 @@ func ComposeMessageWithAnnotations(prompt string, targetFiles []string, filename
 	return request
 }
 
-func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body interface{}, filenameTags utils.TagPair, logger logging.ILogger) (Message, bool) {
+func ComposeMessageWithFilesOrText(projectRootDir, prompt string, body any, filenameTags utils.TagPair, logger logging.ILogger) (Message, bool) {
 	if text, isText := body.(string); isText {
 		if text == "" {
 			return NewMessage(UserRequest), false

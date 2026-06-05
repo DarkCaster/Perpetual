@@ -29,11 +29,11 @@ func Stage2(
 	annotations map[string]string,
 	addAnnotations bool,
 	preQueriesPrompts []string,
-	preQueriesBodies []interface{},
+	preQueriesBodies []any,
 	preQueriesResponses []string,
 	mainPrompt string,
 	mainPromptFinal string,
-	mainPromptBody interface{},
+	mainPromptBody any,
 	continueOnMaxTokens bool,
 	filterResponseWithCodeRx bool,
 	logger logging.ILogger) (string, []llm.Message) {
@@ -142,10 +142,7 @@ func Stage2(
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== %s (stage 2): %s\n\n\n", cases.Title(language.English, cases.Compact).String(opName), debugString))
 
 	//Make LLM request, process response
-	onFailRetriesLeft := connector.GetOnFailureRetryLimit()
-	if onFailRetriesLeft < 1 {
-		onFailRetriesLeft = 1
-	}
+	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		// Work with a copy of message-chain, to discard it on full retry, append it with temporary response on partial answer
 		messagesTry := utils.NewSlice(realMessages...)

@@ -9,7 +9,7 @@ import "github.com/DarkCaster/Perpetual/config"
 
 type goPrompts struct{}
 
-func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
+func (p *goPrompts) GetAnnotateConfig() map[string]any {
 	result := getDefaultAnnotateConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You study the provided source code in detail and create its summary in strict accordance with the template and instructions."
 	// file-dependent annotate prompts
@@ -25,7 +25,7 @@ func (p *goPrompts) GetAnnotateConfig() map[string]interface{} {
 	return result
 }
 
-func (p *goPrompts) GetImplementConfig() map[string]interface{} {
+func (p *goPrompts) GetImplementConfig() map[string]any {
 	result := getDefaultImplementConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer."
 	// redefine language-dependent prompt
@@ -37,20 +37,20 @@ func (p *goPrompts) GetImplementConfig() map[string]interface{} {
 	return result
 }
 
-func (p *goPrompts) GetDocConfig() map[string]interface{} {
+func (p *goPrompts) GetDocConfig() map[string]any {
 	result := getDefaultDocConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You write and refine technical documentation based on detailed study of the source code."
 	return result
 }
 
-func (p *goPrompts) GetExplainConfig() map[string]interface{} {
+func (p *goPrompts) GetExplainConfig() map[string]any {
 	result := getDefaultExplainConfigTemplate()
 	result[config.K_SystemPrompt] = "You are a highly skilled Go programming language software developer. You are an expert in studying source code and finding solutions to software development questions. Your answers are detailed and consistent."
 
 	return result
 }
 
-func (p *goPrompts) GetProjectConfig() map[string]interface{} {
+func (p *goPrompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
 		"(?i)^.*\\.go$",
@@ -78,7 +78,7 @@ func (p *goPrompts) GetProjectConfig() map[string]interface{} {
 	return result
 }
 
-func (p *goPrompts) GetReportConfig() map[string]interface{} {
+func (p *goPrompts) GetReportConfig() map[string]any {
 	result := getDefaultReportConfigTemplate()
 	result[config.K_ReportBriefPrompt] = "This document contains description of the project in the Go programming language. Brief descriptions of the project source code files are provided, indicating the path to the file and the entities it contains."
 	return result
