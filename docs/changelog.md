@@ -61,6 +61,10 @@ Add support for deleting files to the `implement` operation:
 - Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
 - Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models; hard to maintain JSON schema compatibility with all providers.
 
+### Improvements
+
+- Updated `.env.example` for OpenAI provider: setup new models for different operations and stages.
+
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old operation config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation.
 
 ## v9.12.1
