@@ -12,25 +12,6 @@
     "`~~"
   ],
   "output_question_header": "# Question",
-  "stage1_output_key": "list_of_files",
-  "stage1_output_schema": {
-    "properties": {
-      "list_of_files": {
-        "description": "List of files according to the request",
-        "items": {
-          "type": "string"
-        },
-        "type": "array"
-      }
-    },
-    "required": [
-      "list_of_files"
-    ],
-    "type": "object"
-  },
-  "stage1_output_schema_desc": "Creates a list of files according to the request",
-  "stage1_output_schema_name": "get_files",
-  "stage1_question_json_mode_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and, using the available information about the project, create a list of files from the project structure whose contents you need to see to answer the question. The question is:",
   "stage1_question_prompt": "Here is a question about the project's codebase that you need to answer. Study the question and, using the available information about the project, create a list of filenames from the project structure whose contents you need to see to answer the question. Place each filename between <filename></filename> tags. The question is:",
   "stage2_continue_prompt": "You previous response hit token limit. Continue writing answer right from the point where it stopped. Do not repeat already completed fragment in your response.",
   "stage2_question_prompt": "Now, please answer the following question about the project's codebase using the information provided. Answer in the same language in which the question was asked:",
