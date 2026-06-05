@@ -52,26 +52,16 @@ Add support for deleting files to the `implement` operation:
 - Apply with https://github.com/bluekeyes/go-gitdiff, or by using the external `patch` utility (patch Linux package, or patch from MSYS/GnuWin32), or implement a manual diff resolver;
 - Add fuzzy merge logic for search-and-replace blocks: ignore tabs/spaces, ignore small inconsistencies in pre/post lines, etc.
 
-## Remove old and stale code / features that I do not use
-
-Remove JSON mode support:
-
-- Only used for generating file lists for review or modification, not for code or planning;
-- Not working properly with some small local models or with some OpenAI-compatible providers;
-- JSON schemas may need patching for particular providers or models;
-- JSON schemas make per-project config `op_implement.json` bigger and harder to maintain by human or with AI (external agent, for example);
-- Does not provide any generation quality increase when used with modern LLM models, and some LLM providers still do not guarantee valid JSON output;
-- Hard to maintain.
-
 # Changelog
 
 ## v10.0.0 (in progress)
 
 ### Removed Obsolete Features
 
-- Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed multi-variant annotation configuration and environment options from the default config examples.
+- Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
+- Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models; hard to maintain JSON schema compatibility with all providers.
 
-**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old `op_annotate.json` files containing removed multi-step or multi-variant annotation keys may fail validation.
+**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old operation config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation.
 
 ## v9.12.1
 
