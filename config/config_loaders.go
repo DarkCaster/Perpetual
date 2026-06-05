@@ -292,7 +292,13 @@ func processProjectConfig(cfg map[string]any) error {
 	if err := validateEvenStringArray(cfg[K_ProjectFilenameTags], K_ProjectFilenameTags); err != nil {
 		return err
 	}
+	if err := validateEvenStringArray(cfg[K_ProjectDeleteTags], K_ProjectDeleteTags); err != nil {
+		return err
+	}
 	if err := validateEvenStringArray(cfg[K_ProjectFilenameTagsRx], K_ProjectFilenameTagsRx); err != nil {
+		return err
+	}
+	if err := validateEvenStringArray(cfg[K_ProjectDeleteTagsRx], K_ProjectDeleteTagsRx); err != nil {
 		return err
 	}
 	if err := validateNonEmptyStringArray(cfg[K_ProjectNoUploadCommentsRx], K_ProjectNoUploadCommentsRx); err != nil {
@@ -306,6 +312,11 @@ func processProjectConfig(cfg map[string]any) error {
 		return err
 	} else {
 		cfg[K_ProjectFilenameTagsRx] = rxArr
+	}
+	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectDeleteTagsRx]), K_ProjectDeleteTagsRx); err != nil {
+		return err
+	} else {
+		cfg[K_ProjectDeleteTagsRx] = rxArr
 	}
 	if rxArr, err := compileRegexArray(interfaceToStringArray(cfg[K_ProjectNoUploadCommentsRx]), K_ProjectNoUploadCommentsRx); err != nil {
 		return err

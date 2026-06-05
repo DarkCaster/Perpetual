@@ -123,6 +123,8 @@ func GetProjectConfigTemplate() map[string]any {
 	// tags for providing filenames to LLM, parsing filenames and code-blocks from LLM response,
 	result[K_ProjectFilenameTags] = templateStringArray
 	result[K_ProjectFilenameTagsRx] = templateStringArray
+	result[K_ProjectDeleteTags] = templateStringArray
+	result[K_ProjectDeleteTagsRx] = templateStringArray
 	result[K_ProjectCodeTagsRx] = templateStringArray
 	result[K_ProjectNoUploadCommentsRx] = templateStringArray
 	// settings for incremental file-change mode

@@ -167,6 +167,8 @@ const defaultAISystemPromptAcknowledge = "Understood. I will respond accordingly
 
 var defaultFileNameTagsRegexps = []string{"(?m)\\s*<filename>\\n?", "(?m)<\\/filename>\\s*$?"}
 var defaultFileNameTags = []string{"<filename>", "</filename>"}
+var defaultDeleteTagsRegexps = []string{"(?m)\\s*<delete>\\n?", "(?m)<\\/delete>\\s*$?"}
+var defaultDeleteTags = []string{"<delete>", "</delete>"}
 var defaultOutputTagsRegexps = []string{"(?m)\\s*```[a-zA-Z]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultOutputTagsRegexps_WithNumbers = []string{"(?m)\\s*```[a-zA-Z0-9]+\\n?", "(?m)```\\s*($|\\n)"}
 var defaultIncrModeTagsRegexps = []string{"(?m)(^|\\n)\\s*SEARCH>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<REPLACE>>>\\s*($|\\n)", "(?m)(^|\\n)\\s*<<<DONE\\s*($|\\n)"}
@@ -200,9 +202,9 @@ func getDefaultImplementConfigTemplate() map[string]any {
 	result[config.K_ImplementTaskStage2ReasoningsPromptFinal] = "Below are the tasks that need to be implemented. Study all the source code provided to you and create a work plan indicating what changes to the code need to be made to complete the tasks. The tasks are:"
 
 	// stage 3
-	result[config.K_ImplementStage3PlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the source code and other project information provided to you and create a list of filenames that will be changed or created by you as a result of implementing the tasks. Place each filename between <filename></filename> tags."
-	result[config.K_ImplementTaskStage3PlanningPrompt] = "Below are the tasks that need to be implemented. Study all the source code and other project information provided to you and create a list of filenames that will be changed or created by you as a result of implementing the tasks. Place each filename between <filename></filename> tags. The tasks are:"
-	result[config.K_ImplementStage3PlanningLitePrompt] = "Now create a list of filenames that will be changed or created by you as a result of implementing the tasks according to your work plan. Place each filename between <filename></filename> tags."
+	result[config.K_ImplementStage3PlanningPrompt] = "Here are the contents of the source code files that interest me. The files contain sections of code with tasks that need to be implemented, marked with the comments \"###IMPLEMENT###\". Study all the source code and other project information provided to you and create a list of filenames that will be changed, created, or deleted by you as a result of implementing the tasks. Place each filename that will be changed or created between <filename></filename> tags. If an existing file should be deleted, place that filename between <delete></delete> tags."
+	result[config.K_ImplementTaskStage3PlanningPrompt] = "Below are the tasks that need to be implemented. Study all the source code and other project information provided to you and create a list of filenames that will be changed, created, or deleted by you as a result of implementing the tasks. Place each filename that will be changed or created between <filename></filename> tags. If an existing file should be deleted, place that filename between <delete></delete> tags. The tasks are:"
+	result[config.K_ImplementStage3PlanningLitePrompt] = "Now create a list of filenames that will be changed, created, or deleted by you as a result of implementing the tasks according to your work plan. Place each filename that will be changed or created between <filename></filename> tags. If an existing file should be deleted, place that filename between <delete></delete> tags."
 	result[config.K_ImplementTaskStage3ExtraFilesPrompt] = "Below are the contents of additional source code files that may be relevant to the tasks."
 
 	// stage 4
@@ -278,6 +280,8 @@ func getDefaultProjectConfigTemplate() map[string]any {
 	// tags for providing filenames to LLM, parsing filenames and code-blocks back from LLM response
 	result[config.K_ProjectFilenameTags] = defaultFileNameTags
 	result[config.K_ProjectFilenameTagsRx] = defaultFileNameTagsRegexps
+	result[config.K_ProjectDeleteTags] = defaultDeleteTags
+	result[config.K_ProjectDeleteTagsRx] = defaultDeleteTagsRegexps
 	result[config.K_ProjectCodeTagsRx] = defaultOutputTagsRegexps
 	result[config.K_ProjectNoUploadCommentsRx] = defaultOutputTagsRegexps
 	// settings for incremental file-change mode
