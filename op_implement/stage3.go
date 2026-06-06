@@ -196,7 +196,7 @@ func Stage3(projectRootDir string,
 		extraTaskPromptAdded := false
 		alreadyAddedUnexpectedFiles := map[string]struct{}{}
 
-		appendUnexpectedExistingFile := func(file string) {
+		appendUnexpectedExistingFile := func(file string, ignoreNoUploadFilter bool) {
 			// only try injecting unexpected existing file once
 			if _, exist := alreadyAddedUnexpectedFiles[file]; exist {
 				return
@@ -207,9 +207,15 @@ func Stage3(projectRootDir string,
 			if !forceUpload {
 				files := utils.FilterNoUploadProjectFiles(projectRootDir, []string{file}, noUploadRx, true, logger)
 				if len(files) < 1 {
-					return
+					if ignoreNoUploadFilter {
+						logger.Warnln("Ignoring no-upload filter to avoid file corruption:", file)
+					} else {
+						return
+					}
 				}
 			}
+
+			logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 
 			if task != "" && !extraTaskPromptAdded {
 				extraTaskPromptAdded = true
@@ -266,9 +272,8 @@ func Stage3(projectRootDir string,
 							logger.Warnln("Skipping requested file, filtered by project blacklist:", file)
 						} else if found {
 							// Add the file contents so that LLM doesn't overwrite it from scratch, thus destroying it.
-							appendUnexpectedExistingFile(file)
+							appendUnexpectedExistingFile(file, true) // Even files marked with no-upload should be added to avoid its corruption
 							otherFilesToModify = append(otherFilesToModify, file)
-							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 						} else {
 							//insert new files to the beginning of file-list
 							otherFilesToModify = slices.Insert(otherFilesToModify, newFilesIndex, file)
@@ -326,10 +331,7 @@ func Stage3(projectRootDir string,
 			_, alreadyInTargets := utils.CaseInsensitiveFileSearch(file, targetFiles)
 
 			if !alreadyInReview && !alreadyInTargets {
-				if _, exist := alreadyAddedUnexpectedFiles[file]; !exist {
-					appendUnexpectedExistingFile(file)
-					logger.Warnln("File scheduled for deletion was not requested previously, adding its contents to context:", file)
-				}
+				appendUnexpectedExistingFile(file, false)
 			}
 
 			filesToDelete = append(filesToDelete, file)
@@ -357,7 +359,6 @@ func Stage3(projectRootDir string,
 
 	if !forceUpload {
 		otherFilesToModify = utils.FilterNoUploadProjectFiles(projectRootDir, otherFilesToModify, noUploadRx, true, logger)
-		filesToDelete = utils.FilterNoUploadProjectFiles(projectRootDir, filesToDelete, noUploadRx, false, logger)
 	}
 
 	otherFilesToModify, droppedFiles := utils.FilterFilesWithWhitelist(otherFilesToModify, projectFilesWhitelist)
