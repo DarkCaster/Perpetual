@@ -141,7 +141,7 @@ Project configuration files allow you to customize Perpetual's behavior on a per
 ### Configuration Files
 
 - **Global Project Settings**
-  - `project.json`: Defines file-selection filters, Markdown code-block mappings, context-saving parameters, filename/code tags, no-upload markers, and incremental mode parsing settings.
+  - `project.json`: Defines file-selection filters, Markdown code-block mappings, context-saving parameters, filename/code/delete tags, no-upload markers, and incremental mode parsing settings.
   - `description.md`: Optional project description file that provides additional context to the LLM.
 
 - **Operation-Specific Settings**
@@ -181,6 +181,8 @@ File path regular expressions are matched against project-root-relative paths. F
 - `project_description_response`: Simulated response paired with the project description prompt.
 - `filename_tags`: Tags used when embedding filenames in prompts.
 - `filename_tags_rx`: Regex pairs used to parse filenames from LLM responses.
+- `delete_tags`: Tags used when representing files selected for deletion.
+- `delete_tags_rx`: Regex pairs used to parse deletion requests from LLM responses.
 - `code_tags_rx`: Regex pairs used to parse code blocks from LLM responses.
 - `noupload_comments_rx`: Regex patterns for comments that mark files as "no-upload".
 - `medium_context_saving_file_count`: File count threshold for medium context-saving mode.

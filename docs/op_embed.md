@@ -18,7 +18,7 @@ The `embed` operation has two primary modes:
 
 2. **Question/Search Mode:** Updates embeddings as needed and then performs semantic search to find files relevant to a specific question or query.
 
-When invoked without question flags, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
+When invoked without question flags, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search when annotation updates and embeddings are enabled. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
 
 Available flags:
 
@@ -29,7 +29,7 @@ Available flags:
   Dry run: list files that **would** be processed without generating embeddings.
 
 - `-r <file>`  
-  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project and must pass the project whitelist/blacklist filters.
+  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project and must pass the project whitelist/blacklist filters. If a user filter is supplied with `-x`, the requested file is still subject to that filter.
 
 - `-q`  
   Read a question from stdin and find files relevant to it using semantic search.
@@ -97,6 +97,8 @@ Available flags:
 
 To enable embeddings, set the appropriate model and parameters in your `.perpetual/.env` or global `.env` file. Embedding is supported for OpenAI, Ollama, and Generic providers, depending on the selected model and API endpoint. Anthropic does not support embeddings.
 
+Standalone `embed` runs fail if no usable embedding provider/model is configured. Internal calls from other operations silently skip embedding updates when embeddings are unavailable.
+
 ### Key Environment Variables
 
 - **Provider Selection:**  
@@ -129,6 +131,17 @@ To enable embeddings, set the appropriate model and parameters in your `.perpetu
 
 - **Retries:**  
   `<PROVIDER>_ON_FAIL_RETRIES_OP_EMBED` (fallback to `<PROVIDER>_ON_FAIL_RETRIES`, default: 3)
+
+- **Generic Provider API Version:**  
+  `GENERIC_API_VERSION_OP_EMBED` (fallback to `GENERIC_API_VERSION`)
+
+  This is appended as the `api-version` URL query parameter and is useful for some OpenAI-compatible providers, such as Azure endpoints.
+
+- **OpenAI Service Tier:**  
+  `OPENAI_SERVICE_TIER_OP_EMBED` (fallback to `OPENAI_SERVICE_TIER`)  
+  `OPENAI_SERVICE_TIER_FALLBACK`
+
+  If configured, service tier options are also applied to embedding requests. The fallback tier may be activated after eligible OpenAI rate-limit or server-side failures.
 
 - **Generic Provider Prefixes:**  
   You can set `GENERIC_EMBED_DOC_PREFIX` and `GENERIC_EMBED_SEARCH_PREFIX` to prepend custom text to each document or search query before embedding. Some embedding models expect a specific prefix. Refer to the model's documentation or Hugging Face model card for recommended prefixes.
@@ -215,27 +228,30 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 1. **Project Discovery**  
    Locate the project root and Perpetual directory (`.perpetual`).
 
-2. **File Listing & Filtering**  
+2. **Configuration Loading**  
+   Load `.env` files, `project.json`, and create the embedding connector. If the selected provider/model does not support embeddings, a standalone run fails.
+
+3. **File Listing & Filtering**  
    Gather project files and apply project whitelist/blacklist rules from `project.json`.
 
-3. **Checksum Calculation**  
+4. **Checksum Calculation**  
    Compute SHA-256 checksums for files to detect content changes.
 
-4. **Load Existing Embeddings**  
+5. **Load Existing Embeddings**  
    Read stored embeddings and checksums from `.perpetual/.embeddings.msgpack`.
 
-5. **Determine Files to Embed**  
+6. **Determine Files to Embed**  
    - With `-r`, select the specified file.  
    - With `-f`, remove the old embeddings storage and select all project files.  
    - Otherwise, select files whose checksums have changed or whose embeddings are missing.
 
-6. **Apply User Filters**  
+7. **Apply User Filters**  
    Exclude files matching user-provided regex patterns from `-x`. For skipped files, old checksums are preserved where possible so they can be reconsidered on later runs.
 
-7. **Dry Run (optional)**  
+8. **Dry Run (optional)**  
    If `-d` is specified, output the list of files to be embedded and exit.
 
-8. **Generate Embeddings**  
+9. **Generate Embeddings**  
    For each selected file:  
    - Read file content.  
    - Split it into chunks with overlap based on configuration.  
@@ -243,8 +259,8 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
    - Retry transient failures according to provider retry settings.  
    - Validate vector dimension consistency.
 
-9. **Save Embeddings**  
-   Update `.perpetual/.embeddings.msgpack` if any embeddings changed.
+10. **Save Embeddings**  
+    Update `.perpetual/.embeddings.msgpack` if any embeddings changed.
 
 ### Question/Search Mode
 
@@ -266,7 +282,7 @@ When using `-q` or `-i`, Perpetual still performs the embedding generation workf
    Read project file embeddings from `.perpetual/.embeddings.msgpack`.
 
 6. **Perform Similarity Search**  
-   Calculate cosine similarity between the question embedding and stored project file embeddings.
+   Calculate cosine similarity between the question embedding and stored project file embeddings. If a file has multiple vectors, the best score for that file is used.
 
 7. **Return Results**  
    Print selected matching files, one per line, limited by `-s` and filtered by the configured similarity threshold.

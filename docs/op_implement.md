@@ -1,6 +1,6 @@
 # Implement Operation
 
-The `implement` operation is a core feature of the Perpetual tool designed to automate code implementation based on user-provided instructions. This operation leverages Large Language Models (LLMs) to analyze your project, understand the context, and generate or modify code according to your specifications.
+The `implement` operation is a core feature of the Perpetual tool designed to automate code implementation based on user-provided instructions. This operation leverages Large Language Models (LLMs) to analyze your project, understand the context, and generate, modify, or delete code files according to your specifications.
 
 ## Understanding the Implement Operation
 
@@ -17,11 +17,11 @@ In addition to using `###IMPLEMENT###` comments as indicators for code generatio
 3. **Context Gathering**  
    The operation collects relevant information from target files and related project files to provide comprehensive context to the LLM.
 
-4. **Code Generation**  
-   Using the gathered context and the instructions provided in the `###IMPLEMENT###` comments or task instructions, the LLM generates or modifies code for each selected file. Depending on the planning mode, it may also modify related files or create new files if necessary.
+4. **Code Generation and File Planning**  
+   Using the gathered context and the instructions provided in the `###IMPLEMENT###` comments or task instructions, the LLM generates or modifies code for each selected file. Depending on the planning mode, it may also modify related files, create new files, or delete existing files if necessary.
 
 5. **Integration**  
-   Generated changes are saved as a Perpetual stash and then automatically applied. You can later use the `stash` operation to roll the changes back or re-apply them.
+   Generated changes and requested deletions are saved as a "stash" and then automatically applied. You can later use the `stash` operation to roll the changes back or re-apply them, including restoring deleted files or re-applying file deletions.
 
 Throughout this process, the `implement` operation relies heavily on the project index and file annotations to make informed decisions about code implementation, ensuring that the generated code is consistent with your project's structure, coding style, and existing functionality.
 
@@ -35,7 +35,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - Create a local `.env` configuration file(s) at `<project_root>/.perpetual/*.env` and/or a global configuration file(s) at `~/.config/Perpetual/*.env` on Linux or `<User profile dir>\AppData\Roaming\Perpetual\*.env` on Windows. Settings from the local project configuration file take precedence over global configuration settings. Use example `*.env` files from `<project_root>/.perpetual/*.env.example` as reference.
 
 2. **Marking Implementation Points**  
-   - In your source files, use `###IMPLEMENT###` comments to indicate where you want code to be generated or modified.  
+   - In your source files, use `###IMPLEMENT###` comments to indicate where you want code to be generated or modified. You may also describe when related files should be created or obsolete files should be deleted, but creating and deleting files requires planning mode.  
    - Example:
 
      ```go
@@ -56,7 +56,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - **Task Mode**: Enable task mode with `-t`. Instructions can be provided through standard input or by specifying a file with `-i`, which automatically enables task mode. Task mode also enables planning mode.
 
 4. **Reviewing and Iterating**  
-   - Review the generated code for accuracy and consistency.  
+   - Review the generated code and any created or deleted files for accuracy and consistency.  
    - If necessary, use the `stash` operation to revert changes:
 
      ```sh
@@ -67,7 +67,7 @@ To effectively use the `implement` operation, follow this typical workflow:
    - Re-run the `implement` operation to generate new code based on updated instructions.
 
 5. **Finalizing**  
-   - Once satisfied with the generated code, commit the changes to your version control system.  
+   - Once satisfied with the generated code and file changes, commit the changes to your version control system.  
    - Repeat from step 2 for further implementations.
 
 ### Special Comments
@@ -76,6 +76,8 @@ To effectively use the `implement` operation, follow this typical workflow:
 - `###NOUPLOAD###`: Marks files that should generally be excluded from upload as related/review files during the `implement`, `doc`, and `explain` workflows unless the `-f` flag is used.
 
   It is important to note that `###NOUPLOAD###` is not a complete data-protection mechanism. Files explicitly selected as implementation targets can still be sent to the LLM as part of the implementation task, and the file may still be processed during the `annotate` operation. The annotation process is necessary to create the project index, which helps the LLM understand the project structure and write new code in context. While the annotation may leak some contextual information about the file, this can be mitigated with special summarization instructions (see the `annotate` operation documentation for more details). Users should be aware of these limitations and take appropriate precautions when dealing with sensitive information. To ensure a file is never processed by the LLM, exclude it using `project.json` configuration or a user filter file.
+
+  `###NOUPLOAD###` controls whether file contents are uploaded as context; it is not a general protection against all file operations. If you must prevent a file from being modified or deleted by `implement`, exclude it with the project whitelist/blacklist configuration or a user filter file.
 
 ## Examining Logs
 
@@ -98,7 +100,7 @@ Perpetual implement [flags]
 - `-i <file>`: Read task instructions from file, plain text or markdown format. This flag automatically enables task mode.  
 - `-n`: No annotate mode. Skip re-annotating changed files and skip updating embeddings; use current annotations and embeddings if any.  
 - `-ni`: No incremental mode. Disable using incremental search-and-replace mode when generating file changes.  
-- `-p`: Enable planning, needed for bigger modifications that may create new files or modify files not originally marked with `###IMPLEMENT###`. Disabled by default to save tokens.  
+- `-p`: Enable planning, needed for bigger modifications that may create new files, delete existing files, or modify files not originally marked with `###IMPLEMENT###`. Disabled by default to save tokens.  
 - `-pr`: Enable extended planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the `-p` flag.  
 - `-s <n>`: Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files). This flag uses embeddings and performs local similarity search for files related to the implementation context.  
 - `-sp <n>`: Set number of passes for related files selection at Stage 1 (default: 1). Higher pass-count values can select more files and compensate for possible LLM errors when finding relevant files, but they cost more API calls, tokens, and context.  
@@ -123,27 +125,27 @@ The `implement` operation is divided into four main stages.
 ### Stage 2: Context Preparation and Optional Work Plan
 
 1. **Gather Source Code**: Collect source code from the files identified for review.  
-2. **No Planning Mode**: If planning is disabled, the LLM is given the target files and related context and is prepared to implement only the initially targeted files.  
+2. **No Planning Mode**: If planning is disabled, the LLM is given the target files and related context and is prepared to implement only the initially targeted files. File creation and deletion are not planned in this mode.  
 3. **Basic Planning Mode**: If `-p` or task mode is enabled, Stage 2 prepares related-file context but does not generate a detailed work plan.  
 4. **Extended Planning Mode**: If `-pr` is enabled, the LLM produces a work plan outlining the codebase changes required.
 
 ### Stage 3: Planning Changes
 
-1. **Determine Files to Modify or Create**: If planning is enabled, query the LLM for the list of files that will be modified or created. If planning is disabled, this stage does not perform an LLM request and simply uses the initial target files.  
-2. **Parse and Validate the LLM Response**: Extract filenames, normalize paths, check them against the project structure, and separate existing target files, other existing files, and new files.  
-3. **Safety Handling**: If the LLM requests an existing file that was not previously provided as context, Perpetual can add its contents to the message history to reduce the risk of overwriting it incorrectly.  
-4. **Filtering**: Additional files selected for modification are filtered through `###NOUPLOAD###`, project whitelist/blacklist rules, and user filters where applicable.
+1. **Determine Files to Modify, Create, or Delete**: If planning is enabled, query the LLM for the list of files that will be modified, created, or deleted. If planning is disabled, this stage does not perform an LLM request and simply uses the initial target files.  
+2. **Parse and Validate the LLM Response**: Extract filenames, normalize paths, check them against the project structure, and separate existing target files, other existing files, new files, and files selected for deletion.  
+3. **Safety Handling**: If the LLM requests modification of an existing file that was not previously provided as context, Perpetual can add its contents to the message history to reduce the risk of overwriting it incorrectly. For deletion requests, Perpetual validates that the file exists before adding it to the deletion list.  
+4. **Filtering and Deletion Rules**: Additional files selected for modification are filtered through `###NOUPLOAD###`, project whitelist/blacklist rules, and user filters where applicable. Files selected for deletion must already exist and must pass project whitelist/blacklist and user-filter checks. If a file is selected for both modification and deletion, deletion takes precedence.
 
 ### Stage 4: Code Generation
 
-1. **Use Gathered Context and Work Plan**: Use the relevant source code, selected file list, and optional work plan as guidance.  
+1. **Use Gathered Context and Work Plan**: Use the relevant source code, selected file list, optional deletion list, and optional work plan as guidance.  
 2. **Iterative Processing of Each File**:  
-   - Query the LLM to produce implemented code for each file.  
+   - Query the LLM to produce implemented code for each file selected for modification or creation.  
    - Prefer incremental search-and-replace mode when enabled, supported by the provider, and allowed by project configuration.  
    - Fall back to full-file generation when incremental mode is disabled, not applicable, or fails.  
    - Handle partial full-file responses and continue generation if token limits are reached, up to the configured segment limit.  
    - Parse and store the generated code for each file.  
-3. **Integration via Stash**: Save generated changes into a Perpetual stash and automatically apply that stash to the working tree.
+3. **Integration via Stash**: Save generated changes and requested deletions into a stash and automatically apply that stash to the working tree.
 
 ## Working with Large Projects
 
@@ -271,16 +273,16 @@ Stage 2 handles the gathering of source code context and, optionally, the genera
 
 ### Stage 3 Prompts
 
-Stage 3 determines which files will be modified or created during the implementation process. This stage analyzes the requirements and optional work plan to produce a list of files that need changes.
+Stage 3 determines which files will be modified, created, or deleted during the implementation process. This stage analyzes the requirements and optional work plan to produce a list of files that need changes or deletion.
 
-- **`stage3_planning_prompt`**: Main prompt for determining file modifications when using planning mode with full file content analysis.
+- **`stage3_planning_prompt`**: Main prompt for determining file modifications, creations, and deletions when using planning mode with full file content analysis.
 - **`stage3_planning_lite_prompt`**: Simplified planning prompt used when reasoning has already been generated in Stage 2, requiring less detailed analysis.
 - **`stage3_task_planning_prompt`**: Planning prompt specifically designed for task mode implementations.
 - **`stage3_task_extra_files_prompt`**: Additional prompt used in task mode when extra files need to be included in the context to prevent overwriting existing code.
 
 ### Stage 4 Prompts
 
-Stage 4 performs the actual code implementation, processing each selected file individually and generating the final code based on all previous analysis and planning.
+Stage 4 performs the actual code implementation, processing each selected file individually and generating the final code based on all previous analysis and planning. Files selected for deletion in Stage 3 are not generated in Stage 4; they are recorded directly in the stash as deleted file states.
 
 - **`stage4_changes_done_prompt`**: Prompt that provides context about previously implemented files during iterative processing.
 - **`stage4_changes_done_response`**: Simulated response acknowledging the completed changes.
@@ -346,34 +348,38 @@ Configuration for incremental search-and-replace mode in Stage 4:
 - **`project_description_response`**: Simulated response acknowledging project description.
 - **`filename_tags`**: Tags used to denote filenames in messages.  
 - **`filename_tags_rx`**: Regular expressions to parse filename tags.  
+- **`delete_tags`**: Tags used by the LLM to mark existing files that should be deleted during planning.  
+- **`delete_tags_rx`**: Regular expressions to parse deletion tags from LLM responses.  
 - **`code_tags_rx`**: Regular expressions to identify code blocks in responses.
 
 ## Best Practices
 
 1. **Clear Instructions**: Provide detailed and clear instructions in your `###IMPLEMENT###` comments or task instructions.  
 2. **Incremental Implementation**: Break complex features into smaller tasks for easier review and iteration.  
-3. **Regular Code Reviews**: Always review the generated code carefully.  
-4. **Version Control**: Use version control systems and the `stash` operation to manage and revert changes.  
-5. **Consistent Coding Style**: Maintain a consistent style to help the LLM match your existing code.  
-6. **Good Project Architecture**: A clear, modular architecture yields better LLM results.  
-7. **Use Planning Flags**: For extensive changes, enable `-p` or `-pr` for broader file modification planning.  
-8. **Use `###NOUPLOAD###` with Awareness**: Prevent sensitive or irrelevant files from being used as related context, but configure `project.json` or a user filter to fully exclude files if needed.  
-9. **Iterative Refinement**: Refine comments or task instructions and re-run the operation as needed.  
-10. **Fine-tune LLM Settings**: Experiment with environment settings for your LLM provider, and consult the `*.env.example` files at `<project_root>/.perpetual/*.env.example`.
+3. **Explicitly Request Deletions**: If obsolete files should be deleted, state this clearly in your task instructions or implementation comments and use planning mode (`-p`, `-pr`, or task mode).  
+4. **Regular Code Reviews**: Always review the generated code and any file deletions carefully.  
+5. **Version Control**: Use version control systems and the `stash` operation to manage and revert changes.  
+6. **Consistent Coding Style**: Maintain a consistent style to help the LLM match your existing code.  
+7. **Good Project Architecture**: A clear, modular architecture yields better LLM results.  
+8. **Use Planning Flags**: For extensive changes, enable `-p` or `-pr` for broader file modification, creation, and deletion planning.  
+9. **Use `###NOUPLOAD###` with Awareness**: Prevent sensitive or irrelevant files from being used as related context, but configure `project.json` or a user filter to fully exclude files if needed.  
+10. **Iterative Refinement**: Refine comments or task instructions and re-run the operation as needed.  
+11. **Fine-tune LLM Settings**: Experiment with environment settings for your LLM provider, and consult the `*.env.example` files at `<project_root>/.perpetual/*.env.example`.
 
 ## Error Handling and Retries
 
 1. **LLM Query Failures**: Retries up to the number specified in `<PROVIDER>_ON_FAIL_RETRIES_OP_IMPLEMENT_STAGE<NUMBER>`.  
-2. **Token Limit Handling**: Stage 4 can continue full-file generation if the LLM response reaches the token limit, up to the configured segment limit. Other stages generally retry or fail when token limits are reached, especially when partial responses would make filename-list parsing or incremental parsing invalid.  
-3. **Invalid Responses**: Checks for properly formatted filename lists, code blocks, or incremental search-and-replace blocks and retries when valid output cannot be parsed.  
+2. **Token Limit Handling**: Stage 4 can continue full-file generation if the LLM response reaches the token limit, up to the configured segment limit. Other stages generally retry or fail when token limits are reached, especially when partial responses would make filename-list parsing, deletion-list parsing, or incremental parsing invalid.  
+3. **Invalid Responses**: Checks for properly formatted filename lists, deletion lists, code blocks, or incremental search-and-replace blocks and retries when valid output cannot be parsed.  
 4. **Incremental Mode Fallback**: If incremental search-and-replace output cannot be parsed or applied, Perpetual may retry incremental mode and then fall back to full-file generation.
+5. **Stash Safety**: Before applying generated output, Perpetual creates a stash containing original and modified file states. This allows generated modifications, creations, and deletions to be rolled back.
 
 ## Performance Considerations
 
 The `implement` operation can consume significant time when using a locally running LLM or incur costs when using commercial LLM providers, especially for large projects or complex tasks. Consider the following to optimize performance:
 
 1. **Use Appropriate Models**: Choose LLM models/providers that balance capability and speed. For example, use a smaller model for Stages 1 and 3 and more powerful models for Stages 2 and 4. You may also try using small local models with Ollama for the `annotate` operation to save on costs associated with automatically re-annotating changed files.  
-2. **Do Not Use `-p` or `-pr` Unless Needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags if you believe that the implementation will not create new files or modify files not marked with `###IMPLEMENT###` comments.  
+2. **Do Not Use `-p` or `-pr` Unless Needed**: You may significantly save on LLM API calls, tokens, and costs by not using these flags if you believe that the implementation will not create new files, delete files, or modify files not marked with `###IMPLEMENT###` comments.  
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.  
 4. **Use the `-u` Flag When Tests Matter**: If your project contains unit-test source files that are relevant to the implementation task, use the `-u` flag to include them in processing. This provides additional context for the LLM and allows it to see and modify unit tests. However, including tests increases the amount of code the LLM needs to analyze, which may increase costs.  
 5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.  

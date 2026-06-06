@@ -18,7 +18,7 @@ The `annotate` operation supports several command-line flags to customize its be
 
 - `-f`: Force annotation of all files, even for files whose annotations are up to date. This flag is useful when you want to regenerate all annotations, regardless of whether the files have changed since the last annotation.
 
-- `-d`: Perform a dry run without actually generating annotations. This flag lists the files that would be annotated without making LLM requests or updating `.annotations.json`.
+- `-d`: Perform a dry run without actually generating annotations. This flag lists the files that would be annotated without making LLM requests or updating `.annotations.json`. In this mode, logging is redirected to stderr so that stdout can contain only the file list.
 
 - `-df <file>`: Optional path to a project description file for adding into LLM context. Valid values are a file path or `disabled`. If not specified, the operation attempts to load the project description from `.perpetual/description.md`.
 

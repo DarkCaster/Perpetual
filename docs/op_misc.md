@@ -48,11 +48,11 @@ The `misc` operation supports several command-line flags to access its different
 
 The project validation function performs several important checks:
 
-1. **Directory Discovery**: Searches for the `.perpetual` directory starting from the current directory and moving up through parent directories until found or the filesystem root is reached. If `PERPETUAL_DIR` is set, that directory is used instead.
+1. **Directory Discovery**: Searches for the `.perpetual` directory starting from the current directory and moving up through parent directories until found or the filesystem root is reached. If `PERPETUAL_DIR` is set, that directory is used instead. The discovered `.perpetual` path must be a directory, and the project root must not be a symlink or reparse point.
 
-2. **Configuration Validation**: Loads and validates all JSON configuration files (project config and operation configs) to ensure they are properly formatted and contain valid settings.
+2. **Environment Setup**: Loads environment variables from `.env` files in both the project's `.perpetual` directory and the global configuration directory. Files are loaded alphabetically inside each directory, with project-local files loaded before global files. Existing environment variables are not overwritten, so values exported before running Perpetual have priority.
 
-3. **Environment Setup**: Loads environment variables from `.env` files in both the project's `.perpetual` directory and the global configuration directory. Files are loaded alphabetically inside each directory, with project-local files loaded before global files.
+3. **Configuration Validation**: Loads and validates all JSON configuration files (project config and operation configs) to ensure they are properly formatted and contain valid settings.
 
 4. **Project Description Check**: Loads the project description file according to the `-df` option. Missing default `.perpetual/description.md` is not treated as an error.
 
@@ -106,7 +106,7 @@ The encoding conversion function modernizes file encodings:
 
 1. **Encoding Analysis**: Detects current file encoding using BOM patterns and UTF-8 validation.
 
-2. **Selective Conversion**: Only converts files that were read with fallback encoding warnings.
+2. **Selective Conversion**: Only converts files that were read with fallback encoding warnings. UTF-8, UTF-8 with BOM, UTF-16, and UTF-32 files that decode successfully as supported UTF encodings are not converted by this mode.
 
 3. **UTF-8 Standardization**: Converts affected files to standard UTF-8 encoding without BOM.
 

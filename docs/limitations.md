@@ -14,7 +14,7 @@ Given `Perpetual`'s focus on direct codebase interaction and maintaining simplic
 
 These limitations are in place to ensure a controlled and safe environment for code manipulation.
 
-`Perpetual` can create and modify files during implementation, but generated changes are applied through the stash mechanism. Because file deletion is not supported, rolling back a stash restores backed-up original files but does not remove newly created files that had no original version.
+`Perpetual` can create, modify, and delete project files during implementation, but generated changes are applied through the stash mechanism. The stash records both original and modified file states, including whether each file exists. Applying a stash can therefore create, modify, or delete files. Rolling back a stash restores backed-up original files, restores files that were deleted by the generated changes, and removes files that were newly created by the stash. Empty directories created for new files may remain after rollback, because stash rollback operates on files.
 
 ## Supported Source File Encoding
 
