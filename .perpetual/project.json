@@ -3,6 +3,14 @@
     "(?m)\\s*```[a-zA-Z]+\\n?",
     "(?m)```\\s*($|\\n)"
   ],
+  "delete_tags": [
+    "<delete>",
+    "</delete>"
+  ],
+  "delete_tags_rx": [
+    "(?m)\\s*<delete>\\n?",
+    "(?m)<\\/delete>\\s*$?"
+  ],
   "filename_tags": [
     "<filename>",
     "</filename>"
