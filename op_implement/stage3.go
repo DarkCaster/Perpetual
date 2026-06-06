@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
@@ -20,12 +21,14 @@ func Stage3(projectRootDir string,
 	allFileNames []string,
 	projectFilesWhitelist []*regexp.Regexp,
 	projectFilesBlacklist []*regexp.Regexp,
+	noUploadRx []*regexp.Regexp,
+	forceUpload bool,
 	filesForReview []string,
 	targetFiles []string,
 	notEnforceTargetFiles bool,
 	messages []llm.Message,
 	task string,
-	logger logging.ILogger) ([]llm.Message, []string, []string) {
+	logger logging.ILogger) ([]llm.Message, []string, []string, []string) {
 
 	logger.Traceln("Stage3: Starting")
 	defer logger.Traceln("Stage3: Finished")
@@ -47,6 +50,7 @@ func Stage3(projectRootDir string,
 	// Resulted filenames
 	var targetFilesToModify []string
 	var otherFilesToModify []string
+	var filesToDelete []string
 
 	if !notEnforceTargetFiles || planningMode == 0 {
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
@@ -95,6 +99,7 @@ func Stage3(projectRootDir string,
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 3): %s\n\n\n", debugString))
 
 		var filesToProcessRaw []string
+		var filesToDeleteRaw []string
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		// Make request and retry on errors
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
@@ -127,7 +132,7 @@ func Stage3(projectRootDir string,
 				}
 				continue
 			}
-			// Process response, parse files that will be created
+			// Process response, parse files that will be created or modified
 			filesToProcessRaw, err = utils.ParseTaggedTextRx(
 				aiResponse,
 				prCfg.RegexpArray(config.K_ProjectFilenameTagsRx)[0],
@@ -141,29 +146,93 @@ func Stage3(projectRootDir string,
 				}
 				continue
 			}
+			// Process response, parse files that will be deleted
+			filesToDeleteRaw, err = utils.ParseTaggedTextRx(
+				aiResponse,
+				prCfg.RegexpArray(config.K_ProjectDeleteTagsRx)[0],
+				prCfg.RegexpArray(config.K_ProjectDeleteTagsRx)[1],
+				false)
+			if err != nil {
+				if onFailRetriesLeft < 1 {
+					logger.Panicln("Failed to parse list of files for deletion", err)
+				} else {
+					logger.Warnln("Failed to parse list of files for deletion, retrying", err)
+				}
+				continue
+			}
 			break
 		}
 
-		extra_task_prompt_added := false
+		normalizeLLMRequestedFile := func(raw string) (string, bool) {
+			check := raw
+
+			if check != "" && check[len(check)-1] == '\n' {
+				check = check[:len(check)-1]
+			}
+			if check != "" && check[len(check)-1] == '\r' {
+				check = check[:len(check)-1]
+			}
+
+			check = utils.ConvertFilePathToOSFormat(check)
+
+			file, err := utils.MakePathRelative(projectRootDir, check, true)
+			if err != nil {
+				logger.Errorln("Not using file, because it is outside project root directory", check)
+				return "", false
+			}
+
+			return file, true
+		}
+
+		removeFileCaseInsensitive := func(files []string, target string) ([]string, bool) {
+			for i, file := range files {
+				if strings.EqualFold(file, target) {
+					return append(files[:i], files[i+1:]...), true
+				}
+			}
+			return files, false
+		}
+
+		extraTaskPromptAdded := false
+		alreadyAddedUnexpectedFiles := map[string]struct{}{}
+
+		appendUnexpectedExistingFile := func(file string) {
+			// only try injecting unexpected existing file once
+			if _, exist := alreadyAddedUnexpectedFiles[file]; exist {
+				return
+			}
+			alreadyAddedUnexpectedFiles[file] = struct{}{}
+
+			// extra no-upload protection when trying to inject unexpected existing file contents to the LLM context
+			if !forceUpload {
+				files := utils.FilterNoUploadProjectFiles(projectRootDir, []string{file}, noUploadRx, true, logger)
+				if len(files) < 1 {
+					return
+				}
+			}
+
+			if task != "" && !extraTaskPromptAdded {
+				extraTaskPromptAdded = true
+				messages[msgIndexToAddExtraFiles] = llm.AddPlainTextFragment(
+					messages[msgIndexToAddExtraFiles],
+					opCfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
+			}
+
+			messages[msgIndexToAddExtraFiles] = llm.AppendSourceFileToMessage(
+				messages[msgIndexToAddExtraFiles],
+				projectRootDir,
+				file,
+				prCfg.Tags(config.K_ProjectFilenameTags),
+				logger)
+		}
+
 		newFilesIndex := 0
 		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
 		logger.Infoln("Files for processing selected by LLM:")
-		for _, check := range filesToProcessRaw {
-			// remove new line from the end of filename, if present
-			if check != "" && check[len(check)-1] == '\n' {
-				check = check[:len(check)-1]
-			}
-			// remove \r from the end of filename, if present
-			if check != "" && check[len(check)-1] == '\r' {
-				check = check[:len(check)-1]
-			}
-			//replace possibly-invalid path separators
-			check = utils.ConvertFilePathToOSFormat(check)
-			//make file path relative to project root
-			file, err := utils.MakePathRelative(projectRootDir, check, true)
-			if err != nil {
-				logger.Errorln("Not using file, because it is outside project root directory", check)
+		for _, raw := range filesToProcessRaw {
+			file, ok := normalizeLLMRequestedFile(raw)
+			if !ok {
 				continue
 			}
 			// Sort files selected by LLM
@@ -196,25 +265,15 @@ func Stage3(projectRootDir string,
 						} else if _, bsdr := utils.FilterFilesWithBlacklist(fileWS, projectFilesBlacklist); len(bsdr) > 0 {
 							logger.Warnln("Skipping requested file, filtered by project blacklist:", file)
 						} else if found {
-							// Add extra prompt indicating addition of file content if using task mode
-							if task != "" && !extra_task_prompt_added {
-								extra_task_prompt_added = true
-								messages[msgIndexToAddExtraFiles] = llm.AddPlainTextFragment(
-									messages[msgIndexToAddExtraFiles],
-									opCfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
-							}
 							// Add the file contents so that LLM doesn't overwrite it from scratch, thus destroying it.
-							messages[msgIndexToAddExtraFiles] = llm.AppendSourceFileToMessage(
-								messages[msgIndexToAddExtraFiles],
-								projectRootDir,
-								file,
-								prCfg.Tags(config.K_ProjectFilenameTags),
-								logger)
+							appendUnexpectedExistingFile(file)
 							otherFilesToModify = append(otherFilesToModify, file)
 							logger.Warnln("File exist in the project but was not requested previously, adding it to avoid corruption", file)
 						} else {
 							//insert new files to the beginning of file-list
 							otherFilesToModify = slices.Insert(otherFilesToModify, newFilesIndex, file)
+							//extra protection against adding non-existent file to context if attempting to delete it later
+							alreadyAddedUnexpectedFiles[file] = struct{}{}
 							newFilesIndex++
 							logger.Infoln(file, "(new file)")
 						}
@@ -224,6 +283,60 @@ func Stage3(projectRootDir string,
 		}
 		logger.Debugln("Files to modify parsed")
 
+		logger.Debugln("Raw file-list to delete by LLM:", filesToDeleteRaw)
+		logger.Infoln("Files for deletion selected by LLM:")
+		for _, raw := range filesToDeleteRaw {
+			file, ok := normalizeLLMRequestedFile(raw)
+			if !ok {
+				continue
+			}
+
+			file, found := utils.CaseInsensitiveFileSearch(file, allFileNames)
+			if !found {
+				logger.Warnln("Skipping requested file deletion, file does not exist in project:", file)
+				continue
+			}
+
+			if _, found := utils.CaseInsensitiveFileSearch(file, filesToDelete); found {
+				logger.Warnln("Skipping already requested file deletion:", file)
+				continue
+			}
+
+			if fileWS, wsdr := utils.FilterFilesWithWhitelist([]string{file}, projectFilesWhitelist); len(wsdr) > 0 {
+				logger.Warnln("Skipping requested file deletion, filtered by project whitelist:", file)
+				continue
+			} else if _, bsdr := utils.FilterFilesWithBlacklist(fileWS, projectFilesBlacklist); len(bsdr) > 0 {
+				logger.Warnln("Skipping requested file deletion, filtered by project blacklist:", file)
+				continue
+			}
+
+			var removed bool
+
+			otherFilesToModify, removed = removeFileCaseInsensitive(otherFilesToModify, file)
+			if removed {
+				logger.Warnln("Deletion overrides modification for file:", file)
+			}
+
+			targetFilesToModify, removed = removeFileCaseInsensitive(targetFilesToModify, file)
+			if removed {
+				logger.Warnln("Deletion overrides target-file modification for file:", file)
+			}
+
+			_, alreadyInReview := utils.CaseInsensitiveFileSearch(file, filesForReview)
+			_, alreadyInTargets := utils.CaseInsensitiveFileSearch(file, targetFiles)
+
+			if !alreadyInReview && !alreadyInTargets {
+				if _, exist := alreadyAddedUnexpectedFiles[file]; !exist {
+					appendUnexpectedExistingFile(file)
+					logger.Warnln("File scheduled for deletion was not requested previously, adding its contents to context:", file)
+				}
+			}
+
+			filesToDelete = append(filesToDelete, file)
+			logger.Infoln(file, "(delete)")
+		}
+		logger.Debugln("Files to delete parsed")
+
 		// Generate simulated AI message, with list of files
 		response := llm.NewMessage(llm.SimulatedAIResponse)
 		for _, item := range otherFilesToModify {
@@ -232,11 +345,29 @@ func Stage3(projectRootDir string,
 		for _, item := range targetFilesToModify {
 			response = llm.AddTaggedFragment(response, item, prCfg.Tags(config.K_ProjectFilenameTags))
 		}
-		// Add response to the normal-mode message history, because it better aligns with tags used to denote the filenames
+		for _, item := range filesToDelete {
+			response = llm.AddTaggedFragment(response, item, prCfg.Tags(config.K_ProjectDeleteTags))
+		}
+		// Add response to the message history
 		messages = append(messages, response)
 		logger.Debugln("File-list response message created")
 	}
 
-	// Always return normal-mode message history
-	return messages, otherFilesToModify, targetFilesToModify
+	// apply filtering to the files requested by LLM that was not already validated on previous stages
+
+	if !forceUpload {
+		otherFilesToModify = utils.FilterNoUploadProjectFiles(projectRootDir, otherFilesToModify, noUploadRx, true, logger)
+		filesToDelete = utils.FilterNoUploadProjectFiles(projectRootDir, filesToDelete, noUploadRx, false, logger)
+	}
+
+	otherFilesToModify, droppedFiles := utils.FilterFilesWithWhitelist(otherFilesToModify, projectFilesWhitelist)
+	for _, file := range droppedFiles {
+		logger.Warnln("File was filtered-out with project whitelist:", file)
+	}
+	otherFilesToModify, droppedFiles = utils.FilterFilesWithBlacklist(otherFilesToModify, projectFilesBlacklist)
+	for _, file := range droppedFiles {
+		logger.Warnln("File was filtered-out with project or user blacklist:", file)
+	}
+
+	return messages, otherFilesToModify, targetFilesToModify, filesToDelete
 }

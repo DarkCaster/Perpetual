@@ -431,7 +431,7 @@ func Run(args []string, logger logging.ILogger) {
 	)
 
 	// Run stage 3 - get list of files to modify
-	messages, otherFilesToModify, targetFilesToModify := Stage3(
+	messages, otherFilesToModify, targetFilesToModify, filesToDelete := Stage3(
 		projectRootDir,
 		perpetualDir,
 		projectConfig,
@@ -441,30 +441,14 @@ func Run(args []string, logger logging.ILogger) {
 		allFileNames,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
 		projectFilesBlacklist,
+		projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
+		forceUpload,
 		filesToReview,
 		targetFiles,
 		notEnforceTargetFiles,
 		messages,
 		task,
 		logger)
-
-	if !forceUpload {
-		otherFilesToModify = utils.FilterNoUploadProjectFiles(
-			projectRootDir,
-			otherFilesToModify,
-			projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
-			true,
-			logger)
-	}
-
-	otherFilesToModify, droppedFiles := utils.FilterFilesWithWhitelist(otherFilesToModify, projectConfig.RegexpArray(config.K_ProjectFilesWhitelist))
-	for _, file := range droppedFiles {
-		logger.Warnln("File was filtered-out with project whitelist:", file)
-	}
-	otherFilesToModify, droppedFiles = utils.FilterFilesWithBlacklist(otherFilesToModify, projectFilesBlacklist)
-	for _, file := range droppedFiles {
-		logger.Warnln("File was filtered-out with project or user blacklist:", file)
-	}
 
 	// Run stage 4 - implement code in selected files
 	results := Stage4(
@@ -492,6 +476,6 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Create and apply stash from generated results
-	newStashFileName := op_stash.CreateStash(filteredResults, fileNames, []string{}, logger)
+	newStashFileName := op_stash.CreateStash(filteredResults, fileNames, filesToDelete, logger)
 	op_stash.Run([]string{"-a", "-n", newStashFileName}, true, logger)
 }
