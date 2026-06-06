@@ -39,13 +39,6 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 - On each stage, and after each file modification on stage 4, a JSON state file is generated containing the current execution state. This way, the `implement` operation can be resumed if it crashes in the middle;
 - The `implement` operation can stop at important moments (after stage 2, stage 3), so an external agent or user can examine the JSON state file and evaluate proposed changes, and then continue (or run `implement` from the very beginning, or from a previous stage).
 
-Add support for deleting files to the `implement` operation:
-
-- Currently it can only add or modify files inside the project directory;
-- When generating the file list for modification, allow marking files for removal;
-- If the same file is marked both for removal and modification, deletion has priority;
-- Delete files after making all modifications.
-
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
 - Generate changes in a diff format closer to OpenAI diffs;
@@ -63,6 +56,7 @@ Add support for deleting files to the `implement` operation:
 
 ### Improvements
 
+- Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks.
 - Updated `.env.example` for OpenAI provider: setup new models for different operations and stages.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old operation config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation.
