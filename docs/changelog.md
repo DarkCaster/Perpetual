@@ -52,14 +52,14 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 ### Removed Obsolete Features
 
 - Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
-- Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models; hard to maintain JSON schema compatibility with all providers.
+- Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models, and is hard to maintain due to JSON schema compatibility differences across providers.
 
 ### Improvements
 
-- Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks.
-- Updated `.env.example` for OpenAI provider: setup new models for different operations and stages.
+- Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
+- Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
 
-**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated operation configs. Old operation config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation.
+**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
 ## v9.12.1
 
