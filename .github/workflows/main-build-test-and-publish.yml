@@ -22,15 +22,16 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Install package
       run: sudo apt-get -y install dos2unix wget
 
     - name: Set up Go
       if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
+        check-latest: true
         go-version-file: go.mod
 
     - name: Set up Go for Windows 7 Target
@@ -104,7 +105,7 @@ jobs:
 
     - name: Upload linux artifacts
       if: matrix.target == 'linux'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: linux-binaries
         include-hidden-files: true
@@ -118,7 +119,7 @@ jobs:
 
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: windows-binaries
         include-hidden-files: true
@@ -132,7 +133,7 @@ jobs:
 
     - name: Upload windows-7 binary
       if: matrix.target == 'windows-7'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: windows7-binaries
         include-hidden-files: false
@@ -148,14 +149,14 @@ jobs:
 
     - name: Download windows artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         pattern: windows*-binaries
         path: dist-windows
 
     - name: Download linux artefacts
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: linux-binaries
         path: dist-linux
