@@ -2,8 +2,6 @@ module github.com/DarkCaster/Perpetual
 
 go 1.26.0
 
-toolchain go1.26.3
-
 require (
 	github.com/joho/godotenv v1.6.0-pre.4
 	github.com/tmc/langchaingo v0.1.14
