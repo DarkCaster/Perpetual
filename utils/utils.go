@@ -25,7 +25,7 @@ func FindProjectRoot(logger logging.ILogger) (string, string, error) {
 	perpetualDir := ""
 	// Try to get perpetualDir from ENV, or use default discovery logic
 	if envDir, errEnv := GetEnvString("PERPETUAL_DIR"); errEnv == nil {
-		logger.Infof("PERPETUAL_DIR environment variable is set, using manually overridden directory: %s", envDir)
+		logger.Infof("PERPETUAL_DIR env variable is set, using custom project-settings directory: %s", envDir)
 		projectRootDir = cwd
 		perpetualDir = envDir
 	} else {
