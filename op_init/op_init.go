@@ -70,11 +70,11 @@ func Run(version string, args []string, logger logging.ILogger) {
 		if !info.IsDir() {
 			logger.Panicln(".perpetual already exists and it is not a directory!")
 		}
-		logger.Warnln("Directory .perpetual already exists:", perpetualDir)
+		logger.Warnln("Directory .perpetual already exists, replacing configs:", perpetualDir)
 	} else if !os.IsNotExist(err) {
 		logger.Panicln("Error checking for .perpetual directory:", err)
 	} else {
-		logger.Traceln("Creating .perpetual directory")
+		logger.Infoln("Creating .perpetual directory:", perpetualDir)
 		err = os.Mkdir(perpetualDir, 0755)
 		if err != nil {
 			logger.Panicln("Error creating .perpetual directory:", err)
