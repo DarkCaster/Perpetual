@@ -207,7 +207,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for _, file := range filesToAnnotate {
 			fmt.Println(file)
 		}
-		os.Exit(0)
+		return
 	}
 
 	// Create LLM connector for annotation generation

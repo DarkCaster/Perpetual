@@ -4,8 +4,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"runtime/debug"
 	"strings"
+	"syscall"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/op_annotate"
@@ -18,6 +20,7 @@ import (
 	"github.com/DarkCaster/Perpetual/op_report"
 	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/usage"
+	"github.com/DarkCaster/Perpetual/utils"
 )
 
 func getOperations() map[string]string {
@@ -62,17 +65,16 @@ func main() {
 		panic(err)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			if lp, ok := r.(logging.LoggerPanic); ok {
-				fmt.Fprint(os.Stderr, lp.Message)
-				os.Exit(-1)
-			}
-			fmt.Fprintf(os.Stderr, "panic: %v\n\n", r)
-			debug.PrintStack()
-			os.Exit(1)
-		}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		defer shutdown()
+		<-c
+		panic(logging.LoggerPanic{Message: "Interrupted\n"})
 	}()
+
+	defer shutdown()
 
 	switch strings.ToLower(operation) {
 	case op_init.OpName:
@@ -93,5 +95,18 @@ func main() {
 		op_doc.Run(args, logger, stdErrLogger)
 	case op_misc.OpName:
 		op_misc.Run(args, stdErrLogger)
+	}
+}
+
+func shutdown() {
+	utils.RunGlobalCleanup()
+	if r := recover(); r != nil {
+		if lp, ok := r.(logging.LoggerPanic); ok {
+			fmt.Fprintln(os.Stderr, lp.Message)
+			os.Exit(-1)
+		}
+		fmt.Fprintf(os.Stderr, "panic: %v\n\n", r)
+		debug.PrintStack()
+		os.Exit(1)
 	}
 }
