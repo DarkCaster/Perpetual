@@ -6,6 +6,7 @@
 			"label": "go: build Perpetual",
 			"command": "build",
 			"args": [
+				"-trimpath",
 				"github.com/DarkCaster/Perpetual"
 			],
 			"problemMatcher": [
