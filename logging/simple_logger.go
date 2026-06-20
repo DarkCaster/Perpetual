@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -79,6 +80,9 @@ func (l *SimpleLogger) Errorf(format string, args ...any) {
 
 func (l *SimpleLogger) Panicf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
+	if !strings.HasSuffix(msg, "\n") {
+		msg = msg + "\n"
+	}
 	_, file, line, ok := runtime.Caller(1)
 	if ok {
 		l.ErrorLogger.Print(l.timer(), "[PNC] ", fmt.Sprintf("Fatal error, source: %s, line %d\n", file, line))
