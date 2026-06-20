@@ -15,8 +15,9 @@ const DotEnvSuffixName = ".env"
 const AnnotationsFileName = ".annotations.json"
 const EmbeddingsFileName = ".embeddings.msgpack"
 const StashesDirName = ".stash"
+const LockFileName = ".perpetual.lock"
 
-func FindProjectRoot(logger logging.ILogger) (string, string, error) {
+func FindProjectRoot(logger logging.ILogger, isInternalCall bool) (string, string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", "", err
@@ -47,6 +48,27 @@ func FindProjectRoot(logger logging.ILogger) (string, string, error) {
 		}
 		if fileInfo.Mode()&os.ModeSymlink != 0 {
 			return projectRootDir, perpetualDir, fmt.Errorf("project directory is a symlink or reparse point: %s", projectRootDir)
+		}
+
+		// Handle lockfile
+		lockfilePath := filepath.Join(perpetualDir, LockFileName)
+		if isInternalCall {
+			logger.Traceln("Checking lockfile:", lockfilePath)
+			// When called internally, only check that lockfile is present
+			if _, statErr := os.Stat(lockfilePath); statErr != nil {
+				logger.Errorf("Error requesting lockfile %s: %v", LockFileName, statErr)
+			}
+		} else {
+			logger.Traceln("Creating lockfile:", lockfilePath)
+			f, err := os.OpenFile(lockfilePath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+			if err != nil {
+				logger.Panicln("Failed to create lockfile, another instance might be running:", err)
+			}
+			f.Close()
+			DeferGlobalCleanup(func() {
+				logger.Traceln("Removing lockfile:", lockfilePath)
+				os.Remove(lockfilePath)
+			})
 		}
 	}
 	return projectRootDir, perpetualDir, err

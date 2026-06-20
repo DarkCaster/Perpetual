@@ -59,7 +59,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger, false)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}

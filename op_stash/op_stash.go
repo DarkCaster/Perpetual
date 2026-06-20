@@ -139,7 +139,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 		outerCallLogger.DisableLevel(logging.InfoLevel)
 	}
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger, innerCall)
 	if err != nil {
 		outerCallLogger.Panicln("Error finding project root directory:", err)
 	}
@@ -246,12 +246,12 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	}
 }
 
-// This function creates new stash from code generation results
+// This function creates new stash from code generation results. Called internally
 func CreateStash(results map[string]string, projectFiles []string, filesToDelete []string, logger logging.ILogger) string {
 	logger.Traceln("CreateStash: Starting")
 	defer logger.Traceln("CreateStash: Finished")
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger, true)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}

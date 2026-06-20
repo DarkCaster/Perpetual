@@ -1,5 +1,6 @@
 /*.env
 /.annotations.json
 /.embeddings.msgpack
+/.perpetual.lock
 /.message_log.txt*
 /.stash

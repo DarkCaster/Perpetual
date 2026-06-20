@@ -73,7 +73,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		outerCallLogger.DisableLevel(logging.InfoLevel)
 	}
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger, innerCall)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}

@@ -22,7 +22,7 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 	silentLogger.DisableLevel(logging.WarnLevel)
 	silentLogger.DisableLevel(logging.InfoLevel)
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(silentLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(silentLogger, true)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}

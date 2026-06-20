@@ -83,7 +83,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(stdErrLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(stdErrLogger, false)
 	if err != nil {
 		stdErrLogger.Panicln("Error finding project root directory:", err)
 	}

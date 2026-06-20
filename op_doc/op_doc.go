@@ -80,7 +80,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Find project root and perpetual directories
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger, false)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}

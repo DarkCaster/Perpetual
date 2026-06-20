@@ -71,7 +71,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		outerCallLogger.DisableLevel(logging.InfoLevel)
 	}
 
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(outerCallLogger, innerCall)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}
@@ -390,7 +390,7 @@ func generateEmbeddings(tag, content string, logger logging.ILogger) ([][]float3
 	silentLogger.DisableLevel(logging.WarnLevel)
 	silentLogger.DisableLevel(logging.InfoLevel)
 
-	_, perpetualDir, err := utils.FindProjectRoot(silentLogger)
+	_, perpetualDir, err := utils.FindProjectRoot(silentLogger, true)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
 	}
