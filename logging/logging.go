@@ -17,6 +17,10 @@ const (
 	TraceLevel  LogLevel = 0b100000
 )
 
+type LoggerPanic struct {
+	Message string
+}
+
 type ILogger interface {
 	Tracef(format string, args ...any)
 	Debugf(format string, args ...any)

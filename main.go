@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/logging"
@@ -60,6 +61,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if lp, ok := r.(logging.LoggerPanic); ok {
+				fmt.Fprint(os.Stderr, lp.Message)
+				os.Exit(-1)
+			}
+			fmt.Fprintf(os.Stderr, "panic: %v\n\n", r)
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	}()
 
 	switch strings.ToLower(operation) {
 	case op_init.OpName:

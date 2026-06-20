@@ -85,7 +85,7 @@ func (l *SimpleLogger) Panicf(format string, args ...any) {
 	} else {
 		l.ErrorLogger.Print(l.timer(), "[PNC] ", "Fatal error")
 	}
-	panic(msg)
+	panic(LoggerPanic{Message: msg})
 }
 
 func (l *SimpleLogger) Traceln(args ...any) {
@@ -148,7 +148,7 @@ func (l *SimpleLogger) Panicln(args ...any) {
 	} else {
 		l.ErrorLogger.Print(l.timer(), "[PNC] ", "Fatal error")
 	}
-	panic(msg)
+	panic(LoggerPanic{Message: msg})
 }
 
 func (l *SimpleLogger) EnableLevel(level LogLevel) {
