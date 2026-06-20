@@ -58,6 +58,7 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 
 - Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
+- Improved displaying panic failure messages: only show stack-trace when panic called directly, not from the logger.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
