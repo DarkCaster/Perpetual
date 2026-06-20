@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -37,6 +38,7 @@ type fileParams struct {
 	UsingFallbackEncoding bool
 }
 
+var filesParamsLock sync.Mutex
 var projectFilesParams = map[string]fileParams{}
 
 func detectUTFEncoding(data []byte) (utfEncoding, int) {
@@ -171,8 +173,11 @@ func LoadTextFile(filePath string) (string, string, error) {
 			return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", convErr)
 		}
 	}
+	//lock just in case, for possible future multi-threaded use
+	filesParamsLock.Lock()
 	//store file-params for use with writing same file
 	projectFilesParams[filePath] = params
+	filesParamsLock.Unlock()
 	return strings.ReplaceAll(text, "\r\n", "\n"), wrn, nil
 }
 
@@ -236,7 +241,10 @@ func convertToUTFEncoding(data []byte, encoding utfEncoding) ([]byte, error) {
 }
 
 func SaveTextFileAsUTF8(filePath string, text string) error {
+	//lock just in case, for possible future multi-threaded use
+	filesParamsLock.Lock()
 	delete(projectFilesParams, filePath)
+	filesParamsLock.Unlock()
 	_, err := SaveTextFile(filePath, text)
 	return err
 }
@@ -248,8 +256,12 @@ func SaveTextFile(filePath string, text string) (string, error) {
 	}
 	data := []byte(text)
 	wrn := ""
+	//lock just in case, for possible future multi-threaded use
+	filesParamsLock.Lock()
 	//get file parameters, try converting file to the encoding used when reading
-	if params, ok := projectFilesParams[filePath]; ok {
+	params, ok := projectFilesParams[filePath]
+	filesParamsLock.Unlock()
+	if ok {
 		if params.UsingFallbackEncoding {
 			encoding, err := GetEncodingFromEnv()
 			if err != nil {
