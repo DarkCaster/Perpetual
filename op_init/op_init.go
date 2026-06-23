@@ -82,7 +82,8 @@ func Run(version string, args []string, logger logging.ILogger) {
 	}
 
 	// Create config directory at globalConfigDir with all leading directories with default permissions
-	globalConfigDir, err := utils.FindConfigDir()
+	//NOTE: currently disabled, will be re-added to the separate onboarding operation later
+	/*globalConfigDir, err := utils.FindConfigDir()
 	if err != nil {
 		logger.Panicln("Error finding perpetual config directory:", err)
 	}
@@ -90,13 +91,14 @@ func Run(version string, args []string, logger logging.ILogger) {
 	err = os.MkdirAll(globalConfigDir, 0755)
 	if err != nil {
 		logger.Panicln("Error creating global config directory:", err)
-	}
+	}*/
 
-	const DotEnvFileName = ".env"
 	const DotEnvMaskName = "*.env"
 
 	// Save default global config file if missing
-	globalConfigText := "# This is a global .env file for Perpetual, values declared here have lower priority than values read from the .perpetual directory inside your project.\n# You can place other *.env files next to this one, they will be loaded in alphabetical order.\n"
+	//NOTE: currently disabled, will be re-added to the separate onboarding operation later
+	//const DotEnvFileName = ".env"
+	/*globalConfigText := "# This is a global .env file for Perpetual, values declared here have lower priority than values read from the .perpetual directory inside your project.\n# You can place other *.env files next to this one, they will be loaded in alphabetical order.\n"
 	globalConfigFile := filepath.Join(globalConfigDir, DotEnvFileName)
 	if _, err := os.Stat(globalConfigFile); os.IsNotExist(err) {
 		logger.Traceln("Creating default global config file")
@@ -104,7 +106,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 		if err != nil {
 			logger.Panicln("Error creating default global config file:", err)
 		}
-	}
+	}*/
 
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
