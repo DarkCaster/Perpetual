@@ -89,7 +89,7 @@ jobs:
 
     - name: Refresh example env-files
       if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
-      run: go build -trimpath -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go
+      run: go build -trimpath -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp init -l go -e
 
     - name: Preparing docs
       if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}

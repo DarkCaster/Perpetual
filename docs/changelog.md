@@ -26,7 +26,6 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 - Add `Skill.md`;
 - Unify and simplify command-line flags across different operations;
 - Add `op_onboard` (onboarding) support that can generate an initial default system-wide `.env` configuration, ready to use right after running the command;
-- Stop saving `.env.example` env-file examples into the `.perpetual` project-wide configuration directory.
 
 Adjust defaults to better suit my current use of the `implement` operation:
 
@@ -60,6 +59,7 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
 - Improved displaying panic failure messages: only show stack-trace when panic called directly, not from the logger.
 - Added lockfile inside `.perpetual` config directory to prevent running multiple instances at the same time for single project.
+- Disabled saving `.env.example` files into the `.perpetual` directory by-default for `init` operation. Added new `-e` flag to create the examples if needed.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
