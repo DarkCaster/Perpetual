@@ -22,7 +22,7 @@ func initFlags() *flag.FlagSet {
 
 func Run(version string, args []string, logger logging.ILogger) {
 	lang := ""
-	var help, verbose, trace, clean bool
+	var help, verbose, trace, clean, envExamples bool
 	// Parse flags for the "init" operation
 	initFlags := initFlags()
 	initFlags.BoolVar(&help, "h", false, "Show usage")
@@ -30,6 +30,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	initFlags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	initFlags.BoolVar(&clean, "c", false, "Clean obsolete files and directories")
 	initFlags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
+	initFlags.BoolVar(&envExamples, "e", false, "Create env-file examples inside .perpetual dir")
 	initFlags.Parse(args)
 
 	if verbose {
@@ -117,18 +118,20 @@ func Run(version string, args []string, logger logging.ILogger) {
 		logger.Panicln("Error creating .gitignore file:", err)
 	}
 
-	logger.Traceln("Creating env example files")
+	if envExamples {
+		logger.Traceln("Creating env example files")
 
-	filenames := []string{dotEnvExampleFileName, ollamaEnvExampleFileName, openAiEnvExampleFileName, anthropicEnvExampleFileName, genericEnvExampleFileName}
-	contents := []string{dotEnvExample, ollamaEnvExample, openAiEnvExample, anthropicEnvExample, genericEnvExample}
+		filenames := []string{dotEnvExampleFileName, ollamaEnvExampleFileName, openAiEnvExampleFileName, anthropicEnvExampleFileName, genericEnvExampleFileName}
+		contents := []string{dotEnvExample, ollamaEnvExample, openAiEnvExample, anthropicEnvExample, genericEnvExample}
 
-	for i, filename := range filenames {
-		content := contents[i]
-		if version != "" {
-			content = "# Example .env config, version: " + version + "\n\n" + content
-		}
-		if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
-			logger.Panicln("Error creating env example file:", err)
+		for i, filename := range filenames {
+			content := contents[i]
+			if version != "" {
+				content = "# Example .env config, version: " + version + "\n\n" + content
+			}
+			if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
+				logger.Panicln("Error creating env example file:", err)
+			}
 		}
 	}
 
