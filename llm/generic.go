@@ -564,7 +564,7 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	//we may not know exact error because of API difference on various providers, act as if we hit server overload
@@ -586,7 +586,7 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	}
@@ -746,7 +746,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) (string, QueryStatus, e
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	//we may not know exact error because of API difference on various providers, act as if we hit server overload
@@ -768,7 +768,7 @@ func (p *GenericLLMConnector) Query(messages ...Message) (string, QueryStatus, e
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	}

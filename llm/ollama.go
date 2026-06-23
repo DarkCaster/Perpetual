@@ -560,7 +560,7 @@ func (p *OllamaLLMConnector) CreateEmbeddings(mode EmbedMode, tag string, conten
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	case 500:
@@ -581,7 +581,7 @@ func (p *OllamaLLMConnector) CreateEmbeddings(mode EmbedMode, tag string, conten
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	}
@@ -777,7 +777,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	case 500:
@@ -798,7 +798,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	}

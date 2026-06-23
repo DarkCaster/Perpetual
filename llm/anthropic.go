@@ -321,10 +321,10 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 			p.RateLimitDelayS = 300
 		}
 		if responseStreamCollector.ErrorMessage != "" {
-			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+			err = fmt.Errorf("%d: %s (retry in %ds)", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage, p.RateLimitDelayS)
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	case 500:
@@ -347,10 +347,10 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 			p.RateLimitDelayS = 300
 		}
 		if responseStreamCollector.ErrorMessage != "" {
-			err = fmt.Errorf("%d: %s", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage)
+			err = fmt.Errorf("%d: %s (retry in %ds)", responseStreamCollector.StatusCode, responseStreamCollector.ErrorMessage, p.RateLimitDelayS)
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	case 998:

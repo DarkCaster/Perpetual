@@ -385,7 +385,7 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	case 500:
@@ -411,7 +411,7 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return [][]float32{}, QueryFailed, err
 	}
@@ -640,7 +640,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("ratelimit hit")
+			err = fmt.Errorf("ratelimit hit (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	case 500:
@@ -666,7 +666,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 			p.RateLimitDelayS = 300
 		}
 		if err == nil {
-			err = errors.New("server overload")
+			err = fmt.Errorf("server overload (retry in %ds)", p.RateLimitDelayS)
 		}
 		return "", QueryFailed, err
 	}
