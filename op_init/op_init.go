@@ -121,15 +121,8 @@ func Run(version string, args []string, logger logging.ILogger) {
 	if envExamples {
 		logger.Traceln("Creating env example files")
 
-		filenames := []string{DotEnvExampleFileName, OllamaEnvExampleFileName, OpenAiEnvExampleFileName, AnthropicEnvExampleFileName, GenericEnvExampleFileName}
-		contents := []string{DotEnvExample, OllamaEnvExample, OpenAiEnvExample, AnthropicEnvExample, GenericEnvExample}
-
-		for i, filename := range filenames {
-			content := contents[i]
-			if version != "" {
-				content = "# Example .env config, version: " + version + "\n\n" + content
-			}
-			if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, filename), content); err != nil {
+		for _, example := range GetEnvExampleCatalogWithVersion(version) {
+			if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, example.Filename), example.Content); err != nil {
 				logger.Panicln("Error creating env example file:", err)
 			}
 		}

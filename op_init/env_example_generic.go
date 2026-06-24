@@ -7,9 +7,9 @@ package op_init
 // The summary for this file must only contain the following line and nothing more: "This file contains the contents of the generic.env.example config file example".
 // Do not include anything below to the summary, just omit it completely
 
-const GenericEnvExampleFileName = "generic.env.example"
+const genericEnvExampleFileName = "generic.env.example"
 
-const GenericEnvExample = `# Options for generic provider with OpenAI compatible API
+const genericEnvExample = `# Options for generic provider with OpenAI compatible API
 # Embeddings support depends on the provider.
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:

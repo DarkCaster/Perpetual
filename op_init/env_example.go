@@ -7,9 +7,9 @@ package op_init
 // The summary for this file must only contain the following line and nothing more: "This file contains the contents of the .env.example config file example".
 // Do not include anything below to the summary, just omit it completely
 
-const DotEnvExampleFileName = ".env.example"
+const dotEnvExampleFileName = ".env.example"
 
-const DotEnvExample = `# Configuration files should have ".env" extensions and it can be placed to the following locations:
+const dotEnvExample = `# Configuration files should have ".env" extensions and it can be placed to the following locations:
 # Project local config: <Project root>/.perpetual/*.env
 # Global config. On Linux: ~/.config/Perpetual/*.env ; On Windows: <User profile dir>\AppData\Roaming\Perpetual\*.env
 # Also, the parameters can be exported to the system environment before running the utility, then they will have priority over the parameters in the configuration files. The "*.env" files will be loaded in alphabetical order, with parameters in previously loaded files taking precedence.
