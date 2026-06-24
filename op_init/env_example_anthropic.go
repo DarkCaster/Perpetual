@@ -85,11 +85,13 @@ ANTHROPIC_ON_FAIL_RETRIES="5"
 # ANTHROPIC_TEMPERATURE_OP_EXPLAIN_STAGE2="1" # temperature 1 needed for thinking model
 # ANTHROPIC_TEMPERATURE="0.5"
 
-# Extended thinking. Should work with newer models. 1024 is a minimum for claude 3.7 sonnet.
-# May be incompatible with some other parameters (temperature)
-# If set to 0 - explicitly disable extra thinking in api call,
-# if > 0 enable thinking block in api call and set budget_tokens,
-# If unset - do not alter api call and response in any way
+# Extended thinking. Should work with newer models. Model dependent parameter.
+# Support <number> for token thinking budget or <string> effort level budget for adaptive thinking models.
+# May be incompatible with some other parameters (temperature) or older/newer models.
+# If unset - do not alter api call in any way, use model-default, any other value will set corresponding parameters to the API call.
+# Numbers: 0 - explicitly remove thinking param from api call, >0 - set thinking param to "enabled" and use provided thinking tokens budget
+# Strings: valid values are "low", "medium", "high", "xhigh", "max" and others. Will activate "adaptive" thinking type woth provided budget.
+
 # ANTHROPIC_THINK_TOKENS_OP_ANNOTATE="0"
 # ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE1="0" # file list
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan
