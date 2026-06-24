@@ -34,15 +34,23 @@ var envExampleCatalog = []EnvExampleFile{
 }
 
 func GetEnvExampleCatalogWithVersion(version string) []EnvExampleFile {
-	return cloneEnvExampleCatalog(envExampleCatalog, version)
+	topString := ""
+	if version != "" {
+		topString = "# Example .env config, version: " + version
+	}
+	return cloneEnvExampleCatalog(envExampleCatalog, topString)
 }
 
-func cloneEnvExampleCatalog(source []EnvExampleFile, version string) []EnvExampleFile {
+func GetEnvCatalogWithTopString(topString string) []EnvExampleFile {
+	return cloneEnvExampleCatalog(envExampleCatalog, topString)
+}
+
+func cloneEnvExampleCatalog(source []EnvExampleFile, topString string) []EnvExampleFile {
 	result := make([]EnvExampleFile, len(source))
 	for i, example := range source {
 		result[i] = example
-		if version != "" {
-			result[i].Content = "# Example .env config, version: " + version + "\n\n" + example.Content
+		if topString != "" {
+			result[i].Content = topString + "\n\n" + example.Content
 		}
 	}
 	return result
