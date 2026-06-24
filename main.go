@@ -17,6 +17,7 @@ import (
 	"github.com/DarkCaster/Perpetual/op_implement"
 	"github.com/DarkCaster/Perpetual/op_init"
 	"github.com/DarkCaster/Perpetual/op_misc"
+	"github.com/DarkCaster/Perpetual/op_onboard"
 	"github.com/DarkCaster/Perpetual/op_report"
 	"github.com/DarkCaster/Perpetual/op_stash"
 	"github.com/DarkCaster/Perpetual/usage"
@@ -26,6 +27,7 @@ import (
 func getOperations() map[string]string {
 	return map[string]string{
 		op_init.OpName:      op_init.OpDesc,
+		op_onboard.OpName:   op_onboard.OpDesc,
 		op_annotate.OpName:  op_annotate.OpDesc,
 		op_embed.OpName:     op_embed.OpDesc,
 		op_implement.OpName: op_implement.OpDesc,
@@ -79,6 +81,8 @@ func main() {
 	switch strings.ToLower(operation) {
 	case op_init.OpName:
 		op_init.Run(Version, args, logger)
+	case op_onboard.OpName:
+		op_onboard.Run(Version, args, stdErrLogger)
 	case op_annotate.OpName:
 		op_annotate.Run(args, false, logger, stdErrLogger)
 	case op_embed.OpName:
