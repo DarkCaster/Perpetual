@@ -7,9 +7,9 @@ package op_init
 // The summary for this file must only contain the following line and nothing more: "This file contains the contents of the anthropic.env.example config file example".
 // Do not include anything below to the summary, just omit it completely
 
-const anthropicEnvExampleFileName = "anthropic.env.example"
+const AnthropicEnvExampleFileName = "anthropic.env.example"
 
-const anthropicEnvExample = `# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
+const AnthropicEnvExample = `# Options for Anthropic provider. Below are sane defaults for Anthropic provider (as of Jan 2025)
 # Anthropic provider has no embedding models support (as for Apr 2025)
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:

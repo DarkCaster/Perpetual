@@ -7,9 +7,9 @@ package op_init
 // The summary for this file must only contain the following line and nothing more: "This file contains the contents of the ollama.env.example config file example".
 // Do not include anything below to the summary, just omit it completely
 
-const ollamaEnvExampleFileName = "ollama.env.example"
+const OllamaEnvExampleFileName = "ollama.env.example"
 
-const ollamaEnvExample = `# Options for Ollama instance, local or public.
+const OllamaEnvExample = `# Options for Ollama instance, local or public.
 # When using a large enough model it can produce good results for some operations. See docs/ollama.md for more info
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:

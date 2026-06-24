@@ -121,8 +121,8 @@ func Run(version string, args []string, logger logging.ILogger) {
 	if envExamples {
 		logger.Traceln("Creating env example files")
 
-		filenames := []string{dotEnvExampleFileName, ollamaEnvExampleFileName, openAiEnvExampleFileName, anthropicEnvExampleFileName, genericEnvExampleFileName}
-		contents := []string{dotEnvExample, ollamaEnvExample, openAiEnvExample, anthropicEnvExample, genericEnvExample}
+		filenames := []string{DotEnvExampleFileName, OllamaEnvExampleFileName, OpenAiEnvExampleFileName, AnthropicEnvExampleFileName, GenericEnvExampleFileName}
+		contents := []string{DotEnvExample, OllamaEnvExample, OpenAiEnvExample, AnthropicEnvExample, GenericEnvExample}
 
 		for i, filename := range filenames {
 			content := contents[i]
