@@ -28,16 +28,16 @@ ANTHROPIC_API_KEY="<your api key goes here>"
 ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 
 # Model selection for different operations and stages
-ANTHROPIC_MODEL_OP_ANNOTATE="claude-3-haiku-20240307"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1="claude-sonnet-4-5-20250929"
-# ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2="claude-sonnet-4-5-20250929"
-ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
+ANTHROPIC_MODEL_OP_ANNOTATE="claude-haiku-4-5-20251001"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-4-6"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-opus-4-8"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-4-6"
+ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-opus-4-8"
+# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-sonnet-4-6"
+ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-opus-4-8"
+# ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1="claude-sonnet-4-6"
+ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2="claude-opus-4-8"
+ANTHROPIC_MODEL="claude-sonnet-4-6"
 
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
@@ -51,13 +51,13 @@ ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
 # Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="1024"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="4096" # work plan also should not be too big (1024 think tokens + 3072 response tokens)
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="2048" # file-list for processing, long list is probably an error
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="16384" # generated code output limit should be as big
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="16384" # work plan also should not be too big (includes think tokens)
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="3072" # file-list for processing, long list is probably an error (includes think tokens)
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="60000" # generated code output limit should be big
 ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
-ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="32768" # generated document output limit should be big
+ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE2="60000" # generated document output limit should be big
 ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
-ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="32768" # generated answer output limit
+ANTHROPIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="60000" # generated answer output limit
 ANTHROPIC_MAX_TOKENS="4096" # default limit
 
 # Options to control retries and partial output due to token limit
@@ -92,7 +92,7 @@ ANTHROPIC_ON_FAIL_RETRIES="5"
 # If unset - do not alter api call and response in any way
 # ANTHROPIC_THINK_TOKENS_OP_ANNOTATE="0"
 # ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE1="0" # file list
-ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="1024" # work plan
+ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file list
 # ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE4="0" # code implementation
 # ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE1="0" # file list
