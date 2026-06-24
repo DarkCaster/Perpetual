@@ -81,7 +81,6 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 		switch baseProvider {
 		case "ANTHROPIC":
 			if operation == "EMBED" {
-				configErrors = append(configErrors, "EMBED: anthropic provider does not support embeddings")
 				continue
 			}
 			missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
