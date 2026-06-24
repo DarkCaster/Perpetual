@@ -67,7 +67,7 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 	for _, operation := range validationOperations {
 		provider, ok := getOperationProvider(env, operation)
 		if !ok {
-			missing = append(missing, fmt.Sprintf("%s: LLM_PROVIDER_OP_%s or LLM_PROVIDER", operation, operation))
+			missing = appendMissingRequired(env, missing, "LLM_PROVIDER_OP_"+operation, "LLM_PROVIDER")
 			continue
 		}
 
@@ -84,38 +84,38 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 				configErrors = append(configErrors, "EMBED: anthropic provider does not support embeddings")
 				continue
 			}
-			missing = appendMissingRequired(env, missing, operation, prefix+"_AUTH", prefix+"_API_KEY")
-			missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
-			missing = appendMissingRequired(env, missing, operation, prefix+"_MAX_TOKENS_OP_"+operation, prefix+"_MAX_TOKENS")
+			missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
+			missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
+			missing = appendMissingRequired(env, missing, prefix+"_MAX_TOKENS_OP_"+operation, prefix+"_MAX_TOKENS")
 			model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 
 		case "OPENAI":
-			missing = appendMissingRequired(env, missing, operation, prefix+"_AUTH", prefix+"_API_KEY")
+			missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_EMBED")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
 			} else {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 			}
 
 		case "OLLAMA":
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_EMBED")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
 			} else {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MAX_TOKENS_OP_"+operation, prefix+"_MAX_TOKENS")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
+				missing = appendMissingRequired(env, missing, prefix+"_MAX_TOKENS_OP_"+operation, prefix+"_MAX_TOKENS")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 			}
 
 		case "GENERIC":
-			missing = appendMissingRequired(env, missing, operation, prefix+"_BASE_URL")
+			missing = appendMissingRequired(env, missing, prefix+"_BASE_URL")
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_EMBED")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
 			} else {
-				missing = appendMissingRequired(env, missing, operation, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
+				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 			}
 
@@ -159,13 +159,56 @@ func parseProvider(provider string) (string, string, bool) {
 	}
 }
 
-func appendMissingRequired(env *ActiveEnvironment, missing []string, operation string, names ...string) []string {
+func appendMissingRequired(env *ActiveEnvironment, missing []string, names ...string) []string {
 	for _, name := range names {
 		if _, ok := getNonEmptyEnvValue(env, name); ok {
 			return missing
 		}
 	}
-	return append(missing, fmt.Sprintf("%s: %s", operation, strings.Join(names, " or ")))
+
+	names = normalizeMissingRequirementNames(names...)
+	if len(names) == 0 {
+		return missing
+	}
+
+	return append(missing, strings.Join(names, " or "))
+}
+
+func normalizeMissingRequirementNames(names ...string) []string {
+	result := []string{}
+	seen := map[string]bool{}
+
+	for _, name := range names {
+		name = strings.TrimSpace(name)
+		if name == "" || seen[name] {
+			continue
+		}
+		seen[name] = true
+		result = append(result, name)
+	}
+
+	if len(result) < 2 {
+		return result
+	}
+
+	last := result[len(result)-1]
+	hasOperationSpecificAlternative := false
+	for _, name := range result[:len(result)-1] {
+		if isOperationSpecificEnvName(name) {
+			hasOperationSpecificAlternative = true
+			break
+		}
+	}
+
+	if hasOperationSpecificAlternative && !isOperationSpecificEnvName(last) {
+		return []string{last}
+	}
+
+	return result
+}
+
+func isOperationSpecificEnvName(name string) bool {
+	return strings.Contains(name, "_OP_")
 }
 
 func getFirstEnvValue(env *ActiveEnvironment, names ...string) string {
