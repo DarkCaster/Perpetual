@@ -24,6 +24,9 @@ const dotEnvExample = `# Configuration files should have ".env" extensions and i
 # "ollama": which parameters started with OLLAMA_* prefix
 # "generic": Generic OpenAI compatible provider, which parameters started with GENERIC_* prefix
 
+# You can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
+# For example "ollama1" will use options like OLLAMA1_BASE_URL=... or OLLAMA1_MODEL=...
+
 # When dealing with files that cannot be read as proper UTF[8/16/32] encoded file, try using this fallback encoding as last resort.
 # You can use encoding names supported by "golang.org/x/text/encoding/ianaindex" package
 # FALLBACK_TEXT_ENCODING="windows-1252"
@@ -44,18 +47,4 @@ const dotEnvExample = `# Configuration files should have ".env" extensions and i
 # Default, fallback provider selection, will be used if parameters above are not set
 
 LLM_PROVIDER="anthropic"
-# LLM_PROVIDER="openai"
-# LLM_PROVIDER="ollama"
-# LLM_PROVIDER="generic"
-
-# NOTE: you can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
-# examples:
-
-# LLM_PROVIDER="ollama1" # Will use parameters started with prefix OLLAMA1_*, like:
-# OLLAMA1_BASE_URL=...
-# OLLAMA1_MODEL=...
-
-# LLM_PROVIDER="generic1"
-# GENERIC1_BASE_URL=...
-# GENERIC1_MODEL=...
 `
