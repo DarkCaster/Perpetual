@@ -94,14 +94,14 @@ ANTHROPIC_ON_FAIL_RETRIES="5"
 
 # ANTHROPIC_THINK_TOKENS_OP_ANNOTATE="0"
 # ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE1="0" # file list
-ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="2048" # work plan
+ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="medium" # work plan
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file list
-# ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE4="0" # code implementation
+ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE4="low" # code implementation
 # ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE1="0" # file list
-ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE2="2048" # document process
+ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE2="medium" # document process
 # ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE1="0" # file list
-ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2="2048" # answer generation
-ANTHROPIC_THINK_TOKENS="0" # default value 0 will disable thinking
+ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2="medium" # answer generation
+# ANTHROPIC_THINK_TOKENS="0" # value 0 will ensure thinking parameter is explicitly removed from API call
 
 # Advanced options that currently supported with Anthropic. You mostly not need to use them
 # ANTHROPIC_TOP_K_OP_ANNOTATE="40"
