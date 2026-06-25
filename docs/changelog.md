@@ -25,7 +25,6 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Add `Skill.md`;
 - Unify and simplify command-line flags across different operations;
-- Add `op_onboard` (onboarding) support that can generate an initial default system-wide `.env` configuration, ready to use right after running the command;
 
 Adjust defaults to better suit my current use of the `implement` operation:
 
@@ -55,11 +54,14 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 
 ### Improvements
 
+- Added new `onboard` operatiomn that can validate or (re)create system-wide `.env` configuration with one command for supported provider.
+- Disabled saving `.env.example` files into the `.perpetual` directory by-default for `init` operation. Added new `-e` flag to create the examples if needed.
 - Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
+- Updated `.env.example` for the Anthropic provider for new models.
+- Added adaptive thinking support for Anthropic provider with setting budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
 - Improved displaying panic failure messages: only show stack-trace when panic called directly, not from the logger.
 - Added lockfile inside `.perpetual` config directory to prevent running multiple instances at the same time for single project.
-- Disabled saving `.env.example` files into the `.perpetual` directory by-default for `init` operation. Added new `-e` flag to create the examples if needed.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
