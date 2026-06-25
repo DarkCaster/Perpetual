@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -127,14 +128,22 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("max tokens", maxTokens)
 	}
 
-	thinkTokens, err := utils.GetEnvInt(fmt.Sprintf("%s_THINK_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_TOKENS", prefix))
-	if err == nil {
-		if thinkTokens < 1 {
-			fieldsToRemove = append(fieldsToRemove, "thinking")
-			debug.Add("think", "disabled")
+	if thinkValue, err := utils.GetEnvString(fmt.Sprintf("%s_THINK_TOKENS_OP_%s", prefix, operation), fmt.Sprintf("%s_THINK_TOKENS", prefix)); err == nil {
+		if thinkTokens, convErr := strconv.Atoi(strings.TrimSpace(thinkValue)); convErr == nil {
+			// numeric value: use explicit thinking budget
+			if thinkTokens < 1 {
+				fieldsToRemove = append(fieldsToRemove, "thinking")
+				debug.Add("think", "disabled")
+			} else {
+				fieldsToInject["thinking"] = map[string]any{"budget_tokens": thinkTokens, "type": "enabled"}
+				debug.Add("think tokens", thinkTokens)
+			}
 		} else {
-			fieldsToInject["thinking"] = map[string]any{"budget_tokens": thinkTokens, "type": "enabled"}
-			debug.Add("think tokens", thinkTokens)
+			// string value: use adaptive thinking with effort-based output config
+			fieldsToInject["thinking"] = map[string]any{"type": "adaptive"}
+			fieldsToInject["output_config"] = map[string]any{"effort": thinkValue}
+			debug.Add("think", "adaptive")
+			debug.Add("effort", thinkValue)
 		}
 	}
 
