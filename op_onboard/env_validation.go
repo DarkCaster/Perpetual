@@ -30,7 +30,7 @@ var validationOperations = []string{
 var providerNameRx = regexp.MustCompile(`^([A-Z]+)([0-9]*)$`)
 
 func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) bool {
-	missing, configErrors, selected := validateEnvironment(env)
+	missing, configErrors, selected, notices := validateEnvironment(env)
 
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Validation:")
@@ -53,6 +53,13 @@ func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) bool {
 		return false
 	}
 
+	if len(notices) > 0 {
+		fmt.Fprintln(w, "Notices:")
+		for _, item := range notices {
+			fmt.Fprintf(w, "- %s\n", item)
+		}
+	}
+
 	fmt.Fprintln(w, "Selected providers and models:")
 	for _, item := range selected {
 		fmt.Fprintf(w, "%s: %s -> %s\n", item.Operation, strings.ToLower(item.Provider), item.Model)
@@ -61,14 +68,20 @@ func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) bool {
 	return true
 }
 
-func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operationValidation) {
+func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operationValidation, []string) {
 	missing := []string{}
 	configErrors := []string{}
 	selected := []operationValidation{}
+	notices := []string{}
 
 	for _, operation := range validationOperations {
 		provider, ok := getOperationProvider(env, operation)
 		if !ok {
+			if operation == "EMBED" {
+				// Embeddings are optional, do not fail when provider is not configured
+				notices = append(notices, "EMBED: embeddings are not configured, semantic search will be disabled")
+				continue
+			}
 			missing = appendMissingRequired(env, missing, "LLM_PROVIDER_OP_"+operation, "LLM_PROVIDER")
 			continue
 		}
@@ -83,6 +96,8 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 		switch baseProvider {
 		case "ANTHROPIC":
 			if operation == "EMBED" {
+				// Anthropic has no embedding support
+				notices = append(notices, "EMBED: anthropic provider does not support embeddings, semantic search will be disabled")
 				continue
 			}
 			missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
@@ -91,19 +106,28 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 			model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 
 		case "OPENAI":
-			missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
+				if model == "" {
+					// Embeddings are optional, do not fail when embedding model is not configured
+					notices = append(notices, "EMBED: embedding model is not configured, semantic search will be disabled")
+					continue
+				}
+				missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
 			} else {
+				missing = appendMissingRequired(env, missing, prefix+"_AUTH", prefix+"_API_KEY")
 				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 			}
 
 		case "OLLAMA":
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
+				if model == "" {
+					// Embeddings are optional, do not fail when embedding model is not configured
+					notices = append(notices, "EMBED: embedding model is not configured, semantic search will be disabled")
+					continue
+				}
 			} else {
 				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 				missing = appendMissingRequired(env, missing, prefix+"_MAX_TOKENS_OP_"+operation, prefix+"_MAX_TOKENS")
@@ -111,11 +135,16 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 			}
 
 		case "GENERIC":
-			missing = appendMissingRequired(env, missing, prefix+"_BASE_URL")
 			if operation == "EMBED" {
-				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_EMBED")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_EMBED")
+				if model == "" {
+					// Embeddings are optional, do not fail when embedding model is not configured
+					notices = append(notices, "EMBED: embedding model is not configured, semantic search will be disabled")
+					continue
+				}
+				missing = appendMissingRequired(env, missing, prefix+"_BASE_URL")
 			} else {
+				missing = appendMissingRequired(env, missing, prefix+"_BASE_URL")
 				missing = appendMissingRequired(env, missing, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 				model = getFirstEnvValue(env, prefix+"_MODEL_OP_"+operation, prefix+"_MODEL")
 			}
@@ -135,7 +164,7 @@ func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operatio
 	missing = uniqueSortedStrings(missing)
 	sort.Strings(configErrors)
 
-	return missing, configErrors, selected
+	return missing, configErrors, selected, notices
 }
 
 func getOperationProvider(env *ActiveEnvironment, operation string) (string, bool) {
