@@ -54,14 +54,14 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 
 ### Improvements
 
-- Added new `onboard` operatiomn that can validate or (re)create system-wide `.env` configuration with one command for supported provider.
-- Disabled saving `.env.example` files into the `.perpetual` directory by-default for `init` operation. Added new `-e` flag to create the examples if needed.
+- Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
+- Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-e` flag to create the examples if needed.
 - Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
 - Updated `.env.example` for the Anthropic provider for new models.
-- Added adaptive thinking support for Anthropic provider with setting budget.
+- Added adaptive thinking support for the Anthropic provider with a settable budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
-- Improved displaying panic failure messages: only show stack-trace when panic called directly, not from the logger.
-- Added lockfile inside `.perpetual` config directory to prevent running multiple instances at the same time for single project.
+- Improved displaying of panic failure messages: only show the stack-trace when panic is called directly, not from the logger.
+- Added a lockfile inside the `.perpetual` config directory to prevent running multiple instances at the same time for a single project.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
