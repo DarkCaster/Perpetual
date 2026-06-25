@@ -68,5 +68,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	}
 
 	PrintActiveEnvironment(os.Stdout, env)
-	ValidateEnvironment(os.Stdout, env)
+	if !ValidateEnvironment(os.Stdout, env) {
+		logger.Panicln("Environment configuration validation failed")
+	}
 }

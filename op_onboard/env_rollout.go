@@ -110,11 +110,15 @@ func removeCurrentConfigFiles(configDir string, logger logging.ILogger) error {
 		return err
 	}
 
+	warned := false
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
-
+		if !warned {
+			logger.Warnln("Removing current global env configuration files to create new configuration")
+			warned = true
+		}
 		path := filepathJoin(configDir, entry.Name())
 		logger.Debugln("Removing old global config file:", path)
 		if err = os.Remove(path); err != nil && !os.IsNotExist(err) {

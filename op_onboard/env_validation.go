@@ -29,7 +29,7 @@ var validationOperations = []string{
 
 var providerNameRx = regexp.MustCompile(`^([A-Z]+)([0-9]*)$`)
 
-func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) {
+func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) bool {
 	missing, configErrors, selected := validateEnvironment(env)
 
 	fmt.Fprintln(w)
@@ -50,13 +50,15 @@ func ValidateEnvironment(w io.Writer, env *ActiveEnvironment) {
 	}
 
 	if len(missing) > 0 || len(configErrors) > 0 {
-		return
+		return false
 	}
 
 	fmt.Fprintln(w, "Selected providers and models:")
 	for _, item := range selected {
 		fmt.Fprintf(w, "%s: %s -> %s\n", item.Operation, strings.ToLower(item.Provider), item.Model)
 	}
+
+	return true
 }
 
 func validateEnvironment(env *ActiveEnvironment) ([]string, []string, []operationValidation) {
