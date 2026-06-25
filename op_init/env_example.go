@@ -24,8 +24,9 @@ const dotEnvExample = `# Configuration files should have ".env" extensions and i
 # "ollama": which parameters started with OLLAMA_* prefix
 # "generic": Generic OpenAI compatible provider, which parameters started with GENERIC_* prefix
 
-# You can also setup multiple profiles for supported LLM providers using following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
-# For example "ollama1" will use options like OLLAMA1_BASE_URL=... or OLLAMA1_MODEL=...
+# You can also setup multiple profiles for supported LLM providers by adding number to profile name
+# Env vars will use following naming scheme: <PROVIDER><PROFILE NUMBER>_<OPTION>
+# For example profile named "ollama1" will use env values like OLLAMA1_BASE_URL=... or OLLAMA1_MODEL=...
 
 # When dealing with files that cannot be read as proper UTF[8/16/32] encoded file, try using this fallback encoding as last resort.
 # You can use encoding names supported by "golang.org/x/text/encoding/ianaindex" package
