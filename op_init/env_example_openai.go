@@ -9,7 +9,7 @@ package op_init
 
 const openAiEnvExampleFileName = "openai.env.example"
 
-const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jan 2025)
+const openAiEnvExample = `# Options for OpenAI provider. Below are sane defaults for OpenAI provider (as of Jun 2026)
 
 # Note: this config should only be used with original OpenAI provider.
 # It use some API fixes depending on model name and other parameters.
