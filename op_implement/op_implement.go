@@ -23,12 +23,11 @@ const OpDesc = "Implement code accodring instructions marked with ###IMPLEMENT##
 
 func implementFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
-
 	return flags
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var forceUpload, help, noAnnotate, noIncrMode, planning, reasonings, taskMode, verbose, trace, includeTests, notEnforceTargetFiles bool
+	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, simpleImplement, plannerImplement, notEnforceTargetFiles bool
 	var descFile, taskFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
@@ -37,17 +36,17 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
-	flags.StringVar(&taskFile, "i", "", "Implement the task directly from instructions read from file (plain text or markdown). This flag includes the -t flag.")
+	flags.StringVar(&taskFile, "t", "", "Implement code based on a task read from a text file (plain text or Markdown). Use '-' to read task from stdin. Cannot be used with '-is' or '-ip' flags")
+	flags.BoolVar(&simpleImplement, "is", false, "Generate code marked with ###IMPLEMENT### comments in the source code, only in these files, without planning. Suitable only for minor changes. Cannot be used with '-t' flag")
+	flags.BoolVar(&plannerImplement, "ip", false, "Generate code marked with ###IMPLEMENT### comments in the source code, with extra planning. Can affect other files. Cannot be used with '-t' flag")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&noIncrMode, "ni", false, "No incremental mode: disable using incremental 'search-and-replace' mode when generating file changes")
-	flags.BoolVar(&planning, "p", false, "Enable planning, needed for bigger modifications that may create new files, not needed on single file modifications. Disabled by default to save tokens.")
-	flags.BoolVar(&reasonings, "pr", false, "Enables extended planning with additional reasoning. May produce improved results for complex or abstractly described tasks, but can also lead to flawed reasoning and worsen the final outcome. This flag includes the -p flag.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
-	flags.BoolVar(&taskMode, "t", false, "Implement the task directly from instructions read from stdin (or file if -i flag is specified). This flag includes the -p flag.")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
+	//TODO: remove
 	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -77,21 +76,23 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
 	}
 
-	// Enable task mode if task file provided
-	if taskFile != "" {
-		taskMode = true
+	// check for conflict between task or `IMPLEMENT` modes, and set planning modes
+	planningMode := -1
+	if taskFile == "" && simpleImplement && !plannerImplement {
+		logger.Infoln("Using direct-implement mode without planning")
+		planningMode = 0
 	}
-
-	// Set planning mode
-	planningMode := 0
-	if planning {
-		planningMode = 1
+	if taskFile == "" && !simpleImplement && plannerImplement {
+		logger.Infoln("Using direct-implement mode with extra planning")
+		planningMode = 2 //NOTE: planningMode = 1 is outdated, will be removed
 	}
-	if reasonings {
+	if taskFile != "" && !simpleImplement && !plannerImplement {
+		logger.Infoln("Using task-mode")
 		planningMode = 2
 	}
-	if taskMode && planningMode < 1 {
-		planningMode = 1
+
+	if planningMode == -1 {
+		usage.PrintOperationUsage("You must provide exactly one of the following flags: '-t', '-is' or '-ip'", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
@@ -175,17 +176,8 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Read input from file or stdin
 	var task string
-	if taskMode {
-		if taskFile != "" {
-			data, wrn, err := utils.LoadTextFile(taskFile)
-			if err != nil {
-				logger.Panicln("Error reading task from input file:", err)
-			}
-			if wrn != "" {
-				logger.Warnf("%s: %s", taskFile, wrn)
-			}
-			task = data
-		} else {
+	if taskFile != "" {
+		if taskFile == "-" {
 			logger.Infoln("Reading task from stdin")
 			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
@@ -195,6 +187,16 @@ func Run(args []string, logger logging.ILogger) {
 				logger.Warnf("stdin: %s", wrn)
 			}
 			task = string(data)
+		} else {
+			logger.Infoln("Reading task from file")
+			data, wrn, err := utils.LoadTextFile(taskFile)
+			if err != nil {
+				logger.Panicln("Error reading task from input file:", err)
+			}
+			if wrn != "" {
+				logger.Warnf("%s: %s", taskFile, wrn)
+			}
+			task = data
 		}
 		// Trim excess line breaks at both sides of task, and stop on empty input
 		task = strings.Trim(task, "\n")
