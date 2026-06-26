@@ -90,11 +90,12 @@ func NewOllamaLLMConnectorFromEnv(
 	authType := Bearer
 	if curAuthType, err := utils.GetEnvUpperString(fmt.Sprintf("%s_AUTH_TYPE", prefix)); err == nil {
 		debug.Add("auth type", curAuthType)
-		if curAuthType == "BASIC" {
+		switch curAuthType {
+		case "BASIC":
 			authType = Basic
-		} else if curAuthType == "BEARER" {
+		case "BEARER":
 			authType = Bearer
-		} else {
+		default:
 			return nil, fmt.Errorf("invalid auth type provided for %s profile", prefix)
 		}
 	}
