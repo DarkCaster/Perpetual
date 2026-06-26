@@ -43,10 +43,8 @@ func GetImplementConfigTemplate() map[string]any {
 	result[K_ImplementTaskStage2ReasoningsPrompt] = templateString
 	result[K_ImplementTaskStage2ReasoningsPromptFinal] = templateString
 	// stage 3
+	result[K_ImplementStage3ExtraFilesPrompt] = templateString
 	result[K_ImplementStage3PlanningPrompt] = templateString
-	result[K_ImplementTaskStage3PlanningPrompt] = templateString
-	result[K_ImplementTaskStage3ExtraFilesPrompt] = templateString
-	result[K_ImplementStage3PlanningLitePrompt] = templateString
 	// stage 4
 	result[K_ImplementStage4ChangesDonePrompt] = templateString
 	result[K_ImplementStage4ChangesDoneResponse] = templateString

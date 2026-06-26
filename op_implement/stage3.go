@@ -17,7 +17,7 @@ func Stage3(projectRootDir string,
 	prCfg config.Config,
 	opCfg config.Config,
 	filesToMdLangMappings utils.TextMatcher[string],
-	planningMode int,
+	planningMode bool,
 	allFileNames []string,
 	projectFilesWhitelist []*regexp.Regexp,
 	projectFilesBlacklist []*regexp.Regexp,
@@ -52,47 +52,18 @@ func Stage3(projectRootDir string,
 	var otherFilesToModify []string
 	var filesToDelete []string
 
-	if !notEnforceTargetFiles || planningMode == 0 {
+	if !notEnforceTargetFiles || !planningMode {
 		targetFilesToModify = append(targetFilesToModify, targetFiles...)
 		logger.Debugln("Target files added to modify list")
 	}
 
-	// When planning disabled, just copy target files into results without real LLM interaction in order to save tokens
-	if planningMode == 0 {
-		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
-	}
-
-	// When using planning without reasoning, create request that will include target files content
-	if planningMode == 1 {
-		var request llm.Message
-		if task == "" {
-			request = llm.ComposeMessageWithSourceFiles(
-				projectRootDir,
-				opCfg.String(config.K_ImplementStage3PlanningPrompt),
-				targetFiles,
-				prCfg.Tags(config.K_ProjectFilenameTags),
-				logger)
-		} else {
-			request = llm.AddPlainTextFragment(
-				llm.AddPlainTextFragment(
-					llm.NewMessage(llm.UserRequest),
-					opCfg.String(config.K_ImplementTaskStage3PlanningPrompt)),
-				task)
-		}
-		messages = append(messages, request)
-		msgIndexToAddExtraFiles = len(messages) - 1
-		logger.Debugln("Files-to-change request message created (full)")
-	}
-
-	// When using planning WITH reasoning, create request that will only ask to create list of files to be changed
-	if planningMode == 2 {
-		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningLitePrompt))
-		messages = append(messages, request)
-		logger.Debugln("Files-to-change request message created (simplified)")
-	}
-
 	// Send request
-	if planningMode > 0 {
+	if planningMode {
+		// Create request that will ask to create list of files to be changed
+		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningPrompt))
+		messages = append(messages, request)
+		logger.Debugln("Files-to-change request message created")
+
 		logger.Infoln("Running stage3: generating list of files for processing")
 		debugString := connector.GetDebugString()
 		logger.Notifyln(debugString)
@@ -221,7 +192,7 @@ func Stage3(projectRootDir string,
 				extraTaskPromptAdded = true
 				messages[msgIndexToAddExtraFiles] = llm.AddPlainTextFragment(
 					messages[msgIndexToAddExtraFiles],
-					opCfg.String(config.K_ImplementTaskStage3ExtraFilesPrompt))
+					opCfg.String(config.K_ImplementStage3ExtraFilesPrompt))
 			}
 
 			messages[msgIndexToAddExtraFiles] = llm.AppendSourceFileToMessage(
@@ -353,6 +324,8 @@ func Stage3(projectRootDir string,
 		// Add response to the message history
 		messages = append(messages, response)
 		logger.Debugln("File-list response message created")
+	} else {
+		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
 	}
 
 	// apply filtering to the files requested by LLM that was not already validated on previous stages

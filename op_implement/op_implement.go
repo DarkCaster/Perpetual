@@ -377,19 +377,6 @@ func Run(args []string, logger logging.ILogger) {
 		stage2MainPromptBody = ""
 	}
 
-	// basic planning mode - not generating workplan, but LLM can modify other files and create new
-	if planningMode == 1 {
-		logger.Infoln("Running stage2: using basic planning, not generating work plan")
-		// this will produce messages only with related file-list
-		stage2TargetFilesPrompts = []string{}
-		stage2TargetFilesNames = []any{}
-		stage2TargetFilesResponses = []string{}
-		// make main prompt empty to skip workplan generation
-		stage2MainPrompt = ""
-		stage2MainPromptFinal = ""
-		stage2MainPromptBody = ""
-	}
-
 	// extended planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
 	if planningMode == 2 {
 		logger.Infoln("Running stage2: using extended planning, generating work plan")
@@ -439,7 +426,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectConfig,
 		implementConfig,
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		planningMode,
+		planningMode > 0,
 		allFileNames,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
 		projectFilesBlacklist,

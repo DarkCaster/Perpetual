@@ -59,15 +59,11 @@ const K_ImplementStage2ReasoningsPromptFinal = "stage2_reasonings_prompt_final"
 const K_ImplementTaskStage2ReasoningsPrompt = "stage2_task_reasonings_prompt"
 const K_ImplementTaskStage2ReasoningsPromptFinal = "stage2_task_reasonings_prompt_final"
 
-// Implement stage 3, prompts to generate list of files that will be changed, with attaching target files. Used when extra reasonings disabled
-const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"
-const K_ImplementTaskStage3PlanningPrompt = "stage3_task_planning_prompt"
-
 // Implement stage 3, prompt to generate list of files that will be changed, continuation of stage 2 with reasonings - not attaching target files
-const K_ImplementStage3PlanningLitePrompt = "stage3_planning_lite_prompt"
+const K_ImplementStage3PlanningPrompt = "stage3_planning_prompt"
 
 // Extra prompt when adding unexpected source file to the prompts on late stage 3
-const K_ImplementTaskStage3ExtraFilesPrompt = "stage3_task_extra_files_prompt"
+const K_ImplementStage3ExtraFilesPrompt = "stage3_extra_files_prompt"
 
 // Implement stage 4
 const K_ImplementStage4ChangesDonePrompt = "stage4_changes_done_prompt"
