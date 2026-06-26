@@ -77,21 +77,17 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// check for conflict between task or `IMPLEMENT` modes, and set planning modes
-	planningMode := -1
+	planningMode := false
 	if taskFile == "" && simpleImplement && !plannerImplement {
-		logger.Infoln("Using direct-implement mode without planning")
-		planningMode = 0
-	}
-	if taskFile == "" && !simpleImplement && plannerImplement {
-		logger.Infoln("Using direct-implement mode with extra planning")
-		planningMode = 2 //NOTE: planningMode = 1 is outdated, will be removed
-	}
-	if taskFile != "" && !simpleImplement && !plannerImplement {
-		logger.Infoln("Using task-mode")
-		planningMode = 2
-	}
-
-	if planningMode == -1 {
+		logger.Infoln("Running in direct-implement mode without planning")
+		planningMode = false
+	} else if taskFile == "" && !simpleImplement && plannerImplement {
+		logger.Infoln("Running in direct-implement mode with extra planning")
+		planningMode = true
+	} else if taskFile != "" && !simpleImplement && !plannerImplement {
+		logger.Infoln("Running in task-implement mode")
+		planningMode = true
+	} else {
 		usage.PrintOperationUsage("You must provide exactly one of the following flags: '-t', '-is' or '-ip'", flags)
 	}
 
@@ -364,22 +360,9 @@ func Run(args []string, logger logging.ILogger) {
 	var stage2MainPromptFinal string
 	var stage2MainPromptBody any
 
-	// planning entirely disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
-	if planningMode == 0 {
-		logger.Infoln("Running stage2: planning disabled, not generating work plan")
-		// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
-		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
-		stage2TargetFilesNames = []any{targetFiles}
-		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
-		// make main prompt empty to skip workplan generation
-		stage2MainPrompt = ""
-		stage2MainPromptFinal = ""
-		stage2MainPromptBody = ""
-	}
-
-	// extended planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
-	if planningMode == 2 {
-		logger.Infoln("Running stage2: using extended planning, generating work plan")
+	if planningMode {
+		// planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
+		logger.Infoln("Running stage2: using planning, generating work plan")
 		// this will produce messages with related file-list
 		stage2TargetFilesPrompts = []string{}
 		stage2TargetFilesNames = []any{}
@@ -394,6 +377,17 @@ func Run(args []string, logger logging.ILogger) {
 			stage2MainPromptFinal = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPromptFinal)
 			stage2MainPromptBody = task
 		}
+	} else {
+		// planning disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
+		logger.Infoln("Running stage2: planning disabled, not generating work plan")
+		// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
+		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
+		stage2TargetFilesNames = []any{targetFiles}
+		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
+		// make main prompt empty to skip workplan generation
+		stage2MainPrompt = ""
+		stage2MainPromptFinal = ""
+		stage2MainPromptBody = ""
 	}
 
 	// Run stage 2 - create file review, create reasonings
@@ -426,7 +420,7 @@ func Run(args []string, logger logging.ILogger) {
 		projectConfig,
 		implementConfig,
 		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		planningMode > 0,
+		planningMode,
 		allFileNames,
 		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
 		projectFilesBlacklist,
