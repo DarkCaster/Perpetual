@@ -27,7 +27,7 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, simpleImplement, plannerImplement, notEnforceTargetFiles bool
+	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, simpleImplement, plannerImplement bool
 	var descFile, taskFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
@@ -46,8 +46,6 @@ func Run(args []string, logger logging.ILogger) {
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
-	//TODO: remove
-	flags.BoolVar(&notEnforceTargetFiles, "z", false, "When using -p or -pr flags, do not enforce initial sources to file-lists produced by planning")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -428,7 +426,6 @@ func Run(args []string, logger logging.ILogger) {
 		forceUpload,
 		filesToReview,
 		targetFiles,
-		notEnforceTargetFiles,
 		messages,
 		task,
 		logger)

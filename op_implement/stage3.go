@@ -25,7 +25,6 @@ func Stage3(projectRootDir string,
 	forceUpload bool,
 	filesForReview []string,
 	targetFiles []string,
-	notEnforceTargetFiles bool,
 	messages []llm.Message,
 	task string,
 	logger logging.ILogger) ([]llm.Message, []string, []string, []string) {
@@ -51,11 +50,6 @@ func Stage3(projectRootDir string,
 	var targetFilesToModify []string
 	var otherFilesToModify []string
 	var filesToDelete []string
-
-	if !notEnforceTargetFiles || !planningMode {
-		targetFilesToModify = append(targetFilesToModify, targetFiles...)
-		logger.Debugln("Target files added to modify list")
-	}
 
 	// Send request
 	if planningMode {
@@ -325,7 +319,9 @@ func Stage3(projectRootDir string,
 		messages = append(messages, response)
 		logger.Debugln("File-list response message created")
 	} else {
-		logger.Infoln("Running stage3: planning disabled, not generating list of files for processing")
+		logger.Infoln("Running stage3: planning disabled")
+		targetFilesToModify = append(targetFilesToModify, targetFiles...)
+		logger.Debugln("Target files added to modify list")
 	}
 
 	// apply filtering to the files requested by LLM that was not already validated on previous stages
