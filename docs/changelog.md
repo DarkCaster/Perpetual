@@ -26,12 +26,6 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 - Add `Skill.md`;
 - Unify and simplify command-line flags across different operations;
 
-Adjust defaults to better suit my current use of the `implement` operation:
-
-- `-pr` mode by default;
-- Task mode by default;
-- Activate `###IMPLEMENT###` comment in-place mode (which is currently default) with a flag or remove it completely.
-
 Add step-by-step execution and stop/continue support for the `implement` operation:
 
 - On each stage, and after each file modification on stage 4, a JSON state file is generated containing the current execution state. This way, the `implement` operation can be resumed if it crashes in the middle;
@@ -56,6 +50,9 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 
 - Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
 - Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-e` flag to create the examples if needed.
+- Removed simplified planning mode from `implement` operation: not effective enough both with task and comments implementation mode.
+- Reworked `implement` operation task mode: use `-t` flag to enable task mode and provide instructions from file or stdin, removed obsolete `-i` flag.
+- Reworked `implement` operation `###IMPLEMENT###` comments driven mode: use `-is` for simple implementation mode, use `-ip` for full planning implementation mode.
 - Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
 - Updated `.env.example` for the Anthropic provider for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
