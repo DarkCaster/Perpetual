@@ -92,7 +92,6 @@ func Stage4(projectRootDir string,
 		}
 
 		logger.Infoln(pendingFile)
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", pendingFile))
 
 		// Create prompt from stage4ProcessFilePromptTemplate
 		stage4ProcessFilePrompt, err := utils.ReplaceTagRx(
@@ -144,6 +143,8 @@ func Stage4(projectRootDir string,
 		var fileBodies []string
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+			llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", pendingFile))
+
 			// Create a copy, so it will be discarded on retry
 			stage4MessagesTry := utils.NewSlice(stage4Messages...)
 			// Create LLM message for incremental search-and-replace mode, or for regular mode
