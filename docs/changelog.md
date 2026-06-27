@@ -44,13 +44,13 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 ### Removed Obsolete Features
 
 - Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
+- Removed simplified planning mode (`-p`) from `implement` operation: not effective enough both with task- and comments- driven implementation mode.
 - Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models, and is hard to maintain due to JSON schema compatibility differences across providers.
 
 ### Improvements
 
 - Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
 - Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-e` flag to create the examples if needed.
-- Removed simplified planning mode from `implement` operation: not effective enough both with task and comments implementation mode.
 - Reworked `implement` operation task mode: use `-t` flag to enable task mode and provide instructions from file or stdin, removed obsolete `-i` flag.
 - Reworked `implement` operation `###IMPLEMENT###` comments driven mode: use `-is` for simple implementation mode, use `-ip` for full planning implementation mode.
 - Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
