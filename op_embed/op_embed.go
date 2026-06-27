@@ -25,8 +25,8 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-	var help, force, dryRun, verbose, trace, readQuestion, includeTests bool
-	var inputFile, requestedFile, userFilterFile string
+	var help, force, dryRun, verbose, trace, includeTests bool
+	var taskFile, requestedFile, userFilterFile string
 	var searchLimit int
 
 	flags := embedFlags()
@@ -34,8 +34,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&force, "f", false, "Force regeneration of embeddings for all files, even if they are up to date")
 	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating embeddings, list of files that will be processed")
 	flags.StringVar(&requestedFile, "r", "", "Only generate embeddings for single file provided with this flag, even if its embedding is already up to date (implies -f flag)")
-	flags.BoolVar(&readQuestion, "q", false, "Read question from stdin and find files relevant to it")
-	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (implies -q flag)")
+	flags.StringVar(&taskFile, "t", "", "Find files relevant to a question read from a text file (plain text or Markdown). Use '-' to read question from stdin")
 	flags.IntVar(&searchLimit, "s", 5, "Limit on the number of files returned that are relevant to the question")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -43,10 +42,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if inputFile != "" {
-		readQuestion = true
-	}
-	if dryRun || readQuestion {
+	if dryRun || taskFile != "" {
 		logger = stdErrLogger
 	}
 	if verbose {
@@ -108,7 +104,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	var userBlacklist []*regexp.Regexp
-	if readQuestion && !includeTests {
+	if taskFile != "" && !includeTests {
 		userBlacklist = append(userBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 	if userFilterFile != "" {
@@ -141,17 +137,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Read input from file or stdin
 	var question string
-	if readQuestion {
-		if inputFile != "" {
-			data, wrn, err := utils.LoadTextFile(inputFile)
-			if err != nil {
-				logger.Panicln("Error reading input file:", err)
-			}
-			if wrn != "" {
-				logger.Warnf("%s: %s", inputFile, wrn)
-			}
-			question = data
-		} else {
+	if taskFile != "" {
+		if taskFile == "-" {
 			logger.Infoln("Reading question from stdin")
 			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
@@ -161,6 +148,15 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				logger.Warnf("stdin: %s", wrn)
 			}
 			question = string(data)
+		} else {
+			data, wrn, err := utils.LoadTextFile(taskFile)
+			if err != nil {
+				logger.Panicln("Error reading input file:", err)
+			}
+			if wrn != "" {
+				logger.Warnf("%s: %s", taskFile, wrn)
+			}
+			question = data
 		}
 		// Trim excess line breaks at both sides of question, and stop on empty input
 		question = strings.Trim(question, "\n")

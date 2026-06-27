@@ -28,7 +28,7 @@ func docFlags() *flag.FlagSet {
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, addQuestion, includeTests bool
-	var descFile, outputFile, inputFile, extraFile, userFilterFile, contextSaving string
+	var descFile, outputFile, taskFile, extraFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
 	flags := docFlags()
@@ -39,14 +39,14 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&outputFile, "r", "", "Target file for writing answer, markdown formatted (stdout if not supplied)")
-	flags.StringVar(&inputFile, "i", "", "Read question from file, plain text or markdown format (stdin if not supplied)")
+	flags.StringVar(&taskFile, "t", "", "Read question from a text file (plain text or Markdown). Use '-' to read question from stdin. This flag is required")
 	flags.StringVar(&extraFile, "e", "", "Read instructions from a text or markdown file that will be used in step 1 to select relevant files. Use if the original question is not good enough for LLM to select relevant files.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
-	flags.BoolVar(&addQuestion, "q", false, "Include the question text and the list of relevant files in the generated answer")
+	flags.BoolVar(&addQuestion, "aq", false, "Include the question text and the list of relevant files in the generated answer")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -77,6 +77,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 	if selectionPasses < 1 {
 		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
+	}
+
+	if taskFile == "" {
+		usage.PrintOperationUsage("You must provide the '-t' flag with a question file path or '-' to read from stdin", flags)
 	}
 
 	// Find project root and perpetual directories
@@ -160,16 +164,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Read input from file or stdin
 	var question string
-	if inputFile != "" {
-		data, wrn, err := utils.LoadTextFile(inputFile)
-		if err != nil {
-			logger.Panicln("Error reading input file:", err)
-		}
-		if wrn != "" {
-			logger.Warnf("%s: %s", inputFile, wrn)
-		}
-		question = data
-	} else {
+	if taskFile == "-" {
 		logger.Infoln("Reading question from stdin")
 		data, wrn, err := utils.LoadTextStdin()
 		if err != nil {
@@ -179,6 +174,15 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			logger.Warnf("stdin: %s", wrn)
 		}
 		question = string(data)
+	} else {
+		data, wrn, err := utils.LoadTextFile(taskFile)
+		if err != nil {
+			logger.Panicln("Error reading input file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", taskFile, wrn)
+		}
+		question = data
 	}
 
 	// Trim excess line breaks at both sides of question, and stop on empty input
