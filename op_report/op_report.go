@@ -21,14 +21,14 @@ const (
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
-	var reportType, outputFile, userFilterFile, contextSaving, descFile string
+	var reportMode, outputFile, userFilterFile, contextSaving, descFile string
 
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
-	flags.StringVar(&reportType, "t", "code", "Select report type (valid values: code|brief)")
-	flags.StringVar(&outputFile, "r", "", "File path to write report to (write to stdout if not provided or empty)")
+	flags.StringVar(&reportMode, "m", "code", "Select report mode (valid values: code|brief)")
+	flags.StringVar(&outputFile, "o", "", "File path to write report to (write to stdout if set to '-', not provided or empty)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for forwarding into annotate operation (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from report")
@@ -36,6 +36,11 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 
 	flags.Parse(args)
+
+	// Treat "-" as stdout, same as empty value
+	if outputFile == "-" {
+		outputFile = ""
+	}
 
 	if outputFile == "" {
 		logger = stdErrLogger
@@ -112,7 +117,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	var reportMessage llm.Message
-	if strings.ToUpper(reportType) == "BRIEF" {
+	if strings.ToUpper(reportMode) == "BRIEF" {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate_params, _ := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
 		logger.Debugln("Rotating log file")
@@ -132,7 +137,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			reportConfig.Tags(config.K_ReportFilenameTags),
 			annotations,
 			logger)
-	} else if strings.ToUpper(reportType) == "CODE" {
+	} else if strings.ToUpper(reportMode) == "CODE" {
 		// Generate report messages
 		reportMessage = llm.ComposeMessageWithSourceFiles(
 			projectRootDir,
@@ -141,7 +146,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			reportConfig.Tags(config.K_ReportFilenameTags),
 			logger)
 	} else {
-		logger.Panicln("Invalid report type:", reportType)
+		logger.Panicln("Invalid report mode:", reportMode)
 	}
 	reportStrings, err := llm.RenderMessagesToAIStrings(projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings), []llm.Message{reportMessage})
 
