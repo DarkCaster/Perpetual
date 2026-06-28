@@ -26,22 +26,23 @@ func miscFlags() *flag.FlagSet {
 }
 
 func Run(args []string, stdErrLogger logging.ILogger) {
-	var help, projTest, listFiles, checkFilesRead, checkFilesReadAsASCII, checkFilesAndSaveAsUTF, verbose, trace, includeTests bool
-	var descFile, userFilterFile string
+	var help, verbose, trace, includeTests bool
+	var mode, descFile, userFilterFile string
 
 	// Parse flags for the "misc" operation
 	flags := miscFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	// Main flags to perform particular function
-	flags.BoolVar(&projTest, "p", false, "Search for .perpetual dir, starting from curdir and check json configs inside it. Output absolute path of .perpetual dir on success.")
-	flags.BoolVar(&listFiles, "l", false, "List project files accessible by perpetual, relative to project root, can work with -x and -u flags.")
-	flags.BoolVar(&checkFilesRead, "fc", false, "Try reading project files as text, on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
-	flags.BoolVar(&checkFilesReadAsASCII, "fa", false, "Read project files and ensure it contains only ASCII characters (0-127), on error will print paths of failed files to stdout (relative to project root), can work with -x and -u flags.")
-	flags.BoolVar(&checkFilesAndSaveAsUTF, "fs", false, "Read project files and convert non-UTF8/16/32 files to UTF8, print paths of affected files to stdout (relative to project root), can work with -x and -u flags.")
-	// Extra options, may be used with flags above to alter its behavior or test some more things
+	// Main flag to select particular function to perform
+	flags.StringVar(&mode, "m", "", "Select operation mode: proj-test, list, check-read, check-ascii, save-utf.\n"+
+		"proj-test:   Search for .perpetual dir, starting from curdir and check json configs. On success show absolute path of .perpetual dir.\n"+
+		"list:        List project files accessible by perpetual, relative to project root.\n"+
+		"check-read:  Try reading project files as text, on error will print paths of failed files to stdout (relative to project root).\n"+
+		"check-ascii: Read project files and ensure it contains only ASCII characters (0-127), on error will print paths of failed files to stdout (relative to project root).\n"+
+		"save-utf:    Read project files and convert non-UTF8/16/32 files to UTF8, print paths of affected files to stdout (relative to project root).")
+	// Extra options, may be used with flag above to alter its behavior or test some more things
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled)")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
-	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
+	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing with `-m` flag")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing with `-m` flag")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -57,29 +58,27 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	stdErrLogger.Debugln("Starting 'misc' operation")
 	stdErrLogger.Traceln("Args:", args)
 
-	flagCount := 0
-	if projTest {
-		flagCount++
-	}
-	if listFiles {
-		flagCount++
-	}
-	if checkFilesRead {
-		flagCount++
-	}
-	if checkFilesReadAsASCII {
-		flagCount++
-	}
-	if checkFilesAndSaveAsUTF {
-		flagCount++
+	var projTest, listFiles, checkFilesRead, checkFilesReadAsASCII, checkFilesAndSaveAsUTF bool
+	switch mode {
+	case "proj-test":
+		projTest = true
+	case "list":
+		listFiles = true
+	case "check-read":
+		checkFilesRead = true
+	case "check-ascii":
+		checkFilesReadAsASCII = true
+	case "save-utf":
+		checkFilesAndSaveAsUTF = true
+	case "":
+		help = true
+	default:
+		stdErrLogger.Errorln("Invalid operation mode:", mode)
+		help = true
 	}
 
 	if help {
 		usage.PrintOperationUsage("", flags)
-	} else if flagCount > 1 {
-		usage.PrintOperationUsage("Only one of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
-	} else if flagCount < 1 {
-		usage.PrintOperationUsage("One of the following flags must be provided: -p, -l, fc, fa, fs.", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
