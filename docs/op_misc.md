@@ -12,27 +12,29 @@ To run the `misc` operation, use the following command:
 Perpetual misc [flags]
 ```
 
-Exactly one main function flag must be provided.
+The operation mode is selected with the `-m` flag, which must be provided with exactly one mode value.
 
 The `misc` operation supports several command-line flags to access its different functions:
 
-### Main Function Flags
+### Mode Selection Flag
 
-- `-p`: Search for the `.perpetual` directory starting from the current directory and validate JSON configurations inside it. Outputs the detected path of the `.perpetual` directory on success.
+The `-m <mode>` flag selects the function to perform. The following modes are available:
 
-- `-l`: List all project files accessible by Perpetual, relative to the project root. This function respects the `-x` and `-u` flags for filtering.
+- `proj-test`: Search for the `.perpetual` directory starting from the current directory and validate JSON configurations inside it. Outputs the detected absolute path of the `.perpetual` directory on success.
 
-- `-fc`: Test reading all project files as text. If any files cannot be read, their paths (relative to project root) are printed to stdout. Works with `-x` and `-u` flags.
+- `list`: List all project files accessible by Perpetual, relative to the project root. This function respects the `-x` and `-u` flags for filtering.
 
-- `-fa`: Read project files and verify they contain only ASCII characters (0-127). Files containing non-ASCII characters or unreadable files are reported to stdout. Works with `-x` and `-u` flags.
+- `check-read`: Test reading all project files as text. If any files cannot be read, their paths (relative to project root) are printed to stdout. Works with `-x` and `-u` flags.
 
-- `-fs`: Read project files and convert files with non-UTF8/UTF16/UTF32 encoding to UTF8. Prints paths of converted files to stdout. Works with `-x` and `-u` flags.
+- `check-ascii`: Read project files and verify they contain only ASCII characters (0-127). Files containing non-ASCII characters or unreadable files are reported to stdout. Works with `-x` and `-u` flags.
+
+- `save-utf`: Read project files and convert files with non-UTF8/UTF16/UTF32 encoding to UTF8. Prints paths of converted files to stdout. Works with `-x` and `-u` flags.
 
 ### Additional Options
 
 - `-h`: Display the help message showing all available flags and their descriptions.
 
-- `-df <file>`: Specify an optional path to a project description file. Use `disabled` to skip loading the project description file entirely. If omitted, Perpetual tries to load `.perpetual/description.md`; a missing default description file is allowed.
+- `-df <file>`: Specify an optional path to a project description file (valid values: `file-path` or `disabled`). Use `disabled` to skip loading the project description file entirely. If omitted, Perpetual tries to load `.perpetual/description.md`; a missing default description file is allowed.
 
 - `-u`: Include unit test source files in processing. By default, unit test files are excluded according to the project test-file blacklist.
 
@@ -44,7 +46,7 @@ The `misc` operation supports several command-line flags to access its different
 
 ## Functions
 
-### Project Validation (`-p`)
+### Project Validation (`-m proj-test`)
 
 The project validation function performs several important checks:
 
@@ -58,7 +60,7 @@ The project validation function performs several important checks:
 
 On success, this function outputs the detected path of the `.perpetual` directory to stdout, making it useful for scripting and automation.
 
-### File Listing (`-l`)
+### File Listing (`-m list`)
 
 The file listing function provides a comprehensive view of project files:
 
@@ -74,7 +76,7 @@ The file listing function provides a comprehensive view of project files:
 
 The output is a sorted list of relative file paths, one per line, suitable for piping to other commands or processing in scripts.
 
-### File Readability Check (`-fc`)
+### File Readability Check (`-m check-read`)
 
 This function tests the readability of all project files as text:
 
@@ -86,7 +88,7 @@ This function tests the readability of all project files as text:
 
 This is particularly useful for identifying files with corrupted encodings or binary files that were mistakenly included in the project.
 
-### ASCII Content Validation (`-fa`)
+### ASCII Content Validation (`-m check-ascii`)
 
 The ASCII validation function ensures files contain only ASCII characters:
 
@@ -100,7 +102,7 @@ The ASCII validation function ensures files contain only ASCII characters:
 
 This function is essential for projects that require strict ASCII-only source code file content. It is also suitable for detecting text inconsistencies that arise when using AI to edit files.
 
-### File Encoding Conversion (`-fs`)
+### File Encoding Conversion (`-m save-utf`)
 
 The encoding conversion function modernizes file encodings:
 
@@ -119,37 +121,37 @@ This function helps resolve compatibility issues with files that are not encoded
 1. **Validate project setup and get perpetual directory path:**
 
    ```sh
-   Perpetual misc -p
+   Perpetual misc -m proj-test
    ```
 
 2. **List all project files including unit tests:**
 
    ```sh
-   Perpetual misc -l -u
+   Perpetual misc -m list -u
    ```
 
 3. **Check file readability with custom filters:**
 
    ```sh
-   Perpetual misc -fc -x custom_filters.json
+   Perpetual misc -m check-read -x custom_filters.json
    ```
 
 4. **Verify ASCII-only content with debug logging:**
 
    ```sh
-   Perpetual misc -fa -v
+   Perpetual misc -m check-ascii -v
    ```
 
 5. **Convert non-UTF files to UTF-8:**
 
    ```sh
-   Perpetual misc -fs
+   Perpetual misc -m save-utf
    ```
 
 6. **List files without loading project description:**
 
    ```sh
-   Perpetual misc -l -df disabled
+   Perpetual misc -m list -df disabled
    ```
 
 ## Notes
