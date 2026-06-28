@@ -16,19 +16,19 @@ The `stash` operation supports several command-line flags to customize its behav
 
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
-- `-l`: List all current stashes. This flag displays the names of all available stashes.
+- `-m <mode>`: Select the operation mode. Supported modes are:
+  - `list`: List all current stashes. This mode displays the names of all available stashes.
+  - `list-files`: List files in a specified stash. This mode shows the original and modified file entries stored in a particular stash.
+  - `apply`: Apply changes from a specified stash. This mode is used to re-apply previously stashed changes.
+  - `rollback`: Roll back changes from a specified stash. This mode restores the original versions of files stored in the stash.
 
-- `-a`: Apply changes from a specified stash. This flag is used to re-apply previously stashed changes.
+  If the mode is not specified or is invalid, the help message is displayed.
 
-- `-r`: Roll back changes from a specified stash. This flag restores the original versions of files stored in the stash.
+- `-s <name>`: Set the stash name to apply, roll back, or inspect. If not specified, it defaults to `latest`, which selects the latest stash file. The `.json` extension may be omitted.
 
-- `-lf`: List files in a specified stash. This flag shows the original and modified file entries stored in a particular stash.
+- `-o <filename>`: Select a single file to apply or roll back from the stash. The filename must match an entry in the stash. This is useful when you want to manipulate changes for a specific file.
 
-- `-n <name>`: Set the stash name to apply, roll back, or inspect. If not specified, it defaults to `latest`, which selects the latest stash file. The `.json` extension may be omitted.
-
-- `-f <filename>`: Select a single file to apply or roll back from the stash. The filename must match an entry in the stash. This is useful when you want to manipulate changes for a specific file.
-
-- `-t <target_file>`: Specify a target file where the selected single file from the stash will be saved, relative to the project root. This is intended to be used in conjunction with the `-f` flag. If not specified, the file is saved to its original location.
+- `-t <target_file>`: Specify a target file where the selected single file from the stash will be saved, relative to the project root. This is intended to be used in conjunction with the `-o` flag. If not specified, the file is saved to its original location.
 
 - `-v`: Enable debug logging. This flag increases the verbosity of the operation's output, providing more detailed information about the stash process.
 
@@ -39,37 +39,37 @@ The `stash` operation supports several command-line flags to customize its behav
 1. **List all current stashes:**
 
    ```sh
-   Perpetual stash -l
+   Perpetual stash -m list
    ```
 
 2. **Apply changes from the latest stash:**
 
    ```sh
-   Perpetual stash -a
+   Perpetual stash -m apply
    ```
 
 3. **Roll back changes from a specific stash:**
 
    ```sh
-   Perpetual stash -r -n 2023-05-15_14-30-00
+   Perpetual stash -m rollback -s 2023-05-15_14-30-00
    ```
 
 4. **List files in a specific stash:**
 
    ```sh
-   Perpetual stash -lf -n 2023-05-15_14-30-00
+   Perpetual stash -m list-files -s 2023-05-15_14-30-00
    ```
 
 5. **Apply changes for a single file from a stash:**
 
    ```sh
-   Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/file.go
+   Perpetual stash -m apply -s 2023-05-15_14-30-00 -o path/to/file.go
    ```
 
 6. **Apply changes for a single file from a stash to a different target file:**
 
    ```sh
-   Perpetual stash -a -n 2023-05-15_14-30-00 -f path/to/source_file.go -t path/to/target_file.go
+   Perpetual stash -m apply -s 2023-05-15_14-30-00 -o path/to/source_file.go -t path/to/target_file.go
    ```
 
 When executed, the `stash` operation performs the specified action on the stashes stored in the project's `.perpetual/.stash` directory. Each stash is a JSON file containing the original and modified states of affected files. The stash directory is automatically created if it doesn't exist.
@@ -92,4 +92,4 @@ YYYY-MM-DD_HH-MM-SS.json
 
 - Rolling back a stash restores original file contents for files that existed when the stash was created. For files that were newly created by generated changes, rolling back deletes those files because their original state is recorded as absent.
 
-- Using the `-f` and `-t` flags allows for granular control over individual file changes, providing flexibility in managing specific modifications without affecting the entire stash.
+- Using the `-o` and `-t` flags allows for granular control over individual file changes, providing flexibility in managing specific modifications without affecting the entire stash.
