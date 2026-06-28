@@ -15,16 +15,25 @@ func initFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
+func isValidProvider(provider string) bool {
+	switch provider {
+	case "anthropic", "openai", "ollama", "generic":
+		return true
+	default:
+		return false
+	}
+}
+
 func Run(version string, args []string, logger logging.ILogger) {
-	var help, check, verbose, trace bool
-	var provider, keyMethod, key string
+	var help, verbose, trace bool
+	var mode, provider, keyMethod, key string
 
 	onboardFlags := initFlags()
 	onboardFlags.BoolVar(&help, "h", false, "Show usage")
-	onboardFlags.BoolVar(&check, "c", false, "Check current global environment configuration")
-	onboardFlags.StringVar(&provider, "e", "", "Recreate global env config for selected provider (anthropic|openai|ollama|generic)")
-	onboardFlags.StringVar(&keyMethod, "m", "", "Auth method to write with -e, if applicable (Bearer|Basic)")
-	onboardFlags.StringVar(&key, "k", "", "API key or login:password auth value to write with -e")
+	onboardFlags.StringVar(&mode, "m", "", "Select operation mode: check, install")
+	onboardFlags.StringVar(&provider, "p", "", "Provider to install with 'install' mode (anthropic|openai|ollama|generic). Mandatory for 'install' mode if LLM_PROVIDER env variable is not set to a valid value")
+	onboardFlags.StringVar(&keyMethod, "km", "", "Auth method to write in 'install' mode, if applicable (Bearer|Basic)")
+	onboardFlags.StringVar(&key, "k", "", "API key or login:password auth value to write in 'install' mode")
 	onboardFlags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	onboardFlags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	onboardFlags.Parse(args)
@@ -40,24 +49,45 @@ func Run(version string, args []string, logger logging.ILogger) {
 	logger.Debugln("Starting 'onboard' operation")
 	logger.Traceln("Args:", args)
 
-	if help || (!check && provider == "") {
+	var check, install bool
+	switch mode {
+	case "check":
+		check = true
+	case "install":
+		install = true
+	case "":
+		help = true
+	default:
+		logger.Errorln("Invalid operation mode:", mode)
+		help = true
+	}
+
+	if help {
 		usage.PrintOperationUsage("", onboardFlags)
+		return
 	}
 
-	if check && provider != "" {
-		usage.PrintOperationUsage("-c and -e cannot be used together", onboardFlags)
+	if check {
+		if provider != "" {
+			usage.PrintOperationUsage("-p can only be used with 'install' mode", onboardFlags)
+		}
+		if keyMethod != "" {
+			usage.PrintOperationUsage("-km can only be used with 'install' mode", onboardFlags)
+		}
+		if key != "" {
+			usage.PrintOperationUsage("-k can only be used with 'install' mode", onboardFlags)
+		}
 	}
 
-	if keyMethod != "" && provider == "" {
-		usage.PrintOperationUsage("-m can only be used together with -e", onboardFlags)
-	}
-
-	if key != "" && provider == "" {
-		usage.PrintOperationUsage("-k can only be used together with -e", onboardFlags)
-	}
-
-	if provider != "" {
-		if err := RolloutEnvironmentConfig(version, provider, keyMethod, key, logger); err != nil {
+	if install {
+		resolvedProvider := provider
+		if resolvedProvider == "" {
+			resolvedProvider = os.Getenv("LLM_PROVIDER")
+		}
+		if !isValidProvider(resolvedProvider) {
+			usage.PrintOperationUsage("'install' mode requires a valid provider set with -p or LLM_PROVIDER env variable (anthropic|openai|ollama|generic)", onboardFlags)
+		}
+		if err := RolloutEnvironmentConfig(version, resolvedProvider, keyMethod, key, logger); err != nil {
 			logger.Panicln("Failed to create global env configuration:", err)
 		}
 	}
