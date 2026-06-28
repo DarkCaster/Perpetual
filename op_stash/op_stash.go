@@ -95,19 +95,16 @@ func applyFileState(projectRootDir string, filename string, state FileState, log
 }
 
 func Run(args []string, innerCall bool, logger logging.ILogger) {
-	var help, list, verbose, apply, rollback, trace, listFiles bool
-	var name, fileName, targetFile string
+	var help, verbose, trace bool
+	var mode, name, fileName, targetFile string
 
 	// Parse flags for the "stash" operation
 	flags := stashFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.BoolVar(&list, "l", false, "List current stashes")
-	flags.BoolVar(&apply, "a", false, "Apply changes of a stash")
-	flags.BoolVar(&rollback, "r", false, "Rollback changes of a stash")
-	flags.BoolVar(&listFiles, "lf", false, "List files in a stash")
-	flags.StringVar(&name, "n", "latest", "Set stash name to apply or revert")
-	flags.StringVar(&fileName, "f", "", "Select single file to apply or revert from stash")
-	flags.StringVar(&targetFile, "t", "", "Target file where selected single file from stash will be saved, relative to project root")
+	flags.StringVar(&mode, "m", "", "Select operation mode: list, list-files, apply, rollback")
+	flags.StringVar(&name, "s", "latest", "Set stash name to apply or revert")
+	flags.StringVar(&fileName, "o", "", "Select single file to apply or revert from stash")
+	flags.StringVar(&targetFile, "t", "", "Target path where file from stash (selected with `-o`) will be saved, relative to project root. Optional")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
@@ -123,7 +120,20 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	logger.Debugln("Starting 'stash' operation")
 	logger.Traceln("Args:", args)
 
-	if !apply && !rollback && !list && !listFiles {
+	var list, listFiles, apply, rollback bool
+	switch mode {
+	case "list":
+		list = true
+	case "list-files":
+		listFiles = true
+	case "apply":
+		apply = true
+	case "rollback":
+		rollback = true
+	case "":
+		help = true
+	default:
+		logger.Errorln("Invalid operation mode:", mode)
 		help = true
 	}
 
