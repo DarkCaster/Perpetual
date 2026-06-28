@@ -145,11 +145,11 @@ func TestStashApplyAndRollbackModification(t *testing.T) {
 		},
 	})
 
-	runStash(t, "-a", "-n", "modify")
+	runStash(t, "-m", "apply", "-s", "modify")
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "file.txt", "modified\n")
 
-	runStash(t, "-r", "-n", "modify")
+	runStash(t, "-m", "rollback", "-s", "modify")
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "file.txt", "original\n")
 }
@@ -175,11 +175,11 @@ func TestStashRollbackDeletesFileCreatedByApply(t *testing.T) {
 
 	assertFileNotExists(t, projectRootDir, "new/file.txt")
 
-	runStash(t, "-a", "-n", "create")
+	runStash(t, "-m", "apply", "-s", "create")
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "new/file.txt", "created\n")
 
-	runStash(t, "-r", "-n", "create")
+	runStash(t, "-m", "rollback", "-s", "create")
 	utils.RunGlobalCleanup()
 	assertFileNotExists(t, projectRootDir, "new/file.txt")
 }
@@ -207,11 +207,11 @@ func TestStashRollbackRecreatesFileDeletedByApply(t *testing.T) {
 		},
 	})
 
-	runStash(t, "-a", "-n", "delete")
+	runStash(t, "-m", "apply", "-s", "delete")
 	utils.RunGlobalCleanup()
 	assertFileNotExists(t, projectRootDir, "deleted.txt")
 
-	runStash(t, "-r", "-n", "delete")
+	runStash(t, "-m", "rollback", "-s", "delete")
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "deleted.txt", "backup\n")
 }
@@ -235,12 +235,12 @@ func TestStashSingleFileTargetCanBeCreatedAndDeletedOnRollback(t *testing.T) {
 		},
 	})
 
-	runStash(t, "-a", "-n", "single-target", "-f", "source.txt", "-t", "nested/target.txt")
+	runStash(t, "-m", "apply", "-s", "single-target", "-o", "source.txt", "-t", "nested/target.txt")
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "nested/target.txt", "target contents\n")
 	assertFileNotExists(t, projectRootDir, "source.txt")
 
-	runStash(t, "-r", "-n", "single-target", "-f", "source.txt", "-t", "nested/target.txt")
+	runStash(t, "-m", "rollback", "-s", "single-target", "-o", "source.txt", "-t", "nested/target.txt")
 	utils.RunGlobalCleanup()
 	assertFileNotExists(t, projectRootDir, "nested/target.txt")
 }
@@ -265,7 +265,7 @@ func TestStashRejectsMissingVersion(t *testing.T) {
 `)
 
 	assertPanics(t, func() {
-		runStash(t, "-a", "-n", "missing-version")
+		runStash(t, "-m", "apply", "-s", "missing-version")
 	})
 	utils.RunGlobalCleanup()
 }
@@ -290,7 +290,7 @@ func TestStashRejectsUnsupportedVersion(t *testing.T) {
 	})
 
 	assertPanics(t, func() {
-		runStash(t, "-a", "-n", "unsupported-version")
+		runStash(t, "-m", "apply", "-s", "unsupported-version")
 	})
 	utils.RunGlobalCleanup()
 }
@@ -315,13 +315,13 @@ func TestCreateStashIncludesFilesToDelete(t *testing.T) {
 		newTestLogger(t),
 	)
 
-	runStash(t, "-a", "-n", stashName)
+	runStash(t, "-m", "apply", "-s", stashName)
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "existing.txt", "existing modified\n")
 	assertFileContents(t, projectRootDir, "created.txt", "created contents\n")
 	assertFileNotExists(t, projectRootDir, "delete.txt")
 
-	runStash(t, "-r", "-n", stashName)
+	runStash(t, "-m", "rollback", "-s", stashName)
 	utils.RunGlobalCleanup()
 	assertFileContents(t, projectRootDir, "existing.txt", "existing original\n")
 	assertFileNotExists(t, projectRootDir, "created.txt")
