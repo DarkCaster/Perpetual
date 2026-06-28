@@ -41,8 +41,8 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		"save-utf:    Read project files and convert non-UTF8/16/32 files to UTF8, print paths of affected files to stdout (relative to project root).")
 	// Extra options, may be used with flag above to alter its behavior or test some more things
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled)")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing with `-m` flag")
-	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing with `-m` flag")
+	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing with '-m' flag")
+	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing with '-m' flag")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
