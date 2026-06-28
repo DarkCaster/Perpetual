@@ -457,5 +457,5 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Create and apply stash from generated results
 	newStashFileName := op_stash.CreateStash(filteredResults, fileNames, filesToDelete, logger)
-	op_stash.Run([]string{"-a", "-n", newStashFileName}, true, logger)
+	op_stash.Run([]string{"-m", "apply", "-s", newStashFileName}, true, logger)
 }
