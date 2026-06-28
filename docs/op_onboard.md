@@ -14,34 +14,34 @@ Perpetual onboard [flags]
 
 The `onboard` operation supports several command-line flags to customize its behavior:
 
-- `-c`: **Check the current global environment configuration**. Detects the active environment, prints it, and validates it. This flag cannot be combined with `-e`.
-- `-e <provider>`: **Recreate the global env configuration** for the selected provider. Valid values are `anthropic`, `openai`, `ollama`, and `generic`.
-- `-m <method>`: **Auth method to write with `-e`**, when applicable. Valid values are `Bearer` and `Basic`. This flag can only be used together with `-e`.
-- `-k <value>`: **API key or `login:password` auth value to write with `-e`**. This flag can only be used together with `-e`.
+- `-m <mode>`: **Select the operation mode**. Valid values are `check` and `install`. In `check` mode, the operation detects the active environment, prints it, and validates it. In `install` mode, the operation recreates the global env configuration for a provider and then performs the same detection and validation. Running the operation without a mode displays the usage message.
+- `-p <provider>`: **Provider to install with `install` mode**. Valid values are `anthropic`, `openai`, `ollama`, and `generic`. This is mandatory for `install` mode unless the `LLM_PROVIDER` environment variable is already set to a valid value.
+- `-km <method>`: **Auth method to write in `install` mode**, when applicable. Valid values are `Bearer` and `Basic` (case-insensitive). This flag can only be used together with `install` mode.
+- `-k <value>`: **API key or `login:password` auth value to write in `install` mode**. This flag can only be used together with `install` mode.
 - `-h`: **Display the help message**, showing all available flags and their descriptions.
 - `-v`: **Enable debug logging**. This flag increases the verbosity of the operation's output.
 - `-vv`: **Enable both debug and trace logging**. This flag provides the highest level of verbosity.
 
-You must provide either `-c` (to check the current configuration) or `-e` (to recreate the configuration for a provider). Running the operation without one of these flags displays the usage message.
+You must select either `check` mode (to verify the current configuration) or `install` mode (to recreate the configuration for a provider). Running the operation without a mode displays the usage message. The `-p`, `-km`, and `-k` flags are only valid in `install` mode.
 
 ### Example Usage
 
 Check the current global environment configuration:
 
 ```sh
-Perpetual onboard -c
+Perpetual onboard -m check
 ```
 
 Recreate the global configuration for OpenAI and write the API key directly:
 
 ```sh
-Perpetual onboard -e openai -k "sk-..."
+Perpetual onboard -m install -p openai -k "sk-..."
 ```
 
 Recreate the global configuration for a generic OpenAI-compatible provider using Bearer authentication:
 
 ```sh
-Perpetual onboard -e generic -m Bearer -k "my-secret-token"
+Perpetual onboard -m install -p generic -km Bearer -k "my-secret-token"
 ```
 
 In all cases, after performing any requested configuration changes, the operation prints the detected active environment and validates it.
@@ -55,23 +55,25 @@ The `onboard` operation can generate configuration for the following LLM provide
 3. **Ollama (`ollama`)** – Supports optional authentication method and auth value.
 4. **Generic (`generic`)** – OpenAI-compatible endpoints; supports authentication method and auth value, and requires a base URL.
 
-The provider name is case-insensitive when passed with `-e`.
+Provider names must be specified in lowercase when passed with `-p`.
 
 ## Details
 
-The `onboard` operation performs two main tasks, depending on the flags provided: recreating the global environment configuration (with `-e`), and detecting and validating the active environment (always performed).
+The `onboard` operation performs two main tasks, depending on the selected mode: recreating the global environment configuration (in `install` mode), and detecting and validating the active environment (always performed).
 
 ### Recreating the Global Configuration
 
-When run with `-e <provider>`, the operation rolls out a fresh set of global environment files:
+When run in `install` mode, the operation rolls out a fresh set of global environment files for the resolved provider (taken from `-p`, or from the `LLM_PROVIDER` environment variable when `-p` is omitted):
 
 1. **Validates the provider name** against the list of supported providers (`anthropic`, `openai`, `ollama`, `generic`).
-2. **Validates the auth method** passed with `-m`, if any. Only `Bearer` and `Basic` are accepted (case-insensitive, normalized to `Bearer`/`Basic`).
+2. **Validates the auth method** passed with `-km`, if any. Only `Bearer` and `Basic` are accepted (case-insensitive, normalized to `Bearer`/`Basic`).
 3. **Creates the global configuration directory** if it doesn't exist.
 4. **Removes existing configuration files** from the global configuration directory. A warning is printed before any files are removed.
 5. **Writes example files** (`*.env.example`) for the providers that are not being generated as active configuration, so they remain available for reference.
 6. **Generates a base env file** (e.g. `.env`) with the `LLM_PROVIDER` variable set to the selected provider.
-7. **Generates a provider-specific env file** (e.g. `openai.env`) with the authentication details filled in based on `-m` and `-k`.
+7. **Generates a provider-specific env file** (e.g. `openai.env`) with the authentication details filled in based on `-km` and `-k`.
+
+The generated base and provider-specific env files are prefixed with a comment indicating they were generated by `perpetual onboard`.
 
 For the authentication value, the operation uses the value passed via `-k`. If `-k` is not provided, it attempts to detect a value from existing environment variables (`<PROVIDER>_AUTH` or `<PROVIDER>_API_KEY`). If no value can be determined, a warning is printed, instructing you to edit the global env config manually or rerun `onboard` with `-k`.
 
@@ -80,15 +82,15 @@ How authentication is written depends on the provider:
 - For **Anthropic** and **OpenAI**, the auth value is written to `<PROVIDER>_API_KEY`.
 - For **Ollama** and **Generic**, the auth method (if provided) is written to `<PROVIDER>_AUTH_TYPE`, and the auth value (if available) is written to `<PROVIDER>_AUTH`.
 
-**Note:** Recreating the configuration removes all existing files in the global configuration directory. Back up any manual changes before running `onboard -e`.
+**Note:** Recreating the configuration removes all existing files in the global configuration directory. Back up any manual changes before running `onboard -m install`.
 
 ### Detecting and Validating the Active Environment
 
-After any configuration changes (or when run with `-c`), the operation detects the currently active environment and validates it:
+After any configuration changes (or when run in `check` mode), the operation detects the currently active environment and validates it:
 
 1. **Loads the global env files** from the global configuration directory.
 2. **Detects active provider selections** based on `LLM_PROVIDER` and per-operation `LLM_PROVIDER_OP_*` variables.
-3. **Collects the active environment variables**, including provider-selection variables, the fallback text encoding, and provider-specific variables that belong to active providers.
+3. **Collects the active environment variables**, including provider-selection variables, the fallback text encoding (`FALLBACK_TEXT_ENCODING`), and provider-specific variables that belong to active providers.
 4. **Prints the active environment** to standard output, masking sensitive values (such as API keys, auth values, and base URLs) as `<hidden>`.
 5. **Validates the configuration** for each supported operation and prints the results.
 
