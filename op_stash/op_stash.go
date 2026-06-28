@@ -104,7 +104,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	flags.StringVar(&mode, "m", "", "Select operation mode: list, list-files, apply, rollback")
 	flags.StringVar(&name, "s", "latest", "Set stash name to apply or revert")
 	flags.StringVar(&fileName, "o", "", "Select single file to apply or revert from stash")
-	flags.StringVar(&targetFile, "t", "", "Target path where file from stash (selected with `-o`) will be saved, relative to project root. Optional")
+	flags.StringVar(&targetFile, "t", "", "Target path where file from stash (selected with '-o') will be saved, relative to project root. Optional")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
