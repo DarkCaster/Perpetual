@@ -1,5 +1,6 @@
 /Perpetual
 /test.md
-/question.txt
-/answer.txt
-/answer.md
+/question*.txt
+/question*.md
+/answer*.txt
+/answer*.md
