@@ -25,16 +25,19 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-	var help, force, dryRun, verbose, trace, includeTests bool
-	var taskFile, requestedFile, userFilterFile string
+	var help, verbose, trace, includeTests bool
+	var inputFile, userFilterFile, mode string
 	var searchLimit int
 
 	flags := embedFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.BoolVar(&force, "f", false, "Force regeneration of embeddings for all files, even if they are up to date")
-	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating embeddings, list of files that will be processed")
-	flags.StringVar(&requestedFile, "r", "", "Only generate embeddings for single file provided with this flag, even if its embedding is already up to date (implies -f flag)")
-	flags.StringVar(&taskFile, "t", "", "Find files relevant to a question read from a text file (plain text or Markdown). Use '-' to read question from stdin")
+	flags.StringVar(&mode, "m", "", "Select operation mode (valid values: normal|dryrun|full|query).\n"+
+		"normal: re-embed only changed files.\n"+
+		"dryrun: do not generate embeddings, just list files that would be embedded.\n"+
+		"full:   re-embed all files, even those with up-to-date embeddings.\n"+
+		"query:  read question from file or stdin and find relevant files using embeddings.")
+	flags.StringVar(&inputFile, "i", "", "Input file. For normal|dryrun|full modes: forcefully (re)embed a single project file.\n"+
+		"For query mode: path to any text/markdown file with the question, or '-' to read the question from stdin")
 	flags.IntVar(&searchLimit, "s", 5, "Limit on the number of files returned that are relevant to the question")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
@@ -42,7 +45,20 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if dryRun || taskFile != "" {
+	mode = strings.ToUpper(mode)
+	if mode == "" {
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|dryrun|full|query)", flags)
+	}
+
+	if mode != "NORMAL" && mode != "DRYRUN" && mode != "FULL" && mode != "QUERY" {
+		logger.Errorln("Invalid mode:", mode)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|dryrun|full|query)", flags)
+	}
+
+	dryRun := mode == "DRYRUN"
+	force := mode == "FULL"
+
+	if dryRun || mode == "QUERY" {
 		logger = stdErrLogger
 	}
 	if verbose {
@@ -104,7 +120,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	var userBlacklist []*regexp.Regexp
-	if taskFile != "" && !includeTests {
+	if mode == "QUERY" && !includeTests {
 		userBlacklist = append(userBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 	if userFilterFile != "" {
@@ -137,8 +153,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	// Read input from file or stdin
 	var question string
-	if taskFile != "" {
-		if taskFile == "-" {
+	if mode == "QUERY" {
+		if inputFile == "" || inputFile == "-" {
 			logger.Infoln("Reading question from stdin")
 			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
@@ -149,12 +165,12 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			}
 			question = string(data)
 		} else {
-			data, wrn, err := utils.LoadTextFile(taskFile)
+			data, wrn, err := utils.LoadTextFile(inputFile)
 			if err != nil {
 				logger.Panicln("Error reading input file:", err)
 			}
 			if wrn != "" {
-				logger.Warnf("%s: %s", taskFile, wrn)
+				logger.Warnf("%s: %s", inputFile, wrn)
 			}
 			question = data
 		}
@@ -182,9 +198,9 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	logger.Traceln("Done loading embeddings")
 
 	var filesToEmbed []string
-	if requestedFile != "" {
+	if mode != "QUERY" && inputFile != "" {
 		// Check if requested file is within fileNames array
-		requestedFile, err := utils.MakePathRelative(projectRootDir, requestedFile, false)
+		requestedFile, err := utils.MakePathRelative(projectRootDir, inputFile, false)
 		if err != nil {
 			logger.Panicln("Requested file is not inside project root", requestedFile)
 		}
@@ -326,7 +342,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		logger.Panicln("Not all files were successfully processed. Run embed again to process failed files.")
 	}
 
-	if question == "" {
+	if mode != "QUERY" || question == "" {
 		return
 	}
 
