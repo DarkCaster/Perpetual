@@ -16,7 +16,7 @@ The `init` operation supports several command-line flags to customize its behavi
 - `-h`: **Display the help message**, showing all available flags and their descriptions.
 - `-v`: **Enable debug logging**. This flag increases the verbosity of the operation's output.
 - `-vv`: **Enable both debug and trace logging**. This flag provides the highest level of verbosity.
-- `-c`: **Clean obsolete files and directories**. When used, this flag removes deprecated configuration files and directories from the `.perpetual` directory.
+- `-ex`: **Create env-file examples** inside the `.perpetual` directory. When used, this flag generates example `.env` configuration files for Perpetual and each supported LLM provider.
 
 ### Example Usage
 
@@ -46,16 +46,14 @@ When using the `-l` flag, provide the language identifier as shown above. The la
 
 The `init` operation performs several tasks to set up your project for use with Perpetual:
 
-1. **Creates a local Perpetual configuration directory**. By default this is `.perpetual` in the current directory.
-2. **Creates a global configuration directory** if it doesn't exist.
-3. **Creates a default global `.env` file** in the global configuration directory if it is missing.
+1. **Creates a local Perpetual configuration directory**. By default this is `.perpetual` in the current directory. If the directory already exists, it is reused.
+2. **Creates a `.gitignore` file** within the `.perpetual` directory to exclude generated Perpetual state files and local `.env` files from version control.
+3. **Creates a `description.md.template` file** that can be used as a starting point for creating a project description document.
 4. **Generates JSON configuration files** for the selected programming language, including default prompts, regexps, tags, context-saving settings, incremental-mode settings, and file-selection rules.
-5. **Creates a `.gitignore` file** within the `.perpetual` directory to exclude generated Perpetual state files and local `.env` files from version control.
-6. **Creates example `.env.example` files** for Perpetual and each supported LLM provider: `.env.example`, `ollama.env.example`, `openai.env.example`, `anthropic.env.example`, and `generic.env.example`.
-7. **Creates a `description.md.template` file** that can be used as a starting point for creating a project description document.
-8. **Cleans obsolete configuration files and directories** if the `-c` flag is used.
+5. **Creates example `.env.example` files** for Perpetual and each supported LLM provider, but only when the `-ex` flag is used: `.env.example`, `ollama.env.example`, `openai.env.example`, `anthropic.env.example`, and `generic.env.example`.
+6. **Warns about obsolete configuration files and directories** if any are found in the `.perpetual` directory.
 
-When run inside an already initialized project, `init` will overwrite the generated project-local config files, `.gitignore`, example environment files, and description template. It does not overwrite an existing global `.env` file. Back up any manual changes before running it again.
+When run inside an already initialized project, `init` will overwrite the generated project-local config files, `.gitignore`, and description template (and the example environment files when `-ex` is used). Back up any manual changes before running it again.
 
 **Note:** The `init` operation respects the `PERPETUAL_DIR` environment variable. If set, it uses the specified directory instead of creating `.perpetual` in the current directory.
 
@@ -67,11 +65,6 @@ After running the `init` operation, the following project-local structure is cre
 <project_root>/
 └── .perpetual/
     ├── .gitignore
-    ├── .env.example
-    ├── ollama.env.example
-    ├── openai.env.example
-    ├── anthropic.env.example
-    ├── generic.env.example
     ├── description.md.template
     ├── op_annotate.json
     ├── op_implement.json
@@ -81,21 +74,33 @@ After running the `init` operation, the following project-local structure is cre
     └── project.json
 ```
 
-The global configuration directory is also created outside the project, using the OS-specific user config directory, for example:
+When the `-ex` flag is used, the following example environment files are additionally created inside the `.perpetual` directory:
+
+```text
+<project_root>/
+└── .perpetual/
+    ├── .env.example
+    ├── ollama.env.example
+    ├── openai.env.example
+    ├── anthropic.env.example
+    └── generic.env.example
+```
+
+In addition to project-local configuration, Perpetual can also read environment values from a global, OS-specific user config directory when loading settings, for example:
 
 ```text
 ~/.config/Perpetual/
-└── .env
+└── *.env
 ```
 
 on Linux, or:
 
 ```text
 <User profile dir>\AppData\Roaming\Perpetual\
-└── .env
+└── *.env
 ```
 
-on Windows.
+on Windows. The `init` operation itself does not create this global directory or any global `.env` file.
 
 ### Customizable Files
 
@@ -103,7 +108,7 @@ Most files generated by the `init` operation can be customized to fine-tune Perp
 
 1. **`.env` files**
 
-   Perpetual does not create a project-local `.env` file by default. To configure environment variables, copy one or more example files to files ending with `.env`, then edit them as needed.
+   Perpetual does not create a project-local `.env` file by default. To configure environment variables, run `init` with the `-ex` flag to generate example files, copy one or more of them to files ending with `.env`, then edit them as needed.
 
    For example:
 
@@ -156,9 +161,9 @@ The following are managed automatically by Perpetual and should not be edited ma
 3. **`.stash/`**: Contains code backups created during operations. Managed by the `stash` operation.
 4. **`.message_log.txt*`**: Logs interactions with the LLM provider for debugging purposes, including rotated log files.
 
-## Cleaning Obsolete Files and Directories
+## Obsolete Files and Directories
 
-When running `init` with the `-c` flag, Perpetual will remove deprecated items from the `.perpetual` directory. Without `-c`, it will only warn when obsolete items are found.
+When running `init`, Perpetual checks the `.perpetual` directory for deprecated items left over from older versions. It does not remove them automatically; instead, it prints a warning so you can delete them manually.
 
 - **Obsolete Files**
   - `filename_embed_regexp.json`
