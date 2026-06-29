@@ -27,18 +27,20 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, simpleImplement, plannerImplement bool
-	var descFile, taskFile, userFilterFile, contextSaving string
+	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, plannerMode bool
+	var mode, descFile, inputFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
+	flags.StringVar(&mode, "m", "", "Select operation mode: task, comment.\n"+
+		"task:    Implement code based on a task read from a text file or stdin (see '-i' flag). Uses planning, can affect any project files.\n"+
+		"comment: Generate code marked with ###IMPLEMENT### comments in the source code. Cannot affect other files unless using '-p' flag.")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
-	flags.StringVar(&taskFile, "t", "", "Implement code based on a task read from a text file (plain text or Markdown). Use '-' to read task from stdin. Cannot be used with '-is' or '-ip' flags")
-	flags.BoolVar(&simpleImplement, "is", false, "Generate code marked with ###IMPLEMENT### comments in the source code, only in these files, without planning. Suitable only for minor changes. Cannot be used with '-t' flag")
-	flags.BoolVar(&plannerImplement, "ip", false, "Generate code marked with ###IMPLEMENT### comments in the source code, with extra planning. Can affect other files. Cannot be used with '-t' flag")
+	flags.StringVar(&inputFile, "i", "", "Path to a text file (plain text or Markdown) with task to implement for task mode ('-m task'). If empty or '-' then read task from stdin")
+	flags.BoolVar(&plannerMode, "p", false, "Enable extra planning allowing making changes to other files when using comment mode ('-m comment')")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&noIncrMode, "ni", false, "No incremental mode: disable using incremental 'search-and-replace' mode when generating file changes")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
@@ -74,19 +76,31 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
 	}
 
-	// check for conflict between task or `IMPLEMENT` modes, and set planning modes
+	// validate selected mode and set planning mode
 	planningMode := false
-	if taskFile == "" && simpleImplement && !plannerImplement {
-		logger.Infoln("Running in direct-implement mode without planning")
-		planningMode = false
-	} else if taskFile == "" && !simpleImplement && plannerImplement {
-		logger.Infoln("Running in direct-implement mode with extra planning")
-		planningMode = true
-	} else if taskFile != "" && !simpleImplement && !plannerImplement {
+	switch mode {
+	case "task":
+		if plannerMode {
+			usage.PrintOperationUsage("The '-p' flag can be only used in comment mode ('-m comment')", flags)
+		}
 		logger.Infoln("Running in task-implement mode")
 		planningMode = true
-	} else {
-		usage.PrintOperationUsage("You must provide exactly one of the following flags: '-t', '-is' or '-ip'", flags)
+	case "comment":
+		if inputFile != "" {
+			usage.PrintOperationUsage("The '-i' flag can be only used in task mode ('-m task')", flags)
+		}
+		if plannerMode {
+			logger.Infoln("Running in direct-implement mode with extra planning")
+			planningMode = true
+		} else {
+			logger.Infoln("Running in direct-implement mode without planning")
+			planningMode = false
+		}
+	case "":
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task, comment)", flags)
+	default:
+		logger.Errorln("Invalid operation mode:", mode)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task, comment)", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
@@ -170,8 +184,8 @@ func Run(args []string, logger logging.ILogger) {
 
 	// Read input from file or stdin
 	var task string
-	if taskFile != "" {
-		if taskFile == "-" {
+	if mode == "task" {
+		if inputFile == "" || inputFile == "-" {
 			logger.Infoln("Reading task from stdin")
 			data, wrn, err := utils.LoadTextStdin()
 			if err != nil {
@@ -183,12 +197,12 @@ func Run(args []string, logger logging.ILogger) {
 			task = string(data)
 		} else {
 			logger.Infoln("Reading task from file")
-			data, wrn, err := utils.LoadTextFile(taskFile)
+			data, wrn, err := utils.LoadTextFile(inputFile)
 			if err != nil {
 				logger.Panicln("Error reading task from input file:", err)
 			}
 			if wrn != "" {
-				logger.Warnf("%s: %s", taskFile, wrn)
+				logger.Warnf("%s: %s", inputFile, wrn)
 			}
 			task = data
 		}
