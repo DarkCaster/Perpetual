@@ -10,7 +10,7 @@ package op_init
 const ollamaEnvExampleFileName = "ollama.env.example"
 
 const ollamaEnvExample = `# Options for Ollama instance, local or public.
-# When using a large enough model it can produce good results for some operations. See docs/ollama.md for more info
+# When using a large enough model it can produce good results for some operations.
 
 # Configuration files should have ".env" extensions and it can be placed to the following locations:
 # Project local config: <Project root>/.perpetual/*.env
