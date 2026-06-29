@@ -14,17 +14,18 @@ Perpetual annotate [flags]
 
 The `annotate` operation supports several command-line flags to customize its behavior:
 
+- `-m <mode>`: Select the operation mode. This flag is required. Valid values are:
+  - `normal`: reannotate only changed files.
+  - `dryrun`: do not generate annotations, just list files that would be annotated.
+  - `full`: reannotate all files, even those with up-to-date annotations.
+
 - `-c <mode>`: Context saving mode, reducing LLM context use for large projects. Valid values are: `auto`, `off`, `medium`, `high`. The default is `auto`, which automatically determines whether to use context saving based on project size. When context saving is activated, `annotate` generates shorter file annotations to save tokens in later operations.
-
-- `-f`: Force annotation of all files, even for files whose annotations are up to date. This flag is useful when you want to regenerate all annotations, regardless of whether the files have changed since the last annotation.
-
-- `-d`: Perform a dry run without actually generating annotations. This flag lists the files that would be annotated without making LLM requests or updating `.annotations.json`. In this mode, logging is redirected to stderr so that stdout can contain only the file list.
 
 - `-df <file>`: Optional path to a project description file for adding into LLM context. Valid values are a file path or `disabled`. If not specified, the operation attempts to load the project description from `.perpetual/description.md`.
 
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
-- `-r <file>`: Only annotate a single specified file, even if its annotation is already up to date. This flag implies the `-f` flag. Use this when you want to update the annotation for a specific file. It may be useful if annotating all changed project files in a batch hits LLM API limits.
+- `-i <file>`: Forcefully (re)annotate a single specified file, even if its annotation is already up to date. The file is matched after whitelist/blacklist and user-filter processing. Use this when you want to update the annotation for a specific file. It may be useful if annotating all changed project files in a batch hits LLM API limits.
 
 - `-x <file>`: Specify a path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).
 
@@ -37,34 +38,34 @@ The `annotate` operation supports several command-line flags to customize its be
 1. **Annotate only new or changed files:**
 
    ```sh
-   Perpetual annotate
+   Perpetual annotate -m normal
    ```
 
 2. **Force (re)annotation of all files:**
 
    ```sh
-   Perpetual annotate -f
+   Perpetual annotate -m full
    ```
 
 3. **Annotate a specific file:**
 
    ```sh
-   Perpetual annotate -r path/to/file.go
+   Perpetual annotate -m normal -i path/to/file.go
    ```
 
 4. **Annotate with a custom project description:**
 
    ```sh
-   Perpetual annotate -df custom_description.md
+   Perpetual annotate -m normal -df custom_description.md
    ```
 
 5. **List files that would be annotated without sending them to the LLM:**
 
    ```sh
-   Perpetual annotate -d
+   Perpetual annotate -m dryrun
    ```
 
-When run, the `annotate` operation processes the specified files, or all changed files if no specific file is given, and generates or updates their annotations. These annotations are then stored in the project's configuration directory (`.perpetual/.annotations.json`) for use by other `Perpetual` operations.
+When run, the `annotate` operation processes the specified file, or all changed files if no specific file is given, and generates or updates their annotations. These annotations are then stored in the project's configuration directory (`.perpetual/.annotations.json`) for use by other `Perpetual` operations.
 
 ## Tailoring Annotation Generation for Specific Project Files
 
@@ -249,7 +250,7 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
 
 1. **Initialization:**
    - The `annotate` operation begins by parsing command-line flags to determine its behavior.
-   - It validates the context-saving mode.
+   - It validates the operation mode (`-m`) and the context-saving mode (`-c`).
    - It locates the project's root directory and the `.perpetual` configuration directory.
    - Environment variables are loaded from `.env` files, unless `annotate` is being called internally by another operation.
    - Configuration and prompts are loaded from `.perpetual/op_annotate.json` and `.perpetual/project.json`.
@@ -264,14 +265,15 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
    - SHA-256 checksums are calculated for the selected project files to track changes since the last annotation.
 
 3. **Annotation Decision:**
-   - Based on the provided flags (`-f`, `-d`, `-r`), the operation determines which files require annotation.
-   - Files that have not changed since the last annotation are skipped unless forced.
-   - If `-r` is used, the requested path is resolved relative to the project root and matched against known project files.
-   - If a user regex filter file is provided with `-x`, matching files are filtered out from the files selected for annotation.
-   - In dry-run mode (`-d`), the operation lists the files that would be annotated and exits without making LLM requests.
+   - Based on the selected mode (`-m`) and the `-i` flag, the operation determines which files require annotation.
+   - In `normal` mode, files that have not changed since the last annotation are skipped.
+   - In `full` mode, all project files are selected for annotation regardless of changes.
+   - If `-i` is used, the requested path is resolved relative to the project root and matched against known project files, and only that file is (re)annotated.
+   - If a user regex filter file is provided with `-x`, matching files are filtered out from the files selected for annotation, and their checksums are reverted so they can be reevaluated in a later run.
+   - In `dryrun` mode, the operation lists the files that would be annotated and exits without making LLM requests. In this mode, logging is redirected to stderr so that stdout can contain only the file list.
 
 4. **Context-Saving Selection:**
-   - In `auto` mode, the operation switches to short annotation prompts when the project file count reaches the configured medium context-saving threshold.
+   - In `auto` mode, the operation switches to short annotation prompts when the project file count reaches the configured medium context-saving threshold (`medium_context_saving_file_count`).
    - In `medium` or `high` mode, short annotation prompts are always used.
    - In `off` mode, normal annotation prompts are used.
 
