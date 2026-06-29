@@ -27,7 +27,9 @@ LLM settings are read from environment variables and from `.env` files loaded by
    - Unix/Linux: `$HOME/.config/Perpetual/`
    - Windows: `%AppData%\Roaming\Perpetual\`
 
-When you run `perpetual init -l <lang>`, example files named `*.env.example` are created in `.perpetual` as a reference. **`*.env.example` files are not loaded** by Perpetual.
+You can use the `perpetual onboard` operation to validate the current environment configuration, or to (re)create a system-wide global `.env` configuration for a supported provider with a single command (see `perpetual onboard -m install -p <provider>`).
+
+By default, `perpetual init -l <lang>` does **not** create `*.env.example` files. Use the `-ex` flag (`perpetual init -l <lang> -ex`) to generate example files named `*.env.example` in `.perpetual` as a reference. **`*.env.example` files are not loaded** by Perpetual.
 
 ### Key Environment Variables
 
@@ -90,7 +92,7 @@ Use the generated `*.env.example` files as templates. Common settings include:
   - `<PROFILE>_INCRMODE_RETRIES`: Number of retries for applying incremental changes before falling back to full-file generation.
 
 - **Reasoning / Thinking Options**
-  - Anthropic: `<PROFILE>_THINK_TOKENS` and `<PROFILE>_THINK_TOKENS_OP_<OPERATION>`.
+  - Anthropic: `<PROFILE>_THINK_TOKENS` and `<PROFILE>_THINK_TOKENS_OP_<OPERATION>`. The value can be a numeric token budget or an adaptive effort level (for example `low`, `medium`, `high`) for models that support adaptive thinking.
   - Ollama: `<PROFILE>_THINK` and `<PROFILE>_THINK_OP_<OPERATION>`.
   - OpenAI/Generic: `<PROFILE>_REASONING_EFFORT` and `<PROFILE>_REASONING_EFFORT_OP_<OPERATION>` where supported by the provider and model.
   - Generic/Ollama response filtering: `<PROFILE>_THINK_RX_L`, `<PROFILE>_THINK_RX_R`, `<PROFILE>_OUT_RX_L`, and `<PROFILE>_OUT_RX_R`, with operation-specific variants, can be used to remove or extract parts of responses from models that include reasoning markup in plain text.
@@ -160,6 +162,7 @@ Perpetual validates these JSON files against built-in templates when loading the
 - `*.env`
 - `.annotations.json`
 - `.embeddings.msgpack`
+- `.perpetual.lock` (lockfile used to prevent running multiple instances at the same time for a single project)
 - `.message_log.txt*`
 - `.stash`
 
@@ -193,6 +196,8 @@ File path regular expressions are matched against project-root-relative paths. F
 - `high_context_saving_random_percent`: Percentage of randomized files in high context-saving mode, calculated relative to the selected set.
 - `files_incremental_mode_min_length`: 2D array of `[pattern, min_length]` records defining when incremental file-change mode may be used for a matching file.
 - `files_incremental_mode_rx`: Regex patterns for parsing incremental search-and-replace blocks. The default format uses `SEARCH>>>`, `<<<REPLACE>>>`, and `<<<DONE`.
+
+The `delete_tags` and `delete_tags_rx` entries support the file deletion feature of the `implement` operation, which is useful for refactoring or cleanup tasks. During the planning stage, the LLM can request files to be deleted using the delete tags, and generated stashes record and apply deleted file states.
 
 Partial example excerpt:
 
@@ -295,9 +300,7 @@ Stage 2 review/planning prompts:
 Stage 3 file-modification list prompts:
 
 - `stage3_planning_prompt`
-- `stage3_task_planning_prompt`
-- `stage3_planning_lite_prompt`
-- `stage3_task_extra_files_prompt`
+- `stage3_extra_files_prompt`
 
 Stage 4 code generation prompts:
 
@@ -306,6 +309,11 @@ Stage 4 code generation prompts:
 - `stage4_process_prompt`
 - `stage4_continue_prompt`
 - `stage4_process_incremental_prompt`
+
+The `implement` operation selects its operation mode with the `-m` flag:
+
+- `-m task`: Provide task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files. It uses the `stage1_task_analysis_prompt` and the `stage2_task_reasonings_*` prompts.
+- `-m comment`: Generate code marked with `###IMPLEMENT###` comments. Use the `-p` flag to enable extra planning that allows making changes to other files; without `-p`, only the files containing implement comments are modified (using the `stage2_noplanning_*` prompts).
 
 #### `op_doc.json`
 
@@ -355,5 +363,5 @@ Report configuration includes:
 - Commit `project.json` and `op_*.json` files so all contributors use the same prompts, filters, and parsing rules.
 - Do not commit real `.env` files.
 - Review `description.md` before committing it, especially if it contains sensitive project details.
-- Use the generated `*.env.example` files as references, but keep provider credentials and local model settings in `.env` files.
+- Use the generated `*.env.example` files (created with `perpetual init -l <lang> -ex`) as references, but keep provider credentials and local model settings in `.env` files.
 - You can customize prompts, regexes, and file filters to fit your project, but keep the required JSON keys intact because Perpetual rejects missing or extra keys during config loading.
