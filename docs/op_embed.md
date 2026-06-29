@@ -9,42 +9,40 @@ Generated embeddings are stored in `.perpetual/.embeddings.msgpack`.
 The `embed` operation is optional and will only function when an embedding model is configured via environment variables in your `.env` file. It is supported with OpenAI, Ollama, and Generic providers, depending on the specific provider/model capabilities. Anthropic does not support embeddings.
 
 ```sh
-Perpetual embed [flags]
+Perpetual embed -m <mode> [flags]
 ```
 
-The `embed` operation has two primary modes:
+The operation mode is selected with the required `-m` flag, which accepts one of the following values:
 
-1. **Embedding Generation Mode (default):** Processes your project files, detects changes, and regenerates embeddings as needed.
+- `normal` — re-embed only changed files.
+- `dryrun` — do not generate embeddings, just list files that would be embedded.
+- `full` — re-embed all files, even those with up-to-date embeddings.
+- `query` — read a question from a file or stdin and find relevant files using embeddings.
 
-2. **Question/Search Mode:** Updates embeddings as needed and then performs semantic search to find files relevant to a specific question or query.
+These modes correspond to two primary behaviors:
 
-When invoked without question flags, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search when annotation updates and embeddings are enabled. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
+1. **Embedding Generation Mode (`normal`, `dryrun`, `full`):** Processes your project files, detects changes, and regenerates embeddings as needed.
+
+2. **Question/Search Mode (`query`):** Updates embeddings as needed and then performs semantic search to find files relevant to a specific question or query.
+
+When invoked in `normal`, `dryrun`, or `full` mode, `embed` processes your project files. It is also called internally by other operations, such as `doc`, `explain`, and `implement`, to keep embeddings updated and to complement LLM-driven file selection with local similarity search when annotation updates and embeddings are enabled. When properly set up, you generally do not need to run the `embed` operation manually except to force a rebuild, test configuration, or run standalone semantic search.
 
 Available flags:
 
-- `-f`  
-  Force regeneration of all embeddings, even if up to date. Useful when you change embedding parameters in your `.env`.
-
-- `-d`  
-  Dry run: list files that **would** be processed without generating embeddings.
-
-- `-r <file>`  
-  Generate embeddings for a single file, even if its embedding already exists. The file path must point to a file inside the project and must pass the project whitelist/blacklist filters. If a user filter is supplied with `-x`, the requested file is still subject to that filter.
-
-- `-q`  
-  Read a question from stdin and find files relevant to it using semantic search.
+- `-m <mode>`  
+  Select the operation mode: `normal`, `dryrun`, `full`, or `query` (required).
 
 - `-i <file>`  
-  Read a question from a file, in plain text or markdown format, and find relevant files. Implies `-q`.
+  Input file. For `normal`/`dryrun`/`full` modes: forcefully (re)embed a single project file, even if its embedding already exists. The file path must point to a file inside the project and must pass the project whitelist/blacklist filters. If a user filter is supplied with `-x`, the requested file is still subject to that filter. For `query` mode: path to any text/markdown file with the question, or `-` to read the question from stdin.
 
 - `-s <limit>`  
-  Limit the number of files returned that are relevant to the question (default: 5). Used with `-q` or `-i`. A value of `0` disables similarity search output.
+  Limit the number of files returned that are relevant to the question (default: 5). Used with `query` mode. A value of `0` disables similarity search output.
 
 - `-u`  
-  In question/search mode, do not exclude files matching the project test-file blacklist. This flag has no additional effect in default embedding generation mode.
+  In question/search mode, do not exclude files matching the project test-file blacklist. This flag has no additional effect in the embedding generation modes.
 
 - `-x <file>`  
-  Path to a JSON file containing an array of regex filters used to exclude files. In embedding generation mode, matching files are skipped for embedding. In question/search mode, matching files are skipped both from embedding updates and from search results.
+  Path to a JSON file containing an array of regex filters used to exclude files. In embedding generation modes, matching files are skipped for embedding. In question/search mode, matching files are skipped both from embedding updates and from search results.
 
 - `-v`  
   Enable debug logging.
@@ -60,37 +58,37 @@ Available flags:
 1. **Dry run to see which files would be embedded:**
 
    ```sh
-   Perpetual embed -d
+   Perpetual embed -m dryrun
    ```
 
 2. **Force regenerate embeddings for the entire project:**
 
    ```sh
-   Perpetual embed -f
+   Perpetual embed -m full
    ```
 
 3. **Embed only a single file:**
 
    ```sh
-   Perpetual embed -r cmd/main.go
+   Perpetual embed -m normal -i cmd/main.go
    ```
 
 4. **Search for files related to a question from stdin:**
 
    ```sh
-   echo "How does authentication work?" | Perpetual embed -q
+   echo "How does authentication work?" | Perpetual embed -m query
    ```
 
 5. **Search for files related to a question in a file:**
 
    ```sh
-   Perpetual embed -i question.txt -s 3
+   Perpetual embed -m query -i question.txt -s 3
    ```
 
 6. **Exclude files via a user-supplied filter:**
 
    ```sh
-   Perpetual embed -x filters/skip_patterns.json
+   Perpetual embed -m normal -x filters/skip_patterns.json
    ```
 
 ## LLM Configuration
@@ -241,15 +239,15 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
    Read stored embeddings and checksums from `.perpetual/.embeddings.msgpack`.
 
 6. **Determine Files to Embed**  
-   - With `-r`, select the specified file.  
-   - With `-f`, remove the old embeddings storage and select all project files.  
+   - With `-i` (in `normal`/`dryrun`/`full` mode), select the specified file.  
+   - With `-m full`, remove the old embeddings storage and select all project files.  
    - Otherwise, select files whose checksums have changed or whose embeddings are missing.
 
 7. **Apply User Filters**  
    Exclude files matching user-provided regex patterns from `-x`. For skipped files, old checksums are preserved where possible so they can be reconsidered on later runs.
 
 8. **Dry Run (optional)**  
-   If `-d` is specified, output the list of files to be embedded and exit.
+   If `-m dryrun` is specified, output the list of files to be embedded and exit.
 
 9. **Generate Embeddings**  
    For each selected file:  
@@ -264,10 +262,10 @@ GENERIC_EMBED_SEARCH_PREFIX="Process following search query:\n"
 
 ### Question/Search Mode
 
-When using `-q` or `-i`, Perpetual still performs the embedding generation workflow first, so changed or missing embeddings are updated before searching.
+When using `-m query`, Perpetual still performs the embedding generation workflow first, so changed or missing embeddings are updated before searching.
 
 1. **Read Question**  
-   Load the question from stdin with `-q` or from a file with `-i`.
+   Load the question from a file with `-i`, or from stdin when `-i` is omitted or set to `-`.
 
 2. **Apply Search Filters**  
    Apply user filters from `-x`. If `-u` is not specified, also exclude files matching the project test-file blacklist.
