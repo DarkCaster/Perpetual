@@ -25,22 +25,32 @@ func annotateFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
-
 	// Setup
-	var help, force, dryRun, verbose, trace bool
-	var descFile, requestedFile, userFilterFile, contextSaving string
+	var help, verbose, trace bool
+	var descFile, inputFile, userFilterFile, contextSaving, mode string
 
 	flags := annotateFlags()
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
-	flags.BoolVar(&force, "f", false, "Force annotation of all files, even for files which annotations are up to date")
-	flags.BoolVar(&dryRun, "d", false, "Perform a dry run without actually generating annotations, list of files that will be annotated")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.BoolVar(&help, "h", false, "This help message")
-	flags.StringVar(&requestedFile, "r", "", "Only annotate single file provided with this flag, even if its annotation is already up to date (implies -f flag)")
+	flags.StringVar(&inputFile, "i", "", "Forcefully (re)annotate a single file (after whitelist/blacklist and user-filter processing), works with any mode. In 'dryrun' mode the resolved file path relative to project root is shown")
+	flags.StringVar(&mode, "m", "normal", "Select operation mode (valid values: normal|dryrun|full).\n"+
+		"normal: reannotate only changed files.\n"+
+		"dryrun: do not generate annotations, just list files that would be annotated.\n"+
+		"full:   reannotate all files, even those with up-to-date annotations.")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
+
+	mode = strings.ToUpper(mode)
+	if mode != "NORMAL" && mode != "DRYRUN" && mode != "FULL" {
+		logger.Errorln("Invalid mode:", mode)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|dryrun|full)", flags)
+	}
+
+	dryRun := mode == "DRYRUN"
+	force := mode == "FULL"
 
 	if dryRun {
 		logger = stdErrLogger
@@ -61,10 +71,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	}
 
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
-
-	if requestedFile != "" {
-		force = true
-	}
 
 	outerCallLogger := logger.Clone()
 	if innerCall {
@@ -167,26 +173,24 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	annotationsFilePath := filepath.Join(perpetualDir, utils.AnnotationsFileName)
 	var filesToAnnotate []string
-	if !force {
+	if inputFile != "" {
+		// Check if requested file is within fileNames array
+		requestedFile, err := utils.MakePathRelative(projectRootDir, inputFile, false)
+		if err != nil {
+			logger.Panicln("Requested file is not inside project root", requestedFile)
+		}
+		requestedFile, found := utils.CaseInsensitiveFileSearch(requestedFile, fileNames)
+		if !found {
+			logger.Panicln("Requested file not found in project")
+		}
+		filesToAnnotate = utils.NewSlice(requestedFile)
+	} else if force {
+		filesToAnnotate = utils.NewSlice(fileNames...)
+		sort.Strings(filesToAnnotate)
+	} else {
 		filesToAnnotate, err = utils.GetChangedAnnotations(annotationsFilePath, fileChecksums)
 		if err != nil {
 			logger.Panicln("error getting changed files:", err)
-		}
-	} else {
-		if requestedFile != "" {
-			// Check if requested file is within fileNames array
-			requestedFile, err := utils.MakePathRelative(projectRootDir, requestedFile, false)
-			if err != nil {
-				logger.Panicln("Requested file is not inside project root", requestedFile)
-			}
-			requestedFile, found := utils.CaseInsensitiveFileSearch(requestedFile, fileNames)
-			if !found {
-				logger.Panicln("Requested file not found in project")
-			}
-			filesToAnnotate = utils.NewSlice(requestedFile)
-		} else {
-			filesToAnnotate = utils.NewSlice(fileNames...)
-			sort.Strings(filesToAnnotate)
 		}
 	}
 
