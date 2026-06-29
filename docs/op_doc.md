@@ -2,7 +2,7 @@
 
 The `doc` operation creates or reworks documentation files in Markdown or plain-text format. It streamlines generating and maintaining project documentation by producing context-aware documents based on your project's source code and any existing materials.
 
-**Note:** Results may vary depending on the model used. The `doc` operation can use a large amount of tokens and context, especially for Stage 2 document generation. Use a capable model for best consistency and style. Reasoning models can improve style but may incur higher costs, and they are often better at creating initial documents with `-a write` rather than refining existing documents with `-a refine`. The `doc` operation is somewhat experimental for now.
+**Note:** Results may vary depending on the model used. The `doc` operation can use a large amount of tokens and context, especially for Stage 2 document generation. Use a capable model for best consistency and style. Reasoning models can improve style but may incur higher costs, and they are often better at creating initial documents with `-m write` rather than refining existing documents with `-m refine`. The `doc` operation is somewhat experimental for now.
 
 ## Usage
 
@@ -12,12 +12,14 @@ Perpetual doc [flags]
 
 Available flags:
 
-- `-r <file>`  
-  Target documentation file for processing. If omitted, reads from stdin and writes to stdout.
+- `-i <file>`  
+  Input documentation file for processing. If empty or `-`, reads from stdin. Not valid with `draft` mode.
+- `-o <file>`  
+  Output documentation file to write the result to. If empty or `-`, writes to stdout.
 - `-e <file>`  
   Example/reference document for style, structure, and format (not content).
-- `-a <action>`  
-  Action to perform (default: `write`):  
+- `-m <mode>`  
+  Operation mode to perform (required):  
   - `draft`  Create an initial draft template.  
   - `write`  Write or complete an existing document.  
   - `refine` Refine and update an existing document.
@@ -49,7 +51,7 @@ Available flags:
 1. **Draft a new document template:**
 
    ```sh
-   Perpetual doc -r docs/new_feature.md -a draft
+   Perpetual doc -o docs/new_feature.md -m draft
    ```
 
    Then, edit the `docs/new_feature.md` draft by adding the most basic structure of the future document, your instructions, and notes about any aspect of the document starting with the words `Notes on implementation:`.
@@ -57,53 +59,53 @@ Available flags:
 2. **Write or complete a draft:**
 
    ```sh
-   Perpetual doc -r docs/new_feature.md -a write
+   Perpetual doc -i docs/new_feature.md -o docs/new_feature.md -m write
    ```
 
 3. **As an alternative, write using an example for style:**
 
    ```sh
-   Perpetual doc -r docs/new_feature.md -e docs/old_feature.md -a write
+   Perpetual doc -i docs/new_feature.md -o docs/new_feature.md -e docs/old_feature.md -m write
    ```
 
 4. **Refine an existing document:**
 
    ```sh
-   Perpetual doc -r docs/installation_guide.md -e docs/user_guide.md -a refine
+   Perpetual doc -i docs/installation_guide.md -o docs/installation_guide.md -e docs/user_guide.md -m refine
    ```
 
 5. **Read from stdin, write to stdout:**
 
    ```sh
-   cat draft.md | Perpetual doc -a write -e docs/user_guide.md > final_doc.md
+   cat draft.md | Perpetual doc -m write -e docs/user_guide.md > final_doc.md
    ```
 
 6. **Exclude files via custom regex filter:**
 
    ```sh
-   Perpetual doc -r docs/overview.md -a refine -x ../exclude_regexes.json
+   Perpetual doc -i docs/overview.md -o docs/overview.md -m refine -x ../exclude_regexes.json
    ```
 
 7. **Use custom project description file:**
 
    ```sh
-   Perpetual doc -r docs/api_reference.md -df custom_description.md -a write
+   Perpetual doc -i docs/api_reference.md -o docs/api_reference.md -df custom_description.md -m write
    ```
 
 8. **Disable project description:**
 
    ```sh
-   Perpetual doc -r docs/quick_start.md -df disabled -a write
+   Perpetual doc -i docs/quick_start.md -o docs/quick_start.md -df disabled -m write
    ```
 
 ## How It Works
 
-When executed, the `doc` operation analyzes your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage LLM process for `write` and `refine` actions:
+When executed, the `doc` operation analyzes your project's structure, relevant source code, and existing documentation style (if provided) to generate or update the specified document. The operation uses a two-stage LLM process for `write` and `refine` modes:
 
 1. **Stage 1:** Analyzes the project index, target document content, optional project description, optional example document, and any embedded instructions. It determines which project files are relevant for the documentation task.
-2. **Stage 2:** Generates or refines the document content based on the selected source files, project annotations, the specified action, the target document, and any provided example document.
+2. **Stage 2:** Generates or refines the document content based on the selected source files, project annotations, the specified mode, the target document, and any provided example document.
 
-The `draft` action does not call the LLM. It writes a built-in Markdown draft template to the target file or stdout.
+The `draft` mode does not call the LLM. It writes a built-in Markdown draft template to the output file or stdout.
 
 If embeddings are configured, the operation can also use local similarity search:
 
@@ -246,11 +248,11 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 
 ## Best Practices
 
-1. **Use Example Documents:** Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. It is especially useful for `write` actions to copy the writing style and structure from the reference document.
+1. **Use Example Documents:** Use the `-e` flag to provide an example document. This helps maintain consistency in style and structure across your project's documentation. It is especially useful for `write` mode to copy the writing style and structure from the reference document.
 
-2. **Iterative Refinement:** Start with a `draft` action, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. Include instructions about the document topic, format, structure, and style inside the document draft (or the document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
+2. **Iterative Refinement:** Start with the `draft` mode, then use `write` to complete the document, and finally `refine` to polish the content. This iterative approach often yields the best results. Include instructions about the document topic, format, structure, and style inside the document draft (or the document you are about to rewrite or refine) in free form starting with the words `Notes on implementation:`. The LLM will follow these instructions when working on the document.
 
-3. **Regular Updates:** As your project evolves, regularly use the `refine` action to keep your documentation up to date with the latest changes in your codebase.
+3. **Regular Updates:** As your project evolves, regularly use the `refine` mode to keep your documentation up to date with the latest changes in your codebase.
 
 4. **Review and Edit:** Always review and edit the generated documentation to ensure accuracy and add any project-specific nuances that the LLM might have missed.
 
