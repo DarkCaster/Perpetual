@@ -33,8 +33,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.BoolVar(&help, "h", false, "This help message")
-	flags.StringVar(&inputFile, "i", "", "Forcefully (re)annotate a single file (after whitelist/blacklist and user-filter processing), works with any mode. In 'dryrun' mode the resolved file path relative to project root is shown")
-	flags.StringVar(&mode, "m", "normal", "Select operation mode (valid values: normal|dryrun|full).\n"+
+	flags.StringVar(&inputFile, "i", "", "Forcefully (re)annotate a single file (after whitelist/blacklist and user-filter processing)")
+	flags.StringVar(&mode, "m", "", "Select operation mode (valid values: normal|dryrun|full).\n"+
 		"normal: reannotate only changed files.\n"+
 		"dryrun: do not generate annotations, just list files that would be annotated.\n"+
 		"full:   reannotate all files, even those with up-to-date annotations.")
@@ -44,6 +44,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	flags.Parse(args)
 
 	mode = strings.ToUpper(mode)
+	if mode == "" {
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|dryrun|full)", flags)
+	}
+
 	if mode != "NORMAL" && mode != "DRYRUN" && mode != "FULL" {
 		logger.Errorln("Invalid mode:", mode)
 		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|dryrun|full)", flags)
