@@ -12,20 +12,22 @@ Perpetual explain [flags]
 
 The `explain` operation offers a range of command-line flags to tailor its functionality to your specific needs:
 
-- `-i <file>`: Specify the input file containing the question to be answered. If omitted, the operation reads the question from standard input (stdin).
-- `-r <file>`: Define the target file for writing the answer. If omitted, the answer is output to standard output (stdout) and all program logging is redirected to stderr.
+- `-m <mode>`: Select the operation mode to perform (valid values: `normal`, `list`, `full`). This flag is required.
+  - `normal`: Generate the final answer to the question.
+  - `list`: Only list files that the LLM thinks are related to the question; do not generate the final answer. The output is one filename per line, with no formatting. In this mode, the operation stops before stage 2 and does not upload selected source files for final answer generation.
+  - `full`: Include the question text and the list of relevant files in the generated answer. Files filtered out by the `no-upload` rule are marked using the configured filtered filename tags.
+- `-i <file>`: Specify the input file containing the question to be answered (plain text or Markdown). If empty or `-`, the operation reads the question from standard input (stdin).
+- `-o <file>`: Define the output file for writing the answer. If empty or `-`, the answer is output to standard output (stdout) and all program logging is redirected to stderr. The output type depends on the selected mode.
 - `-df <file>`: Optional path to project description file for adding into LLM context. Valid values are `file-path` to specify a custom description file, or `disabled` to explicitly disable loading the project description. If omitted, the operation attempts to load the default `description.md` file from the `.perpetual` directory.
 - `-e <file>`: Read instructions from a text or markdown file that will be used in stage 1 to select relevant files. Use this flag if the original question is too complex or not clear enough for the LLM to select relevant files, allowing you to provide separate instructions for the file selection process. The final answer is still generated for the original question from `-i` or stdin.
 - `-c <mode>`: Set the context saving mode to reduce LLM context usage for large projects. Valid values are `auto`, `off`, `medium`, or `high` (default: `auto`).
 - `-a`: Add project annotations in stage 2 in addition to the source files requested by the LLM. This can improve answer quality by providing the LLM with additional project-wide context, but it is disabled by default to save tokens and reduce context window requirements.
-- `-l`: Activate "List Files Only" mode. Instead of generating a full answer, this flag lists the files considered relevant to the question after stage 1 file selection and local similarity search. The output is one filename per line, with no markdown formatting. In this mode, the operation stops before stage 2 and does not upload selected source files for final answer generation.
 - `-n`: Enable "No Annotate" mode, which skips the automatic refresh of annotations and embeddings before processing. Existing annotations and embeddings are used if available. This can reduce API calls but may lower the quality of file selection and explanations.
 - `-f`: Override the `no-upload` file filter to include files marked as `no-upload` for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.
 - `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded using the project test-file blacklist.
 - `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).
 - `-s <n>`: Limit the number of additional files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
 - `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values may select more files, compensating for possible LLM errors when finding relevant files, but will cost more tokens and context use.
-- `-q`: Include the question text and the list of relevant files in the generated answer. This provides additional context in the output, showing which files were considered relevant and displaying the original question. Files filtered out by the `no-upload` rule are marked using the configured filtered filename tags.
 - `-h`: Display the help message, detailing all available flags and their descriptions.
 - `-v`: Enable debug logging to receive detailed output about the operation's execution process.
 - `-vv`: Activate both debug and trace logging for the highest level of verbosity, offering an in-depth view of the operation's internal workings.
@@ -35,7 +37,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 1. **Ask a question and receive an explanation:**
 
    ```sh
-   echo "How does the authentication system work?" | Perpetual explain -r explanations/auth_system.md
+   echo "How does the authentication system work?" | Perpetual explain -m normal -o explanations/auth_system.md
    ```
 
    This command reads the question from standard input and writes the explanation to `explanations/auth_system.md`.
@@ -43,7 +45,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 2. **List files relevant to a specific question without generating an explanation:**
 
    ```sh
-   echo "What modules handle data processing?" | Perpetual explain -l
+   echo "What modules handle data processing?" | Perpetual explain -m list
    ```
 
    Instead of an answer, this command produces a list of files related to data processing.
@@ -51,37 +53,37 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 3. **Generate an explanation with additional annotations and debug logging enabled:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -r explanations/data_flow.md -a -v
+   Perpetual explain -m normal -i questions/query.txt -o explanations/data_flow.md -a -v
    ```
 
 4. **Include unit-test files in the explanation process:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -r explanations/test_data_flow.md -u
+   Perpetual explain -m normal -i questions/query.txt -o explanations/test_data_flow.md -u
    ```
 
 5. **Override the `no-upload` filter to include all selected files for explanation:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -r explanations/full_data_flow.md -f
+   Perpetual explain -m normal -i questions/query.txt -o explanations/full_data_flow.md -f
    ```
 
 6. **Include the question and relevant files list in the answer:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -r explanations/detailed_answer.md -q
+   Perpetual explain -m full -i questions/query.txt -o explanations/detailed_answer.md
    ```
 
 7. **Use a separate instructions file for relevant files selection:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -e instructions/file_selection.txt -r explanations/targeted_answer.md
+   Perpetual explain -m normal -i questions/query.txt -e instructions/file_selection.txt -o explanations/targeted_answer.md
    ```
 
 8. **Disable project description loading:**
 
    ```sh
-   Perpetual explain -i questions/query.txt -r explanations/answer.md -df disabled
+   Perpetual explain -m normal -i questions/query.txt -o explanations/answer.md -df disabled
    ```
 
 ## LLM Configuration
@@ -204,9 +206,9 @@ Customization of LLM prompts for the `explain` operation is managed through the 
 
 - **`stage2_continue_prompt`**: Provides instructions for the LLM to continue generating responses if token limits are reached.
 
-- **`output_question_header`**, **`output_files_header`**, **`output_answer_header`**: Headers used when the `-q` flag is enabled to structure the output with question, relevant files list, and answer sections.
+- **`output_question_header`**, **`output_files_header`**, **`output_answer_header`**: Headers used in `full` mode to structure the output with question, relevant files list, and answer sections.
 
-- **`output_filename_tags`**, **`output_filtered_filename_tags`**: Tags used to format filenames in the output when the `-q` flag is enabled. `output_filtered_filename_tags` are used for files selected as relevant but filtered out from upload by the `no-upload` rule.
+- **`output_filename_tags`**, **`output_filtered_filename_tags`**: Tags used to format filenames in the output in `full` mode. `output_filtered_filename_tags` are used for files selected as relevant but filtered out from upload by the `no-upload` rule.
 
 ## Workflow
 
@@ -225,7 +227,7 @@ The `explain` operation is divided into preparation and two main processing stag
    - **Local Similarity Search:** If embeddings are available and local search is enabled with `-s`, performs cosine similarity search to find additional relevant files based on semantic similarity to the question.
    - **Multiple Passes:** If `-sp` is greater than 1, stage 1 runs multiple times and merges the selected file lists.
 
-   If the `-l` flag is specified, execution stops after this stage and outputs only the selected file list.
+   If the `list` mode is selected with `-m`, execution stops after this stage and outputs only the selected file list.
 
 3. **Stage 2: Detailed Explanation:**
    - **No-Upload Filtering:** Files marked with `no-upload` comments are filtered out before source content is sent to the LLM unless the `-f` flag is used.
@@ -234,7 +236,7 @@ The `explain` operation is divided into preparation and two main processing stag
    - **Source Code Review:** If files were selected in stage 1, presents them to the LLM using the `code_prompt` to establish context about the relevant source code.
    - **Question Processing:** Sends the main question to the LLM to generate a comprehensive explanation using the provided project context and selected source files.
    - **Response Handling:** Receives and compiles the LLM's response, handling scenarios where token limits are reached by utilizing continuation segments as configured.
-   - **Output Formatting:** If the `-q` flag is enabled, formats the output to include the original question, list of relevant files, indicators for files filtered out by the `no-upload` rule, and the generated answer.
+   - **Output Formatting:** In `full` mode, formats the output to include the original question, list of relevant files, indicators for files filtered out by the `no-upload` rule, and the generated answer.
 
 ## Best Practices
 
