@@ -26,7 +26,7 @@ func docFlags() *flag.FlagSet {
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
-	var docFile, docExample, descFile, action, userFilterFile, contextSaving string
+	var inputFile, outputFile, docExample, descFile, mode, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
 	flags := docFlags()
@@ -34,9 +34,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
-	flags.StringVar(&docFile, "r", "", "Target documentation file for processing (if omited, read from stdin and write result to stdout)")
+	flags.StringVar(&inputFile, "i", "", "Input documentation file for processing (if empty or '-', read from stdin). Not valid with 'draft' mode")
+	flags.StringVar(&outputFile, "o", "", "Output documentation file to write result to (if empty or '-', write to stdout)")
 	flags.StringVar(&docExample, "e", "", "Optional documentation file to use as an example/reference for style, structure and format, but not for content")
-	flags.StringVar(&action, "a", "write", "Select action to perform (valid values: draft|write|refine)")
+	flags.StringVar(&mode, "m", "", "Select operation mode to perform (valid values: draft|write|refine)")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.IntVar(&searchLimit, "s", 7, "Limit number of files related to target document returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
@@ -46,7 +47,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if docFile == "" {
+	readFromStdin := inputFile == "" || inputFile == "-"
+	writeToStdout := outputFile == "" || outputFile == "-"
+
+	if writeToStdout {
 		logger = stdErrLogger
 	}
 
@@ -65,9 +69,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
-	action = strings.ToUpper(action)
-	if action != "DRAFT" && action != "WRITE" && action != "REFINE" {
-		logger.Panicln("Invalid action provided")
+	mode = strings.ToUpper(mode)
+	if mode != "DRAFT" && mode != "WRITE" && mode != "REFINE" {
+		logger.Panicln("Invalid or missing mode provided (-m flag), valid values: draft|write|refine")
+	}
+
+	if mode == "DRAFT" && !readFromStdin {
+		logger.Panicln("Input file (-i flag) is not valid with 'draft' mode")
 	}
 
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
@@ -124,7 +132,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var docExampleContent string
 	var docContent string
 
-	if action == "DRAFT" {
+	if mode == "DRAFT" {
 		docContent = MDDocDraft
 	} else {
 		docConfig := config.LoadOpDocConfig(perpetualDir, logger)
@@ -177,13 +185,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		//Load main document
-		if docFile != "" {
-			docContent, wrn, err = utils.LoadTextFile(docFile)
+		if !readFromStdin {
+			docContent, wrn, err = utils.LoadTextFile(inputFile)
 			if err != nil {
 				logger.Panicln("Error reading target document:", err)
 			}
 			if wrn != "" {
-				logger.Warnf("%s: %s", docFile, wrn)
+				logger.Warnf("%s: %s", inputFile, wrn)
 			}
 		} else {
 			logger.Infoln("Reading document from stdin")
@@ -219,12 +227,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		var docPrompt string
-		if action == "WRITE" {
+		if mode == "WRITE" {
 			docPrompt = docConfig.String(config.K_DocStage1WritePrompt)
-		} else if action == "REFINE" {
+		} else if mode == "REFINE" {
 			docPrompt = docConfig.String(config.K_DocStage1RefinePrompt)
 		} else {
-			logger.Panicln("Invalid action:", action)
+			logger.Panicln("Invalid mode:", mode)
 		}
 
 		// Perform context saving measures - use local search to select only selected percentage of the most relevant files
@@ -311,7 +319,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		docPrompt = docConfig.String(config.K_DocStage2WritePrompt)
-		if action == "REFINE" {
+		if mode == "REFINE" {
 			docPrompt = docConfig.String(config.K_DocStage2RefinePrompt)
 		}
 
@@ -345,14 +353,14 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Write output to file or stdout
-	if docFile != "" {
-		logger.Infoln("Writing document:", docFile)
-		wrn, err := utils.SaveTextFile(docFile, docContent)
+	if !writeToStdout {
+		logger.Infoln("Writing document:", outputFile)
+		wrn, err := utils.SaveTextFile(outputFile, docContent)
 		if err != nil {
 			logger.Panicln("Error writing to output file:", err)
 		}
 		if wrn != "" {
-			logger.Warnf("%s: %s", docFile, wrn)
+			logger.Warnf("%s: %s", outputFile, wrn)
 		}
 	} else {
 		err := utils.WriteTextStdout(docContent)
