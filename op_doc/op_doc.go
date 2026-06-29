@@ -232,11 +232,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		var docPrompt string
-		if mode == "WRITE" {
+		switch mode {
+		case "WRITE":
 			docPrompt = docConfig.String(config.K_DocStage1WritePrompt)
-		} else if mode == "REFINE" {
+		case "REFINE":
 			docPrompt = docConfig.String(config.K_DocStage1RefinePrompt)
-		} else {
+		default:
 			logger.Panicln("Invalid mode:", mode)
 		}
 
