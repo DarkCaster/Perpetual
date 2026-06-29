@@ -27,31 +27,36 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger, stdErrLogger logging.ILogger) {
-	var help, addAnnotations, listFilesOnly, verbose, trace, noAnnotate, forceUpload, addQuestion, includeTests bool
-	var descFile, outputFile, taskFile, extraFile, userFilterFile, contextSaving string
+	var help, addAnnotations, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var descFile, outputFile, inputFile, extraFile, userFilterFile, contextSaving, mode string
 	var searchLimit, selectionPasses int
 
 	flags := docFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.BoolVar(&addAnnotations, "a", false, "Add project annotation in addition to files requested by LLM to improve the quality of the answer")
-	flags.BoolVar(&listFilesOnly, "l", false, "Only list files that LLM thinks are related to the question, do not generate the final answer. One filename per line, no formatting.")
+	flags.StringVar(&mode, "m", "", "Select operation mode to perform (valid values: normal|list|full)\n"+
+		"normal: generate the final answer to the question.\n"+
+		"list:   only list files that LLM thinks are related to the question, do not generate the final answer. One filename per line, no formatting.\n"+
+		"full:   include the question text and the list of relevant files in the generated answer.")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
-	flags.StringVar(&outputFile, "r", "", "Target file for writing answer, markdown formatted (stdout if not supplied)")
-	flags.StringVar(&taskFile, "t", "", "Read question from a text file (plain text or Markdown). Use '-' to read question from stdin. This flag is required")
+	flags.StringVar(&outputFile, "o", "", "Output file to write result to. If empty or '-', write to stdout. Output type depends on the selected mode")
+	flags.StringVar(&inputFile, "i", "", "Input file to read question from (plain text or Markdown). If empty or '-', read from stdin")
 	flags.StringVar(&extraFile, "e", "", "Read instructions from a text or markdown file that will be used in step 1 to select relevant files. Use if the original question is not good enough for LLM to select relevant files.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
-	flags.BoolVar(&addQuestion, "aq", false, "Include the question text and the list of relevant files in the generated answer")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if outputFile == "" {
+	readFromStdin := inputFile == "" || inputFile == "-"
+	writeToStdout := outputFile == "" || outputFile == "-"
+
+	if writeToStdout {
 		logger = stdErrLogger
 	}
 
@@ -70,6 +75,19 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		usage.PrintOperationUsage("", flags)
 	}
 
+	mode = strings.ToUpper(mode)
+	if mode == "" {
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|list|full)", flags)
+	}
+
+	if mode != "NORMAL" && mode != "LIST" && mode != "FULL" {
+		logger.Errorln("Invalid mode:", mode)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: normal|list|full)", flags)
+	}
+
+	listFilesOnly := mode == "LIST"
+	addQuestion := mode == "FULL"
+
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
 
 	if searchLimit < 0 {
@@ -77,10 +95,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 	if selectionPasses < 1 {
 		logger.Panicln("Selection passes count (-sp flag) value is invalid", selectionPasses)
-	}
-
-	if taskFile == "" {
-		usage.PrintOperationUsage("You must provide the '-t' flag with a question file path or '-' to read from stdin", flags)
 	}
 
 	// Find project root and perpetual directories
@@ -164,7 +178,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Read input from file or stdin
 	var question string
-	if taskFile == "-" {
+	if readFromStdin {
 		logger.Infoln("Reading question from stdin")
 		data, wrn, err := utils.LoadTextStdin()
 		if err != nil {
@@ -175,12 +189,12 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 		question = string(data)
 	} else {
-		data, wrn, err := utils.LoadTextFile(taskFile)
+		data, wrn, err := utils.LoadTextFile(inputFile)
 		if err != nil {
 			logger.Panicln("Error reading input file:", err)
 		}
 		if wrn != "" {
-			logger.Warnf("%s: %s", taskFile, wrn)
+			logger.Warnf("%s: %s", inputFile, wrn)
 		}
 		question = data
 	}
@@ -294,7 +308,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if listFilesOnly {
 		// for this mode, just list files one file per line for easier parsing with 3-rd party tool
-		if outputFile != "" {
+		if !writeToStdout {
 			wrn, err := utils.SaveTextFile(outputFile, strings.Join(requestedFiles, "\n"))
 			if err != nil {
 				logger.Panicln("Error writing to output file:", err)
@@ -386,7 +400,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	// Write output to file or stdout
-	if outputFile != "" {
+	if !writeToStdout {
 		logger.Infoln("Writing answer to file:", outputFile)
 		wrn, err := utils.SaveTextFile(outputFile, strings.Join(outputStrings, "\n"))
 		if err != nil {
