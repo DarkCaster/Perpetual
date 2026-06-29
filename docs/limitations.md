@@ -6,7 +6,6 @@ This document outlines the current technical limitations. These limitations may 
 
 Given `Perpetual`'s focus on direct codebase interaction and maintaining simplicity, it has some limitations on file operations:
 
-- Cannot delete project files
 - Cannot run external tools or commands on the user's system
 - Cannot directly interact with version control systems (e.g., Git, SVN)
 - Cannot install packages (e.g., npm, NuGet)
@@ -15,6 +14,8 @@ Given `Perpetual`'s focus on direct codebase interaction and maintaining simplic
 These limitations are in place to ensure a controlled and safe environment for code manipulation.
 
 `Perpetual` can create, modify, and delete project files during implementation, but generated changes are applied through the stash mechanism. The stash records both original and modified file states, including whether each file exists. Applying a stash can therefore create, modify, or delete files. Rolling back a stash restores backed-up original files, restores files that were deleted by the generated changes, and removes files that were newly created by the stash. Empty directories created for new files may remain after rollback, because stash rollback operates on files.
+
+File deletion is requested by the LLM during the planning stage (stage 3) of the `implement` operation using dedicated delete tags, and is only available when planning is active. If a file is both modified and deleted, deletion takes precedence.
 
 ## Supported Source File Encoding
 
@@ -98,6 +99,16 @@ Because project root detection happens before `.env` files are loaded, `PERPETUA
 
 This approach ensures that `Perpetual` operates within the intended project scope.
 
+## Concurrent Execution
+
+`Perpetual` creates a lock file (`.perpetual.lock`) inside the `.perpetual` configuration directory when it starts a top-level operation. This prevents running multiple instances of `Perpetual` at the same time for a single project:
+
+- If the lock file already exists when a new top-level invocation starts, `Perpetual` stops with an error, assuming another instance may be running.
+- The lock file is removed automatically during cleanup when the operation completes.
+- Internally invoked sub-operations (for example, `annotate` and `embed` triggered by `implement`, `doc`, or `explain`) reuse the existing lock instead of creating a new one.
+
+If a previous run terminated abnormally and left a stale lock file behind, you may need to remove `.perpetual/.perpetual.lock` manually before running `Perpetual` again.
+
 ## Project Size Limitations
 
 `Perpetual` must balance comprehensive code analysis with the context window limitations of modern LLMs. To accomplish this, it uses a staged approach for handling projects of various sizes.
@@ -162,7 +173,7 @@ Each operation or sub-operation may have its own context saving behavior. Curren
 - `implement`, `doc`, and `explain` can use project-file pre-selection with local similarity search to reduce the annotation count sent to the LLM during stage 1.
 - Additional local similarity search can also add relevant files after LLM file selection.
 
-**Important**: If manually changing context saving mode, it is recommended to reannotate your project with the `-f` flag to regenerate all annotations with the selected verbosity level. It is also recommended to reannotate project files if the project reaches thresholds where automatic context saving changes from regular annotations to shorter annotations.
+**Important**: If manually changing context saving mode, it is recommended to reannotate your project with the `-m full` flag to regenerate all annotations with the selected verbosity level. It is also recommended to reannotate project files if the project reaches thresholds where automatic context saving changes from regular annotations to shorter annotations.
 
 Currently, the context saving mode used for existing annotations is not saved. If you want to set it manually, you need to use `-c` on each invocation of the `perpetual` utility.
 
