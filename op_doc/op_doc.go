@@ -70,8 +70,13 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	}
 
 	mode = strings.ToUpper(mode)
+	if mode == "" {
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: draft|write|refine)", flags)
+	}
+
 	if mode != "DRAFT" && mode != "WRITE" && mode != "REFINE" {
-		logger.Panicln("Invalid or missing mode provided (-m flag), valid values: draft|write|refine")
+		logger.Errorln("Invalid mode:", mode)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: draft|write|refine)", flags)
 	}
 
 	if mode == "DRAFT" && !readFromStdin {
