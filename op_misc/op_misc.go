@@ -71,10 +71,10 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	case "save-utf":
 		checkFilesAndSaveAsUTF = true
 	case "":
-		help = true
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: proj-test|list|check-read|check-ascii|save-utf)", flags)
 	default:
 		stdErrLogger.Errorln("Invalid operation mode:", mode)
-		help = true
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: proj-test|list|check-read|check-ascii|save-utf)", flags)
 	}
 
 	if help {

@@ -97,10 +97,10 @@ func Run(args []string, logger logging.ILogger) {
 			planningMode = false
 		}
 	case "":
-		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task, comment)", flags)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment)", flags)
 	default:
 		logger.Errorln("Invalid operation mode:", mode)
-		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task, comment)", flags)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment)", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps

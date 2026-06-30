@@ -56,15 +56,14 @@ func Run(version string, args []string, logger logging.ILogger) {
 	case "install":
 		install = true
 	case "":
-		help = true
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: check|install)", onboardFlags)
 	default:
 		logger.Errorln("Invalid operation mode:", mode)
-		help = true
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: check|install)", onboardFlags)
 	}
 
 	if help {
 		usage.PrintOperationUsage("", onboardFlags)
-		return
 	}
 
 	if check {

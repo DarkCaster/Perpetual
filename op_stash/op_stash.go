@@ -131,15 +131,14 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	case "rollback":
 		rollback = true
 	case "":
-		help = true
+		usage.PrintOperationUsage("You must provide a valid report mode with the '-m' flag (valid values: list|list-files|apply|rollback)", flags)
 	default:
 		logger.Errorln("Invalid operation mode:", mode)
-		help = true
+		usage.PrintOperationUsage("You must provide a valid report mode with the '-m' flag (valid values: list|list-files|apply|rollback)", flags)
 	}
 
 	if help {
 		usage.PrintOperationUsage("", flags)
-		return
 	}
 
 	outerCallLogger := logger.Clone()

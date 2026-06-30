@@ -27,7 +27,9 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	flags.BoolVar(&help, "h", false, "Show usage")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
-	flags.StringVar(&reportMode, "m", "code", "Select report mode (valid values: code|brief)")
+	flags.StringVar(&reportMode, "m", "", "Select report mode (valid values: code|brief)\n"+
+		"code:  Generate report with full project source code.\n"+
+		"brief: Generate report with brief annotations of project files.")
 	flags.StringVar(&outputFile, "o", "", "File path to write report to (write to stdout if set to '-', not provided or empty)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for forwarding into annotate operation (valid values: file-path|disabled)")
 	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
@@ -59,6 +61,19 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	// Validate selected report mode
+	switch strings.ToUpper(reportMode) {
+	case "CODE":
+		logger.Infoln("Running in code report mode")
+	case "BRIEF":
+		logger.Infoln("Running in brief report mode")
+	case "":
+		usage.PrintOperationUsage("You must provide a valid report mode with the '-m' flag (valid values: code|brief)", flags)
+	default:
+		logger.Errorln("Invalid report mode:", reportMode)
+		usage.PrintOperationUsage("You must provide a valid report mode with the '-m' flag (valid values: code|brief)", flags)
 	}
 
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
@@ -137,7 +152,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			reportConfig.Tags(config.K_ReportFilenameTags),
 			annotations,
 			logger)
-	} else if strings.ToUpper(reportMode) == "CODE" {
+	} else {
 		// Generate report messages
 		reportMessage = llm.ComposeMessageWithSourceFiles(
 			projectRootDir,
@@ -145,8 +160,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			fileNames,
 			reportConfig.Tags(config.K_ReportFilenameTags),
 			logger)
-	} else {
-		logger.Panicln("Invalid report mode:", reportMode)
 	}
 	reportStrings, err := llm.RenderMessagesToAIStrings(projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings), []llm.Message{reportMessage})
 
