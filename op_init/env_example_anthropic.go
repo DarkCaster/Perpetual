@@ -29,15 +29,15 @@ ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 
 # Model selection for different operations and stages
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-haiku-4-5-20251001"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-4-6"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-5"
 ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-opus-4-8"
-# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-4-6"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-5"
 ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-opus-4-8"
-# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-sonnet-4-6"
+# ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-sonnet-5"
 ANTHROPIC_MODEL_OP_DOC_STAGE2="claude-opus-4-8"
-# ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1="claude-sonnet-4-6"
+# ANTHROPIC_MODEL_OP_EXPLAIN_STAGE1="claude-sonnet-5"
 ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2="claude-opus-4-8"
-ANTHROPIC_MODEL="claude-sonnet-4-6"
+ANTHROPIC_MODEL="claude-sonnet-5"
 
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
@@ -49,7 +49,7 @@ ANTHROPIC_MODEL="claude-sonnet-4-6"
 # ANTHROPIC_INCRMODE_RETRIES="0"
 
 # Options for limiting output tokens for different operations and stages, must be set
-ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="1024"
+ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="2048"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="16384" # work plan also should not be too big (includes think tokens)
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="3072" # file-list for processing, long list is probably an error (includes think tokens)
