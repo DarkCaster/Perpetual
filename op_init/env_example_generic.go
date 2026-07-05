@@ -25,8 +25,8 @@ const genericEnvExample = `# Options for generic provider with OpenAI compatible
 # LLM_PROVIDER="generic"
 
 # Base url is a required parameter for generic OpenAI API compatible provider
-GENERIC_BASE_URL="http://127.0.0.1:8080/v1"
-# GENERIC_BASE_URL="https://api.deepseek.com/v1" # official deep-seek (https://www.deepseek.com/)
+GENERIC_BASE_URL="https://api.deepseek.com/v1" # official deep-seek (https://www.deepseek.com/)
+# GENERIC_BASE_URL="http://127.0.0.1:8080/v1" # llama.cpp defaults
 # GENERIC_BASE_URL="https://<your-resource-name>.services.ai.azure.com/models" # Azure AI Foundry
 
 # Authentication, optional, but most likely required by your provider
@@ -49,7 +49,7 @@ GENERIC_BASE_URL="http://127.0.0.1:8080/v1"
 # GENERIC_ENABLE_STREAMING_OP_DOC_STAGE2="0"
 # GENERIC_ENABLE_STREAMING_OP_EXPLAIN_STAGE1="0"
 # GENERIC_ENABLE_STREAMING_OP_EXPLAIN_STAGE2="0"
-# GENERIC_ENABLE_STREAMING="0"
+GENERIC_ENABLE_STREAMING="1"
 
 # Format of max-tokens API parameter: old (default), new. Value depends on provider support and/or model.
 # Old is "max_tokens=<value>", New is "max_completion_tokens=<value>"
@@ -82,17 +82,17 @@ GENERIC_BASE_URL="http://127.0.0.1:8080/v1"
 # GENERIC_API_VERSION="preview"
 
 # Model selection for different operations and stages
-# GENERIC_MODEL_OP_ANNOTATE="deepseek-chat"
-# GENERIC_MODEL_OP_EMBED="unknown" # depends on provider
-# GENERIC_MODEL_OP_IMPLEMENT_STAGE1="deepseek-chat"
-GENERIC_MODEL_OP_IMPLEMENT_STAGE2="deepseek-reasoner"
-# GENERIC_MODEL_OP_IMPLEMENT_STAGE3="deepseek-chat"
-GENERIC1_MODEL_OP_IMPLEMENT_STAGE4="deepseek-reasoner"
-# GENERIC_MODEL_OP_DOC_STAGE1="deepseek-chat"
-GENERIC_MODEL_OP_DOC_STAGE2="deepseek-reasoner"
-# GENERIC_MODEL_OP_EXPLAIN_STAGE1="deepseek-chat"
-GENERIC_MODEL_OP_EXPLAIN_STAGE2="deepseek-reasoner"
-GENERIC_MODEL="deepseek-chat"
+GENERIC_MODEL_OP_ANNOTATE="deepseek-v4-flash"
+# GENERIC_MODEL_OP_EMBED="snowflake-arctic-embed" # depends on provider, just an example here
+GENERIC_MODEL_OP_IMPLEMENT_STAGE1="deepseek-v4-flash"
+# GENERIC_MODEL_OP_IMPLEMENT_STAGE2="deepseek-v4-pro"
+GENERIC_MODEL_OP_IMPLEMENT_STAGE3="deepseek-v4-flash"
+# GENERIC_MODEL_OP_IMPLEMENT_STAGE4="deepseek-v4-pro"
+GENERIC_MODEL_OP_DOC_STAGE1="deepseek-v4-flash"
+# GENERIC_MODEL_OP_DOC_STAGE2="deepseek-v4-pro"
+GENERIC_MODEL_OP_EXPLAIN_STAGE1="deepseek-v4-flash"
+# GENERIC_MODEL_OP_EXPLAIN_STAGE2="deepseek-v4-pro"
+GENERIC_MODEL="deepseek-v4-pro"
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search or may not work at all. Highly model-dependent.
@@ -123,16 +123,16 @@ GENERIC_MODEL="deepseek-chat"
 # GENERIC_INCRMODE_RETRIES="0"
 
 # Options for limiting output tokens for different operations and stages, must be set
-GENERIC_MAX_TOKENS_OP_ANNOTATE="1024" # you shoud keep the summary short.
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="12288" # work plan generation may consume pretty much tokens if using deepseek-reasoner model
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="1024" # file-list for processing, long list is probably an error
-GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="12288" # generated code output limit should be big, but it may reduce maximum context size available
-GENERIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, longer list is probably an error
-GENERIC_MAX_TOKENS_OP_DOC_STAGE2="16384" # generated document output limit should be big, but it may reduce maximum context size available
-GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="1024" # file-list for review
-GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="12288" # generated answer output limit
-GENERIC_MAX_TOKENS="4096" # probably should work with most LLMs
+GENERIC_MAX_TOKENS_OP_ANNOTATE="2048" # keep the summary short, instead of raising the limit use "NOTE for summarization" comments at the source code
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="32768" # file-list for review (includes tokens for thinking)
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="32768" # work plan generation (includes tokens for thinking)
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="32768" # file-list for processing (includes tokens for thinking)
+GENERIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="65536" # generated code output limit should be big, but it may affect maximum context size available for the request
+GENERIC_MAX_TOKENS_OP_DOC_STAGE1="32768" # file-list for review (includes tokens for thinking)
+GENERIC_MAX_TOKENS_OP_DOC_STAGE2="65536" # generated code output limit should be big, but it may affect maximum context size available for the request
+GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE1="32768" # file-list for review (includes tokens for thinking)
+GENERIC_MAX_TOKENS_OP_EXPLAIN_STAGE2="65536" # generated code output limit should be big, but it may affect maximum context size available for the request
+GENERIC_MAX_TOKENS="8192" # probably should work with most LLMs
 
 # Options to control retries (including rate-limit hits) and partial output due to token limit
 GENERIC_MAX_TOKENS_SEGMENTS="3"
@@ -189,7 +189,7 @@ GENERIC_ON_FAIL_RETRIES="5"
 
 # Optional extra JSON object to inject into outgoing LLM request, per operation
 # Must be a valid JSON object, will silently overwrite objects with matching names
-# GENERIC_ADD_JSON_OP_ANNOTATE=""
+GENERIC_ADD_JSON_OP_ANNOTATE="{ \"enable_thinking\": false }"
 # GENERIC_ADD_JSON_OP_EMBED=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE1=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE2=""
