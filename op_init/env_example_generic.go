@@ -189,7 +189,7 @@ GENERIC_ON_FAIL_RETRIES="5"
 
 # Optional extra JSON object to inject into outgoing LLM request, per operation
 # Must be a valid JSON object, will silently overwrite objects with matching names
-GENERIC_ADD_JSON_OP_ANNOTATE="{ \"enable_thinking\": false }"
+GENERIC_ADD_JSON_OP_ANNOTATE="{ \"thinking\": { \"type\" : \"disabled\" }}"
 # GENERIC_ADD_JSON_OP_EMBED=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE1=""
 # GENERIC_ADD_JSON_OP_IMPLEMENT_STAGE2=""
