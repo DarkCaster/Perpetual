@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -181,6 +182,8 @@ func Run(args []string, logger logging.ILogger) {
 	if !utils.CheckForPathSeparatorsInFilenames(fileNames) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
+
+	//Possible initial continue point, restore cmdline argument saved at the json file here ?
 
 	// Read input from file or stdin
 	var task string
@@ -424,6 +427,41 @@ func Run(args []string, logger logging.ILogger) {
 		true,
 		logger,
 	)
+
+	runFinalStages(projectRootDir,
+		perpetualDir,
+		projectConfig,
+		implementConfig,
+		planningMode,
+		allFileNames,
+		projectFilesBlacklist,
+		forceUpload,
+		filesToReview,
+		targetFiles,
+		messages,
+		task,
+		noIncrMode,
+		fileNames,
+		logger)
+}
+
+// stage 3 and stage 4 run from here
+func runFinalStages(
+	projectRootDir string,
+	perpetualDir string,
+	projectConfig config.Config,
+	implementConfig config.Config,
+	planningMode bool,
+	allFileNames []string,
+	projectFilesBlacklist []*regexp.Regexp,
+	forceUpload bool,
+	filesToReview []string,
+	targetFiles []string,
+	messages []llm.Message,
+	task string,
+	noIncrMode bool,
+	fileNames []string,
+	logger logging.ILogger) {
 
 	// Run stage 3 - get list of files to modify
 	messages, otherFilesToModify, targetFilesToModify, filesToDelete := Stage3(
