@@ -43,22 +43,22 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 ### Removed Obsolete Features
 
 - Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
-- Removed simplified planning mode from `implement` operation (without extra reasonings), not effective enough both with task-mode and comment-mode.
+- Removed simplified planning mode from `implement` operation (without reasonings at stage 2), not effective enough both with task-mode and comment-mode. Now, when planning is enabled, it always includes a reasonings step.
 - Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models, and is hard to maintain due to JSON schema compatibility differences across providers.
 
 ### Improvements
 
-- Unified command-line flags across different operations. Most operations are using "mode" (`-m`) switch for its core functions. Potentially dangerous flags are less likely to cause confusion across different operations.
+- Unified command-line flags across different operations. Most operations use the "mode" (`-m`) switch for their core functions. Potentially dangerous flags are less likely to cause confusion across different operations.
 - Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
 - Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-ex` flag to create the examples if needed.
-- Reworked the `implement` operation to select its operation mode with the `-m` flag: `task` mode and `comment` mode.
+- Reworked the `implement` operation to select its operation mode with the `-m` flag: `task`, `comment`, and `comment-fast` modes.
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
-- In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; use the `-p` flag to enable extra planning that allows making changes to other files.
-- Added file deletion support to the `implement` operation: should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states; Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
-- Updated `.env.example` for the Anthropic provider for new models.
+- In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
+- Added file deletion support to the `implement` operation; this should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states. Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
+- Updated `.env.example` for the Anthropic provider with support for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
-- Improved displaying of panic failure messages: only show the stack-trace when panic is called directly, not from the logger.
+- Improved displaying of panic failure messages: only show the stack trace when a panic is called directly, not from the logger.
 - Added a lockfile inside the `.perpetual` config directory to prevent running multiple instances at the same time for a single project.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
