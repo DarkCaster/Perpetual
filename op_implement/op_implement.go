@@ -20,7 +20,7 @@ import (
 )
 
 const OpName = "implement"
-const OpDesc = "Implement code accodring instructions marked with ###IMPLEMENT### comments"
+const OpDesc = "Implement code accodring instructions from task or from ###IMPLEMENT### comments"
 
 func implementFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)
@@ -28,20 +28,20 @@ func implementFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests, plannerMode bool
+	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests bool
 	var mode, descFile, inputFile, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
 	// Parse flags for the "implement" operation
 	flags := implementFlags()
 	flags.BoolVar(&help, "h", false, "Show usage")
-	flags.StringVar(&mode, "m", "", "Select operation mode: task, comment.\n"+
-		"task:    Implement code based on a task read from a text file or stdin (see '-i' flag). Uses planning, can affect any project files.\n"+
-		"comment: Generate code marked with ###IMPLEMENT### comments in the source code. Cannot affect other files unless using '-p' flag.")
+	flags.StringVar(&mode, "m", "", "Select operation mode: task, comment, comment-fast.\n"+
+		"task:         Implement code based on a task read from a text file or stdin (see '-i' flag). Uses planning, can affect any project files.\n"+
+		"comment:      Generate code marked with ###IMPLEMENT### comments in the source code. Uses planning, can affect any project files.\n"+
+		"comment-fast: Generate code marked with ###IMPLEMENT### comments, works only inside that files and skips planning (stage 2 and 3)")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&inputFile, "i", "", "Path to a text file (plain text or Markdown) with task to implement for task mode ('-m task'). If empty or '-' then read task from stdin")
-	flags.BoolVar(&plannerMode, "p", false, "Enable extra planning allowing making changes to other files when using comment mode ('-m comment')")
 	flags.BoolVar(&noAnnotate, "n", false, "No annotate mode: skip re-annotating of changed files and use current annotations if any")
 	flags.BoolVar(&noIncrMode, "ni", false, "No incremental mode: disable using incremental 'search-and-replace' mode when generating file changes")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review and processing if reqested")
@@ -81,27 +81,25 @@ func Run(args []string, logger logging.ILogger) {
 	planningMode := false
 	switch mode {
 	case "task":
-		if plannerMode {
-			usage.PrintOperationUsage("The '-p' flag can be only used in comment mode ('-m comment')", flags)
-		}
 		logger.Infoln("Running in task-implement mode")
 		planningMode = true
 	case "comment":
 		if inputFile != "" {
 			usage.PrintOperationUsage("The '-i' flag can be only used in task mode ('-m task')", flags)
 		}
-		if plannerMode {
-			logger.Infoln("Running in direct-implement mode with extra planning")
-			planningMode = true
-		} else {
-			logger.Infoln("Running in direct-implement mode without planning")
-			planningMode = false
+		logger.Infoln("Running in direct-implement mode with extra planning")
+		planningMode = true
+	case "comment-fast":
+		if inputFile != "" {
+			usage.PrintOperationUsage("The '-i' flag can be only used in task mode ('-m task')", flags)
 		}
+		logger.Infoln("Running in direct-implement mode without planning")
+		planningMode = false
 	case "":
-		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment)", flags)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment|comment-fast)", flags)
 	default:
 		logger.Errorln("Invalid operation mode:", mode)
-		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment)", flags)
+		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: task|comment|comment-fast)", flags)
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
