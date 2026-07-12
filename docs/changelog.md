@@ -21,6 +21,12 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Roadmap
 
+Add support for prompt cache management for OpenAI, Generic and Anthropic providers. Will be beneficial with Anthropic and latest OpenAI models to reduce costs.
+
+- Enable/disable per operation/stage at the .env files, disabled by-default, allow setting cache timeout if supported.
+- When enabled - evaluate if caching is needed for each operation and stage.
+- When attempting to use caching, add needed parameters to the JSON request, mark exact message at the JSON request to enable prefix caching up to this point.
+
 Add support for using `Perpetual` as a tool for writing code with an external agent:
 
 - Add `Skill.md`;
