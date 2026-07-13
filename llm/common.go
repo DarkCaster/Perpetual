@@ -135,7 +135,9 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 						builder.WriteString("\n")
 					}
 					// Placing filenames in a such way between tags will serve as example for LLM how to deal with filenames in responses
-					builder.WriteString(fragment.FileNameTags.Left + fragment.FileName + fragment.FileNameTags.Right)
+					builder.WriteString(fragment.FileNameTags.Left)
+					builder.WriteString(fragment.FileName)
+					builder.WriteString(fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 				case FileFragment:
 					// Each file fragment must have a blank line between it and previous text
@@ -143,9 +145,12 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 						builder.WriteString("\n")
 					}
 					// Following formatting will also show LLM how to deal with filenames and file contens in responses
-					builder.WriteString(fragment.FileNameTags.Left + fragment.FileName + fragment.FileNameTags.Right)
+					builder.WriteString(fragment.FileNameTags.Left)
+					builder.WriteString(fragment.FileName)
+					builder.WriteString(fragment.FileNameTags.Right)
 					builder.WriteString("\n")
-					builder.WriteString("```" + getMarkdownCodeBlockType(filesToMdLangMappings, fragment.FileName))
+					builder.WriteString("```")
+					builder.WriteString(getMarkdownCodeBlockType(filesToMdLangMappings, fragment.FileName))
 					builder.WriteString("\n")
 					builder.WriteString(fragment.Contents)
 					if fragment.Contents != "" && fragment.Contents[len(fragment.Contents)-1] != '\n' {
