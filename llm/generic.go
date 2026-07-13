@@ -65,6 +65,7 @@ type GenericLLMConnector struct {
 	OutputExtractRx       []*regexp.Regexp
 	Debug                 llmDebug
 	RateLimitDelayS       int
+	CacheConfig           string
 }
 
 func NewGenericLLMConnectorFromEnv(
@@ -410,6 +411,12 @@ func NewGenericLLMConnectorFromEnv(
 		}
 	}
 
+	cacheConfig := ""
+	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
+		cacheConfig = val
+		debug.Add("cache", val)
+	}
+
 	return &GenericLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               baseURL,
@@ -446,6 +453,7 @@ func NewGenericLLMConnectorFromEnv(
 		OutputExtractRx:       outRx,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
+		CacheConfig:           cacheConfig,
 	}, nil
 }
 

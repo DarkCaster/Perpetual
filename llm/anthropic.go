@@ -36,6 +36,7 @@ type AnthropicLLMConnector struct {
 	FieldsToRemove        []string
 	Debug                 llmDebug
 	RateLimitDelayS       int
+	CacheConfig           string
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -157,6 +158,12 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("top p", topP)
 	}
 
+	cacheConfig := ""
+	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
+		cacheConfig = val
+		debug.Add("cache", val)
+	}
+
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -173,6 +180,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		FieldsToRemove:        fieldsToRemove,
 		Debug:                 debug,
 		RateLimitDelayS:       0,
+		CacheConfig:           cacheConfig,
 	}, nil
 }
 

@@ -47,6 +47,7 @@ type OpenAILLMConnector struct {
 	EmbedThreshold               float32
 	Debug                        llmDebug
 	RateLimitDelayS              int
+	CacheConfig                  string
 }
 
 func NewOpenAILLMConnectorFromEnv(
@@ -250,6 +251,12 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("service tier fallback", fallbackTier)
 	}
 
+	cacheConfig := ""
+	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
+		cacheConfig = val
+		debug.Add("cache", val)
+	}
+
 	return &OpenAILLMConnector{
 		Subprofile:                   subprofile,
 		BaseURL:                      customBaseURL,
@@ -276,6 +283,7 @@ func NewOpenAILLMConnectorFromEnv(
 		EmbedThreshold:               embedThreshold,
 		Debug:                        debug,
 		RateLimitDelayS:              0,
+		CacheConfig:                  cacheConfig,
 	}, nil
 }
 
