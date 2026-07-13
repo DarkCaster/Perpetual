@@ -231,7 +231,7 @@ func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus,
 	llmMessages := utils.NewSlice(
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	convertedMessages, _, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return "", QueryInitFailed, err
 	}

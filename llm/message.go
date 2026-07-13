@@ -30,9 +30,10 @@ type Fragment struct {
 }
 
 type Message struct {
-	Type      MessageType
-	Fragments []Fragment
-	RawText   string
+	Type            MessageType
+	Fragments       []Fragment
+	RawText         string
+	CacheBreakpoint bool
 }
 
 func NewMessage(messageType MessageType) Message {

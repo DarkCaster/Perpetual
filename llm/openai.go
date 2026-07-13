@@ -573,7 +573,7 @@ func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: systemPrompt}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	convertedMessages, _, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return "", QueryInitFailed, err
 	}

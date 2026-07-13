@@ -726,7 +726,7 @@ func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, er
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
+	convertedMessages, _, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
