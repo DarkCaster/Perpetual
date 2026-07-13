@@ -99,6 +99,24 @@ OPENAI_MODEL="gpt-5.5"
 # Number of retries to apply incremental mode changes, before switching to the full-file mode
 # OPENAI_INCRMODE_RETRIES="0"
 
+# Prompt caching option
+# If unset - do not modify API requests in any way to manage caching;
+# If set: "0" - clear API requests from any caching directives (will use provider and model dependent implicit caching);
+# "-1" - use explicit caching via prompt_cache_options.mode parameter but do not set breakpoints effectively disabling caching;
+# "1" - use explicit caching with breakpoints; any other value - use explicit caching with breakpoints and use the value as TTL (support may vary);
+# Per-operation override:
+# OPENAI_CACHE_OP_ANNOTATE="0"
+# OPENAI_CACHE_OP_EMBED="0"
+# OPENAI_CACHE_OP_IMPLEMENT_STAGE1="0"
+# OPENAI_CACHE_OP_IMPLEMENT_STAGE2="0"
+# OPENAI_CACHE_OP_IMPLEMENT_STAGE3="0"
+# OPENAI_CACHE_OP_IMPLEMENT_STAGE4="0"
+# OPENAI_CACHE_OP_DOC_STAGE1="0"
+# OPENAI_CACHE_OP_DOC_STAGE2="0"
+# OPENAI_CACHE_OP_EXPLAIN_STAGE1="0"
+# OPENAI_CACHE_OP_EXPLAIN_STAGE2="0"
+# OPENAI_CACHE="0"
+
 # Options for limiting output tokens for different operations and stages, must be set.
 # Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.

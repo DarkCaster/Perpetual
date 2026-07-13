@@ -48,6 +48,21 @@ ANTHROPIC_MODEL="claude-sonnet-5"
 # Number of retries to apply incremental mode changes, before switching to the full-file mode
 # ANTHROPIC_INCRMODE_RETRIES="0"
 
+# Prompt caching option
+# If unset - do not modify API requests in any way to manage caching;
+# If set: "0" - disable caching; "1" - enable default 5-minute cache; any other value will be interpreted as cache-control TTL (seconds);
+# Per-operation override:
+# ANTHROPIC_CACHE_OP_ANNOTATE="0"
+# ANTHROPIC_CACHE_OP_IMPLEMENT_STAGE1="0"
+# ANTHROPIC_CACHE_OP_IMPLEMENT_STAGE2="0"
+# ANTHROPIC_CACHE_OP_IMPLEMENT_STAGE3="0"
+# ANTHROPIC_CACHE_OP_IMPLEMENT_STAGE4="0"
+# ANTHROPIC_CACHE_OP_DOC_STAGE1="0"
+# ANTHROPIC_CACHE_OP_DOC_STAGE2="0"
+# ANTHROPIC_CACHE_OP_EXPLAIN_STAGE1="0"
+# ANTHROPIC_CACHE_OP_EXPLAIN_STAGE2="0"
+# ANTHROPIC_CACHE="0"
+
 # Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="2048"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
