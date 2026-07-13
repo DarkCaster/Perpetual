@@ -246,7 +246,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
 	filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
-	preselectedFileNames := shared.Stage1Preselect(
+	preselectedFileNames, sameFilesForAllPasses := shared.Stage1Preselect(
 		perpetualDir,
 		projectRootDir,
 		filesPercent,
@@ -282,6 +282,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			stage1query,
 			[]string{},
 			pass+1,
+			selectionPasses,
+			sameFilesForAllPasses,
 			stage1Logger)
 		// Prepare for local similarity search
 		searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(fileLists[pass]), searchLimit)

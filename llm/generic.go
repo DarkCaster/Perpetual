@@ -619,7 +619,7 @@ func (p *GenericLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content stri
 	return embeddings, QueryOk, nil
 }
 
-func (p *GenericLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return "", QueryInitFailed, errors.New("no prompts to query")
 	}

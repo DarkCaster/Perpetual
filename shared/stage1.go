@@ -32,6 +32,8 @@ func Stage1(
 	mainPromptBody string,
 	targetFiles []string,
 	pass int,
+	totalPasses int,
+	safeForCaching bool,
 	logger logging.ILogger) []string {
 
 	// Add trace and debug logging
@@ -107,6 +109,13 @@ func Stage1(
 	for _, item := range targetFiles {
 		analysisRequest = llm.AppendSourceFileToMessage(analysisRequest, projectRootDir, item, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 	}
+	// TODO: use real query repetition-ratio to enable cache, query from LLM
+	if totalPasses < 2 {
+		safeForCaching = false
+	}
+	// We can benefit from caching if stage 1 can be called multiple times with same input parameters.
+	// Set safeForCaching marker when calling stage 1 to inform about this condition where we can benefit from caching.
+	analysisRequest.CacheBreakpoint = safeForCaching
 
 	messages = append(messages, analysisRequest)
 	logger.Debugln("Created main request message")
@@ -120,7 +129,7 @@ func Stage1(
 	var filesForReviewRaw []string
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-		aiResponse, status, err := connector.Query(messages...)
+		aiResponse, status, err := connector.Query(safeForCaching, messages...)
 		if perfString := connector.GetPerfString(); perfString != "" {
 			logger.Traceln(perfString)
 		}

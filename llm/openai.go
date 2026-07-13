@@ -446,7 +446,7 @@ func (p *OpenAILLMConnector) CreateEmbeddings(mode EmbedMode, tag, content strin
 
 var openAIModelDateRegexp = regexp.MustCompile(`.*\-([0-9]*\-[0-9]*\-[0-9]*)$`)
 
-func (p *OpenAILLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return "", QueryInitFailed, errors.New("no prompts to query")
 	}

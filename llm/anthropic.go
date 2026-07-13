@@ -192,7 +192,7 @@ func (p *AnthropicLLMConnector) CreateEmbeddings(mode EmbedMode, tag, content st
 	return [][]float32{}, QueryInitFailed, errors.New("anthropic provider do not have support for embedding models and cannot create embeddings")
 }
 
-func (p *AnthropicLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (string, QueryStatus, error) {
 	if len(messages) < 1 {
 		return "", QueryInitFailed, errors.New("no prompts to query")
 	}

@@ -70,7 +70,7 @@ func Stage3(projectRootDir string,
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Request LLM to provide file list that will be modified (or created) while implementing code
 			var status llm.QueryStatus
-			aiResponse, status, err := connector.Query(messages...)
+			aiResponse, status, err := connector.Query(false, messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}

@@ -288,7 +288,7 @@ func Run(args []string, logger logging.ILogger) {
 		if nonTargetFilesAnnotationsCount > 0 {
 			// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
 			filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
-			preselectedFileNames := shared.Stage1Preselect(
+			preselectedFileNames, sameFilesForAllPasses := shared.Stage1Preselect(
 				perpetualDir,
 				projectRootDir,
 				filesPercent,
@@ -324,6 +324,8 @@ func Run(args []string, logger logging.ILogger) {
 					task,
 					targetFiles,
 					pass+1,
+					selectionPasses,
+					sameFilesForAllPasses,
 					stage1Logger)
 				// Prepare for local similarity search
 				searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)

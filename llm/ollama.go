@@ -639,7 +639,7 @@ func (p *OllamaLLMConnector) GrowContextSize() {
 	}
 }
 
-func (p *OllamaLLMConnector) Query(messages ...Message) (string, QueryStatus, error) {
+func (p *OllamaLLMConnector) Query(allowCaching bool, messages ...Message) (string, QueryStatus, error) {
 	p.PerfString = ""
 
 	if len(messages) < 1 {

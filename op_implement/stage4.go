@@ -49,6 +49,11 @@ func Stage4(projectRootDir string,
 	}
 
 	// Main processing loop
+	allowCaching := len(otherFiles)+len(targetFiles) > 1 //TODO: use real query repetition-ratio to enable cache, query from LLM
+	//we can benefit from caching at this point, messages up to this point should not change
+	if len(stage2Messages) > 0 {
+		stage2Messages[len(stage2Messages)-1].CacheBreakpoint = true
+	}
 	for workPending := true; workPending; workPending = len(otherFiles) > 0 || len(targetFiles) > 0 {
 		logger.Debugln("Work pending:", workPending) // Add debug logging
 
@@ -162,7 +167,7 @@ func Stage4(projectRootDir string,
 			for continueGeneration && !fileRetry {
 				// Run query
 				continueGeneration = false
-				aiResponse, status, err := connector.Query(stage4MessagesTry...)
+				aiResponse, status, err := connector.Query(allowCaching, stage4MessagesTry...)
 				if perfString := connector.GetPerfString(); perfString != "" {
 					logger.Traceln(perfString)
 				}

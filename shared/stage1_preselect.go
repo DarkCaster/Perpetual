@@ -20,14 +20,14 @@ func Stage1Preselect(
 	targetFiles []string,
 	annotations map[string]string,
 	passCount int,
-	logger logging.ILogger) [][]string {
+	logger logging.ILogger) ([][]string, bool) {
 
-	createErrorResult := func() [][]string {
+	createErrorResult := func() ([][]string, bool) {
 		results := [][]string{}
 		for range passCount {
 			results = append(results, projectFiles)
 		}
-		return results
+		return results, true
 	}
 
 	// Add trace and debug logging
@@ -128,7 +128,7 @@ func Stage1Preselect(
 		len(similarFiles)+filesToRandomize,
 		passCount)
 
-	return results
+	return results, false
 }
 
 func MergeFileLists(fileLists [][]string, logger logging.ILogger) []string {

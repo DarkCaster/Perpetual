@@ -286,6 +286,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			projectDescResponse := llm.AddPlainTextFragment(
 				llm.NewMessage(llm.SimulatedAIResponse),
 				projectConfig.String(config.K_ProjectDescriptionResponse))
+			// we can benefit from caching here, all messages up to this should be the same
+			projectDescResponse.CacheBreakpoint = true
 			messages = append(messages, projectDescPrompt, projectDescResponse)
 		}
 
@@ -310,10 +312,11 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
 
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
+		allowCaching := len(filesToAnnotate) > 1 //TODO: use real query repetition-ratio to enable cache, query from LLM
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
-			// Perform actual query
-			annotationResponse, status, err := connector.Query(messages...)
+			// Perform actual query, caching may be beneficial if annotating more than 1 file
+			annotationResponse, status, err := connector.Query(allowCaching, messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
