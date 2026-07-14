@@ -123,8 +123,7 @@ GENERIC_MODEL="deepseek-v4-pro"
 # GENERIC_INCRMODE_RETRIES="0"
 
 # Prompt caching option (support may vary, depending on provider and model)
-# If unset - do not modify API requests in any way to manage caching;
-# If set: "0" - clear API requests from any caching directives (will use provider and model dependent implicit caching);
+# If unset or "0" - do not modify API requests in any way to manage caching (may use default implicit caching if supported);
 # "-1" - use explicit caching via prompt_cache_options.mode parameter but do not set breakpoints effectively disabling caching;
 # "1" - use explicit caching with breakpoints; any other value - use explicit caching with breakpoints and use the value as TTL;
 # Per-operation override:
