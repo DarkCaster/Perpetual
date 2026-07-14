@@ -125,6 +125,14 @@
 			"args": ["implement","-n","-u","-f","-s","0","-m","task","-i","question.md","-vv"],
 		},
 		{
+			"name": "Launch Package: implement -n -u -f -s 0 -sp 2 -m task -i question.md",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"args": ["implement","-n","-u","-f","-s","0","-sp","2","-m","task","-i","question.md","-vv"],
+		},
+		{
 			"name": "Launch Package: stash",
 			"type": "go",
 			"request": "launch",
