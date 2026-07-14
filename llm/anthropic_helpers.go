@@ -27,7 +27,7 @@ type anthropicCacheManager struct {
 }
 
 func newAnthropicCacheManager(breakpointIndex int, cacheConfig string, allowCaching bool) requestTransformer {
-	return &openAICacheManager{breakpointIndex: breakpointIndex, cacheConfig: cacheConfig, allowCaching: allowCaching}
+	return &anthropicCacheManager{breakpointIndex: breakpointIndex, cacheConfig: cacheConfig, allowCaching: allowCaching}
 }
 
 func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any {
