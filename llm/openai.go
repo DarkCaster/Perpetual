@@ -120,6 +120,8 @@ func NewOpenAILLMConnectorFromEnv(
 	var embedDimensions int = 0
 	var embedThreshold float32 = 0.0
 	var serviceTierFallback string = ""
+	var cacheConfig = ""
+	var minCacheReps = 2
 
 	incrModeTries := 1
 
@@ -240,6 +242,17 @@ func NewOpenAILLMConnectorFromEnv(
 			debug.Add("presence penalty", presencePenalty)
 		}
 
+		cacheConfig, err = utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix))
+		if err == nil {
+			debug.Add("cache", cacheConfig)
+		}
+
+		minCacheReps, err = utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
+		if err != nil || minCacheReps < 0 {
+			minCacheReps = 2
+		} else {
+			debug.Add("cache min reps", minCacheReps)
+		}
 	}
 
 	if serviceTier, err := utils.GetEnvString(fmt.Sprintf("%s_SERVICE_TIER_OP_%s", prefix, operation), fmt.Sprintf("%s_SERVICE_TIER", prefix)); err == nil {
@@ -251,18 +264,6 @@ func NewOpenAILLMConnectorFromEnv(
 		serviceTierFallback = fallbackTier
 		debug.Add("service tier fallback", fallbackTier)
 	}
-
-	cacheConfig := ""
-	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
-		cacheConfig = val
-		debug.Add("cache", val)
-	}
-
-	minCacheReps, err := utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
-	if err != nil || minCacheReps < 0 {
-		minCacheReps = 2
-	}
-	debug.Add("cache min reps", minCacheReps)
 
 	return &OpenAILLMConnector{
 		Subprofile:                   subprofile,

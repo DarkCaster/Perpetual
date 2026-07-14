@@ -159,6 +159,8 @@ func NewGenericLLMConnectorFromEnv(
 	var userPromptPrefix = ""
 	var systemPromptSuffix = ""
 	var userPromptSuffix = ""
+	var cacheConfig = ""
+	var minCacheReps = 2
 
 	maxTokensFormat := MaxTokensOld
 	incrModeTries := 1
@@ -410,19 +412,19 @@ func NewGenericLLMConnectorFromEnv(
 		if err == nil && userPromptSuffix != "" {
 			debug.Add("user prompt suffix", "set")
 		}
-	}
 
-	cacheConfig := ""
-	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
-		cacheConfig = val
-		debug.Add("cache", val)
-	}
+		cacheConfig, err = utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix))
+		if err == nil {
+			debug.Add("cache", cacheConfig)
+		}
 
-	minCacheReps, err := utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
-	if err != nil || minCacheReps < 0 {
-		minCacheReps = 2
+		minCacheReps, err = utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
+		if err != nil || minCacheReps < 0 {
+			minCacheReps = 2
+		} else {
+			debug.Add("cache min reps", minCacheReps)
+		}
 	}
-	debug.Add("cache min reps", minCacheReps)
 
 	return &GenericLLMConnector{
 		Subprofile:            subprofile,

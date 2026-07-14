@@ -160,7 +160,7 @@ func NewAnthropicLLMConnectorFromEnv(
 	}
 
 	cacheConfig := ""
-	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil && val != "" {
+	if val, err := utils.GetEnvString(fmt.Sprintf("%s_CACHE_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE", prefix)); err == nil {
 		cacheConfig = val
 		debug.Add("cache", val)
 	}
@@ -168,8 +168,9 @@ func NewAnthropicLLMConnectorFromEnv(
 	minCacheReps, err := utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
 	if err != nil || minCacheReps < 0 {
 		minCacheReps = 2
+	} else {
+		debug.Add("cache min reps", minCacheReps)
 	}
-	debug.Add("cache min reps", minCacheReps)
 
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
