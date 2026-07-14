@@ -37,6 +37,7 @@ type AnthropicLLMConnector struct {
 	Debug                 llmDebug
 	RateLimitDelayS       int
 	CacheConfig           string
+	MinCacheReps          int
 }
 
 func NewAnthropicLLMConnectorFromEnv(
@@ -164,6 +165,12 @@ func NewAnthropicLLMConnectorFromEnv(
 		debug.Add("cache", val)
 	}
 
+	minCacheReps, err := utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
+	if err != nil || minCacheReps < 0 {
+		minCacheReps = 2
+	}
+	debug.Add("cache min reps", minCacheReps)
+
 	return &AnthropicLLMConnector{
 		Subprofile:            subprofile,
 		BaseURL:               customBaseURL,
@@ -181,6 +188,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 		CacheConfig:           cacheConfig,
+		MinCacheReps:          minCacheReps,
 	}, nil
 }
 
@@ -405,7 +413,7 @@ func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 }
 
 func (p *AnthropicLLMConnector) GetMinPrefixRepsForCaching() int {
-	return 2
+	return p.MinCacheReps
 }
 
 func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {

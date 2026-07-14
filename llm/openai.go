@@ -48,6 +48,7 @@ type OpenAILLMConnector struct {
 	Debug                        llmDebug
 	RateLimitDelayS              int
 	CacheConfig                  string
+	MinCacheReps                 int
 }
 
 func NewOpenAILLMConnectorFromEnv(
@@ -257,6 +258,12 @@ func NewOpenAILLMConnectorFromEnv(
 		debug.Add("cache", val)
 	}
 
+	minCacheReps, err := utils.GetEnvInt(fmt.Sprintf("%s_CACHE_MINREPS_OP_%s", prefix, operation), fmt.Sprintf("%s_CACHE_MINREPS", prefix))
+	if err != nil || minCacheReps < 0 {
+		minCacheReps = 2
+	}
+	debug.Add("cache min reps", minCacheReps)
+
 	return &OpenAILLMConnector{
 		Subprofile:                   subprofile,
 		BaseURL:                      customBaseURL,
@@ -284,6 +291,7 @@ func NewOpenAILLMConnectorFromEnv(
 		Debug:                        debug,
 		RateLimitDelayS:              0,
 		CacheConfig:                  cacheConfig,
+		MinCacheReps:                 minCacheReps,
 	}, nil
 }
 
@@ -730,7 +738,7 @@ func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 }
 
 func (p *OpenAILLMConnector) GetMinPrefixRepsForCaching() int {
-	return 2
+	return p.MinCacheReps
 }
 
 func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {

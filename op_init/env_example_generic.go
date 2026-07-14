@@ -129,7 +129,6 @@ GENERIC_MODEL="deepseek-v4-pro"
 # "1" - use explicit caching with breakpoints; any other value - use explicit caching with breakpoints and use the value as TTL;
 # Per-operation override:
 # GENERIC_CACHE_OP_ANNOTATE="0"
-# GENERIC_CACHE_OP_EMBED="0"
 # GENERIC_CACHE_OP_IMPLEMENT_STAGE1="0"
 # GENERIC_CACHE_OP_IMPLEMENT_STAGE2="0"
 # GENERIC_CACHE_OP_IMPLEMENT_STAGE3="0"
@@ -139,6 +138,19 @@ GENERIC_MODEL="deepseek-v4-pro"
 # GENERIC_CACHE_OP_EXPLAIN_STAGE1="0"
 # GENERIC_CACHE_OP_EXPLAIN_STAGE2="0"
 # GENERIC_CACHE="0"
+
+# Minimum equal message-history/prefix repetitions count before caching becomes effective
+# If unset, uses default value 2.
+# GENERIC_CACHE_MINREPS_OP_ANNOTATE="2"
+# GENERIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE1="2"
+# GENERIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE2="2"
+# GENERIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE3="2"
+# GENERIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="2"
+# GENERIC_CACHE_MINREPS_OP_DOC_STAGE1="2"
+# GENERIC_CACHE_MINREPS_OP_DOC_STAGE2="2"
+# GENERIC_CACHE_MINREPS_OP_EXPLAIN_STAGE1="2"
+# GENERIC_CACHE_MINREPS_OP_EXPLAIN_STAGE2="2"
+# GENERIC_CACHE_MINREPS="2"
 
 # Options for limiting output tokens for different operations and stages, must be set
 GENERIC_MAX_TOKENS_OP_ANNOTATE="2048" # keep the summary short, instead of raising the limit use "NOTE for summarization" comments at the source code
