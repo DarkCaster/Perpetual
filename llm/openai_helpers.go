@@ -42,7 +42,7 @@ func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
 	// enable explicit caching
 	body["prompt_cache_key"] = p.cacheKey
 	body["prompt_cache_options"] = map[string]string{"mode": "explicit"}
-	if p.cacheConfig == "-1" || !p.allowCaching {
+	if p.cacheConfig == "-1" || !p.allowCaching || p.breakpointIndex < 0 {
 		// return body here without setting breakpoints, this will explicitly disable caching
 		return body
 	}
