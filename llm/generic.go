@@ -684,16 +684,23 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, _, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
+	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
+	if cacheBreakpointIndex >= 0 {
+		cacheBreakpointIndex++ //because of adding system message
+	}
 
 	if p.RawMessageLogger != nil {
-		for _, m := range llmMessages {
+		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
 			p.RawMessageLogger("\n\n\n")
+			if i == cacheBreakpointIndex {
+				p.RawMessageLogger("<Cache Breakpoint>")
+				p.RawMessageLogger("\n\n\n")
+			}
 		}
 	}
 
