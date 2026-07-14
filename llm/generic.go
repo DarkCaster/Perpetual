@@ -682,7 +682,7 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 
 	if p.CacheConfig != "" {
 		//prepend openai cache manager (compatible with generic provider), it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
 	}
 
 	statusCodeCollector := newStatusCodeCollector()

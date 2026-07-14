@@ -20,10 +20,12 @@ import (
 
 type openAICacheManager struct {
 	breakpointIndex int
+	cacheConfig     string
+	allowCaching    bool
 }
 
-func newOpenAICacheManager(breakpointIndex int) requestTransformer {
-	return &openAICacheManager{breakpointIndex: breakpointIndex}
+func newOpenAICacheManager(breakpointIndex int, cacheConfig string, allowCaching bool) requestTransformer {
+	return &openAICacheManager{breakpointIndex: breakpointIndex, cacheConfig: cacheConfig, allowCaching: allowCaching}
 }
 
 func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {

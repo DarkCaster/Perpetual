@@ -22,10 +22,12 @@ import (
 
 type anthropicCacheManager struct {
 	breakpointIndex int
+	cacheConfig     string
+	allowCaching    bool
 }
 
-func newAnthropicCacheManager(breakpointIndex int) requestTransformer {
-	return &anthropicCacheManager{breakpointIndex: breakpointIndex}
+func newAnthropicCacheManager(breakpointIndex int, cacheConfig string, allowCaching bool) requestTransformer {
+	return &openAICacheManager{breakpointIndex: breakpointIndex, cacheConfig: cacheConfig, allowCaching: allowCaching}
 }
 
 func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any {

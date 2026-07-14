@@ -236,7 +236,7 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 
 	if p.CacheConfig != "" {
 		//prepend anthropic cache manager, it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newAnthropicCacheManager(cacheBreakpointIndex)}, transformers...)
+		transformers = append([]requestTransformer{newAnthropicCacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
 	}
 
 	responseStreamCollector := newAnthropicStreamCollector()

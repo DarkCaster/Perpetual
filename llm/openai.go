@@ -578,7 +578,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 
 	if p.CacheConfig != "" {
 		//prepend cache manager, it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
 	}
 
 	mitmClient := newMitmHTTPClient(collectors, transformers)
