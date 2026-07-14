@@ -522,12 +522,6 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 			"top_logprobs",
 			"logit_bias",
 		}))
-	} else if strings.HasPrefix(modelStr, "gpt-5") {
-		if p.StreamingPref < 0 {
-			//no explicit streaming preference provided, so disable streaming for all GPT-5 models:
-			//it may require extra organization verification that may be unavailable for all accounts
-			streamingSupported = false
-		}
 	} else if strings.HasPrefix(modelStr, "codex") {
 		//TODO: remove this custom responses-API handling logic when it will be implemented at langchain-go library (if ever)
 		//remove unsupported parameters of responses API, too hard to implement and maintain
