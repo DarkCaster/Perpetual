@@ -48,7 +48,7 @@ func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
 	}
 	if p.cacheConfig != "1" {
 		// interpret cacheConfig as TTL
-		body["prompt_cache_options"].(map[string]string)["ttl"] = "p.cacheConfig"
+		body["prompt_cache_options"].(map[string]string)["ttl"] = p.cacheConfig
 	}
 	// mark particular message as cache breakpoint
 	if messages, ok := body["messages"].([]any); ok && len(messages) > p.breakpointIndex {
