@@ -31,6 +31,25 @@ func newAnthropicCacheManager(breakpointIndex int, cacheConfig string, allowCach
 }
 
 func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any {
+	if p.cacheConfig == "" || p.cacheConfig == "0" || !p.allowCaching {
+		// do not modify request body - this should disable caching
+		return body
+	}
+	// enable caching
+	body["cache_control"] = map[string]string{"type": "ephemeral"}
+	if p.cacheConfig != "1" {
+		// interpret cacheConfig as TTL
+		body["cache_control"].(map[string]string)["ttl"] = p.cacheConfig
+	}
+	// mark particular message as cache breakpoint
+	if messages, ok := body["messages"].([]any); ok && len(messages) > p.breakpointIndex {
+		if message, ok := messages[p.breakpointIndex].(map[string]any); ok {
+			if content, ok := message["content"].(string); ok {
+				newContent := []map[string]any{{"type": "text", "text": content, "cache_control": map[string]string{"type": "ephemeral"}}}
+				message["content"] = newContent
+			}
+		}
+	}
 	return body
 }
 
