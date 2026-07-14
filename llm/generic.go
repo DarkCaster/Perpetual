@@ -667,6 +667,24 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
 	}
 
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
+
+	// Convert messages to send into LangChain format
+	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
+	if err != nil {
+		return "", QueryInitFailed, err
+	}
+	llmMessages = append(llmMessages, convertedMessages...)
+	if cacheBreakpointIndex >= 0 {
+		cacheBreakpointIndex++ //because of adding system message
+	}
+
+	if p.CacheConfig != "" {
+		//prepend openai cache manager (compatible with generic provider), it should be the first request transformer, because other transformers may change actual message-history
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex)}, transformers...)
+	}
+
 	statusCodeCollector := newStatusCodeCollector()
 	mitmClient := newMitmHTTPClient([]responseCollector{statusCodeCollector}, transformers)
 	providerOptions = append(providerOptions, openai.WithHTTPClient(mitmClient))
@@ -680,19 +698,6 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 	model, err := openai.New(providerOptions...)
 	if err != nil {
 		return "", QueryInitFailed, err
-	}
-
-	llmMessages := utils.NewSlice(
-		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
-
-	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
-	if err != nil {
-		return "", QueryInitFailed, err
-	}
-	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
 	}
 
 	if p.RawMessageLogger != nil {

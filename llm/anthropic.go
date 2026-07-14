@@ -221,6 +221,24 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		transformers = append(transformers, newTopLevelBodyValuesRemover(p.FieldsToRemove))
 	}
 
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
+
+	// Convert messages to send into LangChain format
+	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	if err != nil {
+		return "", QueryInitFailed, err
+	}
+	llmMessages = append(llmMessages, convertedMessages...)
+	if cacheBreakpointIndex >= 0 {
+		cacheBreakpointIndex++ //because of adding system message
+	}
+
+	if p.CacheConfig != "" {
+		//prepend anthropic cache manager, it should be the first request transformer, because other transformers may change actual message-history
+		transformers = append([]requestTransformer{newAnthropicCacheManager(cacheBreakpointIndex)}, transformers...)
+	}
+
 	responseStreamCollector := newAnthropicStreamCollector()
 	mitmClient := newMitmHTTPClient([]responseCollector{responseStreamCollector}, transformers)
 	anthropicOptions = append(anthropicOptions, anthropic.WithHTTPClient(mitmClient))
@@ -235,19 +253,6 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 	model, err := anthropic.New(anthropicOptions...)
 	if err != nil {
 		return "", QueryInitFailed, err
-	}
-
-	llmMessages := utils.NewSlice(
-		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
-
-	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
-	if err != nil {
-		return "", QueryInitFailed, err
-	}
-	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
 	}
 
 	if p.RawMessageLogger != nil {

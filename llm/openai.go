@@ -563,6 +563,24 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		collectors = append(collectors, newOpenAIResponsesAPICollector())
 	}
 
+	llmMessages := utils.NewSlice(
+		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: systemPrompt}}})
+
+	// Convert messages to send into LangChain format
+	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	if err != nil {
+		return "", QueryInitFailed, err
+	}
+	llmMessages = append(llmMessages, convertedMessages...)
+	if cacheBreakpointIndex >= 0 {
+		cacheBreakpointIndex++ //because of adding system message
+	}
+
+	if p.CacheConfig != "" {
+		//prepend cache manager, it should be the first request transformer, because other transformers may change actual message-history
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex)}, transformers...)
+	}
+
 	mitmClient := newMitmHTTPClient(collectors, transformers)
 	openAiOptions = append(openAiOptions, openai.WithHTTPClient(mitmClient))
 
@@ -576,19 +594,6 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 	model, err := openai.New(openAiOptions...)
 	if err != nil {
 		return "", QueryInitFailed, err
-	}
-
-	llmMessages := utils.NewSlice(
-		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: systemPrompt}}})
-
-	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
-	if err != nil {
-		return "", QueryInitFailed, err
-	}
-	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
 	}
 
 	if p.RawMessageLogger != nil {
