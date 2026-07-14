@@ -404,6 +404,10 @@ func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
+func (p *AnthropicLLMConnector) GetMinPrefixRepsForCaching() int {
+	return 2
+}
+
 func (p *AnthropicLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }

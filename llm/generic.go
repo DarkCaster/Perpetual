@@ -862,6 +862,10 @@ func (p *GenericLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
+func (p *GenericLLMConnector) GetMinPrefixRepsForCaching() int {
+	return 2
+}
+
 func (p *GenericLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }

@@ -50,6 +50,7 @@ type LLMConnector interface {
 	GetEmbedScoreThreshold() float32
 	// Generate text messages
 	Query(allowCaching bool, messages ...Message) (string, QueryStatus, error)
+	GetMinPrefixRepsForCaching() int
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
 	GetMaxTokensSegments() int
 	GetOnFailureRetryLimit() int

@@ -49,7 +49,7 @@ func Stage4(projectRootDir string,
 	}
 
 	// Main processing loop
-	allowCaching := len(otherFiles)+len(targetFiles) > 1 //TODO: use real query repetition-ratio to enable cache, query from LLM
+	allowCaching := len(otherFiles)+len(targetFiles) >= connector.GetMinPrefixRepsForCaching()
 	//we can benefit from caching at this point, messages up to this point should not change
 	if len(stage2Messages) > 0 {
 		stage2Messages[len(stage2Messages)-1].CacheBreakpoint = true

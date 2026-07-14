@@ -109,8 +109,7 @@ func Stage1(
 	for _, item := range targetFiles {
 		analysisRequest = llm.AppendSourceFileToMessage(analysisRequest, projectRootDir, item, prCfg.Tags(config.K_ProjectFilenameTags), logger)
 	}
-	// TODO: use real query repetition-ratio to enable cache, query from LLM
-	if totalPasses < 2 {
+	if totalPasses < connector.GetMinPrefixRepsForCaching() {
 		safeForCaching = false
 	}
 	// We can benefit from caching if stage 1 can be called multiple times with same input parameters.

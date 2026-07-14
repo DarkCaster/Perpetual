@@ -934,6 +934,10 @@ func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
+func (p *OllamaLLMConnector) GetMinPrefixRepsForCaching() int {
+	return math.MaxInt // manual prefix caching is unsupported for ollama for now
+}
+
 func (p *OllamaLLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }

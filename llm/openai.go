@@ -729,6 +729,10 @@ func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
 
+func (p *OpenAILLMConnector) GetMinPrefixRepsForCaching() int {
+	return 2
+}
+
 func (p *OpenAILLMConnector) GetOnFailureRetryLimit() int {
 	return p.OnFailRetries
 }

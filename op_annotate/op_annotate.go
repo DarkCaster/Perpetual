@@ -312,7 +312,7 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
 
 		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
-		allowCaching := len(filesToAnnotate) > 1 //TODO: use real query repetition-ratio to enable cache, query from LLM
+		allowCaching := len(filesToAnnotate) >= connector.GetMinPrefixRepsForCaching()
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			logger.Infof("%d: %s", i+1, filePath)
 			// Perform actual query, caching may be beneficial if annotating more than 1 file
