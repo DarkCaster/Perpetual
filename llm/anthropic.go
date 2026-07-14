@@ -230,9 +230,7 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
-	}
+	//NOTE: no need to increment cacheBreakpointIndex here, because system message placed separately - not inside "messages" array at the JSON API call
 
 	if p.CacheConfig != "" {
 		//prepend anthropic cache manager, it should be the first request transformer, because other transformers may change actual message-history
@@ -255,6 +253,10 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		return "", QueryInitFailed, err
 	}
 
+	if cacheBreakpointIndex >= 0 {
+		// increment it here because of adding system message to the message list, for proper position at the message log
+		cacheBreakpointIndex++
+	}
 	if p.RawMessageLogger != nil {
 		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
