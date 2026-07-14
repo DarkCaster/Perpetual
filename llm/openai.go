@@ -48,6 +48,7 @@ type OpenAILLMConnector struct {
 	Debug                        llmDebug
 	RateLimitDelayS              int
 	CacheConfig                  string
+	CacheKey                     string
 	MinCacheReps                 int
 }
 
@@ -292,6 +293,7 @@ func NewOpenAILLMConnectorFromEnv(
 		Debug:                        debug,
 		RateLimitDelayS:              0,
 		CacheConfig:                  cacheConfig,
+		CacheKey:                     operation,
 		MinCacheReps:                 minCacheReps,
 	}, nil
 }
@@ -578,7 +580,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 
 	if p.CacheConfig != "" {
 		//prepend cache manager, it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
 	}
 
 	mitmClient := newMitmHTTPClient(collectors, transformers)

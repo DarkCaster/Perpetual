@@ -66,6 +66,7 @@ type GenericLLMConnector struct {
 	Debug                 llmDebug
 	RateLimitDelayS       int
 	CacheConfig           string
+	CacheKey              string
 	MinCacheReps          int
 }
 
@@ -463,6 +464,7 @@ func NewGenericLLMConnectorFromEnv(
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 		CacheConfig:           cacheConfig,
+		CacheKey:              operation,
 		MinCacheReps:          minCacheReps,
 	}, nil
 }
@@ -682,7 +684,7 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 
 	if p.CacheConfig != "" {
 		//prepend openai cache manager (compatible with generic provider), it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
 	}
 
 	statusCodeCollector := newStatusCodeCollector()

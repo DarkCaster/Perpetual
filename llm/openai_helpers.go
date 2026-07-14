@@ -21,14 +21,44 @@ import (
 type openAICacheManager struct {
 	breakpointIndex int
 	cacheConfig     string
+	cacheKey        string
 	allowCaching    bool
 }
 
-func newOpenAICacheManager(breakpointIndex int, cacheConfig string, allowCaching bool) requestTransformer {
-	return &openAICacheManager{breakpointIndex: breakpointIndex, cacheConfig: cacheConfig, allowCaching: allowCaching}
+func newOpenAICacheManager(breakpointIndex int, cacheConfig string, cacheKey string, allowCaching bool) requestTransformer {
+	return &openAICacheManager{
+		breakpointIndex: breakpointIndex,
+		cacheConfig:     cacheConfig,
+		cacheKey:        cacheKey,
+		allowCaching:    allowCaching,
+	}
 }
 
 func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
+	if p.cacheConfig == "" || p.cacheConfig == "0" {
+		// do not setup caching at all
+		return body
+	}
+	// enable explicit caching
+	body["prompt_cache_key"] = p.cacheKey
+	body["prompt_cache_options"] = map[string]string{"mode": "explicit"}
+	if p.cacheConfig == "-1" || !p.allowCaching {
+		// return body here without setting breakpoints, this will explicitly disable caching
+		return body
+	}
+	if p.cacheConfig != "1" {
+		// interpret cacheConfig as TTL
+		body["prompt_cache_options"].(map[string]string)["ttl"] = "p.cacheConfig"
+	}
+	// mark particular message as cache breakpoint
+	if messages, ok := body["messages"].([]any); ok && len(messages) > p.breakpointIndex {
+		if message, ok := messages[p.breakpointIndex].(map[string]any); ok {
+			if content, ok := message["content"].(string); ok {
+				newContent := []map[string]any{{"type": "text", "text": content, "prompt_cache_breakpoint": map[string]string{"mode": "explicit"}}}
+				message["content"] = newContent
+			}
+		}
+	}
 	return body
 }
 
