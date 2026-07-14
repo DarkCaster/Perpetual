@@ -66,15 +66,15 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-5.4-mini"
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
-OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.4-mini"
-OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.4"
-OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.4"
-# OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5.4"
-OPENAI_MODEL_OP_DOC_STAGE1="gpt-5.4-mini"
-# OPENAI_MODEL_OP_DOC_STAGE2="gpt-5.4"
-OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5.4-mini"
-# OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-5.4"
-OPENAI_MODEL="gpt-5.5"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.6-luna"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.6-sol"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.6-terra"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5.6-sol"
+OPENAI_MODEL_OP_DOC_STAGE1="gpt-5.6-luna"
+# OPENAI_MODEL_OP_DOC_STAGE2="gpt-5.6-terra"
+OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5.6-luna"
+# OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-5.6-terra"
+OPENAI_MODEL="gpt-5.6-terra"
 
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search.
@@ -97,7 +97,7 @@ OPENAI_MODEL="gpt-5.5"
 # OPENAI_INCRMODE_SUPPORT_OP_IMPLEMENT_STAGE4="true"
 
 # Number of retries to apply incremental mode changes, before switching to the full-file mode
-# OPENAI_INCRMODE_RETRIES="0"
+OPENAI_INCRMODE_RETRIES="1"
 
 # Prompt caching option
 # If unset or "0" - do not modify API requests in any way to manage caching (will use default implicit caching);
@@ -113,7 +113,7 @@ OPENAI_MODEL="gpt-5.5"
 # OPENAI_CACHE_OP_DOC_STAGE2="0"
 # OPENAI_CACHE_OP_EXPLAIN_STAGE1="0"
 # OPENAI_CACHE_OP_EXPLAIN_STAGE2="0"
-# OPENAI_CACHE="0"
+OPENAI_CACHE="1"
 
 # Minimum equal message-history/prefix repetitions count before caching becomes effective
 # If unset, uses default value 2.
@@ -131,13 +131,13 @@ OPENAI_MODEL="gpt-5.5"
 # Options for limiting output tokens for different operations and stages, must be set.
 # Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="32768" # file-list for review (includes tokens for high-thinking of gpt-5.4-mini)
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="32768" # file-list for review (includes tokens for high-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="32768" # work-plan generation
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="12288" # file-list for processing, include tokens for thinking
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="65536" # generated code output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_DOC_STAGE1="32768" # file-list for review, (includes tokens for high-thinking of gpt-5.4-mini)
+OPENAI_MAX_TOKENS_OP_DOC_STAGE1="32768" # file-list for review, (includes tokens for high-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_DOC_STAGE2="65536" # generated document output limit should be as big as possible
-OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="32768" # file-list for review, (includes tokens for high-thinking of gpt-5.4-mini)
+OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE1="32768" # file-list for review, (includes tokens for high-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_EXPLAIN_STAGE2="65536" # generated answer output limit
 OPENAI_MAX_TOKENS="4096" # default limit
 
@@ -171,8 +171,8 @@ OPENAI_ON_FAIL_RETRIES="5"
 # Example values: none, minimal, low, medium, high, xhigh.
 OPENAI_REASONING_EFFORT_OP_ANNOTATE="none"
 OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="high"
-OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="high"
-# OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="medium"
+# OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="medium"
+OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="low"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE4="medium"
 OPENAI_REASONING_EFFORT_OP_DOC_STAGE1="high"
 OPENAI_REASONING_EFFORT_OP_DOC_STAGE2="high"
