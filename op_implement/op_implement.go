@@ -181,6 +181,8 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	//Possible initial continue point, restore cmdline argument saved at the json state-file here
+	var messages = []llm.Message{}
+	var otherFilesToModify, targetFilesToModify, filesToDelete []string
 
 	// Read input from file or stdin
 	var task string
@@ -405,7 +407,7 @@ func Run(args []string, logger logging.ILogger) {
 	}
 
 	// Run stage 2 - create file review, create reasonings
-	_, messages := shared.Stage2(OpName,
+	_, messages = shared.Stage2(OpName,
 		projectRootDir,
 		perpetualDir,
 		projectConfig,
@@ -428,7 +430,7 @@ func Run(args []string, logger logging.ILogger) {
 	)
 
 	// Run stage 3 - get list of files to modify or delete
-	messages, otherFilesToModify, targetFilesToModify, filesToDelete := Stage3(
+	messages, otherFilesToModify, targetFilesToModify, filesToDelete = Stage3(
 		projectRootDir,
 		perpetualDir,
 		projectConfig,
