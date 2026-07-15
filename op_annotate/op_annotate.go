@@ -255,6 +255,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 
 	fileGroups := [][]string{}
 	if connector.GetCachingEnabled() {
+		// Compose files for annotation into the groups that use same prompts for better caching
+		// Also sort files by size and sort file-groups by count of files inside
 		logger.Traceln("Splitting files by prompt-groups")
 		fileGroupMap := map[int][]string{}
 		//split filesToAnnotate to groups according to its prompts
