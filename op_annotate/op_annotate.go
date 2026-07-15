@@ -244,115 +244,159 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", debugString))
 	}
 
-	logger.Debugln("Sorting files according to sizes")
-	fileSizes := utils.GetFileSizes(projectRootDir, filesToAnnotate)
+	sortBySize := func(fileList []string) {
+		logger.Traceln("Sorting files according to sizes:", len(fileList))
+		fileSizes := utils.GetFileSizes(projectRootDir, fileList)
+		// Sort files according to sizes
+		sort.Slice(fileList, func(i, j int) bool {
+			return fileSizes[fileList[i]] < fileSizes[fileList[j]]
+		})
+	}
 
-	// Sort files according to sizes
-	sort.Slice(filesToAnnotate, func(i, j int) bool {
-		return fileSizes[filesToAnnotate[i]] < fileSizes[filesToAnnotate[j]]
-	})
+	fileGroups := [][]string{}
+	if connector.GetCachingEnabled() {
+		logger.Traceln("Splitting files by prompt-groups")
+		fileGroupMap := map[int][]string{}
+		//split filesToAnnotate to groups according to its prompts
+		for _, filePath := range filesToAnnotate {
+			if matched, _, index := annotateConfig.TextMatcherString(config.K_AnnotateFilePrompts).TryMatch(filePath); matched {
+				if fileGroup, exist := fileGroupMap[index]; exist {
+					fileGroup = append(fileGroup, filePath)
+					fileGroupMap[index] = fileGroup
+				} else {
+					fileGroup = utils.NewSlice(filePath)
+					fileGroupMap[index] = fileGroup
+				}
+			} else {
+				logger.Errorln("Failed to detect annotation prompt for file:", filePath)
+				continue
+			}
+		}
+		//compose 2d array for groups
+		logger.Traceln("Composing file-groups:", len(fileGroupMap))
+		for _, fileGroup := range fileGroupMap {
+			fileGroups = append(fileGroups, fileGroup)
+		}
+		//TODO: sort file groups according to file count inside it
+		//sort each group according to size
+		for i, fileGroup := range fileGroups {
+			logger.Tracef("Sorting file group %d/%d", i+1, len(fileGroups))
+			sortBySize(fileGroup)
+		}
+	} else {
+		// When caching is disabled, just use single file group and sort files inside it according to sizes
+		sortBySize(filesToAnnotate)
+		fileGroups = utils.NewSlice(filesToAnnotate)
+	}
 
 	errorFlag := false
 	newAnnotations := make(map[string]string)
-	for i, filePath := range filesToAnnotate {
-		annotatePrompt := ""
-		//detect actual prompt for annotating this particular file
-		if matched, values := annotateConfig.TextMatcherString(config.K_AnnotateFilePrompts).TryMatch(filePath); matched {
-			annotatePrompt = values[contextSavingMode]
-		} else {
-			logger.Errorln("Failed to detect annotation prompt for file:", filePath)
-			continue
-		}
-		// Read file contents and generate annotation
-		fileBytes, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
-		if err != nil {
-			logger.Errorf("Failed to read file %s: %s", filePath, err)
-			continue
-		}
-		if wrn != "" {
-			logger.Warnf("%s: %s", filePath, wrn)
-		}
-		fileContents := string(fileBytes)
-
-		// Build message chain with project description if available
-		var messages []llm.Message
-
-		// Add project description if available
-		if projectDesc != "" {
-			projectDescPrompt := llm.AddPlainTextFragment(
-				llm.NewMessage(llm.UserRequest),
-				projectConfig.String(config.K_ProjectDescriptionPrompt))
-			projectDescPrompt = llm.AddPlainTextFragment(projectDescPrompt, projectDesc)
-			projectDescResponse := llm.AddPlainTextFragment(
-				llm.NewMessage(llm.SimulatedAIResponse),
-				projectConfig.String(config.K_ProjectDescriptionResponse))
-			// we can benefit from caching here, all messages up to this should be the same
-			projectDescResponse.CacheBreakpoint = true
-			messages = append(messages, projectDescPrompt, projectDescResponse)
+	for gi, fileGroup := range fileGroups {
+		if len(fileGroups) > 1 {
+			logger.Infof("Annotating file group %d/%d", gi+1, len(fileGroups))
 		}
 
-		// Add annotation prompt and simulated response
-		annotateRequest := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.UserRequest),
-			annotatePrompt)
-		annotateSimulatedResponse := llm.AddPlainTextFragment(
-			llm.NewMessage(llm.SimulatedAIResponse),
-			annotateConfig.String(config.K_AnnotateFileResponse))
-
-		// Add file contents
-		fileContentsRequest := llm.AddFileFragment(
-			llm.NewMessage(llm.UserRequest),
-			filePath,
-			fileContents,
-			projectConfig.Tags(config.K_ProjectFilenameTags))
-
-		// Combine all messages
-		messages = append(messages, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
-
-		llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
-
-		onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
-		allowCaching := len(filesToAnnotate) >= connector.GetMinPrefixRepsForCaching()
-		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
-			logger.Infof("%d: %s", i+1, filePath)
-			// Perform actual query, caching may be beneficial if annotating more than 1 file
-			annotationResponse, status, err := connector.Query(allowCaching, messages...)
-			if perfString := connector.GetPerfString(); perfString != "" {
-				logger.Traceln(perfString)
+		for i, filePath := range fileGroup {
+			// Detect actual prompt for annotating this particular file
+			annotatePrompt := ""
+			if matched, values, _ := annotateConfig.TextMatcherString(config.K_AnnotateFilePrompts).TryMatch(filePath); matched {
+				annotatePrompt = values[contextSavingMode]
+			} else {
+				logger.Errorln("Failed to detect annotation prompt for file:", filePath)
+				continue
 			}
-			// Check for general error on query
+
+			// Read file contents and generate annotation
+			fileBytes, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, filePath))
 			if err != nil {
-				logger.Errorf("LLM query failed with status %d, error: %s", status, err)
-				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = oldChecksums[filePath]
-					errorFlag = true
-				}
+				logger.Errorf("Failed to read file %s: %s", filePath, err)
 				continue
 			}
-			// Check for hitting token limit - there are no responses below token limit, we will try to regenerate from scratch if possible
-			if status == llm.QueryMaxTokens {
-				logger.Errorln("LLM response reached max tokens, consider increasing the limit")
-				//TODO: find out do we have seed parameter set, because regenerating with same seed will fail again, so if true -> make onFailRetriesLeft = 0
-				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = oldChecksums[filePath]
-					errorFlag = true
-				}
-				continue
+			if wrn != "" {
+				logger.Warnf("%s: %s", filePath, wrn)
 			}
-			// Some final filtering and preparations of produced annotation response
-			finalResponse := utils.FilterAndTrimResponse(annotationResponse, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
-			// Stop there if no responses available for further processing
-			if len(finalResponse) < 1 {
-				logger.Errorln("No LLM response available")
-				if onFailRetriesLeft < 1 {
-					fileChecksums[filePath] = oldChecksums[filePath]
-					errorFlag = true
-				}
-				continue
+			fileContents := string(fileBytes)
+
+			// Build message chain with project description if available
+			var messages []llm.Message
+
+			// Add project description if available
+			if projectDesc != "" {
+				projectDescPrompt := llm.AddPlainTextFragment(
+					llm.NewMessage(llm.UserRequest),
+					projectConfig.String(config.K_ProjectDescriptionPrompt))
+				projectDescPrompt = llm.AddPlainTextFragment(projectDescPrompt, projectDesc)
+				projectDescResponse := llm.AddPlainTextFragment(
+					llm.NewMessage(llm.SimulatedAIResponse),
+					projectConfig.String(config.K_ProjectDescriptionResponse))
+				// we can benefit from caching here, all messages up to this should be the same
+				projectDescResponse.CacheBreakpoint = true
+				messages = append(messages, projectDescPrompt, projectDescResponse)
 			}
 
-			newAnnotations[filePath] = finalResponse
-			break
+			// Add annotation prompt and simulated response
+			annotateRequest := llm.AddPlainTextFragment(
+				llm.NewMessage(llm.UserRequest),
+				annotatePrompt)
+			annotateSimulatedResponse := llm.AddPlainTextFragment(
+				llm.NewMessage(llm.SimulatedAIResponse),
+				annotateConfig.String(config.K_AnnotateFileResponse))
+
+			// Add file contents
+			fileContentsRequest := llm.AddFileFragment(
+				llm.NewMessage(llm.UserRequest),
+				filePath,
+				fileContents,
+				projectConfig.Tags(config.K_ProjectFilenameTags))
+
+			// Combine all messages
+			messages = append(messages, annotateRequest, annotateSimulatedResponse, fileContentsRequest)
+
+			llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Annotate: %s\n\n\n", filePath))
+
+			onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
+			allowCaching := len(fileGroup) >= connector.GetMinPrefixRepsForCaching()
+			for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
+				logger.Infof("%d: %s", i+1, filePath)
+				// Perform actual query, caching may be beneficial if annotating more than 1 file
+				annotationResponse, status, err := connector.Query(allowCaching, messages...)
+				if perfString := connector.GetPerfString(); perfString != "" {
+					logger.Traceln(perfString)
+				}
+				// Check for general error on query
+				if err != nil {
+					logger.Errorf("LLM query failed with status %d, error: %s", status, err)
+					if onFailRetriesLeft < 1 {
+						fileChecksums[filePath] = oldChecksums[filePath]
+						errorFlag = true
+					}
+					continue
+				}
+				// Check for hitting token limit - there are no responses below token limit, we will try to regenerate from scratch if possible
+				if status == llm.QueryMaxTokens {
+					logger.Errorln("LLM response reached max tokens, consider increasing the limit")
+					//TODO: find out do we have seed parameter set, because regenerating with same seed will fail again, so if true -> make onFailRetriesLeft = 0
+					if onFailRetriesLeft < 1 {
+						fileChecksums[filePath] = oldChecksums[filePath]
+						errorFlag = true
+					}
+					continue
+				}
+				// Some final filtering and preparations of produced annotation response
+				finalResponse := utils.FilterAndTrimResponse(annotationResponse, projectConfig.RegexpArray(config.K_ProjectCodeTagsRx), logger)
+				// Stop there if no responses available for further processing
+				if len(finalResponse) < 1 {
+					logger.Errorln("No LLM response available")
+					if onFailRetriesLeft < 1 {
+						fileChecksums[filePath] = oldChecksums[filePath]
+						errorFlag = true
+					}
+					continue
+				}
+
+				newAnnotations[filePath] = finalResponse
+				break
+			}
 		}
 	}
 

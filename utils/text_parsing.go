@@ -16,7 +16,7 @@ type TagPair struct {
 // Ordered container of [regexp + associated data] records in the same order as in config file
 // Return associated data when one of the regexps matched (trying in the same order as in config file)
 type TextMatcher[T any] interface {
-	TryMatch(path string) (bool, []T)
+	TryMatch(path string) (bool, []T, int)
 }
 
 type rxDataPair[T any] struct {
@@ -28,13 +28,13 @@ type rxMatcher[T any] struct {
 	Pairs []*rxDataPair[T]
 }
 
-func (c *rxMatcher[T]) TryMatch(path string) (bool, []T) {
-	for _, p := range c.Pairs {
+func (c *rxMatcher[T]) TryMatch(path string) (bool, []T, int) {
+	for i, p := range c.Pairs {
 		if p.Rx.MatchString(path) {
-			return true, p.Data
+			return true, p.Data, i
 		}
 	}
-	return false, nil
+	return false, nil, -1
 }
 
 func newRxDataPair[T any](rxStr string, opts []any) (*rxDataPair[T], error) {

@@ -133,7 +133,7 @@ func Stage4(projectRootDir string,
 				logger.Infoln("Not using incremental mode, new file:", pendingFile)
 			} else {
 				matcher := prCfg.TextMatcherInteger(config.K_ProjectFilesIncrModeMinLen)
-				if ok, v := matcher.TryMatch(pendingFile); ok {
+				if ok, v, _ := matcher.TryMatch(pendingFile); ok {
 					if fileSize < v[0] {
 						incrModeTries = 0
 						logger.Infoln("Not using incremental mode, file too small:", pendingFile)

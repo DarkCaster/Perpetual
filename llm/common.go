@@ -32,7 +32,7 @@ func (p *llmDebug) Format() string {
 
 func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], fileName string) string {
 	if filesToMdLangMappings != nil {
-		if matched, values := filesToMdLangMappings.TryMatch(fileName); matched {
+		if matched, values, _ := filesToMdLangMappings.TryMatch(fileName); matched {
 			return values[0]
 		}
 	}
