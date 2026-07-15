@@ -882,6 +882,10 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 	return content, QueryOk, nil
 }
 
+func (p *GenericLLMConnector) GetCachingEnabled() bool {
+	return p.CacheConfig != ""
+}
+
 func (p *GenericLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }

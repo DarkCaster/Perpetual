@@ -742,6 +742,10 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 	return choice.Content, QueryOk, nil
 }
 
+func (p *OpenAILLMConnector) GetCachingEnabled() bool {
+	return p.CacheConfig != ""
+}
+
 func (p *OpenAILLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }

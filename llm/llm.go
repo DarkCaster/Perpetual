@@ -51,6 +51,7 @@ type LLMConnector interface {
 	// Generate text messages
 	Query(allowCaching bool, messages ...Message) (string, QueryStatus, error)
 	GetMinPrefixRepsForCaching() int
+	GetCachingEnabled() bool
 	// When response bumps max token limit, try to continue generating next segment, until reaching this limit
 	GetMaxTokensSegments() int
 	GetOnFailureRetryLimit() int

@@ -930,6 +930,10 @@ func (p *OllamaLLMConnector) Query(allowCaching bool, messages ...Message) (stri
 	return content, QueryOk, nil
 }
 
+func (p *OllamaLLMConnector) GetCachingEnabled() bool {
+	return false
+}
+
 func (p *OllamaLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }

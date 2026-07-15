@@ -427,6 +427,10 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 	return content, QueryOk, nil
 }
 
+func (p *AnthropicLLMConnector) GetCachingEnabled() bool {
+	return p.CacheConfig != ""
+}
+
 func (p *AnthropicLLMConnector) GetMaxTokensSegments() int {
 	return p.MaxTokensSegments
 }
