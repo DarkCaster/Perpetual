@@ -279,7 +279,10 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 		for _, fileGroup := range fileGroupMap {
 			fileGroups = append(fileGroups, fileGroup)
 		}
-		//TODO: sort file groups according to file count inside it
+		//sort file groups according to file count inside it
+		sort.Slice(fileGroups, func(i, j int) bool {
+			return len(fileGroups[i]) > len(fileGroups[j])
+		})
 		//sort each group according to size
 		for i, fileGroup := range fileGroups {
 			logger.Tracef("Sorting file group %d/%d", i+1, len(fileGroups))
