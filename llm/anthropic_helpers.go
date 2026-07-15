@@ -35,12 +35,6 @@ func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any 
 		// do not modify request body - this should disable caching
 		return body
 	}
-	// enable caching
-	body["cache_control"] = map[string]string{"type": "ephemeral"}
-	if p.cacheConfig != "1" {
-		// interpret cacheConfig as TTL
-		body["cache_control"].(map[string]string)["ttl"] = p.cacheConfig
-	}
 	// mark particular message as cache breakpoint
 	if messages, ok := body["messages"].([]any); ok && len(messages) > p.breakpointIndex {
 		if message, ok := messages[p.breakpointIndex].(map[string]any); ok {
@@ -48,6 +42,10 @@ func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any 
 				if content, ok := contentArr[0].(map[string]any); ok {
 					if contentType, ok := content["type"].(string); ok && contentType == "text" {
 						content["cache_control"] = map[string]string{"type": "ephemeral"}
+						if p.cacheConfig != "1" {
+							// interpret cacheConfig as TTL
+							content["cache_control"].(map[string]string)["ttl"] = p.cacheConfig
+						}
 					}
 				}
 			}
