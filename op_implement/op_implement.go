@@ -4,7 +4,6 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -181,7 +180,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	//Possible initial continue point, restore cmdline argument saved at the json file here ?
+	//Possible initial continue point, restore cmdline argument saved at the json state-file here
 
 	// Read input from file or stdin
 	var task string
@@ -428,42 +427,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger,
 	)
 
-	runFinalStages(projectRootDir,
-		perpetualDir,
-		projectConfig,
-		implementConfig,
-		planningMode,
-		allFileNames,
-		projectFilesBlacklist,
-		forceUpload,
-		filesToReview,
-		targetFiles,
-		messages,
-		task,
-		noIncrMode,
-		fileNames,
-		logger)
-}
-
-// stage 3 and stage 4 run from here
-func runFinalStages(
-	projectRootDir string,
-	perpetualDir string,
-	projectConfig config.Config,
-	implementConfig config.Config,
-	planningMode bool,
-	allFileNames []string,
-	projectFilesBlacklist []*regexp.Regexp,
-	forceUpload bool,
-	filesToReview []string,
-	targetFiles []string,
-	messages []llm.Message,
-	task string,
-	noIncrMode bool,
-	fileNames []string,
-	logger logging.ILogger) {
-
-	// Run stage 3 - get list of files to modify
+	// Run stage 3 - get list of files to modify or delete
 	messages, otherFilesToModify, targetFilesToModify, filesToDelete := Stage3(
 		projectRootDir,
 		perpetualDir,
@@ -481,6 +445,42 @@ func runFinalStages(
 		messages,
 		task,
 		logger)
+
+	//NOTE: termination point when using stop/continue approach, need to save following variables to JSON state file:
+	//otherFilesToModify
+	//targetFilesToModify
+	//filesToDelete
+	//messages
+
+	//if stopping here, then also need to output reasonings from stage 2 and list of files for processing/deleting from stage 3 - to the console, or to the provided report file.
+
+	// run either from json state file, or directly after stage 3
+	runFinalStages(projectRootDir,
+		perpetualDir,
+		projectConfig,
+		implementConfig,
+		otherFilesToModify,
+		targetFilesToModify,
+		filesToDelete,
+		messages,
+		noIncrMode,
+		fileNames,
+		logger)
+}
+
+// run stage 4 from here and finalize, may be run after continue
+func runFinalStages(
+	projectRootDir string,
+	perpetualDir string,
+	projectConfig config.Config,
+	implementConfig config.Config,
+	otherFilesToModify []string,
+	targetFilesToModify []string,
+	filesToDelete []string,
+	messages []llm.Message,
+	noIncrMode bool,
+	fileNames []string,
+	logger logging.ILogger) {
 
 	// Run stage 4 - implement code in selected files
 	results := Stage4(
