@@ -329,8 +329,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 				projectDescResponse := llm.AddPlainTextFragment(
 					llm.NewMessage(llm.SimulatedAIResponse),
 					projectConfig.String(config.K_ProjectDescriptionResponse))
-				// we can benefit from caching here, all messages up to this should be the same
-				projectDescResponse.CacheBreakpoint = true
 				messages = append(messages, projectDescPrompt, projectDescResponse)
 			}
 
@@ -341,6 +339,8 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 			annotateSimulatedResponse := llm.AddPlainTextFragment(
 				llm.NewMessage(llm.SimulatedAIResponse),
 				annotateConfig.String(config.K_AnnotateFileResponse))
+			// we can benefit from caching here, all messages up to this should be the same
+			annotateSimulatedResponse.CacheBreakpoint = true
 
 			// Add file contents
 			fileContentsRequest := llm.AddFileFragment(
