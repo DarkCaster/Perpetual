@@ -21,12 +21,6 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Roadmap
 
-Add support for prompt cache management for OpenAI, Generic and Anthropic providers. Will be beneficial with Anthropic and latest OpenAI models to reduce costs.
-
-- Enable/disable per operation/stage at the .env files, disabled by-default, allow setting cache timeout if supported.
-- When enabled - evaluate if caching is needed for each operation and stage.
-- When attempting to use caching, add needed parameters to the JSON request, mark exact message at the JSON request to enable prefix caching up to this point.
-
 Add support for using `Perpetual` as a tool for writing code with an external agent:
 
 - Add `Skill.md`;
@@ -61,6 +55,7 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
 - In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
 - Added file deletion support to the `implement` operation; this should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states. Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
+- Added support for explicit prompt caching for OpenAI, Generic and Anthropic providers. Disabled by default, you can try using it to reduce costs (provider and model dependent).
 - Updated `.env.example` for the Anthropic provider with support for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
