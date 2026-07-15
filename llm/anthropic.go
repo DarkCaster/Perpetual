@@ -140,6 +140,9 @@ func NewAnthropicLLMConnectorFromEnv(
 				fieldsToInject["thinking"] = map[string]any{"budget_tokens": thinkTokens, "type": "enabled"}
 				debug.Add("think tokens", thinkTokens)
 			}
+		} else if thinkValue == "disabled" {
+			fieldsToInject["thinking"] = map[string]any{"type": "disabled"}
+			debug.Add("think", "disabled (force)")
 		} else {
 			// string value: use adaptive thinking with effort-based output config
 			fieldsToInject["thinking"] = map[string]any{"type": "adaptive"}
