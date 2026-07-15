@@ -162,7 +162,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}",
-			"args": ["doc","-a","refine","-r","docs/changelog.md","-vv"],
+			"args": ["doc","-m","refine","-i","docs/changelog.md","-o","docs/changelog.md","-vv"],
 		},
 		{
 			"name": "Launch Package: report",
