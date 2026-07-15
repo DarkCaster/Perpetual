@@ -184,277 +184,279 @@ func Run(args []string, logger logging.ILogger) {
 	var messages = []llm.Message{}
 	var otherFilesToModify, targetFilesToModify, filesToDelete []string
 
-	// Read input from file or stdin
-	var task string
-	if mode == "task" {
-		if inputFile == "" || inputFile == "-" {
-			logger.Infoln("Reading task from stdin")
-			data, wrn, err := utils.LoadTextStdin()
-			if err != nil {
-				logger.Panicln("Error reading from stdin:", err)
+	{
+		// Read input from file or stdin
+		var task string
+		if mode == "task" {
+			if inputFile == "" || inputFile == "-" {
+				logger.Infoln("Reading task from stdin")
+				data, wrn, err := utils.LoadTextStdin()
+				if err != nil {
+					logger.Panicln("Error reading from stdin:", err)
+				}
+				if wrn != "" {
+					logger.Warnf("stdin: %s", wrn)
+				}
+				task = string(data)
+			} else {
+				logger.Infoln("Reading task from file")
+				data, wrn, err := utils.LoadTextFile(inputFile)
+				if err != nil {
+					logger.Panicln("Error reading task from input file:", err)
+				}
+				if wrn != "" {
+					logger.Warnf("%s: %s", inputFile, wrn)
+				}
+				task = data
 			}
-			if wrn != "" {
-				logger.Warnf("stdin: %s", wrn)
+			// Trim excess line breaks at both sides of task, and stop on empty input
+			task = strings.Trim(task, "\n")
+			if len(task) < 1 {
+				logger.Panicln("Task is empty, cannot continue")
 			}
-			task = string(data)
-		} else {
-			logger.Infoln("Reading task from file")
-			data, wrn, err := utils.LoadTextFile(inputFile)
-			if err != nil {
-				logger.Panicln("Error reading task from input file:", err)
-			}
-			if wrn != "" {
-				logger.Warnf("%s: %s", inputFile, wrn)
-			}
-			task = data
 		}
-		// Trim excess line breaks at both sides of task, and stop on empty input
-		task = strings.Trim(task, "\n")
-		if len(task) < 1 {
-			logger.Panicln("Task is empty, cannot continue")
-		}
-	}
 
-	var targetFiles []string
-	if task != "" {
-		logger.Debugln("Skipping search of source files with implement comment")
-	} else {
-		// Find files for operation. Select files that contains implement-mark
-		logger.Debugln("Searching project files for implement comment")
-		for _, filePath := range fileNames {
-			logger.Traceln(filePath)
-			found, _, err := utils.FindInFile(
-				filepath.Join(projectRootDir, filePath),
-				implementConfig.RegexpArray(config.K_ImplementCommentsRx))
-			if err != nil {
-				logger.Panicf("Failed to search 'implement' comment in file %s: %v", filePath, err)
-			}
-			if found {
-				targetFiles = append(targetFiles, filePath)
-			}
-		}
-		// Log files to process
-		if len(targetFiles) < 1 {
-			logger.Panicln("No files found for processing")
-		}
-		logger.Infoln("Files for processing:")
-		for _, targetFile := range targetFiles {
-			logger.Infoln(targetFile)
-		}
-	}
-
-	logger.Debugln("Rotating log file")
-	if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
-		logger.Panicln("Failed to rotate log file:", err)
-	}
-
-	// Check if target files includes all project files, and run annotate if needed
-	skipStage1 := false
-	if len(targetFiles) == len(fileNames) {
-		logger.Warnln("All project files selected for processing, no need to run annotate and stage1")
-		skipStage1 = true
-	} else if !noAnnotate {
-		logger.Debugln("Running 'annotate' operation to update file annotations")
-		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
-		op_annotate.Run(op_annotate_params, true, logger, logger)
-		op_embed.Run(op_embed_params, true, logger, logger)
-	} else {
-		logger.Warnln("File-annotations update disabled, this may worsen the final result")
-	}
-
-	var filesToReview []string
-	if !skipStage1 {
-		// Load annotations needed for stage1
-		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
-		if err != nil {
-			logger.Panicln("Error reading annotations:", err)
-		}
-		// Find out do we have annotations for files not in targetFiles
-		nonTargetFilesAnnotationsCount := 0
-		for filename := range annotations {
-			found := slices.Contains(targetFiles, filename)
-			if !found {
-				nonTargetFilesAnnotationsCount++
-			}
-		}
-		var prompt string
+		var targetFiles []string
 		if task != "" {
-			prompt = implementConfig.String(config.K_ImplementTaskStage1AnalysisPrompt)
-		} else if len(targetFiles) > 0 {
-			prompt = implementConfig.String(config.K_ImplementStage1AnalysisPrompt)
+			logger.Debugln("Skipping search of source files with implement comment")
 		} else {
-			logger.Panicln("No task or files with implement-comments provided for processing, cannot continue!")
+			// Find files for operation. Select files that contains implement-mark
+			logger.Debugln("Searching project files for implement comment")
+			for _, filePath := range fileNames {
+				logger.Traceln(filePath)
+				found, _, err := utils.FindInFile(
+					filepath.Join(projectRootDir, filePath),
+					implementConfig.RegexpArray(config.K_ImplementCommentsRx))
+				if err != nil {
+					logger.Panicf("Failed to search 'implement' comment in file %s: %v", filePath, err)
+				}
+				if found {
+					targetFiles = append(targetFiles, filePath)
+				}
+			}
+			// Log files to process
+			if len(targetFiles) < 1 {
+				logger.Panicln("No files found for processing")
+			}
+			logger.Infoln("Files for processing:")
+			for _, targetFile := range targetFiles {
+				logger.Infoln(targetFile)
+			}
 		}
 
-		if nonTargetFilesAnnotationsCount > 0 {
-			// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
-			filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
-			preselectedFileNames, sameFilesForAllPasses := shared.Stage1Preselect(
-				perpetualDir,
-				projectRootDir,
-				filesPercent,
-				randomizePercent,
-				fileNames,
-				task,
-				targetFiles,
-				annotations,
-				selectionPasses,
-				logger)
-			// Prepare for multi-pass stage 1
-			selectionPasses = len(preselectedFileNames)
-			stage1Logger := logger.Clone()
-			if selectionPasses > 1 {
-				stage1Logger.DisableLevel(logging.InfoLevel)
+		logger.Debugln("Rotating log file")
+		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
+			logger.Panicln("Failed to rotate log file:", err)
+		}
+
+		// Check if target files includes all project files, and run annotate if needed
+		skipStage1 := false
+		if len(targetFiles) == len(fileNames) {
+			logger.Warnln("All project files selected for processing, no need to run annotate and stage1")
+			skipStage1 = true
+		} else if !noAnnotate {
+			logger.Debugln("Running 'annotate' operation to update file annotations")
+			op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
+			op_annotate.Run(op_annotate_params, true, logger, logger)
+			op_embed.Run(op_embed_params, true, logger, logger)
+		} else {
+			logger.Warnln("File-annotations update disabled, this may worsen the final result")
+		}
+
+		var filesToReview []string
+		if !skipStage1 {
+			// Load annotations needed for stage1
+			annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
+			if err != nil {
+				logger.Panicln("Error reading annotations:", err)
 			}
-			fileLists := make([][]string, selectionPasses)
-			for pass := range selectionPasses {
-				// Run stage 1
-				fileLists[pass] = shared.Stage1(
-					OpName,
-					projectRootDir,
+			// Find out do we have annotations for files not in targetFiles
+			nonTargetFilesAnnotationsCount := 0
+			for filename := range annotations {
+				found := slices.Contains(targetFiles, filename)
+				if !found {
+					nonTargetFilesAnnotationsCount++
+				}
+			}
+			var prompt string
+			if task != "" {
+				prompt = implementConfig.String(config.K_ImplementTaskStage1AnalysisPrompt)
+			} else if len(targetFiles) > 0 {
+				prompt = implementConfig.String(config.K_ImplementStage1AnalysisPrompt)
+			} else {
+				logger.Panicln("No task or files with implement-comments provided for processing, cannot continue!")
+			}
+
+			if nonTargetFilesAnnotationsCount > 0 {
+				// Perform context saving measures - use local search to pre-select only some percentage of the most relevant project files
+				filesPercent, randomizePercent := shared.GetLocalSearchLimitsForContextSaving(contextSaving, len(fileNames), projectConfig)
+				preselectedFileNames, sameFilesForAllPasses := shared.Stage1Preselect(
 					perpetualDir,
-					projectConfig,
-					implementConfig,
-					projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-					preselectedFileNames[pass],
+					projectRootDir,
+					filesPercent,
+					randomizePercent,
 					fileNames,
-					projectDesc,
-					annotations,
-					[]string{}, []string{}, []string{},
-					prompt,
 					task,
 					targetFiles,
-					pass+1,
+					annotations,
 					selectionPasses,
-					sameFilesForAllPasses,
-					stage1Logger)
-				// Prepare for local similarity search
-				searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)
-				// Compose list of already requested files
-				requestedFiles := append(utils.NewSlice(fileLists[pass]...), targetFiles...)
-				// Select search mode
-				searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
-				// Local similarity search stage
-				similarFiles := op_embed.SimilaritySearchStage(
-					searchMode,
-					min(searchLimit, len(fileLists[pass])),
-					perpetualDir,
-					searchQueries,
-					searchTags,
-					fileNames,
-					requestedFiles,
-					stage1Logger)
-				fileLists[pass] = append(fileLists[pass], similarFiles...)
-			}
-			// Merge fileLists together
-			if selectionPasses > 1 {
-				stage1Logger.EnableLevel(logging.InfoLevel)
+					logger)
+				// Prepare for multi-pass stage 1
+				selectionPasses = len(preselectedFileNames)
+				stage1Logger := logger.Clone()
+				if selectionPasses > 1 {
+					stage1Logger.DisableLevel(logging.InfoLevel)
+				}
+				fileLists := make([][]string, selectionPasses)
+				for pass := range selectionPasses {
+					// Run stage 1
+					fileLists[pass] = shared.Stage1(
+						OpName,
+						projectRootDir,
+						perpetualDir,
+						projectConfig,
+						implementConfig,
+						projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
+						preselectedFileNames[pass],
+						fileNames,
+						projectDesc,
+						annotations,
+						[]string{}, []string{}, []string{},
+						prompt,
+						task,
+						targetFiles,
+						pass+1,
+						selectionPasses,
+						sameFilesForAllPasses,
+						stage1Logger)
+					// Prepare for local similarity search
+					searchQueries, searchTags := op_embed.GetQueriesForSimilaritySearch(task, targetFiles, annotations)
+					// Compose list of already requested files
+					requestedFiles := append(utils.NewSlice(fileLists[pass]...), targetFiles...)
+					// Select search mode
+					searchMode := shared.GetLocalSearchModeFromContextSavingValue(contextSaving, len(requestedFiles), searchLimit)
+					// Local similarity search stage
+					similarFiles := op_embed.SimilaritySearchStage(
+						searchMode,
+						min(searchLimit, len(fileLists[pass])),
+						perpetualDir,
+						searchQueries,
+						searchTags,
+						fileNames,
+						requestedFiles,
+						stage1Logger)
+					fileLists[pass] = append(fileLists[pass], similarFiles...)
+				}
+				// Merge fileLists together
+				if selectionPasses > 1 {
+					stage1Logger.EnableLevel(logging.InfoLevel)
+				} else {
+					stage1Logger.DisableLevel(logging.InfoLevel)
+				}
+				filesToReview = shared.MergeFileLists(fileLists, stage1Logger)
 			} else {
-				stage1Logger.DisableLevel(logging.InfoLevel)
+				logger.Warnln("All source code files already selected for review, no need to run stage1")
 			}
-			filesToReview = shared.MergeFileLists(fileLists, stage1Logger)
-		} else {
-			logger.Warnln("All source code files already selected for review, no need to run stage1")
 		}
-	}
 
-	// Filter filesToReview files for presence of "no-upload" mark
-	if !forceUpload {
-		filesToReview = utils.FilterNoUploadProjectFiles(
+		// Filter filesToReview files for presence of "no-upload" mark
+		if !forceUpload {
+			filesToReview = utils.FilterNoUploadProjectFiles(
+				projectRootDir,
+				filesToReview,
+				projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
+				false,
+				logger)
+		}
+
+		stage2TargetFilesPrompts := []string{}
+		stage2TargetFilesNames := []any{}
+		stage2TargetFilesResponses := []string{}
+
+		var stage2MainPrompt string
+		var stage2MainPromptFinal string
+		var stage2MainPromptBody any
+
+		if planningMode {
+			// planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
+			logger.Infoln("Running stage2: using planning, generating work plan")
+			// this will produce messages with related file-list
+			stage2TargetFilesPrompts = []string{}
+			stage2TargetFilesNames = []any{}
+			stage2TargetFilesResponses = []string{}
+			// fill-up main prompts to generate workplan
+			if task == "" {
+				stage2MainPrompt = implementConfig.String(config.K_ImplementStage2ReasoningsPrompt)
+				stage2MainPromptFinal = implementConfig.String(config.K_ImplementStage2ReasoningsPromptFinal)
+				stage2MainPromptBody = targetFiles
+			} else {
+				stage2MainPrompt = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPrompt)
+				stage2MainPromptFinal = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPromptFinal)
+				stage2MainPromptBody = task
+			}
+		} else {
+			// planning disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
+			logger.Infoln("Running stage2: planning disabled, not generating work plan")
+			// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
+			stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
+			stage2TargetFilesNames = []any{targetFiles}
+			stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
+			// make main prompt empty to skip workplan generation
+			stage2MainPrompt = ""
+			stage2MainPromptFinal = ""
+			stage2MainPromptBody = ""
+		}
+
+		// Run stage 2 - create file review, create reasonings
+		_, messages = shared.Stage2(OpName,
 			projectRootDir,
+			perpetualDir,
+			projectConfig,
+			implementConfig,
+			projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
+			[]string{},
 			filesToReview,
-			projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
+			projectDesc,
+			map[string]string{},
 			false,
+			stage2TargetFilesPrompts,
+			stage2TargetFilesNames,
+			stage2TargetFilesResponses,
+			stage2MainPrompt,
+			stage2MainPromptFinal,
+			stage2MainPromptBody,
+			false,
+			true,
+			logger,
+		)
+
+		// Run stage 3 - get list of files to modify or delete
+		messages, otherFilesToModify, targetFilesToModify, filesToDelete = Stage3(
+			projectRootDir,
+			perpetualDir,
+			projectConfig,
+			implementConfig,
+			projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
+			planningMode,
+			allFileNames,
+			projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
+			projectFilesBlacklist,
+			projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
+			forceUpload,
+			filesToReview,
+			targetFiles,
+			messages,
+			task,
 			logger)
+
+		//NOTE: termination point when using stop/continue approach, need to save following variables to JSON state file:
+		//otherFilesToModify
+		//targetFilesToModify
+		//filesToDelete
+		//messages
+
+		//if stopping here, then also need to output reasonings from stage 2 and list of files for processing/deleting from stage 3 - to the console, or to the provided report file.
 	}
-
-	stage2TargetFilesPrompts := []string{}
-	stage2TargetFilesNames := []any{}
-	stage2TargetFilesResponses := []string{}
-
-	var stage2MainPrompt string
-	var stage2MainPromptFinal string
-	var stage2MainPromptBody any
-
-	if planningMode {
-		// planning mode - generate workplan with reasonings and upcoming changes, LLM can modify other files and create new
-		logger.Infoln("Running stage2: using planning, generating work plan")
-		// this will produce messages with related file-list
-		stage2TargetFilesPrompts = []string{}
-		stage2TargetFilesNames = []any{}
-		stage2TargetFilesResponses = []string{}
-		// fill-up main prompts to generate workplan
-		if task == "" {
-			stage2MainPrompt = implementConfig.String(config.K_ImplementStage2ReasoningsPrompt)
-			stage2MainPromptFinal = implementConfig.String(config.K_ImplementStage2ReasoningsPromptFinal)
-			stage2MainPromptBody = targetFiles
-		} else {
-			stage2MainPrompt = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPrompt)
-			stage2MainPromptFinal = implementConfig.String(config.K_ImplementTaskStage2ReasoningsPromptFinal)
-			stage2MainPromptBody = task
-		}
-	} else {
-		// planning disabled, LLM will only modify targetFiles (files that contain IMPLEMENT comments)
-		logger.Infoln("Running stage2: planning disabled, not generating work plan")
-		// this will produce messages with target file-list + related file-list + instructions for further processing on next stages
-		stage2TargetFilesPrompts = []string{implementConfig.String(config.K_ImplementStage2NoPlanningPrompt)}
-		stage2TargetFilesNames = []any{targetFiles}
-		stage2TargetFilesResponses = []string{implementConfig.String(config.K_ImplementStage2NoPlanningResponse)}
-		// make main prompt empty to skip workplan generation
-		stage2MainPrompt = ""
-		stage2MainPromptFinal = ""
-		stage2MainPromptBody = ""
-	}
-
-	// Run stage 2 - create file review, create reasonings
-	_, messages = shared.Stage2(OpName,
-		projectRootDir,
-		perpetualDir,
-		projectConfig,
-		implementConfig,
-		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		[]string{},
-		filesToReview,
-		projectDesc,
-		map[string]string{},
-		false,
-		stage2TargetFilesPrompts,
-		stage2TargetFilesNames,
-		stage2TargetFilesResponses,
-		stage2MainPrompt,
-		stage2MainPromptFinal,
-		stage2MainPromptBody,
-		false,
-		true,
-		logger,
-	)
-
-	// Run stage 3 - get list of files to modify or delete
-	messages, otherFilesToModify, targetFilesToModify, filesToDelete = Stage3(
-		projectRootDir,
-		perpetualDir,
-		projectConfig,
-		implementConfig,
-		projectConfig.TextMatcherString(config.K_ProjectMdCodeMappings),
-		planningMode,
-		allFileNames,
-		projectConfig.RegexpArray(config.K_ProjectFilesWhitelist),
-		projectFilesBlacklist,
-		projectConfig.RegexpArray(config.K_ProjectNoUploadCommentsRx),
-		forceUpload,
-		filesToReview,
-		targetFiles,
-		messages,
-		task,
-		logger)
-
-	//NOTE: termination point when using stop/continue approach, need to save following variables to JSON state file:
-	//otherFilesToModify
-	//targetFilesToModify
-	//filesToDelete
-	//messages
-
-	//if stopping here, then also need to output reasonings from stage 2 and list of files for processing/deleting from stage 3 - to the console, or to the provided report file.
 
 	// run either from json state file, or directly after stage 3
 	runFinalStages(projectRootDir,
