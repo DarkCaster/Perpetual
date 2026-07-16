@@ -248,7 +248,7 @@ func Stage4(projectRootDir string,
 					fileBody, _, err := llm.GetSourceFileFromCache(pendingFile)
 					if err != nil {
 						//should not occur, so this is an internal error
-						logger.Panicf("Failed to get file from cache, trying regular mode: %v", err)
+						logger.Panicf("Internal error: failed to get file from cache: %v", err)
 					}
 					changedOk := true
 					// iterate over each search-and-replace blocks
