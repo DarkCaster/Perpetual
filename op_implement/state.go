@@ -8,10 +8,10 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-// stateFileName is the name of the JSON file used to store intermediate state
+// StateFileName is the name of the JSON file used to store intermediate state
 // between the preparation stages (1-3) and the final implementation stage (4)
 // when running the 'implement' operation in managed step-by-step mode.
-const stateFileName = ".implement_state.json"
+const StateFileName = ".implement_state.json"
 
 // state holds all the data required to resume the 'implement' operation at
 // stage 4 after the preparation stages (1-3) have been completed and confirmed
@@ -25,7 +25,7 @@ type state struct {
 
 // getStateFilePath returns the full path to the state file inside perpetualDir.
 func getStateFilePath(perpetualDir string) string {
-	return filepath.Join(perpetualDir, stateFileName)
+	return filepath.Join(perpetualDir, StateFileName)
 }
 
 // saveState writes the provided state to the state file inside perpetualDir.

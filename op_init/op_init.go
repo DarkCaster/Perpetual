@@ -9,6 +9,7 @@ import (
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
+	"github.com/DarkCaster/Perpetual/op_implement"
 	"github.com/DarkCaster/Perpetual/usage"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -86,7 +87,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	// Create a .gitignore file in the .perpetual directory
 	logger.Traceln("Creating .gitignore file")
 
-	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n/%s*\n/%s\n", DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, utils.LockFileName, llm.LLMRawLogFile, utils.StashesDirName)
+	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n/%s*\n/%s\n/%s\n", DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, utils.LockFileName, llm.LLMRawLogFile, utils.StashesDirName, op_implement.StateFileName)
 	_, err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
 	if err != nil {
 		logger.Panicln("Error creating .gitignore file:", err)
