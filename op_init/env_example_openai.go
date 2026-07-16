@@ -104,7 +104,7 @@ OPENAI_INCRMODE_RETRIES="1"
 # "-1" - use explicit caching via prompt_cache_options.mode parameter but do not set breakpoints effectively disabling caching;
 # "1" - use explicit caching with breakpoints; any other value - use explicit caching with breakpoints and use the value as TTL (support may vary);
 # Per-operation override:
-# OPENAI_CACHE_OP_ANNOTATE="0"
+OPENAI_CACHE_OP_ANNOTATE="0"
 # OPENAI_CACHE_OP_IMPLEMENT_STAGE1="0"
 # OPENAI_CACHE_OP_IMPLEMENT_STAGE2="0"
 # OPENAI_CACHE_OP_IMPLEMENT_STAGE3="0"
