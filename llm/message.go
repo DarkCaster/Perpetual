@@ -23,17 +23,17 @@ const (
 )
 
 type Fragment struct {
-	Type         FragmentType
-	Contents     string
-	FileName     string
-	FileNameTags utils.TagPair
+	Type         FragmentType  `json:"type"`
+	Contents     string        `json:"contents,omitempty"`
+	FileName     string        `json:"file_name,omitempty"`
+	FileNameTags utils.TagPair `json:"file_name_tags,omitempty"`
 }
 
 type Message struct {
-	Type            MessageType
-	Fragments       []Fragment
-	RawText         string
-	CacheBreakpoint bool
+	Type            MessageType `json:"type"`
+	Fragments       []Fragment  `json:"fragments,omitempty"`
+	RawText         string      `json:"raw_text,omitempty"`
+	CacheBreakpoint bool        `json:"cache_breakpoint"`
 }
 
 func NewMessage(messageType MessageType) Message {

@@ -9,8 +9,8 @@ import (
 )
 
 type TagPair struct {
-	Left  string
-	Right string
+	Left  string `json:"left,omitempty"`
+	Right string `json:"right,omitempty"`
 }
 
 // Ordered container of [regexp + associated data] records in the same order as in config file
