@@ -484,8 +484,58 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				logger.Panicln("Failed to save implement state file:", err)
 			}
 			logger.Infoln("Processing will stop here, to complete proposed changes run implement again with '-p finish'")
-			//###IMPLEMENT###
-			//write reasonings and proposed files to change to the console, or to the output file
+
+			// Build a Markdown report with the generated reasoning and proposed changes.
+			var report strings.Builder
+			report.WriteString("# Task Reasonings\n\n")
+			if strings.TrimSpace(reasonings) == "" {
+				report.WriteString("No reasonings were generated.\n")
+			} else {
+				report.WriteString(strings.TrimSpace(reasonings))
+				report.WriteByte('\n')
+			}
+
+			report.WriteString("\n# Proposed File Changes\n\n")
+			report.WriteString("## Files to Modify or Create\n\n")
+
+			for _, file := range otherFilesToModify {
+				report.WriteString("- `")
+				report.WriteString(file)
+				report.WriteString("`\n")
+			}
+			for _, file := range targetFilesToModify {
+				report.WriteString("- `")
+				report.WriteString(file)
+				report.WriteString("`\n")
+			}
+			if len(otherFilesToModify) == 0 && len(targetFilesToModify) == 0 {
+				report.WriteString("None.\n")
+			}
+
+			report.WriteString("\n## Files to Delete\n\n")
+			for _, file := range filesToDelete {
+				report.WriteString("- `")
+				report.WriteString(file)
+				report.WriteString("`\n")
+			}
+			if len(filesToDelete) == 0 {
+				report.WriteString("None.\n")
+			}
+
+			if outputFile == "" || outputFile == "-" {
+				if err := utils.WriteTextStdout(report.String()); err != nil {
+					logger.Panicln("Failed to write implement report to stdout:", err)
+				}
+			} else {
+				logger.Infoln("Writing implement report:", outputFile)
+				wrn, err := utils.SaveTextFile(outputFile, report.String())
+				if err != nil {
+					logger.Panicln("Failed to write implement report:", err)
+				}
+				if wrn != "" {
+					logger.Warnf("%s: %s", outputFile, wrn)
+				}
+			}
 			return
 		}
 	} else {
