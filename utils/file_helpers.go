@@ -34,8 +34,8 @@ const (
 )
 
 type fileParams struct {
-	ModernEncoding        utfEncoding
-	UsingFallbackEncoding bool
+	ModernEncoding        utfEncoding `json:"modern_encoding"`
+	UsingFallbackEncoding bool        `json:"using_fallback_encoding"`
 }
 
 var filesParamsLock sync.Mutex
