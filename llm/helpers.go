@@ -3,12 +3,13 @@ package llm
 import (
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-// NOTE: make cache management threadsafe if needed
+var sourceFileCacheLock sync.Mutex //just in case, for possible future multi-threaded access
 var sourceFileCache map[string]string = make(map[string]string)
 
 func ComposeMessageWithSourceFiles(projectRootDir, prompt string, targetFiles []string, filenameTags utils.TagPair, logger logging.ILogger) Message {
@@ -26,12 +27,28 @@ func AppendSourceFileToMessage(message Message, projectRootDir, file string, fil
 	if err != nil {
 		logger.Panicf("Failed to attach file '%s' to prompt: %v", file, err)
 	}
+	sourceFileCacheLock.Lock()
 	sourceFileCache[file] = text
+	sourceFileCacheLock.Unlock()
 	return AddFileFragment(message, file, text, filenameTags)
 }
 
+func PrecacheSourceFile(projectRootDir, file string, logger logging.ILogger) {
+	sourceFileCacheLock.Lock()
+	defer sourceFileCacheLock.Unlock()
+	if _, exist := sourceFileCache[file]; !exist {
+		text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
+		if err != nil {
+			logger.Panicf("Failed to load source file '%s': %v", file, err)
+		}
+		sourceFileCache[file] = text
+	}
+}
+
 func GetSourceFileFromCache(file string) (string, int, error) {
-	if text, ok := sourceFileCache[file]; ok {
+	sourceFileCacheLock.Lock()
+	defer sourceFileCacheLock.Unlock()
+	if text, exist := sourceFileCache[file]; exist {
 		return text, len(text), nil
 	}
 	return "", 0, fmt.Errorf("file %s not found in cache", file)
