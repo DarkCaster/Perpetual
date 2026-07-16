@@ -33,15 +33,13 @@ func AppendSourceFileToMessage(message Message, projectRootDir, file string, fil
 	return AddFileFragment(message, file, text, filenameTags)
 }
 
-func PrecacheSourceFile(projectRootDir, file string, logger logging.ILogger) {
+func PrecacheSourceFile(projectRootDir, file string) {
 	sourceFileCacheLock.Lock()
 	defer sourceFileCacheLock.Unlock()
 	if _, exist := sourceFileCache[file]; !exist {
-		text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
-		if err != nil {
-			logger.Panicf("Failed to load source file '%s': %v", file, err)
+		if text, _, err := utils.LoadTextFile(filepath.Join(projectRootDir, file)); err == nil {
+			sourceFileCache[file] = text
 		}
-		sourceFileCache[file] = text
 	}
 }
 
