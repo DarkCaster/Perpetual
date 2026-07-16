@@ -89,7 +89,7 @@ func main() {
 	case op_embed.OpName:
 		op_embed.Run(args, false, logger, stdErrLogger)
 	case op_implement.OpName:
-		op_implement.Run(args, logger)
+		op_implement.Run(args, logger, stdErrLogger)
 	case op_stash.OpName:
 		op_stash.Run(args, false, logger)
 	case op_report.OpName:

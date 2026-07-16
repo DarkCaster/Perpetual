@@ -26,9 +26,9 @@ func implementFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, logger logging.ILogger) {
+func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests bool
-	var mode, descFile, inputFile, userFilterFile, contextSaving string
+	var mode, descFile, inputFile, userFilterFile, contextSaving, stepMode, outputFile string
 	var searchLimit, selectionPasses int
 
 	// Parse flags for the "implement" operation
@@ -38,6 +38,11 @@ func Run(args []string, logger logging.ILogger) {
 		"task:         Implement code based on a task read from a text file or stdin (see '-i' flag). Uses planning, can affect any project files.\n"+
 		"comment:      Generate code marked with ###IMPLEMENT### comments in the source code. Uses planning, can affect any project files.\n"+
 		"comment-fast: Generate code marked with ###IMPLEMENT### comments, works only inside that files and skips planning (stage 2 and 3)")
+	flags.StringVar(&stepMode, "p", "", "Managed step-by-step execution (not available in 'comment-fast' mode). Valid values: start|finish.\n"+
+		"start:  Perform preparation stages 1-3, display generated reasonings and proposed file changes, and save intermediate state for later completion.\n"+
+		"finish: Complete a previously started step-by-step implementation by performing stage 4 (actual code changes).\n"+
+		"If not provided, any pending state is silently removed and a normal full-scale implementation is performed.")
+	flags.StringVar(&outputFile, "o", "", "File path to write step-by-step report to (used with '-p start'). Write to stdout if set to '-', not provided or empty")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&inputFile, "i", "", "Path to a text file (plain text or Markdown) with task to implement for task mode ('-m task'). If empty or '-' then read task from stdin")
@@ -52,6 +57,9 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
+	if stepMode != "" {
+		logger = stdErrLogger
+	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}
@@ -65,6 +73,15 @@ func Run(args []string, logger logging.ILogger) {
 
 	if help {
 		usage.PrintOperationUsage("", flags)
+	}
+
+	switch stepMode {
+	case "":
+	case "start":
+	case "finish":
+		break
+	default:
+		usage.PrintOperationUsage("You must provide valid managed execution step-mode value (valid values: start|finish)", flags)
 	}
 
 	contextSaving = shared.ValidateContextSavingValue(contextSaving, logger)
@@ -180,11 +197,14 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
-	//Possible initial continue point, restore cmdline argument saved at the json state-file here
-	var messages = []llm.Message{}
-	var otherFilesToModify, targetFilesToModify, filesToDelete []string
+	if stepMode != "finish" {
+		if rmErr := removeState(perpetualDir); rmErr != nil {
+			logger.Panicln("Failed to remove stale state file:", rmErr)
+		}
+	}
 
-	{
+	var state = state{}
+	if stepMode == "" || stepMode == "start" {
 		// Read input from file or stdin
 		var task string
 		if mode == "task" {
@@ -408,7 +428,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 
 		// Run stage 2 - create file review, create reasonings
-		_, messages = shared.Stage2(OpName,
+		_, messages := shared.Stage2(OpName,
 			projectRootDir,
 			perpetualDir,
 			projectConfig,
@@ -431,7 +451,7 @@ func Run(args []string, logger logging.ILogger) {
 		)
 
 		// Run stage 3 - get list of files to modify or delete
-		messages, otherFilesToModify, targetFilesToModify, filesToDelete = Stage3(
+		messages, otherFilesToModify, targetFilesToModify, filesToDelete := Stage3(
 			projectRootDir,
 			perpetualDir,
 			projectConfig,
@@ -449,13 +469,30 @@ func Run(args []string, logger logging.ILogger) {
 			task,
 			logger)
 
-		//NOTE: termination point when using stop/continue approach, need to save following variables to JSON state file:
-		//otherFilesToModify
-		//targetFilesToModify
-		//filesToDelete
-		//messages
+		state.OtherFilesToModify = otherFilesToModify
+		state.TargetFilesToModify = targetFilesToModify
+		state.FilesToDelete = filesToDelete
+		state.Messages = messages
 
-		//if stopping here, then also need to output reasonings from stage 2 and list of files for processing/deleting from stage 3 - to the console, or to the provided report file.
+		//termination point, need to save state:
+		if stepMode == "start" {
+			if err := saveState(perpetualDir, state); err != nil {
+				if rmErr := removeState(perpetualDir); rmErr != nil {
+					logger.Errorln("Failed to remove invalid state file:", rmErr)
+				}
+				logger.Panicln("Failed to save implement state file:", err)
+			}
+			//TODO: write reasonings and proposed files to change to the console
+			return
+		}
+	} else {
+		state, err = loadState(perpetualDir)
+		if err != nil {
+			if rmErr := removeState(perpetualDir); rmErr != nil {
+				logger.Errorln("Failed to remove invalid state file:", rmErr)
+			}
+			logger.Panicln("Failed to load implement state file:", err)
+		}
 	}
 
 	// run either from json state file, or directly after stage 3
@@ -463,10 +500,10 @@ func Run(args []string, logger logging.ILogger) {
 		perpetualDir,
 		projectConfig,
 		implementConfig,
-		otherFilesToModify,
-		targetFilesToModify,
-		filesToDelete,
-		messages,
+		state.OtherFilesToModify,
+		state.TargetFilesToModify,
+		state.FilesToDelete,
+		state.Messages,
 		noIncrMode,
 		fileNames,
 		logger)
