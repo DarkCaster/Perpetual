@@ -428,7 +428,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		// Run stage 2 - create file review, create reasonings
-		_, messages := shared.Stage2(OpName,
+		reasonings, messages := shared.Stage2(OpName,
 			projectRootDir,
 			perpetualDir,
 			projectConfig,
@@ -476,16 +476,20 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 		//termination point, need to save state:
 		if stepMode == "start" {
+			logger.Debugln("Saving state file")
 			if err := saveState(perpetualDir, state); err != nil {
 				if rmErr := removeState(perpetualDir); rmErr != nil {
 					logger.Errorln("Failed to remove invalid state file:", rmErr)
 				}
 				logger.Panicln("Failed to save implement state file:", err)
 			}
-			//TODO: write reasonings and proposed files to change to the console
+			logger.Infoln("Processing will stop here, to complete proposed changes run implement again with '-p finish'")
+			//###IMPLEMENT###
+			//write reasonings and proposed files to change to the console, or to the output file
 			return
 		}
 	} else {
+		logger.Infoln("Resuming processing from saved state")
 		state, err = loadState(perpetualDir, projectRootDir)
 		if err != nil {
 			if rmErr := removeState(perpetualDir); rmErr != nil {
