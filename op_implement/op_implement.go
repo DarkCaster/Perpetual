@@ -42,7 +42,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		"start:  Perform preparation stages 1-3, display generated reasonings and proposed file changes, and save intermediate state for later completion.\n"+
 		"finish: Complete a previously started step-by-step implementation by performing stage 4 (actual code changes).\n"+
 		"If not provided, any pending state is silently removed and a normal full-scale implementation is performed.")
-	flags.StringVar(&outputFile, "o", "", "File path to write step-by-step report to (used with '-p start'). Write to stdout if set to '-', not provided or empty")
+	flags.StringVar(&outputFile, "o", "", "File path for saving report with reasonings and proposed changes (used with '-p start'). Write to stdout if set to '-', not provided or empty")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&inputFile, "i", "", "Path to a text file (plain text or Markdown) with task to implement for task mode ('-m task'). If empty or '-' then read task from stdin")

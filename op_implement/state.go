@@ -17,10 +17,10 @@ const stateFileName = ".implement_state.json"
 // stage 4 after the preparation stages (1-3) have been completed and confirmed
 // by the operator/agent.
 type state struct {
-	OtherFilesToModify  []string      `json:"other_files_to_modify"`
-	TargetFilesToModify []string      `json:"target_files_to_modify"`
-	FilesToDelete       []string      `json:"files_to_delete"`
-	Messages            []llm.Message `json:"messages"`
+	OtherFilesToModify  []string      `json:"other_files_to_modify,omitempty"`
+	TargetFilesToModify []string      `json:"target_files_to_modify,omitempty"`
+	FilesToDelete       []string      `json:"files_to_delete,omitempty"`
+	Messages            []llm.Message `json:"messages,omitempty"`
 }
 
 // getStateFilePath returns the full path to the state file inside perpetualDir.
