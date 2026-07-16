@@ -201,6 +201,9 @@ func Stage3(projectRootDir string,
 		// Sort and filter file list provided by LLM
 		logger.Debugln("Raw file-list to modify by LLM:", filesToProcessRaw)
 		logger.Infoln("Files for processing selected by LLM:")
+		if len(filesToProcessRaw) < 1 {
+			logger.Infoln("No files selected for processing")
+		}
 		for _, raw := range filesToProcessRaw {
 			file, ok := normalizeLLMRequestedFile(raw)
 			if !ok {
@@ -255,6 +258,9 @@ func Stage3(projectRootDir string,
 
 		logger.Debugln("Raw file-list to delete by LLM:", filesToDeleteRaw)
 		logger.Infoln("Files for deletion selected by LLM:")
+		if len(filesToDeleteRaw) < 1 {
+			logger.Infoln("No files selected for deletion")
+		}
 		for _, raw := range filesToDeleteRaw {
 			file, ok := normalizeLLMRequestedFile(raw)
 			if !ok {
