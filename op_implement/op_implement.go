@@ -486,7 +486,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 			return
 		}
 	} else {
-		state, err = loadState(perpetualDir)
+		state, err = loadState(perpetualDir, projectRootDir)
 		if err != nil {
 			if rmErr := removeState(perpetualDir); rmErr != nil {
 				logger.Errorln("Failed to remove invalid state file:", rmErr)

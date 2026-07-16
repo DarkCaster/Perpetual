@@ -33,11 +33,21 @@ func saveState(perpetualDir string, state state) error {
 	return utils.SaveJsonFile(getStateFilePath(perpetualDir), state)
 }
 
-// loadState reads and validates the state file from perpetualDir.
-func loadState(perpetualDir string) (state, error) {
+// loadState reads and validates the state file from perpetualDir, precache source files
+func loadState(perpetualDir, projectRootDir string) (state, error) {
 	var state state
 	if err := utils.LoadJsonFile(getStateFilePath(perpetualDir), &state); err != nil {
 		return state, err
+	}
+	// precache source files from state, best effort:
+	// - ensure they will be handled same way as if we not used state file at all;
+	// - ensure source files metadata (encoding) was properly detected and converted if needed;
+	// - ensure source files do not change during stage 4;
+	for _, file := range state.OtherFilesToModify {
+		llm.PrecacheSourceFile(projectRootDir, file)
+	}
+	for _, file := range state.TargetFilesToModify {
+		llm.PrecacheSourceFile(projectRootDir, file)
 	}
 	return state, nil
 }
