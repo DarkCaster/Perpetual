@@ -30,6 +30,10 @@ Improve logging for beter consistency across operations and modes:
 - Redirect all logging to stderr;
 - Use stdout only for the output intended to the user/agent/UI, like reports, work plan, file-lists, etc;
 
+(Maybe) Merge `init` and `misc` operations together:
+
+- Introduce new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration).
+
 Caching improvements:
 
 - Add support for implicit caching for Anthropic provider - currently it only use explicit caching or no caching at all (default).
