@@ -14,7 +14,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-const StashVersion = 1
+const StashVersion = 2
 
 type Stash struct {
 	Version int         `json:"version"`
@@ -22,9 +22,10 @@ type Stash struct {
 }
 
 type FileEntry struct {
-	Filename string    `json:"filename"`
-	Original FileState `json:"original"`
-	Modified FileState `json:"modified"`
+	Filename   string           `json:"filename"`
+	FileParams utils.FileParams `json:"file_params"`
+	Original   FileState        `json:"original"`
+	Modified   FileState        `json:"modified"`
 }
 
 type FileState struct {
@@ -242,6 +243,10 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 				state = entry.Modified
 			}
 
+			// SaveTextFile looks up encoding parameters by the exact path used
+			// for writing, so associate the stashed parameters with the
+			// resolved target path before applying the file state.
+			utils.SetFileParams(filepath.Join(projectRootDir, target), entry.FileParams)
 			applyFileState(projectRootDir, target, state, outerCallLogger)
 		}
 	}
@@ -329,10 +334,13 @@ func CreateStash(results map[string]string, projectFiles []string, filesToDelete
 
 	for filePathInitial, fileContent := range results {
 		filePathFinal := normalizeFilePath(filePathInitial)
+		original := readOriginalState(filePathFinal)
+		fileParams := utils.GetFileParams(filepath.Join(projectRootDir, filePathFinal))
 
 		addOrReplaceEntry(FileEntry{
-			Filename: filePathFinal,
-			Original: readOriginalState(filePathFinal),
+			Filename:   filePathFinal,
+			FileParams: fileParams,
+			Original:   original,
 			Modified: FileState{
 				Exists:   true,
 				Contents: fileContent,
@@ -342,14 +350,17 @@ func CreateStash(results map[string]string, projectFiles []string, filesToDelete
 
 	for _, filePathInitial := range filesToDelete {
 		filePathFinal := normalizeFilePath(filePathInitial)
+		original := readOriginalState(filePathFinal)
+		fileParams := utils.GetFileParams(filepath.Join(projectRootDir, filePathFinal))
 
 		if _, ok := entriesByFile[filePathFinal]; ok {
 			logger.Warnln("File is both modified and deleted in stash, deletion will take precedence:", filePathFinal)
 		}
 
 		addOrReplaceEntry(FileEntry{
-			Filename: filePathFinal,
-			Original: readOriginalState(filePathFinal),
+			Filename:   filePathFinal,
+			FileParams: fileParams,
+			Original:   original,
 			Modified: FileState{
 				Exists: false,
 			},

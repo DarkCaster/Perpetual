@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/DarkCaster/Perpetual/llm"
 	"github.com/DarkCaster/Perpetual/logging"
 	"github.com/DarkCaster/Perpetual/utils"
 )
@@ -94,6 +95,19 @@ func assertFileContents(t *testing.T, projectRootDir, filename, expected string)
 
 	if string(data) != expected {
 		t.Fatalf("unexpected contents for %q:\nexpected: %q\nactual:   %q", filename, expected, string(data))
+	}
+}
+
+func assertFileBytes(t *testing.T, projectRootDir, filename string, expected []byte) {
+	t.Helper()
+
+	data, err := os.ReadFile(filepath.Join(projectRootDir, filename))
+	if err != nil {
+		t.Fatalf("failed to read %q: %v", filename, err)
+	}
+
+	if string(data) != string(expected) {
+		t.Fatalf("unexpected bytes for %q:\nexpected: %v\nactual:   %v", filename, expected, data)
 	}
 }
 
@@ -245,6 +259,113 @@ func TestStashSingleFileTargetCanBeCreatedAndDeletedOnRollback(t *testing.T) {
 	assertFileNotExists(t, projectRootDir, "nested/target.txt")
 }
 
+func TestStashApplyAndRollbackPreserveUTF16Encoding(t *testing.T) {
+	projectRootDir, stashDir := setupTempProject(t)
+
+	writeTestStash(t, stashDir, "utf16", Stash{
+		Version: StashVersion,
+		Files: []FileEntry{
+			{
+				Filename: "encoded.txt",
+				FileParams: utils.FileParams{
+					ModernEncoding:        utils.UTF16BE,
+					UsingFallbackEncoding: false,
+				},
+				Original: FileState{
+					Exists:   true,
+					Contents: "old",
+				},
+				Modified: FileState{
+					Exists:   true,
+					Contents: "new",
+				},
+			},
+		},
+	})
+
+	runStash(t, "-m", "apply", "-s", "utf16")
+	utils.RunGlobalCleanup()
+	assertFileBytes(t, projectRootDir, "encoded.txt", []byte{
+		0xFE, 0xFF,
+		0x00, 0x6E,
+		0x00, 0x65,
+		0x00, 0x77,
+	})
+
+	runStash(t, "-m", "rollback", "-s", "utf16")
+	utils.RunGlobalCleanup()
+	assertFileBytes(t, projectRootDir, "encoded.txt", []byte{
+		0xFE, 0xFF,
+		0x00, 0x6F,
+		0x00, 0x6C,
+		0x00, 0x64,
+	})
+}
+
+func TestStashApplyUsesFallbackEncoding(t *testing.T) {
+	projectRootDir, stashDir := setupTempProject(t)
+	t.Setenv("FALLBACK_TEXT_ENCODING", "windows-1252")
+
+	writeTestStash(t, stashDir, "fallback", Stash{
+		Version: StashVersion,
+		Files: []FileEntry{
+			{
+				Filename: "fallback.txt",
+				FileParams: utils.FileParams{
+					ModernEncoding:        utils.UTF8,
+					UsingFallbackEncoding: true,
+				},
+				Original: FileState{
+					Exists: false,
+				},
+				Modified: FileState{
+					Exists:   true,
+					Contents: "café",
+				},
+			},
+		},
+	})
+
+	runStash(t, "-m", "apply", "-s", "fallback")
+	utils.RunGlobalCleanup()
+	assertFileBytes(t, projectRootDir, "fallback.txt", []byte{0x63, 0x61, 0x66, 0xE9})
+}
+
+func TestStashTargetFileUsesStoredEncoding(t *testing.T) {
+	projectRootDir, stashDir := setupTempProject(t)
+
+	writeTestStash(t, stashDir, "encoded-target", Stash{
+		Version: StashVersion,
+		Files: []FileEntry{
+			{
+				Filename: "source.txt",
+				FileParams: utils.FileParams{
+					ModernEncoding:        utils.UTF8BOM,
+					UsingFallbackEncoding: false,
+				},
+				Original: FileState{
+					Exists: false,
+				},
+				Modified: FileState{
+					Exists:   true,
+					Contents: "target",
+				},
+			},
+		},
+	})
+
+	runStash(t, "-m", "apply", "-s", "encoded-target", "-o", "source.txt", "-t", "nested/target.txt")
+	utils.RunGlobalCleanup()
+	assertFileBytes(t, projectRootDir, "nested/target.txt", []byte{
+		0xEF, 0xBB, 0xBF,
+		0x74, 0x61, 0x72, 0x67, 0x65, 0x74,
+	})
+
+	runStash(t, "-m", "rollback", "-s", "encoded-target", "-o", "source.txt", "-t", "nested/target.txt")
+	utils.RunGlobalCleanup()
+	assertFileNotExists(t, projectRootDir, "nested/target.txt")
+}
+
 func TestStashRejectsMissingVersion(t *testing.T) {
 	_, stashDir := setupTempProject(t)
 
@@ -293,6 +414,84 @@ func TestStashRejectsUnsupportedVersion(t *testing.T) {
 		runStash(t, "-m", "apply", "-s", "unsupported-version")
 	})
 	utils.RunGlobalCleanup()
+}
+
+func TestCreateStashStoresFileEncodingParams(t *testing.T) {
+	projectRootDir, stashDir := setupTempProject(t)
+
+	modifiedPath := filepath.Join(projectRootDir, "modified.txt")
+	deletedPath := filepath.Join(projectRootDir, "deleted.txt")
+
+	if err := os.WriteFile(modifiedPath, []byte("modified original"), 0644); err != nil {
+		t.Fatalf("failed to create modified test file: %v", err)
+	}
+	if err := os.WriteFile(deletedPath, []byte("deleted original"), 0644); err != nil {
+		t.Fatalf("failed to create deleted test file: %v", err)
+	}
+
+	modifiedParams := utils.FileParams{
+		ModernEncoding:        utils.UTF16LE,
+		UsingFallbackEncoding: false,
+	}
+	deletedParams := utils.FileParams{
+		ModernEncoding:        utils.UTF8,
+		UsingFallbackEncoding: true,
+	}
+
+	// read file as if it was already read by llm (so it will not be re-read)
+	llm.PrecacheSourceFile(projectRootDir, "modified.txt")
+	llm.PrecacheSourceFile(projectRootDir, "deleted.txt")
+	// fake target file encoding
+	utils.SetFileParams(modifiedPath, modifiedParams)
+	utils.SetFileParams(deletedPath, deletedParams)
+
+	stashName := CreateStash(
+		map[string]string{
+			"modified.txt": "modified result",
+			"created.txt":  "created result",
+		},
+		[]string{"modified.txt", "deleted.txt"},
+		[]string{"deleted.txt"},
+		newTestLogger(t),
+	)
+
+	stash, err := loadStash(filepath.Join(stashDir, stashName+".json"))
+	if err != nil {
+		t.Fatalf("failed to load created stash: %v", err)
+	}
+
+	entries := make(map[string]FileEntry, len(stash.Files))
+	for _, entry := range stash.Files {
+		entries[entry.Filename] = entry
+	}
+
+	modifiedEntry, ok := entries["modified.txt"]
+	if !ok {
+		t.Fatalf("created stash does not contain modified.txt")
+	}
+	if modifiedEntry.FileParams != modifiedParams {
+		t.Fatalf("modified.txt params = %+v, expected %+v", modifiedEntry.FileParams, modifiedParams)
+	}
+
+	deletedEntry, ok := entries["deleted.txt"]
+	if !ok {
+		t.Fatalf("created stash does not contain deleted.txt")
+	}
+	if deletedEntry.FileParams != deletedParams {
+		t.Fatalf("deleted.txt params = %+v, expected %+v", deletedEntry.FileParams, deletedParams)
+	}
+
+	createdEntry, ok := entries["created.txt"]
+	if !ok {
+		t.Fatalf("created stash does not contain created.txt")
+	}
+	defaultParams := utils.FileParams{
+		ModernEncoding:        utils.UTF8,
+		UsingFallbackEncoding: false,
+	}
+	if createdEntry.FileParams != defaultParams {
+		t.Fatalf("created.txt params = %+v, expected default %+v", createdEntry.FileParams, defaultParams)
+	}
 }
 
 func TestCreateStashIncludesFilesToDelete(t *testing.T) {

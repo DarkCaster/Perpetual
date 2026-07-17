@@ -33,13 +33,37 @@ const (
 	UTF32BE
 )
 
-type fileParams struct {
+type FileParams struct {
 	ModernEncoding        utfEncoding `json:"modern_encoding"`
 	UsingFallbackEncoding bool        `json:"using_fallback_encoding"`
 }
 
 var filesParamsLock sync.Mutex
-var projectFilesParams = map[string]fileParams{}
+var projectFilesParams = map[string]FileParams{}
+
+// GetFileParams returns the detected text encoding parameters associated with
+// filePath. Files without recorded parameters use plain UTF-8 by default.
+func GetFileParams(filePath string) FileParams {
+	filesParamsLock.Lock()
+	defer filesParamsLock.Unlock()
+
+	if params, ok := projectFilesParams[filePath]; ok {
+		return params
+	}
+
+	return FileParams{
+		ModernEncoding:        UTF8,
+		UsingFallbackEncoding: false,
+	}
+}
+
+// SetFileParams associates text encoding parameters with filePath. Subsequent
+// calls to SaveTextFile for the same path will preserve that encoding.
+func SetFileParams(filePath string, params FileParams) {
+	filesParamsLock.Lock()
+	projectFilesParams[filePath] = params
+	filesParamsLock.Unlock()
+}
 
 func detectUTFEncoding(data []byte) (utfEncoding, int) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
@@ -157,7 +181,7 @@ func LoadTextFile(filePath string) (string, string, error) {
 	//get encodings
 	fallbackEncoding, encErr := GetEncodingFromEnv()
 	encoding, bomLen := detectUTFEncoding(bytes)
-	params := fileParams{ModernEncoding: encoding, UsingFallbackEncoding: false}
+	params := FileParams{ModernEncoding: encoding, UsingFallbackEncoding: false}
 	//try converting to string using UTF encoding
 	text, convErr := convertFromUTFEncoding(bytes, encoding, bomLen)
 	if convErr != nil && encErr != nil {
@@ -173,11 +197,8 @@ func LoadTextFile(filePath string) (string, string, error) {
 			return "", wrn, fmt.Errorf("convert from fallback encoding failed: %v", convErr)
 		}
 	}
-	//lock just in case, for possible future multi-threaded use
-	filesParamsLock.Lock()
-	//store file-params for use with writing same file
-	projectFilesParams[filePath] = params
-	filesParamsLock.Unlock()
+	// Store file parameters for use when writing the same file.
+	SetFileParams(filePath, params)
 	return strings.ReplaceAll(text, "\r\n", "\n"), wrn, nil
 }
 

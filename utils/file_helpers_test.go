@@ -1,8 +1,97 @@
 package utils
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
+
+func TestGetFileParamsReturnsDefaultForUnknownFile(t *testing.T) {
+	filePath := filepath.Join(t.TempDir(), "non-existent.txt")
+
+	params := GetFileParams(filePath)
+
+	expected := FileParams{
+		ModernEncoding:        UTF8,
+		UsingFallbackEncoding: false,
+	}
+	if params != expected {
+		t.Fatalf("GetFileParams(%q) = %+v, expected %+v", filePath, params, expected)
+	}
+}
+
+func TestSetFileParams(t *testing.T) {
+	tempDir := t.TempDir()
+	firstFile := filepath.Join(tempDir, "first.txt")
+	secondFile := filepath.Join(tempDir, "second.txt")
+
+	expected := FileParams{
+		ModernEncoding:        UTF16LE,
+		UsingFallbackEncoding: true,
+	}
+	SetFileParams(firstFile, expected)
+
+	if actual := GetFileParams(firstFile); actual != expected {
+		t.Fatalf("GetFileParams(%q) = %+v, expected %+v", firstFile, actual, expected)
+	}
+
+	defaultParams := FileParams{
+		ModernEncoding:        UTF8,
+		UsingFallbackEncoding: false,
+	}
+	if actual := GetFileParams(secondFile); actual != defaultParams {
+		t.Fatalf("parameters for %q affected unrelated file: got %+v, expected %+v", secondFile, actual, defaultParams)
+	}
+}
+
+func TestLoadTextFileRecordsDetectedEncoding(t *testing.T) {
+	filePath := filepath.Join(t.TempDir(), "utf8-bom.txt")
+	data := append([]byte{0xEF, 0xBB, 0xBF}, []byte("contents\n")...)
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
+		t.Fatalf("failed to create test file: %v", err)
+	}
+
+	text, wrn, err := LoadTextFile(filePath)
+	if err != nil {
+		t.Fatalf("LoadTextFile returned an error: %v", err)
+	}
+	if wrn != "" {
+		t.Fatalf("LoadTextFile returned an unexpected warning: %s", wrn)
+	}
+	if text != "contents\n" {
+		t.Fatalf("LoadTextFile returned %q, expected %q", text, "contents\n")
+	}
+
+	expected := FileParams{
+		ModernEncoding:        UTF8BOM,
+		UsingFallbackEncoding: false,
+	}
+	if actual := GetFileParams(filePath); actual != expected {
+		t.Fatalf("GetFileParams(%q) = %+v, expected %+v", filePath, actual, expected)
+	}
+}
+
+func TestSetFileParamsControlsSavedEncoding(t *testing.T) {
+	filePath := filepath.Join(t.TempDir(), "utf16be.txt")
+	SetFileParams(filePath, FileParams{
+		ModernEncoding:        UTF16BE,
+		UsingFallbackEncoding: false,
+	})
+
+	if _, err := SaveTextFile(filePath, "test"); err != nil {
+		t.Fatalf("SaveTextFile returned an error: %v", err)
+	}
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		t.Fatalf("failed to read saved test file: %v", err)
+	}
+
+	expected := []byte{0xFE, 0xFF, 0x00, 0x74, 0x00, 0x65, 0x00, 0x73, 0x00, 0x74}
+	if string(data) != string(expected) {
+		t.Fatalf("unexpected saved bytes:\nexpected: %v\nactual:   %v", expected, data)
+	}
+}
 
 func TestCaseInsensitiveFileSearch(t *testing.T) {
 	testCases := []struct {
