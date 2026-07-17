@@ -39,10 +39,10 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		"comment:      Generate code marked with ###IMPLEMENT### comments in the source code. Uses planning, can affect any project files.\n"+
 		"comment-fast: Generate code marked with ###IMPLEMENT### comments, works only inside that files and skips planning (stage 2 and 3)")
 	flags.StringVar(&stepMode, "p", "", "Managed step-by-step execution (not available in 'comment-fast' mode). Valid values: start|finish.\n"+
-		"start:  Perform preparation stages 1-3, display generated reasonings and proposed file changes, and save intermediate state for later completion.\n"+
+		"start:  Perform preparation stages 1-3, display task planning and scheduled file changes, and save intermediate state for later completion.\n"+
 		"finish: Complete a previously started step-by-step implementation by performing stage 4 (actual code changes).\n"+
 		"If not provided, any pending state is silently removed and a normal full-scale implementation is performed.")
-	flags.StringVar(&outputFile, "o", "", "File path for saving report with reasonings and proposed changes (used with '-p start'). Write to stdout if set to '-', not provided or empty")
+	flags.StringVar(&outputFile, "o", "", "File path for saving report with task planning and scheduled changes (used with '-p start'). Write to stdout if set to '-', not provided or empty")
 	flags.StringVar(&contextSaving, "c", "auto", "Context saving mode, reduce LLM context use for large projects (valid values: auto|off|medium|high)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for adding into LLM context (valid values: file-path|disabled)")
 	flags.StringVar(&inputFile, "i", "", "Path to a text file (plain text or Markdown) with task to implement for task mode ('-m task'). If empty or '-' then read task from stdin")
@@ -428,7 +428,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		}
 
 		// Run stage 2 - create file review, create reasonings
-		reasonings, messages := shared.Stage2(OpName,
+		workplan, messages := shared.Stage2(OpName,
 			projectRootDir,
 			perpetualDir,
 			projectConfig,
@@ -483,19 +483,19 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 				}
 				logger.Panicln("Failed to save implement state file:", err)
 			}
-			logger.Infoln("Processing will stop here, to complete proposed changes run implement again with '-p finish'")
+			logger.Infoln("Processing will stop here, to complete scheduled changes run implement again with '-p finish'")
 
-			// Build a Markdown report with the generated reasoning and proposed changes.
+			// Build a Markdown report with the generated reasoning and file changes.
 			var report strings.Builder
-			report.WriteString("# Task Reasonings\n\n")
-			if strings.TrimSpace(reasonings) == "" {
-				report.WriteString("No reasonings were generated.\n")
+			report.WriteString("# Work Plan for the Task\n\n")
+			if strings.TrimSpace(workplan) == "" {
+				report.WriteString("No work plan reasonings were generated.\n")
 			} else {
-				report.WriteString(strings.TrimSpace(reasonings))
+				report.WriteString(strings.TrimSpace(workplan))
 				report.WriteByte('\n')
 			}
 
-			report.WriteString("\n# Proposed File Changes\n\n")
+			report.WriteString("\n# Scheduled File Changes\n\n")
 			report.WriteString("## Files to Modify or Create\n\n")
 
 			for _, file := range otherFilesToModify {
