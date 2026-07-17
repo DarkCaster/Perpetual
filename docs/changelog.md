@@ -25,10 +25,10 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Add `Skill.md`;
 
-Add step-by-step execution and stop/continue support for the `implement` operation:
+Improve logging for beter consistency across operations and modes:
 
-- On each stage, and after each file modification on stage 4, a JSON state file is generated containing the current execution state. This way, the `implement` operation can be resumed if it crashes in the middle;
-- The `implement` operation can stop at important moments (after stage 2, stage 3), so an external agent or user can examine the JSON state file and evaluate proposed changes, and then continue (or run `implement` from the very beginning, or from a previous stage).
+- Redirect all logging to stderr;
+- Use stdout only for the output intended to the user/agent/UI, like reports, work plan, file-lists, etc;
 
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
@@ -55,6 +55,7 @@ Add step-by-step execution and stop/continue support for the `implement` operati
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
 - In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
 - Added file deletion support to the `implement` operation; this should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states. Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
+- Added optional 2-step approach for `implement` operation (controlled with `-p` flag). Suitable when using perpetual from external agent or UI: 1-st step generates work plan for the task and presenting it to the user/agent, 2-nd step performing real code generation according to the plan.
 - Added support for explicit prompt caching for OpenAI, Generic and Anthropic providers. Disabled by default, you can try using it to reduce costs (provider and model dependent).
 - Updated `.env.example` for the Anthropic provider with support for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
