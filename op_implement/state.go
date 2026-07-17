@@ -40,13 +40,16 @@ func loadState(perpetualDir, projectRootDir string) (state, error) {
 		return state, err
 	}
 	// precache source files from state, best effort:
-	// - ensure they will be handled same way as if we not used state file at all;
+	// - ensure they will be handled same way as if state file was not used at all;
 	// - ensure source files metadata (encoding) was properly detected and converted if needed;
 	// - ensure source files do not change during stage 4;
 	for _, file := range state.OtherFilesToModify {
 		llm.PrecacheSourceFile(projectRootDir, file)
 	}
 	for _, file := range state.TargetFilesToModify {
+		llm.PrecacheSourceFile(projectRootDir, file)
+	}
+	for _, file := range state.FilesToDelete {
 		llm.PrecacheSourceFile(projectRootDir, file)
 	}
 	return state, nil
