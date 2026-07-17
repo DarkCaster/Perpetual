@@ -30,6 +30,10 @@ Improve logging for beter consistency across operations and modes:
 - Redirect all logging to stderr;
 - Use stdout only for the output intended to the user/agent/UI, like reports, work plan, file-lists, etc;
 
+Caching improvements:
+
+- Add support for implicit caching for Anthropic provider - currently it only use explicit caching or no caching at all (default).
+
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
 - Generate changes in a diff format closer to OpenAI diffs;
