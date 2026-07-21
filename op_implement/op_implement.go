@@ -26,7 +26,7 @@ func implementFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, logger, stdErrLogger logging.ILogger) {
+func Run(args []string, logger logging.ILogger) {
 	var forceUpload, help, noAnnotate, noIncrMode, verbose, trace, includeTests bool
 	var mode, descFile, inputFile, userFilterFile, contextSaving, stepMode, outputFile string
 	var searchLimit, selectionPasses int
@@ -57,9 +57,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	flags.Parse(args)
 
-	if stepMode != "" {
-		logger = stdErrLogger
-	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}
@@ -277,8 +274,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		} else if !noAnnotate {
 			logger.Debugln("Running 'annotate' operation to update file annotations")
 			op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
-			op_annotate.Run(op_annotate_params, true, logger, logger)
-			op_embed.Run(op_embed_params, true, logger, logger)
+			op_annotate.Run(op_annotate_params, true, logger)
+			op_embed.Run(op_embed_params, true, logger)
 		} else {
 			logger.Warnln("File-annotations update disabled, this may worsen the final result")
 		}

@@ -57,11 +57,6 @@ func main() {
 		return
 	}
 
-	logger, err := logging.NewSimpleLogger(logging.InfoLevel)
-	if err != nil {
-		panic(err)
-	}
-
 	stdErrLogger, err := logging.NewStdErrSimpleLogger(logging.InfoLevel)
 	if err != nil {
 		panic(err)
@@ -81,23 +76,23 @@ func main() {
 
 	switch strings.ToLower(operation) {
 	case op_init.OpName:
-		op_init.Run(Version, args, logger)
+		op_init.Run(Version, args, stdErrLogger)
 	case op_onboard.OpName:
 		op_onboard.Run(Version, args, stdErrLogger)
 	case op_annotate.OpName:
-		op_annotate.Run(args, false, logger, stdErrLogger)
+		op_annotate.Run(args, false, stdErrLogger)
 	case op_embed.OpName:
-		op_embed.Run(args, false, logger, stdErrLogger)
+		op_embed.Run(args, false, stdErrLogger)
 	case op_implement.OpName:
-		op_implement.Run(args, logger, stdErrLogger)
+		op_implement.Run(args, stdErrLogger)
 	case op_stash.OpName:
-		op_stash.Run(args, false, logger)
+		op_stash.Run(args, false, stdErrLogger)
 	case op_report.OpName:
-		op_report.Run(args, logger, stdErrLogger)
+		op_report.Run(args, stdErrLogger)
 	case op_explain.OpName:
-		op_explain.Run(args, logger, stdErrLogger)
+		op_explain.Run(args, stdErrLogger)
 	case op_doc.OpName:
-		op_doc.Run(args, logger, stdErrLogger)
+		op_doc.Run(args, stdErrLogger)
 	case op_misc.OpName:
 		op_misc.Run(args, stdErrLogger)
 	}

@@ -26,7 +26,7 @@ func docFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, logger, stdErrLogger logging.ILogger) {
+func Run(args []string, logger logging.ILogger) {
 	var help, addAnnotations, verbose, trace, noAnnotate, forceUpload, includeTests bool
 	var descFile, outputFile, inputFile, extraFile, userFilterFile, contextSaving, mode string
 	var searchLimit, selectionPasses int
@@ -55,10 +55,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 
 	readFromStdin := inputFile == "" || inputFile == "-"
 	writeToStdout := outputFile == "" || outputFile == "-"
-
-	if writeToStdout {
-		logger = stdErrLogger
-	}
 
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
@@ -234,8 +230,8 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	if !noAnnotate {
 		logger.Debugln("Running 'annotate' operation to update file annotations")
 		op_annotate_params, op_embed_params := shared.GetAnnotateAndEmbedCmdLineFlags(userFilterFile, contextSaving, descFile)
-		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
-		op_embed.Run(op_embed_params, true, logger, stdErrLogger)
+		op_annotate.Run(op_annotate_params, true, logger)
+		op_embed.Run(op_embed_params, true, logger)
 	}
 
 	// Load annotations

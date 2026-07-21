@@ -24,7 +24,7 @@ func annotateFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
+func Run(args []string, innerCall bool, logger logging.ILogger) {
 	// Setup
 	var help, verbose, trace bool
 	var descFile, inputFile, userFilterFile, contextSaving, mode string
@@ -56,9 +56,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	dryRun := mode == "DRYRUN"
 	force := mode == "FULL"
 
-	if dryRun {
-		logger = stdErrLogger
-	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}

@@ -24,7 +24,7 @@ func embedFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
 }
 
-func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
+func Run(args []string, innerCall bool, logger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
 	var inputFile, userFilterFile, mode string
 	var searchLimit int
@@ -58,9 +58,6 @@ func Run(args []string, innerCall bool, logger, stdErrLogger logging.ILogger) {
 	dryRun := mode == "DRYRUN"
 	force := mode == "FULL"
 
-	if dryRun || mode == "QUERY" {
-		logger = stdErrLogger
-	}
 	if verbose {
 		logger.EnableLevel(logging.DebugLevel)
 	}

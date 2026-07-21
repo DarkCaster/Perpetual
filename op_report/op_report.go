@@ -19,7 +19,7 @@ const (
 	OpDesc = "Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis"
 )
 
-func Run(args []string, logger, stdErrLogger logging.ILogger) {
+func Run(args []string, logger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
 	var reportMode, outputFile, userFilterFile, contextSaving, descFile string
 
@@ -42,10 +42,6 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 	// Treat "-" as stdout, same as empty value
 	if outputFile == "-" {
 		outputFile = ""
-	}
-
-	if outputFile == "" {
-		logger = stdErrLogger
 	}
 
 	if verbose {
@@ -139,7 +135,7 @@ func Run(args []string, logger, stdErrLogger logging.ILogger) {
 		if err := llm.RotateLLMRawLogFile(perpetualDir); err != nil {
 			logger.Panicln("Failed to rotate log file:", err)
 		}
-		op_annotate.Run(op_annotate_params, true, logger, stdErrLogger)
+		op_annotate.Run(op_annotate_params, true, logger)
 		// Load annotations
 		annotations, err := utils.GetAnnotations(filepath.Join(perpetualDir, utils.AnnotationsFileName), fileNames)
 		if err != nil {

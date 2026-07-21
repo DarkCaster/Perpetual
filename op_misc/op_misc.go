@@ -25,7 +25,7 @@ func miscFlags() *flag.FlagSet {
 	return flags
 }
 
-func Run(args []string, stdErrLogger logging.ILogger) {
+func Run(args []string, logger logging.ILogger) {
 	var help, verbose, trace, includeTests bool
 	var mode, descFile, userFilterFile string
 
@@ -48,15 +48,15 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	flags.Parse(args)
 
 	if verbose {
-		stdErrLogger.EnableLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.DebugLevel)
 	}
 	if trace {
-		stdErrLogger.EnableLevel(logging.DebugLevel)
-		stdErrLogger.EnableLevel(logging.TraceLevel)
+		logger.EnableLevel(logging.DebugLevel)
+		logger.EnableLevel(logging.TraceLevel)
 	}
 
-	stdErrLogger.Debugln("Starting 'misc' operation")
-	stdErrLogger.Traceln("Args:", args)
+	logger.Debugln("Starting 'misc' operation")
+	logger.Traceln("Args:", args)
 
 	var projTest, listFiles, checkFilesRead, checkFilesReadAsASCII, checkFilesAndSaveAsUTF bool
 	switch mode {
@@ -73,7 +73,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	case "":
 		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: proj-test|list|check-read|check-ascii|save-utf)", flags)
 	default:
-		stdErrLogger.Errorln("Invalid operation mode:", mode)
+		logger.Errorln("Invalid operation mode:", mode)
 		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag (valid values: proj-test|list|check-read|check-ascii|save-utf)", flags)
 	}
 
@@ -82,28 +82,28 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	}
 
 	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
-	projectRootDir, perpetualDir, err := utils.FindProjectRoot(stdErrLogger, false)
+	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger, false)
 	if err != nil {
-		stdErrLogger.Panicln("Error finding project root directory:", err)
+		logger.Panicln("Error finding project root directory:", err)
 	}
 
 	globalConfigDir, err := utils.FindConfigDir()
 	if err != nil {
-		stdErrLogger.Panicln("Error finding perpetual config directory:", err)
+		logger.Panicln("Error finding perpetual config directory:", err)
 	}
 
-	stdErrLogger.Infoln("Project root directory:", projectRootDir)
-	stdErrLogger.Debugln("Perpetual directory:", perpetualDir)
+	logger.Infoln("Project root directory:", projectRootDir)
+	logger.Debugln("Perpetual directory:", perpetualDir)
 
-	utils.LoadEnvFiles(stdErrLogger, perpetualDir, globalConfigDir)
+	utils.LoadEnvFiles(logger, perpetualDir, globalConfigDir)
 
 	//load json config files for project and operations, will panic if it cannot be loaded or parsed
-	projectConfig := config.LoadProjectConfig(perpetualDir, stdErrLogger)
-	config.LoadOpAnnotateConfig(perpetualDir, stdErrLogger)
-	config.LoadOpDocConfig(perpetualDir, stdErrLogger)
-	config.LoadOpExplainConfig(perpetualDir, stdErrLogger)
-	config.LoadOpImplementConfig(perpetualDir, stdErrLogger)
-	config.LoadOpReportConfig(perpetualDir, stdErrLogger)
+	projectConfig := config.LoadProjectConfig(perpetualDir, logger)
+	config.LoadOpAnnotateConfig(perpetualDir, logger)
+	config.LoadOpDocConfig(perpetualDir, logger)
+	config.LoadOpExplainConfig(perpetualDir, logger)
+	config.LoadOpImplementConfig(perpetualDir, logger)
+	config.LoadOpReportConfig(perpetualDir, logger)
 
 	//test load of project description file
 	wrn := ""
@@ -111,24 +111,24 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		_, wrn, err = utils.LoadTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile))
 		if err != nil {
 			if os.IsNotExist(err) {
-				stdErrLogger.Infoln("Not loading missing project description file (description.md)")
+				logger.Infoln("Not loading missing project description file (description.md)")
 			} else {
-				stdErrLogger.Panicln("Failed to load project description file:", err)
+				logger.Panicln("Failed to load project description file:", err)
 			}
 		}
 		if wrn != "" {
-			stdErrLogger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
+			logger.Warnf("%s: %s", config.ProjectDescriptionFile, wrn)
 		}
 	} else if strings.ToLower(descFile) != "disabled" {
 		_, wrn, err = utils.LoadTextFile(descFile)
 		if err != nil {
-			stdErrLogger.Panicln("Failed to load project description file:", err)
+			logger.Panicln("Failed to load project description file:", err)
 		}
 		if wrn != "" {
-			stdErrLogger.Warnf("%s: %s", descFile, wrn)
+			logger.Warnf("%s: %s", descFile, wrn)
 		}
 	} else {
-		stdErrLogger.Infoln("Loading of project description file (description.md) is disabled")
+		logger.Infoln("Loading of project description file (description.md) is disabled")
 	}
 
 	//if we are only checking for .perpetual directory validity, output it here
@@ -138,7 +138,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	}
 
 	// Preparation of project files
-	stdErrLogger.Infoln("Fetching project files")
+	logger.Infoln("Fetching project files")
 	fileNames, _, err := utils.GetProjectFileList(
 		projectRootDir,
 		perpetualDir,
@@ -146,7 +146,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		projectConfig.RegexpArray(config.K_ProjectFilesBlacklist))
 
 	if err != nil {
-		stdErrLogger.Panicln("Error getting project file-list:", err)
+		logger.Panicln("Error getting project file-list:", err)
 	}
 
 	// Check fileNames array for case collisions
@@ -157,7 +157,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 				fmt.Println(file)
 			}
 		}
-		stdErrLogger.Panicln("Filename case collisions detected in project files")
+		logger.Panicln("Filename case collisions detected in project files")
 	}
 
 	// File names and dir-names must not contain path separators characters
@@ -168,7 +168,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 				fmt.Println(file)
 			}
 		}
-		stdErrLogger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
+		logger.Panicln("Invalid characters detected in project filenames or directories: / and \\ characters are not allowed!")
 	}
 
 	// Filter project files with unittest- and user- filters
@@ -176,7 +176,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	if userFilterFile != "" {
 		userBlacklist, err = utils.AppendUserFilterFromFile(userFilterFile, userBlacklist)
 		if err != nil {
-			stdErrLogger.Panicln("Error processing user blacklist-filter:", err)
+			logger.Panicln("Error processing user blacklist-filter:", err)
 		}
 	}
 
@@ -186,10 +186,10 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 
 	fileNames, droppedFiles := utils.FilterFilesWithBlacklist(fileNames, userBlacklist)
 	if len(droppedFiles) > 0 {
-		stdErrLogger.Infoln("Number of blacklisted files with unit-tests and/or user-provided filters:", len(droppedFiles))
+		logger.Infoln("Number of blacklisted files with unit-tests and/or user-provided filters:", len(droppedFiles))
 		slices.Sort(droppedFiles)
 		for _, file := range droppedFiles {
-			stdErrLogger.Debugln("Filtered-out:", file)
+			logger.Debugln("Filtered-out:", file)
 		}
 	}
 
@@ -203,21 +203,21 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 	}
 
 	//try reading files
-	stdErrLogger.Debugln("Reading project files")
+	logger.Debugln("Reading project files")
 	fileContent := map[string]string{}
 	failedFiles := []string{}
 	warnedFiles := []string{}
 	for _, file := range fileNames {
-		stdErrLogger.Traceln("Reading file:", file)
+		logger.Traceln("Reading file:", file)
 		content, wrn, err := utils.LoadTextFile(filepath.Join(projectRootDir, file))
 		if err != nil {
-			stdErrLogger.Errorf("%s: %v", file, err)
+			logger.Errorf("%s: %v", file, err)
 			failedFiles = append(failedFiles, file)
 			continue
 		}
 		fileContent[file] = content
 		if wrn != "" {
-			stdErrLogger.Warnf("%s: %s", file, wrn)
+			logger.Warnf("%s: %s", file, wrn)
 			warnedFiles = append(warnedFiles, file)
 		}
 	}
@@ -228,7 +228,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 			fmt.Println(file)
 		}
 		if len(failedFiles) > 0 {
-			stdErrLogger.Panicln("Reading of some project files was unsuccessful")
+			logger.Panicln("Reading of some project files was unsuccessful")
 		}
 		return
 	}
@@ -247,7 +247,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 					linePos = 1
 				}
 				if r > 127 {
-					stdErrLogger.Warnf("%s: non-ASCII character found at byte %d (line %d, pos %d)", file, b, line, linePos)
+					logger.Warnf("%s: non-ASCII character found at byte %d (line %d, pos %d)", file, b, line, linePos)
 					failedFiles = append(failedFiles, file)
 					break
 				}
@@ -260,7 +260,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 			fmt.Println(file)
 		}
 		if len(failedFiles) > 0 {
-			stdErrLogger.Panicln("Some files contain non ASCII content, or cannot be read as text at all")
+			logger.Panicln("Some files contain non ASCII content, or cannot be read as text at all")
 		}
 		return
 	}
@@ -270,7 +270,7 @@ func Run(args []string, stdErrLogger logging.ILogger) {
 		slices.Sort(warnedFiles)
 		for _, file := range warnedFiles {
 			if err := utils.SaveTextFileAsUTF8(filepath.Join(projectRootDir, file), fileContent[file]); err != nil {
-				stdErrLogger.Panicln("Failed to save text file as UTF8:", err)
+				logger.Panicln("Failed to save text file as UTF8:", err)
 			}
 			fmt.Println(file)
 		}
