@@ -17,7 +17,7 @@ import (
 )
 
 const OpName = "misc"
-const OpDesc = "Helper functions not covered by other operations. All human-readable logging goes to stderr and machine parsable output to stdout."
+const OpDesc = "Helper functions not covered by other operations."
 
 func miscFlags() *flag.FlagSet {
 	flags := flag.NewFlagSet(OpName, flag.ExitOnError)

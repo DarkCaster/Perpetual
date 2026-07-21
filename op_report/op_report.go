@@ -163,7 +163,7 @@ func Run(args []string, logger logging.ILogger) {
 		logger.Panicln("Error rendering report messages:", err)
 	}
 
-	// Save report string to file or print it to stderr
+	// Save report string to file or write it to stdout
 	if outputFile != "" {
 		wrn, err := utils.SaveTextFile(outputFile, strings.Join(reportStrings, "\n"))
 		if err != nil {
