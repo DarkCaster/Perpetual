@@ -270,7 +270,7 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
    - In `full` mode, all project files are selected for annotation regardless of changes.
    - If `-i` is used, the requested path is resolved relative to the project root and matched against known project files, and only that file is (re)annotated.
    - If a user regex filter file is provided with `-x`, matching files are filtered out from the files selected for annotation, and their checksums are reverted so they can be reevaluated in a later run.
-   - In `dryrun` mode, the operation lists the files that would be annotated and exits without making LLM requests. In this mode, logging is redirected to stderr so that stdout can contain only the file list.
+   - In `dryrun` mode, the operation lists the files that would be annotated to stdout and exits without making LLM requests.
 
 4. **Context-Saving Selection:**
    - In `auto` mode, the operation switches to short annotation prompts when the project file count reaches the configured medium context-saving threshold (`medium_context_saving_file_count`).

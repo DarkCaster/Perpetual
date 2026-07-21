@@ -2,8 +2,6 @@
 
 The `misc` operation provides various helper functions for project validation and file handling that are not covered by other operations. This operation is particularly useful for troubleshooting, project setup verification, and file system maintenance tasks.
 
-The `misc` operation is designed with clear separation of output: all human-readable logging goes to stderr, while machine-parsable output (such as file lists or error reports) goes to stdout. This makes it suitable for scripting and automation purposes.
-
 ## Usage
 
 To run the `misc` operation, use the following command:

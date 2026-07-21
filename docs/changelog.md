@@ -27,8 +27,7 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 Improve logging for beter consistency across operations and modes:
 
-- Redirect all logging to stderr;
-- Use stdout only for the output intended to the user/agent/UI, like reports, work plan, file-lists, etc;
+
 
 (Maybe) Merge `init` and `misc` operations together:
 
@@ -70,6 +69,7 @@ Caching improvements:
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
 - Improved displaying of panic failure messages: only show the stack trace when a panic is called directly, not from the logger.
 - Added a lockfile inside the `.perpetual` config directory to prevent running multiple instances at the same time for a single project.
+- Reworked logging to always go to stderr, stdout only used for the output intended to the user/agent/UI: reports, work plan, file-lists, etc...
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 

@@ -20,7 +20,7 @@ The `report` operation supports several command-line flags to customize its beha
   - `code` (default): Generates a detailed report containing the full source code of the selected project files.
   - `brief`: Generates a concise report from generated source code annotations, providing a summary of each selected file's contents and purpose.
 
-- `-o <file>`: Specify the file path to write the report to. If set to `-`, not provided, or empty, the report will be written to stdout, with human-readable logging output sent to stderr.
+- `-o <file>`: Specify the file path to write the report to. If set to `-`, not provided, or empty, the report will be written to stdout.
 
 - `-df <file|disabled>`: Optional path to a project description file to forward into the `annotate` operation when generating a brief report. Use `disabled` to explicitly disable loading the project description during annotation.
 
