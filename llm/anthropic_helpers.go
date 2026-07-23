@@ -31,8 +31,11 @@ func newAnthropicCacheManager(breakpointIndex int, cacheConfig string, allowCach
 }
 
 func (p *anthropicCacheManager) ProcessBody(body map[string]any) map[string]any {
-	if p.cacheConfig == "" || p.cacheConfig == "0" || !p.allowCaching || p.breakpointIndex < 0 {
-		// do not modify request body - this should disable caching
+	if p.cacheConfig == "" || p.cacheConfig == "0" || p.cacheConfig == "2" || !p.allowCaching || p.breakpointIndex < 0 {
+		if p.cacheConfig == "2" {
+			// implicit caching
+			body["cache_control"] = map[string]string{"type": "ephemeral"}
+		}
 		return body
 	}
 	// mark particular message as cache breakpoint

@@ -50,7 +50,10 @@ ANTHROPIC_INCRMODE_RETRIES="1"
 
 # Prompt caching option
 # If unset or "0" - do not modify API requests in any way to manage caching, should disable caching by-default;
-# If set to "1" - enable default 5-minute cache; any other value will be interpreted as cache-control TTL (seconds);
+# If set to "1" - enable explicit caching with breakpoints (5-minute ttl), will be automatically disabled when not needed, may lower your expenses;
+# If set to "2" - force enable implicit cache (5-minute ttl), not recommended, experimental;
+# any other values (including strings) will enable explicit cache and will be used as cache-control TTL, example: "1h";
+
 # Per-operation override:
 # ANTHROPIC_CACHE_OP_ANNOTATE="0"
 # ANTHROPIC_CACHE_OP_IMPLEMENT_STAGE1="0"

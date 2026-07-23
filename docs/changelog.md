@@ -29,10 +29,6 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Introduce new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration).
 
-Caching improvements:
-
-- Add support for implicit caching for Anthropic provider - currently it only use explicit caching or no caching at all (default).
-
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
 - Generate changes in a diff format closer to OpenAI diffs;
