@@ -19,6 +19,7 @@ func (p *dotNetPrompts) GetAnnotateConfig() map[string]any {
 		{"(?i)^.*\\.cs$", defaultAIAnnotatePrompt_CS, defaultAIAnnotatePrompt_CS_Short},
 		{"(?i)^.*\\.vb$", defaultAIAnnotatePrompt_VBNet, defaultAIAnnotatePrompt_VBNet_Short},
 		{"(?i)^.*\\.xaml$", defaultAIAnnotatePrompt_Xaml, defaultAIAnnotatePrompt_Xaml_Short},
+		{"(?i)^.*\\.sql$", defaultAIAnnotatePrompt_SQL, defaultAIAnnotatePrompt_SQL_Short},
 		{"(?i)^.*\\.css$", defaultAIAnnotatePrompt_CSS, defaultAIAnnotatePrompt_CSS_SHORT},
 		{"(?i)^.*\\.js$", defaultAIAnnotatePrompt_JS, defaultAIAnnotatePrompt_JS_SHORT},
 		{"(?i)^.*\\.html$", defaultAIAnnotatePrompt_HTML, defaultAIAnnotatePrompt_HTML_SHORT},
@@ -54,7 +55,7 @@ func (p *dotNetPrompts) GetExplainConfig() map[string]any {
 func (p *dotNetPrompts) GetProjectConfig() map[string]any {
 	result := getDefaultProjectConfigTemplate()
 	result[config.K_ProjectFilesWhitelist] = []string{
-		"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html)$",
+		"(?i)^.*\\.(cs|vb|xaml|cshtml|sql|css|js|html)$",
 	}
 	result[config.K_ProjectFilesBlacklist] = []string{
 		"(?i)^.*AssemblyInfo\\.cs$",
@@ -74,7 +75,7 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]any {
 		"^\\s*<!--\\s*###NOUPLOAD###\\s*-->.*$",
 	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(cs|vb|xaml|cshtml|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
+		{"(?i)^.*\\.(cs|vb|xaml|cshtml|sql|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
 		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
 	}
 	return result
