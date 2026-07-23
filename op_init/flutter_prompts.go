@@ -112,8 +112,8 @@ func (p *flutterPrompts) GetProjectConfig() map[string]any {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(dart|arb|cc|cpp|cxx|c\\+\\+|cppm|h\\+\\+|hpp|hh|tpp|ipp|rc|java|kt|xml)$", 4096},
-		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
+		{"(?i)^.*\\.(dart|arb|cc|cpp|cxx|c\\+\\+|cppm|h\\+\\+|hpp|hh|tpp|ipp|rc|java|kt|xml)$", 8192},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 8192},
 	}
 	return result
 }

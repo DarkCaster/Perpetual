@@ -75,7 +75,7 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]any {
 		"^\\s*<!--\\s*###NOUPLOAD###\\s*-->.*$",
 	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(cs|vb|xaml|cshtml|sql|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
+		{"(?i)^.*\\.(cs|vb|xaml|cshtml|sql|css|js|html)$", 8192},
 	}
 	return result
 }

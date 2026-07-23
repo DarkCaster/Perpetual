@@ -67,8 +67,8 @@ func (p *cppPrompts) GetProjectConfig() map[string]any {
 	// redefine language-dependent prompt
 	result[config.K_ProjectNoUploadCommentsRx] = []string{"^\\s*\\/\\/\\s*###NOUPLOAD###.*$"}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
-		{"(?i)^.*\\.(c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
-		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
+		{"(?i)^.*\\.(c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 8192},
+		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 8192},
 	}
 	return result
 }
