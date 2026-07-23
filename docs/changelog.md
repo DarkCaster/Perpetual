@@ -25,10 +25,6 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Add `Skill.md`;
 
-Improve logging for beter consistency across operations and modes:
-
-
-
 (Maybe) Merge `init` and `misc` operations together:
 
 - Introduce new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration).
@@ -70,6 +66,7 @@ Caching improvements:
 - Improved displaying of panic failure messages: only show the stack trace when a panic is called directly, not from the logger.
 - Added a lockfile inside the `.perpetual` config directory to prevent running multiple instances at the same time for a single project.
 - Reworked logging to always go to stderr, stdout only used for the output intended to the user/agent/UI: reports, work plan, file-lists, etc...
+- Improved default configuration for dotnet platform: added support for SQL scripts (`*.sql`) used for SQL database definitions and migrations.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
