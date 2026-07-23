@@ -145,6 +145,10 @@ const defaultAIAnnotatePrompt_Xaml = "Create a summary for the XAML ui-markup fi
 
 const defaultAIAnnotatePrompt_Xaml_Short = "Create a short summary for the XAML ui-markup file in my next message. The summary should be up to 2 sentences long."
 
+const defaultAIAnnotatePrompt_SQL = "Create a summary for the SQL script in my next message. Describe its purpose and list the main database entities it defines (such as tables) if present, or indicate whether it performs pre- or post-migration data updates. Limit the summary to 3 sentences."
+
+const defaultAIAnnotatePrompt_SQL_Short = "Create a short summary for the SQL script in my next message. Describe its purpose and list the main database entities it defines (such as tables) if present, or indicate whether it performs pre- or post-migration data updates. Limit the summary to 2 sentences."
+
 const defaultAIAnnotatePrompt_VB6_Class = "Create a summary for the Visual Basic 6 class module in my next message. It should be as brief as possible, without unnecessary language structures. The summary should include the class name and a list of declared entities. Skip private entities from listing completely.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\nThis class module is used for <description of what this class is used for, up to 3 sentences>\n\nDeclarations:\n\n- `<entity name>`: <entity type>, <summary>"
 
 const defaultAIAnnotatePrompt_VB6_Class_Short = "Create a short summary for the Visual Basic 6 class module in my next message. The summary should be up to 2 sentences long, and should include the class name.\n\nIf there are comments in the file marked as notes for creating this summary, follow them strictly. Otherwise, use the following template:\n\nClass: `<class name>`\n\n<Description of what this class is used for, up to 2 sentences>"
