@@ -76,7 +76,6 @@ func (p *dotNetPrompts) GetProjectConfig() map[string]any {
 	}
 	result[config.K_ProjectFilesIncrModeMinLen] = [][2]any{
 		{"(?i)^.*\\.(cs|vb|xaml|cshtml|sql|css|js|html|c|cpp|cxx|c\\+\\+|cppm|h|h\\+\\+|hpp|hh|tpp|ipp)$", 4096},
-		{"(?i)^.*(CMakeLists.txt|\\.cmake)", 4096},
 	}
 	return result
 }
