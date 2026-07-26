@@ -25,9 +25,10 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Add `Skill.md`;
 
-(Maybe) Merge `init` and `misc` operations together:
+Clone langchaingo library which development seem to be dead:
 
-- Introduce new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration).
+- For now just clone the library and trim all unused features like agents, vector store support, unused providers, etc;
+- Implement missing features currently handled by `llm/mitmHTTPClient.go` - natively, inside the library;
 
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
@@ -49,6 +50,8 @@ Add support for using `Perpetual` as a tool for writing code with an external ag
 
 - Unified command-line flags across different operations. Most operations use the "mode" (`-m`) switch for their core functions. Potentially dangerous flags are less likely to cause confusion across different operations.
 - Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
+- Merged `init` and `misc` operations into the new `project` operation.
+- Added a new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration). Includes all features of former `init` and `project` operations as well as some new features.
 - Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-ex` flag to create the examples if needed.
 - Reworked the `implement` operation to select its operation mode with the `-m` flag: `task`, `comment`, and `comment-fast` modes.
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
