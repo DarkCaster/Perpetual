@@ -8,7 +8,7 @@ import (
 )
 
 const OpName = "project"
-const OpDesc = "Initialize or check project configuration at the .perpetual directory"
+const OpDesc = "Check project configuration or initialize new at the .perpetual directory"
 
 func initFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)

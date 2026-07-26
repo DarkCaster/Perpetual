@@ -9,7 +9,7 @@ import (
 )
 
 const OpName = "onboard"
-const OpDesc = "Validate environment configuration and create default global LLM configuration if needed"
+const OpDesc = "Check global environment configuration or create default configuration"
 
 func initFlags() *flag.FlagSet {
 	return flag.NewFlagSet(OpName, flag.ExitOnError)
