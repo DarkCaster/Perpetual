@@ -15,7 +15,6 @@ import (
 )
 
 func loadConfigs(descFile string, logger logging.ILogger) (string, string, config.Config) {
-	// Initialize: detect work directories, load .env file with LLM settings, load file filtering regexps
 	projectRootDir, perpetualDir, err := utils.FindProjectRoot(logger, false)
 	if err != nil {
 		logger.Panicln("Error finding project root directory:", err)
