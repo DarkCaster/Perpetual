@@ -53,6 +53,11 @@ func Stage3(projectRootDir string,
 
 	// Send request
 	if planningMode {
+		// allow explicit caching only if allowed with minimum repetitions: later stages can use different models or providers and cannot benefit from caching at this stage
+		allowCaching := connector.GetMinPrefixRepsForCaching() <= 1
+		// Mark current last message as cache breakpoint, they should not change unless injecting extra file-contents (low probability)
+		messages[len(messages)-1].CacheBreakpoint = true
+
 		// Create request that will ask to create list of files to be changed
 		request := llm.AddPlainTextFragment(llm.NewMessage(llm.UserRequest), opCfg.String(config.K_ImplementStage3PlanningPrompt))
 		messages = append(messages, request)
@@ -70,7 +75,7 @@ func Stage3(projectRootDir string,
 		for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 			// Request LLM to provide file list that will be modified (or created) while implementing code
 			var status llm.QueryStatus
-			aiResponse, status, err := connector.Query(false, messages...)
+			aiResponse, status, err := connector.Query(allowCaching, messages...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
