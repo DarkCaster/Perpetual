@@ -1,4 +1,4 @@
-package op_init
+package op_project
 
 type EnvExampleFile struct {
 	Filename string

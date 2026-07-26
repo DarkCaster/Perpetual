@@ -1,4 +1,4 @@
-package op_init
+package op_project
 
 import (
 	"flag"
@@ -7,7 +7,7 @@ import (
 	"github.com/DarkCaster/Perpetual/usage"
 )
 
-const OpName = "init"
+const OpName = "project"
 const OpDesc = "Initialize or check project configuration at the .perpetual directory"
 
 func initFlags() *flag.FlagSet {

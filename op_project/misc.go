@@ -1,4 +1,4 @@
-package op_init
+package op_project
 
 import (
 	"fmt"
