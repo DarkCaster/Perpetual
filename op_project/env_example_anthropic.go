@@ -30,7 +30,7 @@ ANTHROPIC_BASE_URL="https://api.anthropic.com/v1"
 # Model selection for different operations and stages
 ANTHROPIC_MODEL_OP_ANNOTATE="claude-haiku-4-5-20251001"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE1="claude-sonnet-5"
-ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-opus-5"
+# ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE2="claude-sonnet-5"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE3="claude-sonnet-5"
 # ANTHROPIC_MODEL_OP_IMPLEMENT_STAGE4="claude-sonnet-5"
 # ANTHROPIC_MODEL_OP_DOC_STAGE1="claude-sonnet-5"
@@ -70,9 +70,9 @@ ANTHROPIC_CACHE="1"
 # If unset, uses default value 2. if using 1h cache-TTL, consider setting this to 3 because of higher prices for cache-write
 # ANTHROPIC_CACHE_MINREPS_OP_ANNOTATE="2"
 # ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE1="2"
-# ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE2="2"
-# ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE3="2"
-# ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="2"
+ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE2="1" // enforce caching, because we are using single "sonnet-5" model on next stages, so it can reuse same prefix
+ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE3="1" // enforce caching, because we are using single "sonnet-5" model on next stages, so it can reuse same prefix
+ANTHROPIC_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="1" // enforce caching, because we are using single "sonnet-5" model on previous stages, so we can reuse cached prefix
 # ANTHROPIC_CACHE_MINREPS_OP_DOC_STAGE1="2"
 # ANTHROPIC_CACHE_MINREPS_OP_DOC_STAGE2="2"
 # ANTHROPIC_CACHE_MINREPS_OP_EXPLAIN_STAGE1="2"
@@ -82,7 +82,7 @@ ANTHROPIC_CACHE="1"
 # Options for limiting output tokens for different operations and stages, must be set
 ANTHROPIC_MAX_TOKENS_OP_ANNOTATE="2048"
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE1="1024" # file-list for review, long list is probably an error
-ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="16384" # work plan also should not be too big (includes think tokens)
+ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE2="60000" # work plan includes think tokens, so token limit can be big
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE3="3072" # file-list for processing, long list is probably an error (includes think tokens)
 ANTHROPIC_MAX_TOKENS_OP_IMPLEMENT_STAGE4="60000" # generated code output limit should be big
 ANTHROPIC_MAX_TOKENS_OP_DOC_STAGE1="1024" # file-list for review, long list is probably an error
@@ -105,6 +105,7 @@ ANTHROPIC_ON_FAIL_RETRIES_OP_EXPLAIN_STAGE2="10" # may hit token limit on low AP
 ANTHROPIC_ON_FAIL_RETRIES="5"
 
 # Options to set temperature. Depends on model, 0 produces mostly deterministic results, may be unset to use model-defaults
+# May be unsupported for modern reasoning models like sonnet 5 and newer, may be removed in future
 # ANTHROPIC_TEMPERATURE_OP_ANNOTATE="0.5"
 # ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE1="0.2" # less creative for file-list output
 # ANTHROPIC_TEMPERATURE_OP_IMPLEMENT_STAGE2="1" # temperature 1 needed for thinking model
@@ -126,7 +127,7 @@ ANTHROPIC_ON_FAIL_RETRIES="5"
 
 # ANTHROPIC_THINK_TOKENS_OP_ANNOTATE="0"
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE1="disabled" # file list
-ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="medium" # work plan
+ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE2="high" # work plan
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE3="low" # file list
 ANTHROPIC_THINK_TOKENS_OP_IMPLEMENT_STAGE4="high" # code implementation
 ANTHROPIC_THINK_TOKENS_OP_DOC_STAGE1="disabled" # file list
@@ -135,7 +136,7 @@ ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE1="disabled" # file list
 ANTHROPIC_THINK_TOKENS_OP_EXPLAIN_STAGE2="medium" # answer generation
 # ANTHROPIC_THINK_TOKENS="0" # value 0 will ensure thinking parameter is explicitly removed from API call
 
-# Advanced options that currently supported with Anthropic. You mostly not need to use them
+# Advanced options that currently supported with Anthropic. You mostly not need to use them, may be removed in future
 # ANTHROPIC_TOP_K_OP_ANNOTATE="40"
 # ANTHROPIC_TOP_K_OP_IMPLEMENT_STAGE1="40"
 # ANTHROPIC_TOP_K_OP_IMPLEMENT_STAGE2="40"
