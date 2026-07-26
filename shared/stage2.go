@@ -64,6 +64,8 @@ func Stage2(
 		response := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectDescriptionResponse))
 		messages = append(messages, response)
 		logger.Debugln("Created simulated project description response")
+		// Mark current last message as cache breakpoint
+		messages[len(messages)-1].CacheBreakpoint = true
 	}
 	// Add annotations
 	if addAnnotations {
@@ -81,6 +83,8 @@ func Stage2(
 		indexResponse := llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), prCfg.String(config.K_ProjectIndexResponse))
 		messages = append(messages, indexResponse)
 		logger.Debugln("Created project-index simulated response message")
+		// Mark current last message as cache breakpoint
+		messages[len(messages)-1].CacheBreakpoint = true
 	} else {
 		logger.Infoln("Not adding project-annotations")
 	}
@@ -98,6 +102,8 @@ func Stage2(
 		// Create simulated response
 		messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), opCfg.String(config.K_CodeResponse)))
 		logger.Debugln("Created source code review simulated response message")
+		// Mark current last message as cache breakpoint
+		messages[len(messages)-1].CacheBreakpoint = true
 	} else {
 		logger.Infoln("Not creating extra source-code review")
 	}
@@ -115,12 +121,15 @@ func Stage2(
 			// Create simulated response and add it to history
 			messages = append(messages, llm.AddPlainTextFragment(llm.NewMessage(llm.SimulatedAIResponse), preQueriesResponses[i]))
 			logger.Debugf("Created simulated response for pre-request message #%d", i)
+			// Mark current last message as cache breakpoint
+			messages[len(messages)-1].CacheBreakpoint = true
 		} else {
 			continue
 		}
 	}
 
 	// Exit here if no main LLM request present
+	// NOTE: because mainPrompt intended to be replaced with mainPromptFinal, do not set cache breakpoint here
 	if mainPrompt == "" {
 		// Just return generated message-history from annotations, files for review list and pre-request messages if present for later use
 		return "", messages
@@ -143,6 +152,8 @@ func Stage2(
 
 	//Make LLM request, process response
 	onFailRetriesLeft := max(connector.GetOnFailureRetryLimit(), 1)
+	// allow explicit caching only if allowed with minimum repetitions: later stages can use different models or providers and cannot benefit from caching at this stage
+	allowCaching := connector.GetMinPrefixRepsForCaching() <= 1
 	for ; onFailRetriesLeft >= 0; onFailRetriesLeft-- {
 		// Work with a copy of message-chain, to discard it on full retry, append it with temporary response on partial answer
 		messagesTry := utils.NewSlice(realMessages...)
@@ -154,7 +165,7 @@ func Stage2(
 		for continueGeneration && !fileRetry {
 			// Run query
 			continueGeneration = false
-			aiResponse, status, err := connector.Query(false, messagesTry...)
+			aiResponse, status, err := connector.Query(allowCaching, messagesTry...)
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
