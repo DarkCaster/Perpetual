@@ -1096,3 +1096,27 @@ func TestNewRxDataPairComplexRegex(t *testing.T) {
 		})
 	}
 }
+
+func equalRegexSlices(a, b []*regexp.Regexp) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].String() != b[i].String() {
+			return false
+		}
+	}
+	return true
+}
+
+func equalStringSlices(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
