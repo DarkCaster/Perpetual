@@ -13,6 +13,31 @@
 				"$go"
 			],
 			"group": "build"
+		},
+		{
+			"type": "go",
+			"label": "go: test",
+			"command": "test",
+			"args": [
+				"-count=1",
+				"./...",
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build"
+		},
+		{
+			"type": "go",
+			"label": "go: clean -testcache",
+			"command": "clean",
+			"args": [
+				"-testcache"
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build"
 		}
 	]
 }
