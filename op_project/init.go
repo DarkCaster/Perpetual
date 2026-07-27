@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/DarkCaster/Perpetual/config"
 	"github.com/DarkCaster/Perpetual/llm"
@@ -13,7 +15,7 @@ import (
 	"github.com/DarkCaster/Perpetual/utils"
 )
 
-func Init(version, lang string, envExamples bool, logger logging.ILogger) error {
+func Init(version, lang string, envExamples bool, descFile string, userFilterFile string, logger logging.ILogger) error {
 	if lang == "" {
 		return errors.New("language must be provided")
 	}
@@ -32,6 +34,52 @@ func Init(version, lang string, envExamples bool, logger logging.ILogger) error 
 		perpetualDir = filepath.Join(cwd, ".perpetual")
 	}
 
+	// Create a prompt-files based on the selected language
+	logger.Traceln("Creating default prompts")
+	promptsObj, err := newPrompts(lang)
+	if err != nil {
+		return err
+	}
+
+	// Prepare project-config, optionally appending user-supplied filter-file entries
+	// to the project files blacklist
+	projectConfig := promptsObj.GetProjectConfig()
+	if userFilterFile != "" {
+		logger.Infoln("Processing user filter-file:", userFilterFile)
+		var userFilters []string
+		if err := utils.LoadJsonFile(userFilterFile, &userFilters); err != nil {
+			logger.Panicln("Failed to load user filter-file:", err)
+		}
+		for i, filter := range userFilters {
+			if _, err := regexp.Compile(filter); err != nil {
+				logger.Panicf("Invalid regexp in user filter-file at index [%d]: %q: %v", i, filter, err)
+			}
+		}
+		if blacklist, ok := projectConfig[config.K_ProjectFilesBlacklist].([]string); ok {
+			projectConfig[config.K_ProjectFilesBlacklist] = append(blacklist, userFilters...)
+		} else {
+			logger.Panicf("Project config key %s is not a string array, cannot append user filters", config.K_ProjectFilesBlacklist)
+		}
+	}
+
+	// If a project description file was provided, load it and save it as the default
+	// project description file inside the .perpetual directory.
+	descContent := ""
+	if descFile != "" && strings.ToLower(descFile) != "disabled" {
+		logger.Infoln("Reading provided project description file:", descFile)
+		wrn := ""
+		descContent, wrn, err = utils.LoadTextFile(descFile)
+		if err != nil {
+			logger.Panicln("Failed to load project description file:", err)
+		}
+		if wrn != "" {
+			logger.Warnf("%s: %s", descFile, wrn)
+		}
+		if len(descContent) < 1 {
+			logger.Warnln("Provided project description file is empty!")
+		}
+	}
+
 	info, err := os.Stat(perpetualDir)
 	if err == nil {
 		if !info.IsDir() {
@@ -48,10 +96,17 @@ func Init(version, lang string, envExamples bool, logger logging.ILogger) error 
 		}
 	}
 
+	if len(descContent) > 0 {
+		logger.Infoln("Writing project description file")
+		if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, config.ProjectDescriptionFile), descContent); err != nil {
+			logger.Panicf("Error creating %s file: %v", config.ProjectDescriptionFile, err)
+		}
+	}
+
 	const DotEnvMaskName = "*.env"
 
 	// Create a .gitignore file in the .perpetual directory
-	logger.Traceln("Creating .gitignore file")
+	logger.Infoln("Writing .gitignore file")
 
 	gitignoreText := fmt.Sprintf("/%s\n/%s\n/%s\n/%s\n/%s*\n/%s\n/%s\n", DotEnvMaskName, utils.AnnotationsFileName, utils.EmbeddingsFileName, utils.LockFileName, llm.LLMRawLogFile, utils.StashesDirName, op_implement.StateFileName)
 	_, err = utils.SaveTextFile(filepath.Join(perpetualDir, ".gitignore"), gitignoreText)
@@ -60,8 +115,7 @@ func Init(version, lang string, envExamples bool, logger logging.ILogger) error 
 	}
 
 	if envExamples {
-		logger.Traceln("Creating env example files")
-
+		logger.Infoln("Writing example .env config files for LLM configuration (will not be loaded, use as templates)")
 		for _, example := range GetEnvExampleCatalogWithVersion(version) {
 			if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, example.Filename), example.Content); err != nil {
 				logger.Panicln("Error creating env example file:", err)
@@ -69,25 +123,23 @@ func Init(version, lang string, envExamples bool, logger logging.ILogger) error 
 		}
 	}
 
-	logger.Tracef("Creating %s file", descriptionTemplateFileName)
-	if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, descriptionTemplateFileName), descriptionTemplate); err != nil {
-		logger.Panicf("Error creating %s file: %v", descriptionTemplateFileName, err)
+	if len(descContent) < 1 {
+		logger.Infoln("Writing project description file template (will not be loaded)")
+		if _, err = utils.SaveTextFile(filepath.Join(perpetualDir, descriptionTemplateFileName), descriptionTemplate); err != nil {
+			logger.Panicf("Error creating %s file: %v", descriptionTemplateFileName, err)
+		}
 	}
 
-	// Create a prompt-files based on the selected language
-	logger.Debugln("Creating prompt-files")
-	promptsObj, err := newPrompts(lang)
-	if err != nil {
-		return err
-	}
-
+	logger.Infoln("Writing project config files")
 	saveConfig := func(filePath string, v any) {
-		logger.Traceln("Saving config:", filePath)
 		err = utils.SaveJsonFile(filepath.Join(perpetualDir, filePath), v)
 		if err != nil {
 			logger.Panicln(err)
 		}
 	}
+
+	// Save project-config file
+	saveConfig(config.ProjectConfigFile, projectConfig)
 
 	// Save operation-config files
 	saveConfig(config.OpAnnotateConfigFile, promptsObj.GetAnnotateConfig())
@@ -95,9 +147,6 @@ func Init(version, lang string, envExamples bool, logger logging.ILogger) error 
 	saveConfig(config.OpDocConfigFile, promptsObj.GetDocConfig())
 	saveConfig(config.OpReportConfigFile, promptsObj.GetReportConfig())
 	saveConfig(config.OpExplainConfigFile, promptsObj.GetExplainConfig())
-
-	// Save project-config file
-	saveConfig(config.ProjectConfigFile, promptsObj.GetProjectConfig())
 
 	obsoleteFiles := []string{
 		"filename_embed_regexp.json",

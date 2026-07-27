@@ -53,7 +53,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	var err error = nil
 	switch mode {
 	case "init":
-		err = Init(version, lang, envExamples, logger)
+		err = Init(version, lang, envExamples, descFile, userFilterFile, logger)
 	case "test":
 		CheckProjectConfig(descFile, logger)
 	case "list":
