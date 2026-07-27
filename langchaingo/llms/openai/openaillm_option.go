@@ -1,7 +1,6 @@
 package openai
 
 import (
-	"github.com/DarkCaster/Perpetual/langchaingo/callbacks"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms/openai/internal/openaiclient"
 )
 
@@ -39,8 +38,6 @@ type options struct {
 	apiVersion          string
 	embeddingModel      string
 	embeddingDimensions int
-
-	callbackHandler callbacks.Handler
 }
 
 // Option is a functional option for the OpenAI client.
@@ -130,13 +127,6 @@ func WithAPIVersion(apiVersion string) Option {
 func WithHTTPClient(client openaiclient.Doer) Option {
 	return func(opts *options) {
 		opts.httpClient = client
-	}
-}
-
-// WithCallback allows setting a custom Callback Handler.
-func WithCallback(callbackHandler callbacks.Handler) Option {
-	return func(opts *options) {
-		opts.callbackHandler = callbackHandler
 	}
 }
 

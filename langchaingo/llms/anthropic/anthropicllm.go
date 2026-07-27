@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DarkCaster/Perpetual/langchaingo/callbacks"
 	"github.com/DarkCaster/Perpetual/langchaingo/httputil"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms/anthropic/internal/anthropicclient"
@@ -31,9 +30,8 @@ const (
 )
 
 type LLM struct {
-	CallbacksHandler callbacks.Handler
-	client           *anthropicclient.Client
-	model            string // Track current model for reasoning detection
+	client *anthropicclient.Client
+	model  string // Track current model for reasoning detection
 }
 
 var (
@@ -82,10 +80,6 @@ func (o *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 
 // GenerateContent implements the Model interface.
 func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) {
-	if o.CallbacksHandler != nil {
-		o.CallbacksHandler.HandleLLMGenerateContentStart(ctx, messages)
-	}
-
 	opts := &llms.CallOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -119,9 +113,6 @@ func generateCompletionsContent(ctx context.Context, o *LLM, messages []llms.Mes
 		StreamingFunc: opts.StreamingFunc,
 	})
 	if err != nil {
-		if o.CallbacksHandler != nil {
-			o.CallbacksHandler.HandleLLMError(ctx, err)
-		}
 		return nil, fmt.Errorf("anthropic: failed to create completion: %w", err)
 	}
 
@@ -159,9 +150,6 @@ func generateMessagesContent(ctx context.Context, o *LLM, messages []llms.Messag
 		StreamingReasoningFunc: opts.StreamingReasoningFunc,
 	})
 	if err != nil {
-		if o.CallbacksHandler != nil {
-			o.CallbacksHandler.HandleLLMError(ctx, err)
-		}
 		return nil, fmt.Errorf("anthropic: failed to create message: %w", err)
 	}
 	return processAnthropicResponse(result)

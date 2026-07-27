@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DarkCaster/Perpetual/langchaingo/callbacks"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms/ollama/internal/ollamaclient"
 )
@@ -20,9 +19,8 @@ var (
 
 // LLM is a ollama LLM implementation.
 type LLM struct {
-	CallbacksHandler callbacks.Handler
-	client           *ollamaclient.Client
-	options          options
+	client  *ollamaclient.Client
+	options options
 }
 
 var (
@@ -73,10 +71,6 @@ func (o *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 
 // GenerateContent implements the Model interface.
 func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) { // nolint: lll, cyclop, funlen
-	if o.CallbacksHandler != nil {
-		o.CallbacksHandler.HandleLLMGenerateContentStart(ctx, messages)
-	}
-
 	opts := llms.CallOptions{}
 	for _, opt := range options {
 		opt(&opts)
@@ -176,9 +170,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 
 	err := o.client.GenerateChat(ctx, req, fn)
 	if err != nil {
-		if o.CallbacksHandler != nil {
-			o.CallbacksHandler.HandleLLMError(ctx, err)
-		}
 		return nil, err
 	}
 
@@ -206,10 +197,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 	}
 
 	response := &llms.ContentResponse{Choices: choices}
-
-	if o.CallbacksHandler != nil {
-		o.CallbacksHandler.HandleLLMGenerateContentEnd(ctx, response)
-	}
 
 	return response, nil
 }

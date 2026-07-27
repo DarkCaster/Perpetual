@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/DarkCaster/Perpetual/langchaingo/callbacks"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms/openai/internal/openaiclient"
 )
@@ -14,9 +13,8 @@ import (
 type ChatMessage = openaiclient.ChatMessage
 
 type LLM struct {
-	CallbacksHandler callbacks.Handler
-	client           *openaiclient.Client
-	model            string // Track current model for reasoning detection
+	client *openaiclient.Client
+	model  string // Track current model for reasoning detection
 }
 
 const (
@@ -84,14 +82,13 @@ var (
 
 // New returns a new OpenAI LLM.
 func New(opts ...Option) (*LLM, error) {
-	opt, c, err := newClient(opts...)
+	_, c, err := newClient(opts...)
 	if err != nil {
 		return nil, err
 	}
 	return &LLM{
-		client:           c,
-		CallbacksHandler: opt.callbackHandler,
-		model:            c.Model, // Store the model for reasoning detection
+		client: c,
+		model:  c.Model, // Store the model for reasoning detection
 	}, err
 }
 
@@ -102,10 +99,6 @@ func (o *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 
 // GenerateContent implements the Model interface.
 func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) { //nolint: lll, cyclop, funlen
-	if o.CallbacksHandler != nil {
-		o.CallbacksHandler.HandleLLMGenerateContentStart(ctx, messages)
-	}
-
 	opts := llms.CallOptions{}
 	for _, opt := range options {
 		opt(&opts)
@@ -343,9 +336,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 		}
 	}
 	response := &llms.ContentResponse{Choices: choices}
-	if o.CallbacksHandler != nil {
-		o.CallbacksHandler.HandleLLMGenerateContentEnd(ctx, response)
-	}
 	return response, nil
 }
 
