@@ -42,7 +42,7 @@ Improve local trimmed-down fork of langchaingo library:
 ### Removed Obsolete Features
 
 - Removed multi-step annotation generation logic: obsolete and overcomplicated feature; most modern LLM models are able to generate decent file annotations/summaries with one call. Removed old multi-variant annotation generation/selection configuration and environment options from the default config examples.
-- Removed simplified planning mode from `implement` operation (without reasonings at stage 2), not effective enough both with task-mode and comment-mode. Now, when planning is enabled, it always includes a reasonings step.
+- Removed simplified planning mode from `implement` operation (without reasonings at stage 2), not effective enough with either task-mode or comment-mode. Now, when planning is enabled, it always includes a reasonings step.
 - Removed JSON output mode support: overcomplicated feature used only for generating file lists for review or modification; does not provide sufficient benefits in terms of either token costs or quality, sometimes blocks the use of reasoning modes with some providers and models, and is hard to maintain due to JSON schema compatibility differences across providers.
 
 ### Improvements
@@ -56,16 +56,16 @@ Improve local trimmed-down fork of langchaingo library:
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
 - In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
 - Added file deletion support to the `implement` operation; this should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states. Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
-- Added optional 2-step approach for `implement` operation (controlled with `-p` flag). Suitable when using perpetual from external agent or UI: 1-st step generates work plan for the task and presenting it to the user/agent, 2-nd step performing real code generation according to the plan.
+- Added optional 2-step approach for `implement` operation (controlled with `-p` flag). Suitable when using perpetual from external agent or UI: the 1st step generates a work plan for the task and presents it to the user/agent; the 2nd step performs the actual code generation according to the plan.
 - Added support for explicit prompt caching for OpenAI, Generic and Anthropic providers. Disabled by default, you can try using it to reduce costs (provider and model dependent).
 - Updated `.env.example` for the Anthropic provider with support for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
 - Improved displaying of panic failure messages: only show the stack trace when a panic is called directly, not from the logger.
 - Added a lockfile inside the `.perpetual` config directory to prevent running multiple instances at the same time for a single project.
-- Reworked logging to always go to stderr, stdout only used for the output intended to the user/agent/UI: reports, work plan, file-lists, etc...
+- Reworked logging to always go to stderr; stdout is only used for output intended for the user/agent/UI: reports, work plan, file-lists, etc.
 - Improved default configuration for dotnet platform: added support for SQL scripts (`*.sql`) used for SQL database definitions and migrations.
-- Changed langchaingo library dependency: bundled local trimmed-down version of the library for future improvements, because upstream library development seem to be stopped.
+- Changed langchaingo library dependency: bundled local trimmed-down version of the library for future improvements, because upstream library development seems to be stopped.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
