@@ -10,9 +10,9 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/DarkCaster/Perpetual/langchaingo/llms"
+	"github.com/DarkCaster/Perpetual/langchaingo/llms/ollama"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/ollama"
 )
 
 //###NOUPLOAD###

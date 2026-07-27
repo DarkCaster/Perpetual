@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/tmc/langchaingo/llms"
 )
 
 type llmDebug struct {

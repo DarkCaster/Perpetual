@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DarkCaster/Perpetual/langchaingo/llms"
+	"github.com/DarkCaster/Perpetual/langchaingo/llms/anthropic"
 	"github.com/DarkCaster/Perpetual/utils"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/anthropic"
 )
 
 //###NOUPLOAD###
