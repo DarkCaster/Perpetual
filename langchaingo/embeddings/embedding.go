@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	"github.com/DarkCaster/Perpetual/langchaingo/internal/sliceutil"
 )
 
 // NewEmbedder creates a new Embedder from the given EmbedderClient, with
@@ -89,7 +87,7 @@ func BatchTexts(texts []string, batchSize int) [][]string {
 	batchedTexts := make([][]string, 0, len(texts)/batchSize+1)
 
 	for i := 0; i < len(texts); i += batchSize {
-		batchedTexts = append(batchedTexts, texts[i:sliceutil.MinInt([]int{i + batchSize, len(texts)})])
+		batchedTexts = append(batchedTexts, texts[i:minInt([]int{i + batchSize, len(texts)})])
 	}
 
 	return batchedTexts
@@ -110,4 +108,21 @@ func BatchedEmbed(ctx context.Context, embedder EmbedderClient, texts []string, 
 	}
 
 	return emb, nil
+}
+
+// MinInt returns the minimum value in nums.
+// If nums is empty, it returns 0.
+func minInt(nums []int) int {
+	var m int
+	for idx := 0; idx < len(nums); idx++ {
+		item := nums[idx]
+		if idx == 0 {
+			m = item
+			continue
+		}
+		if item < m {
+			m = item
+		}
+	}
+	return m
 }
