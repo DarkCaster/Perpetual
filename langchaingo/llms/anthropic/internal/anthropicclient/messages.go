@@ -44,17 +44,8 @@ type messagePayload struct {
 	Tools       []Tool        `json:"tools,omitempty"`
 	TopP        float64       `json:"top_p,omitempty"`
 
-	// Extended thinking parameters (Claude 3.7+)
-	Thinking *ThinkingConfig `json:"thinking,omitempty"`
-
 	StreamingFunc          func(ctx context.Context, chunk []byte) error                 `json:"-"`
 	StreamingReasoningFunc func(ctx context.Context, reasoningChunk, chunk []byte) error `json:"-"`
-}
-
-// ThinkingConfig represents the thinking configuration for Claude 3.7+
-type ThinkingConfig struct {
-	Type         string `json:"type"` // "enabled" or "disabled"
-	BudgetTokens int    `json:"budget_tokens,omitempty"`
 }
 
 // Tool used for the request message payload.

@@ -167,7 +167,6 @@ type Options struct {
 	MirostatEta      float32 `json:"mirostat_eta,omitempty"`
 	TopP             float32 `json:"top_p,omitempty"`
 	PenalizeNewline  bool    `json:"penalize_newline,omitempty"`
-	Think            bool    `json:"think,omitempty"` // Ollama 0.9.0+ reasoning mode
 }
 
 type PullRequest struct {

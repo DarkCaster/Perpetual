@@ -143,7 +143,7 @@ func generateMessagesContent(ctx context.Context, o *LLM, messages []llms.Messag
 
 	tools := toolsToTools(opts.Tools)
 
-	betaHeaders, thinking := extractThinkingOptions(o, opts)
+	betaHeaders := extractThinkingOptions(o, opts)
 
 	result, err := o.client.CreateMessage(ctx, &anthropicclient.MessageRequest{
 		Model:                  opts.Model,
@@ -154,7 +154,6 @@ func generateMessagesContent(ctx context.Context, o *LLM, messages []llms.Messag
 		Temperature:            opts.Temperature,
 		TopP:                   opts.TopP,
 		Tools:                  tools,
-		Thinking:               thinking,
 		BetaHeaders:            betaHeaders,
 		StreamingFunc:          opts.StreamingFunc,
 		StreamingReasoningFunc: opts.StreamingReasoningFunc,
@@ -441,7 +440,7 @@ func supportsReasoningForModel(model string) bool {
 }
 
 // extractThinkingOptions extracts thinking configuration and beta headers from call options
-func extractThinkingOptions(o *LLM, opts *llms.CallOptions) ([]string, *anthropicclient.ThinkingConfig) {
+func extractThinkingOptions(o *LLM, opts *llms.CallOptions) []string {
 	// Extract beta headers for prompt caching support
 	var betaHeaders []string
 	if opts.Metadata != nil {
@@ -449,52 +448,7 @@ func extractThinkingOptions(o *LLM, opts *llms.CallOptions) ([]string, *anthropi
 			betaHeaders = headers
 		}
 	}
-
-	// Extract thinking configuration
-	var budgetTokens int
-	if opts.Metadata != nil {
-		if config, ok := opts.Metadata["thinking_config"].(*llms.ThinkingConfig); ok {
-			// Only set budget_tokens for models that support extended thinking
-			// Claude 3.7+ and Claude 4+ support this feature
-			currentModel := opts.Model
-			if currentModel == "" {
-				currentModel = o.model
-			}
-			if supportsReasoningForModel(currentModel) {
-				if config.BudgetTokens > 0 {
-					budgetTokens = config.BudgetTokens
-				} else if config.Mode != llms.ThinkingModeNone {
-					// Calculate budget based on mode
-					budgetTokens = llms.CalculateThinkingBudget(config.Mode, opts.MaxTokens)
-				}
-
-				// Ensure budget is within valid range for Claude 3.7+
-				if budgetTokens > 0 {
-					if budgetTokens < 1024 {
-						budgetTokens = 1024 // Minimum for Claude
-					} else if budgetTokens > 128000 {
-						budgetTokens = 128000 // Maximum for Claude (128K)
-					}
-				}
-			}
-
-			// Add interleaved thinking header if requested (Claude 4+)
-			if config.InterleaveThinking && supportsReasoningForModel(currentModel) {
-				betaHeaders = append(betaHeaders, "interleaved-thinking-2025-05-14")
-			}
-		}
-	}
-
-	// Create thinking configuration if we have a budget
-	var thinking *anthropicclient.ThinkingConfig
-	if budgetTokens > 0 {
-		thinking = &anthropicclient.ThinkingConfig{
-			Type:         "enabled",
-			BudgetTokens: budgetTokens,
-		}
-	}
-
-	return betaHeaders, thinking
+	return betaHeaders
 }
 
 // extractThinkingFromText extracts thinking content from Anthropic responses

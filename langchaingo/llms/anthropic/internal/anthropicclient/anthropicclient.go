@@ -137,9 +137,6 @@ type MessageRequest struct {
 	StopWords   []string      `json:"stop_sequences,omitempty"`
 	Stream      bool          `json:"stream,omitempty"`
 
-	// Extended thinking parameters (Claude 3.7+)
-	Thinking *ThinkingConfig `json:"thinking,omitempty"`
-
 	// BetaHeaders are additional beta feature headers to include
 	BetaHeaders            []string                                                      `json:"-"`
 	StreamingFunc          func(ctx context.Context, chunk []byte) error                 `json:"-"`
@@ -158,7 +155,6 @@ func (c *Client) CreateMessage(ctx context.Context, r *MessageRequest) (*Message
 		TopP:                   r.TopP,
 		Tools:                  r.Tools,
 		Stream:                 r.Stream,
-		Thinking:               r.Thinking,
 		StreamingFunc:          r.StreamingFunc,
 		StreamingReasoningFunc: r.StreamingReasoningFunc,
 	}, r.BetaHeaders)
