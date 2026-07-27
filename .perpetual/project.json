@@ -45,7 +45,8 @@
   "project_description_prompt": "Primary tasks will follow shortly. For your awareness, project description is provided:",
   "project_description_response": "I have carefully studied the information provided and will take it into account when working on the project tasks.",
   "project_files_blacklist": [
-    "(?i)^vendor(\\\\|\\/).*"
+    "(?i)^vendor(\\\\|\\/).*",
+    "(?i)^langchaingo(\\\\|\\/).*"
   ],
   "project_files_whitelist": [
     "(?i)^.*\\.go$",
