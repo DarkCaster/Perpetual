@@ -14,7 +14,7 @@ const (
 
 func Run(version string, args []string, logger logging.ILogger) {
 	var lang, mode, descFile, userFilterFile string
-	var help, verbose, trace, envExamples, includeTests bool
+	var help, verbose, trace, envExamples, excludeTests bool
 
 	projectFlags := flag.NewFlagSet(OpName, flag.ExitOnError)
 	projectFlags.StringVar(&mode, "m", "", "Select operation mode: init, test, list, check-read, check-ascii, save-utf.\n"+
@@ -31,7 +31,7 @@ func Run(version string, args []string, logger logging.ILogger) {
 	projectFlags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
 	// for non "init" modes
 	projectFlags.StringVar(&descFile, "df", "", "Optional path to project description file (valid values: file-path|disabled), when used with '-m init' it will copy description as default to .perpetual dir")
-	projectFlags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing when running project-files tests")
+	projectFlags.BoolVar(&excludeTests, "u", false, "Exclude unit-tests source files from processing when running project-files tests (unit-tests are included by default)")
 	projectFlags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing, when used with '-m init' it will append filter definitions to the project-wide blacklist")
 	projectFlags.Parse(args)
 
@@ -57,13 +57,13 @@ func Run(version string, args []string, logger logging.ILogger) {
 	case "test":
 		CheckProjectConfig(descFile, logger)
 	case "list":
-		FetchProjectFiles(descFile, userFilterFile, includeTests, true, logger)
+		FetchProjectFiles(descFile, userFilterFile, !excludeTests, true, logger)
 	case "check-read":
-		CheckFilesRead(descFile, userFilterFile, includeTests, logger)
+		CheckFilesRead(descFile, userFilterFile, !excludeTests, logger)
 	case "check-ascii":
-		CheckFilesReadAsAscii(descFile, userFilterFile, includeTests, logger)
+		CheckFilesReadAsAscii(descFile, userFilterFile, !excludeTests, logger)
 	case "save-utf":
-		CheckFilesAndSaveAsUTF(descFile, userFilterFile, includeTests, logger)
+		CheckFilesAndSaveAsUTF(descFile, userFilterFile, !excludeTests, logger)
 	case "":
 		usage.PrintOperationUsage("You must provide a valid operation mode with the '-m' flag", projectFlags)
 	default:

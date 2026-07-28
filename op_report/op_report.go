@@ -20,7 +20,7 @@ const (
 )
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace, includeTests bool
+	var help, verbose, trace, excludeTests bool
 	var reportMode, outputFile, userFilterFile, contextSaving, descFile string
 
 	//TODO: add selection of llm-type and use llm-agnostic message formatting for that particular llm type
@@ -32,7 +32,7 @@ func Run(args []string, logger logging.ILogger) {
 		"brief: Generate report with brief annotations of project files.")
 	flags.StringVar(&outputFile, "o", "", "File path to write report to (write to stdout if set to '-', not provided or empty)")
 	flags.StringVar(&descFile, "df", "", "Optional path to project description file for forwarding into annotate operation (valid values: file-path|disabled)")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from report")
+	flags.BoolVar(&excludeTests, "u", false, "Exclude unit-tests source files from report (unit-tests are included by default)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from report")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -102,7 +102,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	if !includeTests {
+	if excludeTests {
 		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 

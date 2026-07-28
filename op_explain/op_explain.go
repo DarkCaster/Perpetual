@@ -27,7 +27,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, addAnnotations, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, addAnnotations, verbose, trace, noAnnotate, forceUpload, excludeTests bool
 	var descFile, outputFile, inputFile, extraFile, userFilterFile, contextSaving, mode string
 	var searchLimit, selectionPasses int
 
@@ -45,7 +45,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.StringVar(&inputFile, "i", "", "Input file to read question from (plain text or Markdown). If empty or '-', read from stdin")
 	flags.StringVar(&extraFile, "e", "", "Read instructions from a text or markdown file that will be used in step 1 to select relevant files. Use if the original question is not good enough for LLM to select relevant files.")
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
+	flags.BoolVar(&excludeTests, "u", false, "Exclude unit-tests source files from processing (unit-tests are included by default)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.IntVar(&searchLimit, "s", 5, "Limit number of files related to question returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
@@ -147,7 +147,7 @@ func Run(args []string, logger logging.ILogger) {
 		}
 	}
 
-	if !includeTests {
+	if excludeTests {
 		projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 

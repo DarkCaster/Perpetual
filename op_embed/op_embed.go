@@ -25,7 +25,7 @@ func embedFlags() *flag.FlagSet {
 }
 
 func Run(args []string, innerCall bool, logger logging.ILogger) {
-	var help, verbose, trace, includeTests bool
+	var help, verbose, trace, excludeTests bool
 	var inputFile, userFilterFile, mode string
 	var searchLimit int
 
@@ -39,7 +39,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	flags.StringVar(&inputFile, "i", "", "Input file. For normal|dryrun|full modes: forcefully (re)embed a single project file.\n"+
 		"For query mode: path to any text/markdown file with the question, or '-' to read the question from stdin")
 	flags.IntVar(&searchLimit, "s", 5, "Limit on the number of files returned that are relevant to the question")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
+	flags.BoolVar(&excludeTests, "u", false, "Exclude unit-tests source files from processing with '-m query' (unit-tests are included by default)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -117,7 +117,7 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 	}
 
 	var userBlacklist []*regexp.Regexp
-	if mode == "QUERY" && !includeTests {
+	if mode == "QUERY" && excludeTests {
 		userBlacklist = append(userBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 	}
 	if userFilterFile != "" {

@@ -25,7 +25,7 @@ func docFlags() *flag.FlagSet {
 }
 
 func Run(args []string, logger logging.ILogger) {
-	var help, verbose, trace, noAnnotate, forceUpload, includeTests bool
+	var help, verbose, trace, noAnnotate, forceUpload, excludeTests bool
 	var inputFile, outputFile, docExample, descFile, mode, userFilterFile, contextSaving string
 	var searchLimit, selectionPasses int
 
@@ -41,7 +41,7 @@ func Run(args []string, logger logging.ILogger) {
 	flags.BoolVar(&forceUpload, "f", false, "Disable 'no-upload' file-filter and upload such files for review if reqested")
 	flags.IntVar(&searchLimit, "s", 7, "Limit number of files related to target document returned by local search (0 = disable local search, only use LLM-requested files)")
 	flags.IntVar(&selectionPasses, "sp", 1, "Set number of passes for related files selection at stage 1")
-	flags.BoolVar(&includeTests, "u", false, "Do not exclude unit-tests source files from processing")
+	flags.BoolVar(&excludeTests, "u", false, "Exclude unit-tests source files from processing (unit-tests are included by default)")
 	flags.StringVar(&userFilterFile, "x", "", "Path to user-supplied regex filter-file for filtering out certain files from processing")
 	flags.BoolVar(&verbose, "v", false, "Enable debug logging")
 	flags.BoolVar(&trace, "vv", false, "Enable debug and trace logging")
@@ -148,7 +148,7 @@ func Run(args []string, logger logging.ILogger) {
 			}
 		}
 
-		if !includeTests {
+		if excludeTests {
 			projectFilesBlacklist = append(projectFilesBlacklist, projectConfig.RegexpArray(config.K_ProjectTestFilesBlacklist)...)
 		}
 
