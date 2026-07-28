@@ -48,10 +48,10 @@ Improve local trimmed-down fork of langchaingo library:
 ### Improvements
 
 - Unified command-line flags across different operations. Most operations use the "mode" (`-m`) switch for their core functions. Potentially dangerous flags are less likely to cause confusion across different operations.
+- Inverted meaning of `-u` flag for supported operations: unit-test files now included into processing by-default and can be disabled with `-u` flag.
 - Added a new `onboard` operation that can validate or (re)create the system-wide `.env` configuration with a single command for a supported provider.
-- Merged `init` and `misc` operations into the new `project` operation.
-- Added a new `project` operation that performs project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration). Includes all features of former `init` and `misc` operations as well as some new features.
-- Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` operation. Added a new `-ex` flag to create the examples if needed.
+- Added a new `project` operation that merges the former `init` and `misc` operations, performing project-wide initialization, checks, and validations (as opposed to the `onboard` operation, which initializes and validates global configuration). Includes all features of the former `init` and `misc` operations as well as some new features.
+- Disabled saving `.env.example` files into the `.perpetual` directory by default for the `init` mode. Added a new `-ex` flag to create the examples if needed.
 - Reworked the `implement` operation to select its operation mode with the `-m` flag: `task`, `comment`, and `comment-fast` modes.
 - In task mode (`-m task`), provide the task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files.
 - In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
@@ -67,7 +67,7 @@ Improve local trimmed-down fork of langchaingo library:
 - Improved default configuration for dotnet platform: added support for SQL scripts (`*.sql`) used for SQL database definitions and migrations.
 - Changed langchaingo library dependency: bundled local trimmed-down version of the library for future improvements, because upstream library development seems to be stopped.
 
-**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
+**NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual project -m init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
 ## v9.12.1
 
