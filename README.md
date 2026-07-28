@@ -46,7 +46,7 @@ Download the latest `Perpetual` executable from GitHub Releases or GitHub Action
 
 ### Configuration
 
-In order to use the program, you need to configure it first. See [this doc](docs/configuration.md) for configuration overview. Default project configuration may be installed by running `Perpetual init` (see below), and you will need to add your API keys and select the LLM provider to use as a minimum.
+In order to use the program, you need to configure it first. See [this doc](docs/configuration.md) for configuration overview. A default project configuration may be installed by running `Perpetual project -m init` (see below), and global LLM provider configuration (API keys, model selection, etc) can be created with the `onboard` operation, at minimum selecting the LLM provider to use and providing your API key.
 
 ### Command Line Usage
 
@@ -54,7 +54,8 @@ In order to use the program, you need to configure it first. See [this doc](docs
 
 Supported operations:
 
-- [`init`: Initialize new `.perpetual` directory to store project configuration, write default configuration](docs/op_init.md)
+- [`project`: Check project configuration or initialize a new one at the `.perpetual` directory](docs/op_project.md)
+- [`onboard`: Check global environment configuration or create a default one](docs/op_onboard.md)
 - [`annotate`: Generate annotations for project files](docs/op_annotate.md)
 - [`embed`: Generate embeddings for project files to enable semantic search](docs/op_embed.md)
 - [`implement`: Implement code according to task or instructions marked with `###IMPLEMENT###` comments](docs/op_implement.md)
@@ -62,20 +63,19 @@ Supported operations:
 - [`report`: Create report from project source code, that can be manually copypasted into the LLM user-interface for further manual analysis](docs/op_report.md)
 - [`doc`: Create or rework documentation files (in markdown or plain-text format)](docs/op_doc.md)
 - [`explain`: Getting answers to questions and clarifications on the project (based on source code analysis)](docs/op_explain.md)
-- [`misc`: Other helper functions for troubleshooting, validating project setup, and other maintenance tasks)](docs/op_misc.md)
 
 ### Initialize a New Project
 
 To initialize a new project, navigate to the root directory of your project in the console and run the following command:
 
 ```sh
-Perpetual init -l <language>
+Perpetual project -m init -l <language>
 ```
 
-The `init` command creates a `.perpetual` directory in the root of your project, which contains various system settings (that you can customize as needed) and other service files:
+This command creates a `.perpetual` directory in the root of your project, which contains various system settings (that you can customize as needed) and other service files:
 
 - Config files with prompts and settings for different operations and regular expressions used for parsing responses from the LLM.
-- `*.env.example` files with example settings: examples for [openai](.perpetual/openai.env.example), [anthropic](.perpetual/anthropic.env.example), [ollama](.perpetual/ollama.env.example), [generic](.perpetual/generic.env.example). General [.env.example](.perpetual/.env.example) file with providers selection for different operations.
+- Optionally, `*.env.example` files with example settings: examples for [openai](.perpetual/openai.env.example), [anthropic](.perpetual/anthropic.env.example), [ollama](.perpetual/ollama.env.example), [generic](.perpetual/generic.env.example), and a general [.env.example](.perpetual/.env.example) file with provider selection for different operations.
 - Automatic backups for source code files it changes
 - LLM chat logs
 
@@ -86,18 +86,24 @@ Additional files created when executing program operations. **DO NOT ADD THESE T
 - `.message_log.txt`, `.message_log.txt.0`, `.message_log.txt.1`, etc — Raw LLM interaction logs (see below).
 - `.stash` subdirectory — Contains backups of source code files it changes.
 
-You should be cautious when modifying these settings. You can always rewrite them by running the `init` command in the project root directory again.
+You should be cautious when modifying these settings. You can always rewrite them by running the `project -m init` command in the project root directory again.
 
-Next, you need to manually create one or multiple `.env` files from provided `*.env.example` files and place it to appropriate config dir, see [this](docs/op_init.md) for more info.
+Next, you need to configure LLM provider access. You can either manually create one or multiple `.env` files from the provided `*.env.example` files and place them in the appropriate global config directory, or use the `onboard` operation to automatically generate this configuration for a selected LLM provider, e.g.:
+
+```sh
+Perpetual onboard -m install -p <provider> -k <api-key>
+```
+
+You can check the current environment configuration at any time by running `Perpetual onboard -m check`. See [this](docs/op_onboard.md) and [this](docs/op_project.md) for more info.
 
 ### Creating Project Annotations
 
-After initializing a new `Perpetual` project and setting up the `.env` files, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code while not overloading the LLM's context window with irrelevant code. **NOTE**: It is not required to run this command now; it will be triggered automatically when needed. However, you can still do it manually. This operation may take a considerable amount of time when run for the first time or with a local LLM (so it may be convenient to start it manually and take a break).
+After initializing a new `Perpetual` project and setting up the environment configuration, the next step is to create your project source code annotations. These annotations will be used by the LLM to request relevant files for analysis, which is essential for generating accurate and relevant code while not overloading the LLM's context window with irrelevant code. **NOTE**: It is not required to run this command now; it will be triggered automatically when needed. However, you can still do it manually. This operation may take a considerable amount of time when run for the first time or with a local LLM (so it may be convenient to start it manually and take a break).
 
 To create source code annotations, use the `annotate` command:
 
 ```sh
-Perpetual annotate
+Perpetual annotate -m normal
 ```
 
 **Tip**: Use more affordable models like Claude 3 Haiku for generating annotations. This will be much more cost-effective and faster because it needs to upload **ALL** suitable source code files from your project to the LLM to generate their summaries. Subsequent annotations will run automatically before other operations and **only re-annotate changed files** to minimize costs. You can also try local LLM models like Qwen 2.5 with Ollama - this is somewhat experimental, but it may provide decent quality annotations if using model large enough.
@@ -108,22 +114,22 @@ There are two main ways for code generation:
 
 #### Task Mode
 
-Task mode allows you to directly provide instructions to `Perpetual` without adding special comments to your code. This is particularly useful for complex and abstract tasks, when starting a new project - when your project do not have any structure yet. You can pipe your instruction to the assistant with the `-t` (task) flag:
+Task mode allows you to directly provide instructions to `Perpetual` without adding special comments to your code. This is particularly useful for complex and abstract tasks, when starting a new project - when your project do not have any structure yet. You can pipe your instruction to the assistant using task mode:
 
 ##### Example
 
 ```sh
-Perpetual init -l python3
-echo "write me a simple snake game with pygame" | Perpetual implement -pr -t
+Perpetual project -m init -l python3
+echo "write me a simple snake game with pygame" | Perpetual implement -m task
 ```
 
-You can also write task in a text file and source it with `-i` flag. See [`implement` operation reference for more info](docs/op_implement.md).
+You can also write the task in a text file and source it with the `-i` flag. See [`implement` operation reference for more info](docs/op_implement.md).
 
 #### Using Special Comments
 
 Alternatively, assistant can generate code for tasks that are marked in your source code files using the special comment `###IMPLEMENT###` followed by instructions (also comments). It will automatically analyze the code of your project and write its own code in the context of your project. Depending on command-line flags, it may be allowed only to write code at the files where the `###IMPLEMENT###` comments present, or it can be also allowed to modify related code or even create new files.
 
-This mode can be used both for smaller routine tasks, and for big complex tasks when you want to specify the exact places where code must be written. When you run `implement` operation without parameters - this mode is selected by default and it only allowed to modify files marked with `###IMPLEMENT###` comments. Also by default, unlike task mode, it minimizes the use of the context window, saving you money and time.
+This mode can be used both for smaller routine tasks, and for big complex tasks when you want to specify the exact places where code must be written. When you run `implement` operation in `comment-fast` mode, it is only allowed to modify files marked with `###IMPLEMENT###` comments, and it minimizes the use of the context window by skipping the planning stage, saving you money and time. The `comment` mode, on the other hand, uses the same planning stage as `task` mode, so — just like with tasks — it may also modify related files or create new ones, in addition to writing code in the files marked with `###IMPLEMENT###` comments.
 
 ##### Example
 
@@ -140,7 +146,7 @@ func ParseCustomer(jsonMessage string) (Customer, error) {
 Then, run `Perpetual` with the `implement` operation:
 
 ```sh
-Perpetual implement
+Perpetual implement -m comment
 ```
 
 ### Generating Project Report for Manual Use with LLM
