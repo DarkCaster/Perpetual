@@ -5,12 +5,6 @@ import (
 	"errors"
 )
 
-// LLM is an alias for model, for backwards compatibility.
-//
-// Deprecated: This alias may be removed in the future; please use Model
-// instead.
-type LLM = Model
-
 // Model is an interface multi-modal models implement.
 type Model interface {
 	// GenerateContent asks the model to generate content from a sequence of
@@ -26,18 +20,6 @@ type Model interface {
 	// the [GenerateFromSinglePrompt] function which provides a similar capability
 	// to Call and is built on top of the new interface.
 	Call(ctx context.Context, prompt string, options ...CallOption) (string, error)
-}
-
-// ReasoningModel is an interface for models that support extended reasoning/thinking.
-// Models implementing this interface can generate internal reasoning tokens that are
-// used to improve response quality but may not be included in the final output.
-type ReasoningModel interface {
-	Model
-
-	// SupportsReasoning returns true if the model supports reasoning/thinking tokens.
-	// This capability allows models to "think" through problems internally before
-	// generating a response, improving quality for complex tasks.
-	SupportsReasoning() bool
 }
 
 // GenerateFromSinglePrompt is a convenience function for calling an LLM with

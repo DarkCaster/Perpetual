@@ -34,11 +34,6 @@ type LLM struct {
 	model  string // Track current model for reasoning detection
 }
 
-var (
-	_ llms.Model          = (*LLM)(nil)
-	_ llms.ReasoningModel = (*LLM)(nil)
-)
-
 // New returns a new Anthropic LLM.
 func New(opts ...Option) (*LLM, error) {
 	c, err := newClient(opts...)
@@ -95,7 +90,7 @@ func generateMessagesContent(ctx context.Context, o *LLM, messages []llms.Messag
 
 	tools := toolsToTools(opts.Tools)
 
-	betaHeaders := extractThinkingOptions(o, opts)
+	betaHeaders := extractThinkingOptions(opts)
 
 	result, err := o.client.CreateMessage(ctx, &anthropicclient.MessageRequest{
 		Model:                  opts.Model,
@@ -355,47 +350,8 @@ func handleToolMessage(msg llms.MessageContent) (anthropicclient.ChatMessage, er
 	return anthropicclient.ChatMessage{}, fmt.Errorf("anthropic: %w for tool message", ErrInvalidContentType)
 }
 
-// SupportsReasoning implements the ReasoningModel interface.
-// Returns true if the current model supports extended thinking capabilities.
-func (o *LLM) SupportsReasoning() bool {
-	return supportsReasoningForModel(o.model)
-}
-
-// supportsReasoningForModel checks if a specific model supports reasoning.
-// This is a separate function to avoid race conditions when checking capabilities.
-func supportsReasoningForModel(model string) bool {
-	if model == "" {
-		return false
-	}
-
-	modelLower := strings.ToLower(model)
-
-	// Claude 3.7+ supports extended thinking
-	if strings.Contains(modelLower, "claude-3-7") ||
-		strings.Contains(modelLower, "claude-3.7") ||
-		strings.Contains(modelLower, "claude-3-7-sonnet") {
-		return true
-	}
-
-	// Claude 4+ supports extended thinking with interleaving
-	if strings.Contains(modelLower, "claude-4") ||
-		strings.Contains(modelLower, "claude-opus-4") ||
-		strings.Contains(modelLower, "claude-sonnet-4") {
-		return true
-	}
-
-	// Future Claude 5+ expected to support reasoning
-	if strings.Contains(modelLower, "claude-5") ||
-		strings.Contains(modelLower, "claude-opus-5") ||
-		strings.Contains(modelLower, "claude-sonnet-5") {
-		return true
-	}
-
-	return false
-}
-
 // extractThinkingOptions extracts thinking configuration and beta headers from call options
-func extractThinkingOptions(o *LLM, opts *llms.CallOptions) []string {
+func extractThinkingOptions(opts *llms.CallOptions) []string {
 	// Extract beta headers for prompt caching support
 	var betaHeaders []string
 	if opts.Metadata != nil {

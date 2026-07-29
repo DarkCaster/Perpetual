@@ -75,11 +75,6 @@ func getModelCapabilities(model string) ModelCapability {
 	}
 }
 
-var (
-	_ llms.Model          = (*LLM)(nil)
-	_ llms.ReasoningModel = (*LLM)(nil)
-)
-
 // New returns a new OpenAI LLM.
 func New(opts ...Option) (*LLM, error) {
 	_, c, err := newClient(opts...)
@@ -337,44 +332,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 	}
 	response := &llms.ContentResponse{Choices: choices}
 	return response, nil
-}
-
-// SupportsReasoning implements the ReasoningModel interface.
-// Returns true if the current model supports reasoning/thinking tokens.
-func (o *LLM) SupportsReasoning() bool {
-	// Check the current model (may have been overridden by WithModel option)
-	model := o.model
-	if model == "" {
-		model = o.client.Model
-	}
-
-	modelLower := strings.ToLower(model)
-
-	// OpenAI o1 series (reasoning models)
-	if strings.HasPrefix(modelLower, "o1-") ||
-		strings.Contains(modelLower, "o1-preview") ||
-		strings.Contains(modelLower, "o1-mini") {
-		return true
-	}
-
-	// OpenAI o3 series
-	if strings.HasPrefix(modelLower, "o3-") ||
-		strings.Contains(modelLower, "o3-mini") {
-		return true
-	}
-
-	// Future o4+ series
-	if strings.HasPrefix(modelLower, "o4-") ||
-		strings.HasPrefix(modelLower, "o5-") {
-		return true
-	}
-
-	// GPT-5 series (expected to have reasoning capabilities)
-	if strings.HasPrefix(modelLower, "gpt-5") {
-		return true
-	}
-
-	return false
 }
 
 // CreateEmbedding creates embeddings for the given input texts.

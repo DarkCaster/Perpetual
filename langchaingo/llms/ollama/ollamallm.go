@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/langchaingo/llms/ollama/internal/ollamaclient"
@@ -23,11 +22,6 @@ type LLM struct {
 	options options
 }
 
-var (
-	_ llms.Model          = (*LLM)(nil)
-	_ llms.ReasoningModel = (*LLM)(nil)
-)
-
 // New creates a new ollama LLM implementation.
 func New(opts ...Option) (*LLM, error) {
 	o := options{}
@@ -41,27 +35,6 @@ func New(opts ...Option) (*LLM, error) {
 	}
 
 	return &LLM{client: client, options: o}, nil
-}
-
-// SupportsReasoning implements the ReasoningModel interface.
-// Returns true if the current model supports reasoning/thinking.
-func (o *LLM) SupportsReasoning() bool {
-	// Check if the model supports reasoning based on model name patterns
-	model := strings.ToLower(o.options.model)
-
-	// Ollama models that support reasoning/thinking:
-	// - deepseek-r1 models (DeepSeek reasoning models)
-	// - qwq models (Alibaba's QwQ reasoning models)
-	// - Models with "reasoning" or "thinking" in the name
-	if strings.Contains(model, "deepseek-r1") ||
-		strings.Contains(model, "qwq") ||
-		strings.Contains(model, "reasoning") ||
-		strings.Contains(model, "thinking") {
-		return true
-	}
-
-	// Future: could check model capabilities via Ollama API when available
-	return false
 }
 
 // Call Implement the call interface for LLM.
