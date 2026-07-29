@@ -560,10 +560,10 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			}
 
 			line, err := reader.ReadString('\n')
-			if err == io.EOF {
+			if err == io.EOF && line == "" {
 				break
 			}
-			if err != nil {
+			if err != nil && err != io.EOF {
 				select {
 				case <-readerCtx.Done():
 					return

@@ -250,10 +250,10 @@ func parseStreamingMessageResponse(ctx context.Context, r *http.Response, payloa
 		var response MessageResponsePayload
 		for {
 			line, err := reader.ReadString('\n')
-			if err == io.EOF {
+			if err == io.EOF && line == "" {
 				break
 			}
-			if err != nil {
+			if err != nil && err != io.EOF {
 				eventChan <- MessageEvent{Response: nil, Err: fmt.Errorf("issue reading stream: %w", err)}
 				return
 			}
