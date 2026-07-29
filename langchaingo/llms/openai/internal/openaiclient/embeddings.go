@@ -13,6 +13,13 @@ const (
 	defaultEmbeddingModel = "text-embedding-ada-002"
 )
 
+type errorMessage struct {
+	Error struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+	} `json:"error"`
+}
+
 type embeddingPayload struct {
 	Model      string   `json:"model"`
 	Input      []string `json:"input"`

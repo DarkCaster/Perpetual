@@ -88,25 +88,6 @@ func New(token string, model string, baseURL string, organization string,
 	return c, nil
 }
 
-// Completion is a completion.
-type Completion struct {
-	Text string `json:"text"`
-}
-
-// CreateCompletion creates a completion.
-func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*Completion, error) {
-	resp, err := c.createCompletion(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-	if len(resp.Choices) == 0 {
-		return nil, ErrEmptyResponse
-	}
-	return &Completion{
-		Text: resp.Choices[0].Message.Content,
-	}, nil
-}
-
 // EmbeddingRequest is a request to create an embedding.
 type EmbeddingRequest struct {
 	Model      string   `json:"model"`
