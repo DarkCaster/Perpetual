@@ -1,5 +1,3 @@
-// extract the errors in the package to the top level:
-
 package anthropicclient
 
 import (
@@ -8,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -243,14 +242,22 @@ type MessageEvent struct {
 }
 
 func parseStreamingMessageResponse(ctx context.Context, r *http.Response, payload *messagePayload) (*MessageResponsePayload, error) {
-	scanner := bufio.NewScanner(r.Body)
+	reader := bufio.NewReader(r.Body)
 	eventChan := make(chan MessageEvent)
 
 	go func() {
 		defer close(eventChan)
 		var response MessageResponsePayload
-		for scanner.Scan() {
-			line := scanner.Text()
+		for {
+			line, err := reader.ReadString('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				eventChan <- MessageEvent{Response: nil, Err: fmt.Errorf("issue reading stream: %w", err)}
+				return
+			}
+			line = strings.TrimRight(line, "\r\n")
 			if line == "" || !strings.HasPrefix(line, "data:") {
 				continue
 			}
@@ -265,9 +272,6 @@ func parseStreamingMessageResponse(ctx context.Context, r *http.Response, payloa
 				eventChan <- MessageEvent{Response: nil, Err: fmt.Errorf("failed to process stream event: %w", err)}
 				return
 			}
-		}
-		if err := scanner.Err(); err != nil {
-			eventChan <- MessageEvent{Response: nil, Err: fmt.Errorf("issue scanning response: %w", err)}
 		}
 	}()
 

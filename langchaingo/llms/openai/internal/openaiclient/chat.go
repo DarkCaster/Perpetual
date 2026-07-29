@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -564,10 +565,8 @@ func (c *Client) createChat(ctx context.Context, payload *ChatRequest) (*ChatCom
 	return &response, json.NewDecoder(r.Body).Decode(&response)
 }
 
-func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *ChatRequest) (*ChatCompletionResponse,
-	error,
-) { //nolint:cyclop,lll
-	scanner := bufio.NewScanner(r.Body)
+func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *ChatRequest) (*ChatCompletionResponse, error) {
+	reader := bufio.NewReader(r.Body)
 	responseChan := make(chan StreamedChatResponsePayload)
 
 	// Create a context that can be cancelled to stop the goroutine
@@ -576,7 +575,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 
 	go func() {
 		defer close(responseChan)
-		for scanner.Scan() {
+		for {
 			// Check if context is cancelled
 			select {
 			case <-readerCtx.Done():
@@ -584,7 +583,20 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			default:
 			}
 
-			line := scanner.Text()
+			line, err := reader.ReadString('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				select {
+				case <-readerCtx.Done():
+					return
+				case responseChan <- StreamedChatResponsePayload{Error: fmt.Errorf("error reading streaming response: %w", err)}:
+				}
+				return
+			}
+			line = strings.TrimRight(line, "\r\n")
+
 			if line == "" {
 				continue
 			}
@@ -608,7 +620,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 				return
 			}
 			var streamPayload StreamedChatResponsePayload
-			err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
+			err = json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
 			if err != nil {
 				// Skip non-JSON data values that some providers might send
 				// This could happen if the data field contains non-JSON content
@@ -621,14 +633,6 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 				return
 			case responseChan <- streamPayload:
 			}
-		}
-		if err := scanner.Err(); err != nil {
-			select {
-			case <-readerCtx.Done():
-				return
-			case responseChan <- StreamedChatResponsePayload{Error: fmt.Errorf("error reading streaming response: %w", err)}:
-			}
-			return
 		}
 	}()
 	// Combine response
