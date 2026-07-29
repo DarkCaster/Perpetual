@@ -14,10 +14,6 @@ import (
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 )
 
-const (
-	defaultChatModel = "gpt-3.5-turbo"
-)
-
 var ErrContentExclusive = errors.New("only one of Content / MultiContent allowed in message")
 
 type StreamOptions struct {
@@ -100,12 +96,10 @@ func (r ChatRequest) MarshalJSON() ([]byte, error) {
 		Alias: (*Alias)(&r),
 	}
 
-	// Handle temperature for reasoning models
-	if isReasoningModel(r.Model) {
-		// Reasoning models (GPT-5, o1, o3) only accept temperature=1 (default)
-		// Omit temperature field to let API use its default value
-		aux.Temperature = nil
-	} else {
+	//TODO: add proper logic for adding temperature field, only if explicitly specified with option
+	//For now add temperature field, when temperature > 0
+	//This is not very good approach, but this field is handled with external logic of Perpetual, so it will be ok for now
+	if r.Temperature > 0.0 {
 		// For regular models, always send temperature
 		aux.Temperature = &r.Temperature
 	}
@@ -125,24 +119,6 @@ func (r ChatRequest) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&aux)
-}
-
-// isReasoningModel returns true if the model is a reasoning model that has temperature constraints.
-// Reasoning models (GPT-5, o1, o3) only accept temperature=1 and reject other values.
-func isReasoningModel(model string) bool {
-	// o1 series: o1-preview, o1-mini
-	if strings.HasPrefix(model, "o1-") {
-		return true
-	}
-	// o3 series: o3, o3-mini (note: "o3" without suffix is also valid)
-	if model == "o3" || strings.HasPrefix(model, "o3-") {
-		return true
-	}
-	// GPT-5 series (when released)
-	if strings.HasPrefix(model, "gpt-5") {
-		return true
-	}
-	return false
 }
 
 // ToolType is the type of a tool.

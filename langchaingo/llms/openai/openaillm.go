@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
@@ -24,56 +23,6 @@ const (
 	RoleFunction  = "function"
 	RoleTool      = "tool"
 )
-
-// ModelCapability defines what a model supports
-type ModelCapability struct {
-	Pattern          string // Regex pattern to match model names
-	SupportsSystem   bool   // If true, supports system messages
-	SupportsThinking bool   // If true, supports reasoning/thinking
-	SupportsCaching  bool   // If true, supports prompt caching
-	// Add more capabilities as needed
-}
-
-// modelCapabilities defines capabilities for different model patterns
-var modelCapabilities = []ModelCapability{
-	// OpenAI reasoning models (o1, o3 series) - no system message support
-	{
-		Pattern:          `(?i)^o[13](-mini|-preview)?$`, // Matches o1, o1-mini, o1-preview, o3, o3-mini
-		SupportsSystem:   false,                          // O1 models don't support system messages
-		SupportsThinking: true,
-		SupportsCaching:  false,
-	},
-	// GPT-4 models
-	{
-		Pattern:          `(?i)^gpt-4`, // Matches gpt-4, gpt-4-turbo, etc.
-		SupportsSystem:   true,
-		SupportsThinking: false,
-		SupportsCaching:  false, // OpenAI caching coming soon
-	},
-	// GPT-3.5 models
-	{
-		Pattern:          `(?i)^gpt-3\.5`,
-		SupportsSystem:   true,
-		SupportsThinking: false,
-		SupportsCaching:  false,
-	},
-	// Future models can be added here
-}
-
-// getModelCapabilities returns the capabilities for a given model
-func getModelCapabilities(model string) ModelCapability {
-	for _, cap := range modelCapabilities {
-		if matched, _ := regexp.MatchString(cap.Pattern, model); matched {
-			return cap
-		}
-	}
-	// Default capabilities - assume standard model
-	return ModelCapability{
-		SupportsSystem:   true,
-		SupportsThinking: false,
-		SupportsCaching:  false,
-	}
-}
 
 // New returns a new OpenAI LLM.
 func New(opts ...Option) (*LLM, error) {
@@ -105,31 +54,10 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 		effectiveModel = o.model
 	}
 
-	// Get capabilities for this model
-	modelCaps := getModelCapabilities(effectiveModel)
-
-	// For models that don't support system messages, we need to merge them into user messages
-	var systemContent string
-	if !modelCaps.SupportsSystem {
-		for _, mc := range messages {
-			if mc.Role == llms.ChatMessageTypeSystem {
-				// Extract system message content
-				for _, part := range mc.Parts {
-					if textPart, ok := part.(llms.TextContent); ok {
-						if systemContent != "" {
-							systemContent += "\n\n"
-						}
-						systemContent += textPart.Text
-					}
-				}
-			}
-		}
-	}
-
 	chatMsgs := make([]*ChatMessage, 0, len(messages))
 	for _, mc := range messages {
 		// Skip system messages for models that don't support them
-		if mc.Role == llms.ChatMessageTypeSystem && !modelCaps.SupportsSystem {
+		if mc.Role == llms.ChatMessageTypeSystem {
 			continue
 		}
 
@@ -141,17 +69,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 			msg.Role = RoleAssistant
 		case llms.ChatMessageTypeHuman:
 			msg.Role = RoleUser
-			// For models without system support, prepend system content to first user message
-			if systemContent != "" && !modelCaps.SupportsSystem {
-				// Prepend system content to the user message
-				newParts := []llms.ContentPart{}
-				if systemContent != "" {
-					newParts = append(newParts, llms.TextContent{Text: systemContent + "\n\n"})
-				}
-				newParts = append(newParts, mc.Parts...)
-				msg.MultiContent = newParts
-				systemContent = "" // Clear after using
-			}
 		case llms.ChatMessageTypeGeneric:
 			msg.Role = RoleUser
 		case llms.ChatMessageTypeFunction:
