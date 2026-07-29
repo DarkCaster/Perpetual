@@ -8,10 +8,6 @@ const (
 	tokenEnvVarName = "ANTHROPIC_API_KEY" //nolint:gosec
 )
 
-// MaxTokensAnthropicSonnet35 is the header value for specifying the maximum number of tokens
-// when using the Anthropic Sonnet 3.5 model.
-const MaxTokensAnthropicSonnet35 = "max-tokens-3-5-sonnet-2024-07-15" //nolint:gosec // This is not a sensitive value.
-
 type options struct {
 	token      string
 	model      string

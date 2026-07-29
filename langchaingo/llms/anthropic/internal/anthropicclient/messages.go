@@ -197,9 +197,9 @@ func (c *Client) setMessageDefaults(payload *messagePayload) {
 	// If no model is set in the payload, take the one specified in the client.
 	case c.Model != "":
 		payload.Model = c.Model
-	// Fallback: use the default model
+	// Set invalid model name, request will fail
 	default:
-		payload.Model = defaultModel
+		payload.Model = "unknown"
 	}
 	if payload.StreamingFunc != nil || payload.StreamingReasoningFunc != nil {
 		payload.Stream = true
