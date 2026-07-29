@@ -30,9 +30,6 @@ type Client struct {
 	httpClient Doer
 
 	anthropicBetaHeader string
-
-	// UseLegacyTextCompletionsAPI is a flag to use the legacy text completions API.
-	UseLegacyTextCompletionsAPI bool
 }
 
 // Option is an option for the Anthropic client.
@@ -48,14 +45,6 @@ func WithHTTPClient(client Doer) Option {
 	return func(c *Client) error {
 		c.httpClient = client
 
-		return nil
-	}
-}
-
-// WithLegacyTextCompletionsAPI enables the use of the legacy text completions API.
-func WithLegacyTextCompletionsAPI(val bool) Option {
-	return func(opts *Client) error {
-		opts.UseLegacyTextCompletionsAPI = val
 		return nil
 	}
 }
@@ -84,46 +73,6 @@ func New(token string, model string, baseURL string, opts ...Option) (*Client, e
 	}
 
 	return c, nil
-}
-
-// CompletionRequest is a request to create a completion.
-type CompletionRequest struct {
-	Model       string   `json:"model"`
-	Prompt      string   `json:"prompt"`
-	Temperature float64  `json:"temperature"`
-	MaxTokens   int      `json:"max_tokens_to_sample,omitempty"`
-	StopWords   []string `json:"stop_sequences,omitempty"`
-	TopP        float64  `json:"top_p,omitempty"`
-	Stream      bool     `json:"stream,omitempty"`
-
-	// StreamingFunc is a function to be called for each chunk of a streaming response.
-	// Return an error to stop streaming early.
-	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
-}
-
-// Completion is a completion.
-type Completion struct {
-	Text string `json:"text"`
-}
-
-// CreateCompletion creates a completion.
-func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*Completion, error) {
-	resp, err := c.createCompletion(ctx, &completionPayload{
-		Model:         r.Model,
-		Prompt:        r.Prompt,
-		Temperature:   r.Temperature,
-		MaxTokens:     r.MaxTokens,
-		StopWords:     r.StopWords,
-		TopP:          r.TopP,
-		Stream:        r.Stream,
-		StreamingFunc: r.StreamingFunc,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Completion{
-		Text: resp.Completion,
-	}, nil
 }
 
 type MessageRequest struct {

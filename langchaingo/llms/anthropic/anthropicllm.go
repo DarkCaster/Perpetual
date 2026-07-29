@@ -68,7 +68,6 @@ func newClient(opts ...Option) (*anthropicclient.Client, error) {
 
 	return anthropicclient.New(options.token, options.model, options.baseURL,
 		anthropicclient.WithHTTPClient(options.httpClient),
-		anthropicclient.WithLegacyTextCompletionsAPI(options.useLegacyTextCompletionsAPI),
 		anthropicclient.WithAnthropicBetaHeader(options.anthropicBetaHeader),
 	)
 }
@@ -85,45 +84,7 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 		opt(opts)
 	}
 
-	if o.client.UseLegacyTextCompletionsAPI {
-		return generateCompletionsContent(ctx, o, messages, opts)
-	}
 	return generateMessagesContent(ctx, o, messages, opts)
-}
-
-func generateCompletionsContent(ctx context.Context, o *LLM, messages []llms.MessageContent, opts *llms.CallOptions) (*llms.ContentResponse, error) {
-	if len(messages) == 0 || len(messages[0].Parts) == 0 {
-		return nil, ErrEmptyResponse
-	}
-
-	msg0 := messages[0]
-	part := msg0.Parts[0]
-	partText, ok := part.(llms.TextContent)
-	if !ok {
-		return nil, fmt.Errorf("anthropic: unexpected message type: %T", part)
-	}
-	prompt := fmt.Sprintf("\n\nHuman: %s\n\nAssistant:", partText.Text)
-	result, err := o.client.CreateCompletion(ctx, &anthropicclient.CompletionRequest{
-		Model:         opts.Model,
-		Prompt:        prompt,
-		MaxTokens:     opts.MaxTokens,
-		StopWords:     opts.StopWords,
-		Temperature:   opts.Temperature,
-		TopP:          opts.TopP,
-		StreamingFunc: opts.StreamingFunc,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("anthropic: failed to create completion: %w", err)
-	}
-
-	resp := &llms.ContentResponse{
-		Choices: []*llms.ContentChoice{
-			{
-				Content: result.Text,
-			},
-		},
-	}
-	return resp, nil
 }
 
 func generateMessagesContent(ctx context.Context, o *LLM, messages []llms.MessageContent, opts *llms.CallOptions) (*llms.ContentResponse, error) {

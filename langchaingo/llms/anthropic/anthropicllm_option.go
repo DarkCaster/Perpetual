@@ -18,8 +18,6 @@ type options struct {
 	baseURL    string
 	httpClient anthropicclient.Doer
 
-	useLegacyTextCompletionsAPI bool
-
 	// If supplied, the 'anthropic-beta' header will be added to the request with the given value.
 	anthropicBetaHeader string
 }
@@ -54,13 +52,6 @@ func WithBaseURL(baseURL string) Option {
 func WithHTTPClient(client anthropicclient.Doer) Option {
 	return func(opts *options) {
 		opts.httpClient = client
-	}
-}
-
-// WithLegacyTextCompletionsAPI enables the use of the legacy text completions API.
-func WithLegacyTextCompletionsAPI() Option {
-	return func(opts *options) {
-		opts.useLegacyTextCompletionsAPI = true
 	}
 }
 

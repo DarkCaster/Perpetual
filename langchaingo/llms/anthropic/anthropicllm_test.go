@@ -210,14 +210,6 @@ func TestOptions(t *testing.T) {
 			t.Errorf("WithAnthropicBetaHeader() got %s, want test-beta", opts.anthropicBetaHeader)
 		}
 	})
-
-	t.Run("WithLegacyTextCompletionsAPI", func(t *testing.T) {
-		opts := &options{}
-		WithLegacyTextCompletionsAPI()(opts)
-		if !opts.useLegacyTextCompletionsAPI {
-			t.Error("WithLegacyTextCompletionsAPI() did not set flag")
-		}
-	})
 }
 
 // TestHandleAIMessageMultipleParts verifies that an assistant message
