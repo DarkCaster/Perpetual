@@ -165,6 +165,7 @@ Perpetual validates these JSON files against built-in templates when loading the
 - `.perpetual.lock` (lockfile used to prevent running multiple instances at the same time for a single project)
 - `.message_log.txt*`
 - `.stash`
+- the `implement` operation's intermediate step-by-step state file (created only by `implement -p start` and consumed by `implement -p finish`)
 
 The operation JSON files and `project.json` are intended to be project configuration and are normally suitable for version control. Review `description.md` before committing it, because it may contain project-specific or sensitive context.
 
@@ -313,7 +314,10 @@ Stage 4 code generation prompts:
 The `implement` operation selects its operation mode with the `-m` flag:
 
 - `-m task`: Provide task instructions from a text file or stdin using the `-i` flag. This mode always uses planning and can affect any project files. It uses the `stage1_task_analysis_prompt` and the `stage2_task_reasonings_*` prompts.
-- `-m comment`: Generate code marked with `###IMPLEMENT###` comments. Use the `-p` flag to enable extra planning that allows making changes to other files; without `-p`, only the files containing implement comments are modified (using the `stage2_noplanning_*` prompts).
+- `-m comment`: Generate code marked with `###IMPLEMENT###` comments in the source code. This mode always uses planning and can affect any project files, using the `stage1_analysis_prompt` and `stage2_reasonings_*` prompts.
+- `-m comment-fast`: Generate code marked with `###IMPLEMENT###` comments, but only modifies files that contain those comments and skips the planning stages (stage 2 and 3), using the `stage2_noplanning_*` prompts.
+
+Regardless of the selected mode (except `comment-fast`, where it is unavailable), the `-p` flag (`start`/`finish`) controls managed step-by-step execution: `-p start` performs the analysis/planning stages and saves an intermediate state for later completion, while `-p finish` resumes from that saved state and performs the actual code-generation stage.
 
 #### `op_doc.json`
 
