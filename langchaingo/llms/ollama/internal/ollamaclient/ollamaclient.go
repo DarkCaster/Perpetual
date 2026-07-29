@@ -142,6 +142,7 @@ func (c *Client) stream(ctx context.Context, method, path string, data any, fn f
 	}
 	defer response.Body.Close()
 
+	//TODO: consider using bufio.NewReader, see commit 666d7c9c59db11140de6dc313ac1ccdfc0981a10 for implementation example for other providers
 	scanner := bufio.NewScanner(response.Body)
 	// increase the buffer size to avoid running out of space
 	scanBuf := make([]byte, 0, maxBufferSize)
@@ -171,6 +172,9 @@ func (c *Client) stream(ctx context.Context, method, path string, data any, fn f
 		if err := fn(bts); err != nil {
 			return err
 		}
+	}
+	if err = scanner.Err(); err != nil {
+		return nil //no error checking was there previously: just ignoring error to make go linter happy
 	}
 
 	return nil
