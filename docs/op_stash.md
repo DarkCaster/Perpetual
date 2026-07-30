@@ -76,7 +76,7 @@ When executed, the `stash` operation performs the specified action on the stashe
 
 ## Stash Creation
 
-The `stash` command-line operation itself does not create new stashes manually. Stashes are automatically created by other operations, such as the `implement` operation. When generated code changes are ready, a new stash is created to store the modified versions of affected files and their original states. For newly created files, the original state is recorded as absent. For files selected for deletion, the modified state is recorded as absent. The `implement` operation then applies the newly created stash automatically.
+The `stash` command-line operation itself does not create new stashes manually. Stashes are automatically created by other operations, such as the `implement` operation. When generated code changes are ready, a new stash is created to store the modified versions of affected files and their original states. For newly created files, the original state is recorded as absent. For files selected for deletion, the modified state is recorded as absent. Alongside the original and modified content, each file entry also records the file's detected text encoding parameters (such as UTF-8, UTF-8 with BOM, UTF-16, or UTF-32, and whether a fallback encoding was used), so that the correct encoding can be restored when the stash is applied or rolled back. The `implement` operation then applies the newly created stash automatically.
 
 Each stash is named using the current timestamp in the following format:
 
@@ -93,3 +93,5 @@ YYYY-MM-DD_HH-MM-SS.json
 - Rolling back a stash restores original file contents for files that existed when the stash was created. For files that were newly created by generated changes, rolling back deletes those files because their original state is recorded as absent.
 
 - Using the `-o` and `-t` flags allows for granular control over individual file changes, providing flexibility in managing specific modifications without affecting the entire stash.
+
+- The text encoding detected for each file when it was originally read (and whether a fallback encoding had to be used) is preserved within the stash, so applying or rolling back a stash writes files using their original encoding rather than defaulting to plain UTF-8.
