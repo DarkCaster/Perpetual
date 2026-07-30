@@ -39,7 +39,7 @@ Available flags:
   Limit the number of files returned that are relevant to the question (default: 5). Used with `query` mode. A value of `0` disables similarity search output.
 
 - `-u`  
-  In question/search mode, do not exclude files matching the project test-file blacklist. This flag has no additional effect in the embedding generation modes.
+  In `query` mode, exclude files matching the project test-file blacklist from embedding updates and search results (test files are included by default when this flag is omitted). This flag has no effect in the embedding generation modes (`normal`/`dryrun`/`full`).
 
 - `-x <file>`  
   Path to a JSON file containing an array of regex filters used to exclude files. In embedding generation modes, matching files are skipped for embedding. In question/search mode, matching files are skipped both from embedding updates and from search results.
@@ -268,7 +268,7 @@ When using `-m query`, Perpetual still performs the embedding generation workflo
    Load the question from a file with `-i`, or from stdin when `-i` is omitted or set to `-`.
 
 2. **Apply Search Filters**  
-   Apply user filters from `-x`. If `-u` is not specified, also exclude files matching the project test-file blacklist.
+   Apply user filters from `-x`. If `-u` is specified, also exclude files matching the project test-file blacklist from embedding updates and search results (test files are included by default).
 
 3. **Update Needed Embeddings**  
    Generate or refresh embeddings for changed files that are still eligible after filtering.
@@ -320,6 +320,7 @@ Internal searches may use more than just a direct query. Depending on the operat
   - `nomic-embed-text-v1.5`: use `search_document:` and `search_query:` prefixes.
   - `mxbai-embed-large-v1`: no document prefix is usually needed, but search queries can use `Represent this sentence for searching relevant passages:\n`.
   - `qwen3-embedding-8b`: search queries can use `Instruct: retrieve code fragments relevant to the query\nQuery:\n`.
+  - `embeddinggemma`: document text can use `title: code | text:\n` and search queries can use `task: code retrieval | query:\n`.
 
 - **Sensitive Files:**  
   The `embed` operation sends file contents to the configured embedding provider. It does not use `no-upload` source comments as a filter. Use project whitelist/blacklist rules or the `-x` user filter file to exclude files that must not be embedded.
