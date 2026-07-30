@@ -24,7 +24,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
 - `-a`: Add project annotations in stage 2 in addition to the source files requested by the LLM. This can improve answer quality by providing the LLM with additional project-wide context, but it is disabled by default to save tokens and reduce context window requirements.
 - `-n`: Enable "No Annotate" mode, which skips the automatic refresh of annotations and embeddings before processing. Existing annotations and embeddings are used if available. This can reduce API calls but may lower the quality of file selection and explanations.
 - `-f`: Override the `no-upload` file filter to include files marked as `no-upload` for review. Use this flag with caution, as it may upload sensitive files to the LLM during the explanation process.
-- `-u`: Include unit-test source files in the processing. By default, unit-test files are excluded using the project test-file blacklist.
+- `-u`: Exclude unit-test source files from processing using the project test-file blacklist. By default, unit-test files are included.
 - `-x <file>`: Provide a path to a user-supplied regex filter file. This file allows for the exclusion of specific files or patterns from processing based on custom criteria. See more info about using the filter [here](user_filter.md).
 - `-s <n>`: Limit the number of additional files related to the question returned by local similarity search. Valid values are integer ≥ 0 (`0` disables local search; only use LLM-requested files). Default: `5`.
 - `-sp <n>`: Set number of passes for related files selection at stage 1 (default: 1). Higher pass-count values may select more files, compensating for possible LLM errors when finding relevant files, but will cost more tokens and context use.
@@ -56,7 +56,7 @@ The `explain` operation offers a range of command-line flags to tailor its funct
    Perpetual explain -m normal -i questions/query.txt -o explanations/data_flow.md -a -v
    ```
 
-4. **Include unit-test files in the explanation process:**
+4. **Exclude unit-test files from the explanation process:**
 
    ```sh
    Perpetual explain -m normal -i questions/query.txt -o explanations/test_data_flow.md -u
@@ -216,7 +216,7 @@ The `explain` operation is divided into preparation and two main processing stag
 
 1. **Preparation:**
    - **Project Setup:** Finds the project root and `.perpetual` directory, loads project and operation configuration, and loads the optional project description.
-   - **File List Preparation:** Builds the project file list using project whitelist/blacklist rules, user-supplied filters, and the test-file blacklist unless `-u` is specified.
+   - **File List Preparation:** Builds the project file list using project whitelist/blacklist rules, user-supplied filters, and, if `-u` is specified, the test-file blacklist to exclude unit-test files.
    - **Question Loading:** Reads the question from `-i` or stdin. If `-e` is supplied, reads separate file-selection instructions for stage 1.
    - **Annotation and Embedding Refresh:** Unless `-n` is specified, runs `annotate` and `embed` internally to refresh annotations and embeddings used for file selection and local similarity search.
    - **Context Saving Preselection:** If context saving is enabled and embeddings are available, preselects a subset of project files for stage 1 to reduce context usage on large projects.
