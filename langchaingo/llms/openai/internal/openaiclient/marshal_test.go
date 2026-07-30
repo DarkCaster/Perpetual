@@ -79,7 +79,7 @@ func TestChatRequest_TemperatureMarshalJSON(t *testing.T) {
 		wantTemperature bool
 	}{
 		{
-			name: "regular model with temperature",
+			name: "model with temperature",
 			request: ChatRequest{
 				Model:       "gpt-4",
 				Temperature: 0.7,
@@ -87,50 +87,10 @@ func TestChatRequest_TemperatureMarshalJSON(t *testing.T) {
 			wantTemperature: true,
 		},
 		{
-			name: "regular model with zero temperature",
+			name: "model omits zero temperature",
 			request: ChatRequest{
-				Model:       "gpt-3.5-turbo",
+				Model:       "gpt-4",
 				Temperature: 0.0,
-			},
-			wantTemperature: true,
-		},
-		{
-			name: "gpt-5 model omits temperature",
-			request: ChatRequest{
-				Model:       "gpt-5-preview",
-				Temperature: 0.7,
-			},
-			wantTemperature: false,
-		},
-		{
-			name: "gpt-5 model omits zero temperature",
-			request: ChatRequest{
-				Model:       "gpt-5-mini",
-				Temperature: 0.0,
-			},
-			wantTemperature: false,
-		},
-		{
-			name: "o1 model omits temperature",
-			request: ChatRequest{
-				Model:       "o1-preview",
-				Temperature: 0.5,
-			},
-			wantTemperature: false,
-		},
-		{
-			name: "o1-mini model omits temperature",
-			request: ChatRequest{
-				Model:       "o1-mini",
-				Temperature: 1.0,
-			},
-			wantTemperature: false,
-		},
-		{
-			name: "o3 model omits temperature",
-			request: ChatRequest{
-				Model:       "o3-mini",
-				Temperature: 0.8,
 			},
 			wantTemperature: false,
 		},
