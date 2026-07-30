@@ -280,12 +280,13 @@ Related project-level configuration is stored in `.perpetual/project.json`. Impo
 5. **Annotation Generation:**
    - The LLM connector is created for the `annotate` operation.
    - If files need annotation and this is a top-level `annotate` call, the raw LLM message log is rotated.
-   - Files selected for annotation are sorted by size, smallest first.
+   - If the LLM connector supports prompt caching, files selected for annotation are split into groups according to the annotation prompt pattern they match in `annotate_file_prompts`, so that files sharing the same prompt are processed together to make the best use of caching. Groups are then processed in order of file count, from the largest group to the smallest, and files within each group are sorted by size, smallest first.
+   - If caching is not supported by the connector, all selected files are processed as a single group, sorted by size, smallest first.
    - For each selected file, the operation:
      - selects an appropriate prompt from `annotate_file_prompts` based on file pattern matching and context-saving mode;
      - reads the source file contents;
      - builds a message chain that may include the project description if available;
-     - sends the prompt and file content to the LLM with file name tags and Markdown code block formatting;
+     - sends the prompt and file content to the LLM with file name tags and Markdown code block formatting, marking a cache breakpoint right after the annotation prompt and its simulated response so that the common prefix can be reused for caching across files in the same group, provided the group is large enough to satisfy the connector's minimum caching threshold;
      - handles retries on failure according to the configured retry limit;
      - treats token-limit responses as failures for that file;
      - filters and trims the LLM response;
