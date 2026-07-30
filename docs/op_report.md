@@ -16,15 +16,15 @@ The `report` operation supports several command-line flags to customize its beha
 
 - `-h`: Display the help message, showing all available flags and their descriptions.
 
-- `-m <mode>`: Select the report mode. Valid values are:
-  - `code` (default): Generates a detailed report containing the full source code of the selected project files.
+- `-m <mode>`: Select the report mode. This flag is required. Valid values are:
+  - `code`: Generates a detailed report containing the full source code of the selected project files.
   - `brief`: Generates a concise report from generated source code annotations, providing a summary of each selected file's contents and purpose.
 
 - `-o <file>`: Specify the file path to write the report to. If set to `-`, not provided, or empty, the report will be written to stdout.
 
 - `-df <file|disabled>`: Optional path to a project description file to forward into the `annotate` operation when generating a brief report. Use `disabled` to explicitly disable loading the project description during annotation.
 
-- `-u`: Include unit test source files in the report. By default, unit test sources are excluded using the project's test-file blacklist.
+- `-u`: Exclude unit test source files from the report using the project's test-file blacklist. By default, unit test source files are included.
 
 - `-x <file>`: Specify a path to a user-supplied regex filter file for excluding certain files from the report. See more info about using the filter [here](user_filter.md).
 
@@ -43,7 +43,7 @@ The `report` operation supports several command-line flags to customize its beha
 1. **Generate a detailed code report and display it in the console:**
 
    ```sh
-   Perpetual report
+   Perpetual report -m code
    ```
 
 2. **Generate a brief report and save it to a file:**
@@ -55,19 +55,19 @@ The `report` operation supports several command-line flags to customize its beha
 3. **Generate a detailed code report with debug logging:**
 
    ```sh
-   Perpetual report -v
+   Perpetual report -m code -v
    ```
 
-4. **Generate a report including unit test files:**
+4. **Generate a report excluding unit test files:**
 
    ```sh
-   Perpetual report -u
+   Perpetual report -m code -u
    ```
 
 5. **Generate a report using a custom filter file:**
 
    ```sh
-   Perpetual report -x custom_filter.json
+   Perpetual report -m code -x custom_filter.json
    ```
 
 6. **Generate a brief report while forwarding a custom project description to annotation generation:**
@@ -76,7 +76,7 @@ The `report` operation supports several command-line flags to customize its beha
    Perpetual report -m brief -df ./docs/project_description.md
    ```
 
-When executed, the `report` operation finds the project root, loads environment files, validates the project and report configurations, collects project files, and generates the requested report type. The report includes files that match the project's whitelist and are not excluded by the project blacklist, the unit-test blacklist unless `-u` is used, or the user-supplied blacklist.
+When executed, the `report` operation finds the project root, loads environment files, validates the project and report configurations, collects project files, and generates the requested report type. The report includes files that match the project's whitelist and are not excluded by the project blacklist, the unit-test blacklist when `-u` is used, or the user-supplied blacklist.
 
 For the `code` report mode, the operation reads the selected source files and formats them into a single report using the report configuration's code prompt and filename tags. The output renderer also uses the project's Markdown code block mappings when formatting file contents.
 
