@@ -36,7 +36,7 @@ Available flags:
 - `-n`  
   No-annotate mode: skip re-annotating changed files and skip updating embeddings; use current annotations and embeddings if available.
 - `-u`  
-  Include unit-test source files in processing (tests excluded by default).
+  Exclude unit-test source files from processing (unit-test files are included by default).
 - `-x <file>`  
   Path to a user-supplied regex filter file to exclude certain files. See more information about using the filter [here](user_filter.md).
 - `-v`  
@@ -234,7 +234,7 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 
 2. **File Discovery:**
    - The operation scans the project directory to locate source code files, applying whitelist and blacklist regular expressions.
-   - Unit-test files are excluded by default unless `-u` is used.
+   - Unit-test files are included by default; use `-u` to exclude them.
    - A user-supplied regex blacklist can be appended with `-x`.
    - It automatically reannotates changed files unless the `-n` flag is used to skip this step.
    - Embeddings are generated or updated for similarity search unless the `-n` flag is used or embeddings are not configured.
@@ -258,7 +258,7 @@ The `doc` operation follows a structured workflow to ensure efficient and accura
 
 5. **Version Control:** Keep your documentation files under version control along with your source code to precisely track changes made by the LLM.
 
-6. **Use Filtering Options:** Utilize the `-u` flag to include unit test files in the documentation process when necessary. For more granular control, create a custom regex filter file and use it with the `-x` flag to exclude specific files or patterns from processing.
+6. **Use Filtering Options:** Utilize the `-u` flag to exclude unit test files from the documentation process when necessary. For more granular control, create a custom regex filter file and use it with the `-x` flag to exclude specific files or patterns from processing.
 
 7. **Project Description:** Fill in the project description at `.perpetual/description.md` from the provided template, or use the `-df` flag to read it from a different file. This will populate LLM context with extra description about your project. It helps the LLM better understand the project's purpose and architecture, leading to more relevant and accurate documentation.
 
