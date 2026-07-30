@@ -40,7 +40,7 @@ When writing files, `Perpetual` attempts to use the same encoding that was used 
 - If the file was read using the fallback encoding, it will be written back using the fallback encoding
 - New files, or files that were not previously loaded by `Perpetual` during the current run, are written as plain UTF-8
 
-Encoding preservation is therefore best-effort and depends on `Perpetual` having read the file during the current process. For example, applying or rolling back an old stash in a separate invocation may write files as UTF-8 if the original encoding parameters are no longer available.
+For direct read-then-write operations, encoding preservation is therefore best-effort and depends on `Perpetual` having read the file during the current process invocation. Changes applied through the stash mechanism (as used by the `implement` operation) are an exception: the detected encoding parameters for each file are recorded inside the stash itself, so applying or rolling back a stash later, even in a separate invocation, preserves the original encoding as long as it was captured correctly when the stash was created.
 
 This behavior minimizes unnecessary encoding changes in typical edit workflows.
 
@@ -209,7 +209,7 @@ This allows you to save costs by using a local LLM in large projects while reser
 Consider these additional approaches for very large projects:
 
 - Work with logical subsets of your project rather than the entire codebase
-- Do not include unit-test files in processing unless needed; use the `-u` flag to include them where supported
+- Unit-test files are included in processing by default; use the `-u` flag to exclude them where supported, if they are not needed for the task
 - Apply custom filters with the `-x` flag to focus on specific parts of your codebase
 - Use project whitelist and blacklist configuration to exclude generated files, vendored dependencies, build artifacts, and other low-value files
 
