@@ -27,7 +27,7 @@ All modes follow a multi-stage process to ensure accurate and contextually appro
    Using the gathered context and the task instructions or the instructions provided in the `###IMPLEMENT###` comments, the LLM generates or modifies code for each selected file. In task and comment modes (both with planning), it may also modify related files, create new files, or delete existing files if necessary. In comment-fast mode, only the originally targeted files are modified.
 
 5. **Integration**  
-   Generated changes and requested deletions are saved as a "stash" and then automatically applied. You can later use the `stash` operation to roll the changes back or re-apply them, including restoring deleted files or re-applying file deletions.
+   Generated changes and requested deletions are saved as a "stash" and then automatically applied. You can later use the `stash` operation to roll the changes back or re-apply them, including restoring deleted files or re-applying file deletions. Alternatively, you can use managed step-by-step execution (the `-p` flag) to review the generated work plan and scheduled file changes before any code is actually generated and applied (see "Managed Step-by-Step Execution" below).
 
 Throughout this process, the `implement` operation relies heavily on the project index and file annotations to make informed decisions about code implementation, ensuring that the generated code is consistent with your project's structure, coding style, and existing functionality.
 
@@ -60,7 +60,8 @@ To effectively use the `implement` operation, follow this typical workflow:
    - You must select a mode with the `-m` flag.  
    - **Task Mode** (`-m task`, recommended): Instructions are provided through standard input or by specifying a file with `-i`. Task mode always uses planning and can affect any project files.  
    - **Comment Mode** (`-m comment`): Processes all files with `###IMPLEMENT###` comments. Uses planning by default, so it can modify other files, create new files, and delete files as needed.  
-   - **Comment-fast Mode** (`-m comment-fast`): Processes `###IMPLEMENT###` comments but skips planning; only the files containing the comments are modified. No other files are affected, and no file creation or deletion is performed.
+   - **Comment-fast Mode** (`-m comment-fast`): Processes `###IMPLEMENT###` comments but skips planning; only the files containing the comments are modified. No other files are affected, and no file creation or deletion is performed.  
+   - For a two-phase workflow that lets you review the generated plan before any code is generated or applied, use the `-p start` and `-p finish` flags (see "Managed Step-by-Step Execution" below).
 
 4. **Reviewing and Iterating**  
    - Review the generated code and any created or deleted files for accuracy and consistency.  
@@ -105,6 +106,11 @@ Perpetual implement -m <mode> [flags]
   - `task`: Implement code based on a task read from a text file or stdin (see the `-i` flag). Uses planning and can affect any project files. This is the recommended mode.  
   - `comment`: Generate code marked with `###IMPLEMENT###` comments in the source code. Uses planning and can affect any project files.  
   - `comment-fast`: Generate code marked with `###IMPLEMENT###` comments, works only inside those files and skips planning (stage 2 reasoning and stage 3 file selection). Best for simple, localized edits.  
+- `-p <mode>`: Managed step-by-step execution (not available in `comment-fast` mode). Valid values: `start|finish`.  
+  - `start`: Perform preparation stages 1-3, display task planning and scheduled file changes, and save intermediate state for later completion.  
+  - `finish`: Complete a previously started step-by-step implementation by performing stage 4 (actual code changes).  
+  If not provided, any pending state is silently removed and a normal full-scale implementation is performed.  
+- `-o <file>`: File path for saving the report with task planning and scheduled changes (used with `-p start`). Write to stdout if set to `-`, not provided, or empty.  
 - `-c <mode>`: Context saving mode, reduce LLM context use for large projects (valid values: `auto|off|medium|high`).  
 - `-df <file>`: Optional path to project description file for adding into LLM context (valid values: file path or `disabled`).  
 - `-f`: Disable the `no-upload` file filter and upload such files for review and processing if requested.  
@@ -113,10 +119,19 @@ Perpetual implement -m <mode> [flags]
 - `-ni`: No incremental mode. Disable using incremental search-and-replace mode when generating file changes.  
 - `-s <n>`: Limit number of files related to the task returned by local search (0 = disable local search, only use LLM-requested files; default: 5). This flag uses embeddings and performs local similarity search for files related to the implementation context.  
 - `-sp <n>`: Set number of passes for related files selection at Stage 1 (default: 1). Higher pass-count values can select more files and compensate for possible LLM errors when finding relevant files, but they cost more API calls, tokens, and context.  
-- `-u`: Do not exclude unit-test source files from processing.  
+- `-u`: Exclude unit-test source files from processing (unit-test files are included by default).  
 - `-x <file>`: Path to a user-supplied regex filter file for filtering out certain files from processing. See more info about using the filter [here](user_filter.md).  
 - `-v`: Enable debug logging for more detailed output.  
 - `-vv`: Enable debug and trace logging for maximum verbosity.
+
+## Managed Step-by-Step Execution
+
+The `-p` flag lets you split preparation (stages 1-3) from actual code generation (stage 4), which is useful for reviewing the generated work plan and the scheduled file changes before any code is generated or applied to your project. This mode is available for `task` and `comment` modes; it is not applicable to `comment-fast` mode, since that mode always skips planning and works only on the files containing `###IMPLEMENT###` comments.
+
+- **`-p start`**: Runs stages 1 through 3, saves the resulting intermediate state (message history and the lists of files to modify, create, or delete) to `<project_root>/.perpetual/.implement_state.json`, and prints a Markdown report containing the generated work plan reasoning and the scheduled file changes ("Files to Modify or Create" and "Files to Delete"). Use the `-o` flag to write this report to a file instead of stdout. No code is generated and no files are changed at this point.  
+- **`-p finish`**: Loads the previously saved state and resumes the operation starting from stage 4, generating the actual code for the previously planned file changes and applying the result via the `stash` mechanism.
+
+If the `-p` flag is omitted, any leftover state file from a previous `-p start` run is silently discarded, and Perpetual performs a full, uninterrupted run through all four stages in a single invocation.
 
 ## Implementation Details
 
@@ -142,6 +157,8 @@ The `implement` operation is divided into four main stages.
 3. **Safety Handling**: If the LLM requests modification of an existing file that was not previously provided as context, Perpetual can add its contents to the message history to reduce the risk of overwriting it incorrectly. For deletion requests, Perpetual validates that the file exists before adding it to the deletion list.  
 4. **Filtering and Deletion Rules**: Additional files selected for modification are filtered through `###NOUPLOAD###`, project whitelist/blacklist rules, and user filters where applicable. Files selected for deletion must already exist and must pass project whitelist/blacklist and user-filter checks. If a file is selected for both modification and deletion, deletion takes precedence.
 
+If step-by-step execution was requested with `-p start`, processing stops here: the work plan and scheduled changes are saved to the state file and printed as a report, and stage 4 is deferred until `-p finish` is run.
+
 ### Stage 4: Code Generation
 
 1. **Use Gathered Context and Work Plan**: Use the relevant source code, selected file list, optional deletion list, and optional work plan as guidance.  
@@ -151,7 +168,7 @@ The `implement` operation is divided into four main stages.
    - Fall back to full-file generation when incremental mode is disabled, not applicable, or fails.  
    - Handle partial full-file responses and continue generation if token limits are reached, up to the configured segment limit.  
    - Parse and store the generated code for each file.  
-3. **Integration via Stash**: Save generated changes and requested deletions into a stash and automatically apply that stash to the working tree.
+3. **Integration via Stash**: Save generated changes and requested deletions into a stash and automatically apply that stash to the working tree. Files selected for deletion in Stage 3 are not generated in Stage 4; they are recorded directly in the stash as deleted file states.
 
 ## Working with Large Projects
 
@@ -315,7 +332,7 @@ The following configuration keys control which files are included or excluded fr
 
 - **`project_files_blacklist`**: An array of regular expressions that define which files should be excluded from processing. Files matching these patterns will be filtered out even if they match the whitelist patterns. Use this to exclude configuration files, build artifacts, or other files that shouldn't be processed.
 
-- **`project_test_files_blacklist`**: An array of regular expressions specifically for identifying unit test files. These files will be excluded from processing by default unless the `-u` flag is used. This helps keep test files separate from main source code during analysis.
+- **`project_test_files_blacklist`**: An array of regular expressions specifically for identifying unit test files. Unit test files are included for processing by default; specifying the `-u` flag adds these patterns to the effective blacklist, excluding matching test files from processing. This helps keep test files separate from main source code during analysis when they are not relevant to a given task.
 
 - **`files_to_md_code_mappings`**: A 2D array that maps filename regular expressions to markdown code block language identifiers. This helps the LLM properly format code blocks when presenting source code. For example, `["(?i)\\.go$", "go"]` maps Go files to the `go` language identifier in markdown.
 
@@ -369,7 +386,8 @@ Configuration for incremental search-and-replace mode in Stage 4:
 9. **Use Planning When Appropriate**: Task mode and comment mode both use planning by default, enabling file creation and deletion. Use comment-fast mode to skip planning when only simple in-file edits are needed.  
 10. **Use `###NOUPLOAD###` with Awareness**: Prevent sensitive or irrelevant files from being used as related context, but configure `project.json` or a user filter to fully exclude files if needed.  
 11. **Iterative Refinement**: Refine task instructions or comments and re-run the operation as needed.  
-12. **Fine-tune LLM Settings**: Experiment with environment settings for your LLM provider, and consult the `*.env.example` files at `<project_root>/.perpetual/*.env.example`.
+12. **Fine-tune LLM Settings**: Experiment with environment settings for your LLM provider, and consult the `*.env.example` files at `<project_root>/.perpetual/*.env.example`.  
+13. **Review Before Applying**: For critical or high-risk implementations, use managed step-by-step execution (`-p start` followed by `-p finish`) to review the generated work plan and scheduled file changes before any code is generated and applied.
 
 ## Error Handling and Retries
 
@@ -386,6 +404,6 @@ The `implement` operation can consume significant time when using a locally runn
 1. **Use Appropriate Models**: Choose LLM models/providers that balance capability and speed. For example, use a smaller model for Stages 1 and 3 and more powerful models for Stages 2 and 4. You may also try using small local models with Ollama for the `annotate` operation to save on costs associated with automatically re-annotating changed files.  
 2. **Consider Comment-fast Mode**: If you only need to modify files that already contain `###IMPLEMENT###` comments and do not require creating or deleting files, use comment-fast mode (`-m comment-fast`) instead of comment mode. This skips planning and saves API calls, tokens, and costs.  
 3. **Incremental Implementation**: For large projects, implement changes in smaller, manageable chunks rather than attempting to modify the entire codebase at once.  
-4. **Use the `-u` Flag When Tests Matter**: If your project contains unit-test source files that are relevant to the implementation task, use the `-u` flag to include them in processing. This provides additional context for the LLM and allows it to see and modify unit tests. However, including tests increases the amount of code the LLM needs to analyze, which may increase costs.  
+4. **Use the `-u` Flag to Exclude Irrelevant Tests**: Unit-test source files are included in processing by default, which gives the LLM additional context and lets it see and modify unit tests. If your unit tests are not relevant to the current implementation task, use the `-u` flag to exclude them from processing; this reduces the amount of code the LLM needs to analyze and may lower costs.  
 5. **Custom File Filtering**: For more fine-grained control over which files are processed, use the `-x` flag with a custom regex filter file. This allows you to exclude specific files or file types that are not relevant to your current implementation task, reducing your costs.  
 6. **Incremental Mode**: The `-ni` flag disables incremental search-and-replace mode, which can be useful for troubleshooting but may increase token usage for large files. Generally, incremental mode is more efficient and should be left enabled unless you encounter issues.
