@@ -45,7 +45,7 @@ func Stage4(projectRootDir string,
 	llm.GetSimpleRawMessageLogger(perpetualDir)(fmt.Sprintf("=== Implement (stage 4): %s\n\n\n", debugString))
 
 	if noIncrMode {
-		logger.Warnln("Incremental file-modification mode is manually disabled")
+		logger.Infoln("Incremental file-modification mode is manually disabled")
 	}
 
 	// Main processing loop
@@ -130,17 +130,17 @@ func Stage4(projectRootDir string,
 			_, fileSize, err := llm.GetSourceFileFromCache(pendingFile)
 			if err != nil {
 				incrModeTries = 0
-				logger.Infoln("Not using incremental mode, new file:", pendingFile)
+				logger.Debugln("Not using incremental mode, new file:", pendingFile)
 			} else {
 				matcher := prCfg.TextMatcherInteger(config.K_ProjectFilesIncrModeMinLen)
 				if ok, v, _ := matcher.TryMatch(pendingFile); ok {
 					if fileSize < v[0] {
 						incrModeTries = 0
-						logger.Infoln("Not using incremental mode, file too small:", pendingFile)
+						logger.Debugln("Not using incremental mode, file too small:", pendingFile)
 					}
 				} else {
 					incrModeTries = 0
-					logger.Infoln("Not using incremental mode for file:", pendingFile)
+					logger.Debugln("Not using incremental mode for file:", pendingFile)
 				}
 			}
 		}
@@ -220,7 +220,7 @@ func Stage4(projectRootDir string,
 			if incrModeTries > 0 {
 				// check we have inconsistent number of responses generated, this is an internal error on this step
 				if len(responses) != 1 {
-					logger.Panicln("Incorrect number if LLM responses was generated:", len(responses))
+					logger.Panicln("Incorrect number of LLM responses was generated:", len(responses))
 				}
 				// filter search-and-replace blocks from response
 				blocks, err := utils.ParseIncrBlocks(responses[0], prCfg.RegexpArray(config.K_ProjectFilesIncrModeRx))
