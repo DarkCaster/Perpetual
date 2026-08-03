@@ -397,12 +397,22 @@ func FindInFile(filePath string, regexps []*regexp.Regexp) (bool, string, error)
 	if err != nil {
 		return false, wrn, err
 	}
-	scanner := bufio.NewScanner(strings.NewReader(strData))
-	for scanner.Scan() {
-		for _, rx := range regexps {
-			if rx.MatchString(scanner.Text()) {
-				return true, wrn, nil
+	reader := bufio.NewReader(strings.NewReader(strData))
+	for {
+		line, readErr := reader.ReadString('\n')
+		line = strings.TrimSuffix(line, "\n")
+		if line != "" || readErr == nil {
+			for _, rx := range regexps {
+				if rx.MatchString(line) {
+					return true, wrn, nil
+				}
 			}
+		}
+		if readErr != nil {
+			if readErr == io.EOF {
+				break
+			}
+			return false, wrn, readErr
 		}
 	}
 	return false, wrn, nil

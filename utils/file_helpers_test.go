@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
@@ -90,6 +91,134 @@ func TestSetFileParamsControlsSavedEncoding(t *testing.T) {
 	expected := []byte{0xFE, 0xFF, 0x00, 0x74, 0x00, 0x65, 0x00, 0x73, 0x00, 0x74}
 	if string(data) != string(expected) {
 		t.Fatalf("unexpected saved bytes:\nexpected: %v\nactual:   %v", expected, data)
+	}
+}
+
+func TestFindInFile(t *testing.T) {
+	t.Run("File does not exist", func(t *testing.T) {
+		filePath := filepath.Join(t.TempDir(), "missing.txt")
+		found, wrn, err := FindInFile(filePath, []*regexp.Regexp{regexp.MustCompile("anything")})
+		if err == nil {
+			t.Fatalf("expected an error for missing file, got nil")
+		}
+		if !os.IsNotExist(err) {
+			t.Fatalf("expected os.IsNotExist error, got: %v", err)
+		}
+		if found {
+			t.Fatalf("expected found=false for missing file, got true")
+		}
+		if wrn != "" {
+			t.Fatalf("expected empty warning, got: %q", wrn)
+		}
+	})
+
+	t.Run("Warning propagation from LoadTextFile", func(t *testing.T) {
+		filePath := filepath.Join(t.TempDir(), "utf8-bom.txt")
+		data := append([]byte{0xEF, 0xBB, 0xBF}, []byte("hello world\n")...)
+		if err := os.WriteFile(filePath, data, 0644); err != nil {
+			t.Fatalf("failed to create test file: %v", err)
+		}
+		found, wrn, err := FindInFile(filePath, []*regexp.Regexp{regexp.MustCompile("hello")})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if wrn != "" {
+			t.Fatalf("expected empty warning for valid UTF8 BOM file, got: %q", wrn)
+		}
+		if !found {
+			t.Fatalf("expected match to be found")
+		}
+	})
+
+	testCases := []struct {
+		name          string
+		content       string
+		regexps       []*regexp.Regexp
+		expectedFound bool
+	}{
+		{
+			name:          "No match",
+			content:       "line one\nline two\nline three\n",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("nomatch")},
+			expectedFound: false,
+		},
+		{
+			name:          "Match on first line",
+			content:       "hello world\nline two\nline three\n",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("^hello")},
+			expectedFound: true,
+		},
+		{
+			name:          "Match on middle line",
+			content:       "line one\nhello world\nline three\n",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("^hello")},
+			expectedFound: true,
+		},
+		{
+			name:          "Match on last line without trailing newline",
+			content:       "line one\nline two\nhello world",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("^hello")},
+			expectedFound: true,
+		},
+		{
+			name:          "Match one-liner partially",
+			content:       "hello world",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("^hello")},
+			expectedFound: true,
+		},
+		{
+			name:          "Match one-liner fully",
+			content:       "world",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("world")},
+			expectedFound: true,
+		},
+		{
+			name:    "Multiple regexps, match on non-first regexp",
+			content: "line one\nline two\nhello world\n",
+			regexps: []*regexp.Regexp{
+				regexp.MustCompile("nomatch1"),
+				regexp.MustCompile("nomatch2"),
+				regexp.MustCompile("^hello"),
+			},
+			expectedFound: true,
+		},
+		{
+			name:          "Empty file",
+			content:       "",
+			regexps:       []*regexp.Regexp{regexp.MustCompile(".*")},
+			expectedFound: false,
+		},
+		{
+			name:          "Empty regexps slice",
+			content:       "hello world\n",
+			regexps:       []*regexp.Regexp{},
+			expectedFound: false,
+		},
+		{
+			name:          "Windows line endings normalized",
+			content:       "line one\r\nhello world\r\nline three\r\n",
+			regexps:       []*regexp.Regexp{regexp.MustCompile("^hello world$")},
+			expectedFound: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			filePath := filepath.Join(t.TempDir(), "test.txt")
+			if err := os.WriteFile(filePath, []byte(tc.content), 0644); err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+			found, wrn, err := FindInFile(filePath, tc.regexps)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if wrn != "" {
+				t.Fatalf("unexpected warning: %q", wrn)
+			}
+			if found != tc.expectedFound {
+				t.Fatalf("FindInFile(%q, ...) found = %v, expected %v", tc.content, found, tc.expectedFound)
+			}
+		})
 	}
 }
 
