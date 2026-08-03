@@ -21,10 +21,6 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Roadmap
 
-Add support for using `Perpetual` as a tool for writing code with an external agent:
-
-- Add `Skill.md`;
-
 Improve local trimmed-down fork of langchaingo library:
 
 - Implement missing features currently handled by `llm/mitmHTTPClient.go` - natively, inside the library;
@@ -66,6 +62,7 @@ Improve local trimmed-down fork of langchaingo library:
 - Reworked logging to always go to stderr; stdout is only used for output intended for the user/agent/UI: reports, work plan, file-lists, etc.
 - Improved default configuration for dotnet platform: added support for SQL scripts (`*.sql`) used for SQL database definitions and migrations.
 - Changed langchaingo library dependency: bundled local trimmed-down version of the library for future improvements, because upstream library development seems to be stopped.
+- Added `SKILL.md` file for use with the external agents.
 
 **NOTE**: This is an incompatible configuration change. You need to reinitialize your project config files by running `Perpetual project -m init -l <lang>` to install the updated project and operation configs. Old config files containing removed multi-step, multi-variant annotation, or JSON-output keys may fail validation. Old `project.json` files missing new delete-tag settings may also fail validation.
 
