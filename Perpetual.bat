@@ -87,7 +87,12 @@ if "%IS_LEGACY%"=="1" (
     )
 )
 
-rem Fallback to a generic "Perpetual.exe" binary located in the current working directory.
+rem Fallback to a generic "Perpetual.exe" binary
+if not defined TARGET_BIN (
+    if exist "%SCRIPT_DIR%\Perpetual.exe" (
+        set "TARGET_BIN=%SCRIPT_DIR%\Perpetual.exe"
+    )
+)
 if not defined TARGET_BIN (
     if exist "Perpetual.exe" (
         set "TARGET_BIN=Perpetual.exe"

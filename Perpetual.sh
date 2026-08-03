@@ -11,24 +11,7 @@
 
 set -u
 
-# Resolve the directory this script resides in, following symlinks.
-resolve_script_dir() {
-    local source="${BASH_SOURCE[0]:-$0}"
-    while [ -h "$source" ]; do
-        local dir
-        dir="$(cd -P "$(dirname "$source")" >/dev/null 2>&1 && pwd)"
-        source="$(readlink "$source")"
-        # If the symlink was relative, resolve it relative to the directory
-        # where the symlink file was located.
-        case "$source" in
-            /*) ;;
-            *) source="$dir/$source" ;;
-        esac
-    done
-    cd -P "$(dirname "$source")" >/dev/null 2>&1 && pwd
-}
-
-SCRIPT_DIR="$(resolve_script_dir)"
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 # Detect CPU architecture and map it to the naming scheme used by release binaries.
 detect_arch() {
@@ -61,7 +44,13 @@ if [ "$ARCH" != "unknown" ]; then
     fi
 fi
 
-# Fallback to a generic "Perpetual" binary located in the current working directory.
+# Fallback to a generic "Perpetual" binary
+if [ -z "$TARGET_BIN" ]; then
+    FALLBACK="$SCRIPT_DIR/Perpetual"
+    if [ -f "$FALLBACK" ]; then
+        TARGET_BIN="$FALLBACK"
+    fi
+fi
 if [ -z "$TARGET_BIN" ]; then
     FALLBACK="./Perpetual"
     if [ -f "$FALLBACK" ]; then
