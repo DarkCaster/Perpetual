@@ -103,6 +103,10 @@ jobs:
       if: matrix.target == 'linux'
       run: find . -type f -name "*.md" -exec dos2unix {} \; && find env_examples -type f -exec dos2unix {} \;
 
+    - name: Set executable permission for linux launcher script
+      if: matrix.target == 'linux'
+      run: chmod +x Perpetual.sh
+
     - name: Upload linux artifacts
       if: matrix.target == 'linux'
       uses: actions/upload-artifact@v7
@@ -111,6 +115,7 @@ jobs:
         include-hidden-files: true
         path: |
           Perpetual_*.bin
+          Perpetual.sh
           docs
           env_examples
           README.md
@@ -125,6 +130,7 @@ jobs:
         include-hidden-files: true
         path: |
           Perpetual_*.exe
+          Perpetual.bat
           docs
           env_examples
           README.md
@@ -160,6 +166,10 @@ jobs:
       with:
         name: linux-binaries
         path: dist-linux
+
+    - name: Restore executable permission for linux launcher script
+      if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
+      run: chmod +x dist-linux/Perpetual.sh
 
     - name: Create zip archive (windows)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
