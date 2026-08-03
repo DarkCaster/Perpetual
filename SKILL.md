@@ -1,3 +1,8 @@
+---
+name: perpetual
+description: Use this skill when working in a project managed by Perpetual, an LLM-driven code generation and code-comprehension CLI tool. Use it to write or modify source code, understand or explore an unfamiliar codebase, answer questions about the project, generate or update documentation, manage Perpetual's global or per-project configuration, or roll back/re-apply previously generated changes.
+---
+
 # Perpetual - Agent Skill
 
 Perpetual (`__PERPETUAL__`) is a code-generation tool driven by an LLM. It manages its own project configuration, source-file whitelist/blacklist, annotations and embeddings, and can plan, write, and roll back changes to a project's source code. This document describes how an external coding agent should drive Perpetual as a tool.
@@ -45,12 +50,12 @@ Perpetual (`__PERPETUAL__`) is a code-generation tool driven by an LLM. It manag
 
 - Prefer writing and modifying project code exclusively through `__PERPETUAL__ implement`. Only edit files directly to fix the smallest residual errors found during a post-implementation audit, or when nothing else achieves the expected result.
 - Prefer `-m task` mode for describing what needs to be done in natural language.
-- Prefer to save your tasks to the temporary markdown files and source them to Perpetual with `-i` flag. So you can always update the task and retry in case of errors or suboptimal results.
+- Prefer to save your tasks to temporary markdown files and pass them to Perpetual with the `-i` flag, so you can always update the task and retry in case of errors or suboptimal results.
 - Prefer the two-step workflow:
   1. `__PERPETUAL__ implement -m task -p start -i <path to the task file>` - generates and shows the work plan and the list of files scheduled for change, without writing any code yet.
   2. Review the plan. If it looks wrong, refine your task and run `-p start` again (never edit the intermediate state file manually).
   3. Once satisfied, run `__PERPETUAL__ implement -p finish` to actually apply the changes.
-- Perpetual can only create/modify files matching the project's configured file whitelist/blacklist - do not ask it to invoke external tools (git, shell utilities, etc.) directly; However such tools may be mentioned in its reasoning/work-plan output.
+- Perpetual can only create/modify files matching the project's configured file whitelist/blacklist - do not ask it to invoke external tools (git, shell utilities, etc.) directly. However, such tools may be mentioned in its reasoning/work-plan output.
 - Use an iterative approach: request changes in relatively small, consistent, reviewable batches rather than one large task.
 - For larger changes, first use `explain` to produce a work plan, then feed parts of that plan incrementally into `implement`.
 
