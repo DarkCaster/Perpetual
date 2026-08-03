@@ -95,6 +95,14 @@ jobs:
       if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
 
+    - name: Set launcher placeholder in SKILL.md (linux)
+      if: matrix.target == 'linux'
+      run: sed 's|__PERPETUAL__|Perpetual.sh|g' -i SKILL.md
+
+    - name: Set launcher placeholder in SKILL.md (windows)
+      if: matrix.target == 'windows'
+      run: sed 's|__PERPETUAL__|Perpetual.bat|g' -i SKILL.md
+
     - name: Preparing docs (windows)
       if: matrix.target == 'windows'
       run: find . -type f -name "*.md" -exec unix2dos {} \; && find env_examples -type f -exec unix2dos {} \;
@@ -121,6 +129,7 @@ jobs:
           README.md
           CONTRIBUTORS.md
           LICENSE
+          SKILL.md
 
     - name: Upload windows artifacts
       if: matrix.target == 'windows'
@@ -136,6 +145,7 @@ jobs:
           README.md
           CONTRIBUTORS.md
           LICENSE
+          SKILL.md
 
     - name: Upload windows-7 binary
       if: matrix.target == 'windows-7'
