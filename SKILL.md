@@ -111,3 +111,28 @@ As with any Perpetual operation, do not impose an external timeout on `annotate`
 - Bugs that arise later during normal development can be fixed through `implement` as usual; but flaws in code that was *just* generated should be discarded and regenerated rather than patched.
 - If unsure whether to keep, fix, or discard results, stop and ask the user to decide.
 - Use `-h` if needed to understand other flags for the operation that you may use to revert or apply stash partially (only if needed).
+
+## Typical pipeline
+
+This section walks through a typical end-to-end cycle for handling a single user-provided feature request or task, tying together the operations and conventions described above.
+
+> Example trigger: the user gives you a task to develop some feature.
+
+1. **Verify configuration is in place.** Run `__PERPETUAL__ onboard -m check` and `__PERPETUAL__ project -m test` to confirm that both the global LLM configuration and the per-project `.perpetual` configuration are present and valid.
+2. **Recover from missing or broken configuration.** If either check fails or reports errors, initialize the missing piece and ask the user to confirm before proceeding:
+   - Global configuration missing/broken: run `__PERPETUAL__ onboard -m install -p <provider>` (see "`onboard` - global LLM configuration"); ask the user for the provider and, if needed, an API key - never guess or fabricate credentials.
+   - Per-project configuration missing/broken: run `__PERPETUAL__ project -m init -l <language>` (see "`project` - per-project configuration"); confirm the resulting project language/type and `description.md` content with the user.
+3. **Record the task.** Before doing anything else, write the request down as a Markdown file under `docs/tasks/`, following "Task management agreements" - this keeps the task reusable and easy to refine across retries.
+4. **Size up the task and choose a strategy:**
+   - Small, self-contained task: feed the task file straight into `__PERPETUAL__ implement -m task -i <task-file>` (or the `-p start`/`-p finish` workflow below).
+   - Larger feature: first consult `__PERPETUAL__ explain` to work out a step-by-step architectural plan with Perpetual, save it under `docs/plans/`, then break it into smaller task files and feed them to `implement` one at a time, updating `docs/tasks/` as each part completes.
+5. **Validate alignment before generating code.** For each task file, run `__PERPETUAL__ implement -m task -p start -i <task-file>` first (see "`implement` - writing code"). Review the generated work plan and the scheduled file changes against the task; if something looks off, refine the task file and rerun `-p start` rather than proceeding.
+6. **Finish implementing.** Once the plan looks correct, run `__PERPETUAL__ implement -m task -p finish` (same `-m` value as step 5) to actually generate and write the code changes.
+7. **Verify externally.** Run the project's build, unit tests, linters, and any deployment/staging steps as needed - this is always the agent's/human's job, never Perpetual's (see "Role separation"). Optionally run `__PERPETUAL__ project -m check-read` if file integrity or encoding is a concern.
+8. **Decide the outcome and act on the repository:**
+   - Tests/build pass and the result looks good: commit the changes through your normal VCS workflow.
+   - Result is broken or unsatisfactory: prefer `__PERPETUAL__ stash -m rollback` over hand-patching (see "`stash` and fixing code"), then revise the task/plan before retrying `implement`.
+   - Unsure whether to keep, fix, or discard: stop and ask the user to decide.
+9. **Iterate** through steps 4-8 for the remaining plan steps or follow-up tasks until the whole feature is complete, asking the user for missing details, clarification, or a decision at any step where something isn't behaving as expected - not just at the end.
+10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
+11. Commit changes to the VCS if configured and push to the upstream
