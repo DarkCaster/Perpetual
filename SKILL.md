@@ -36,7 +36,9 @@ All external work on the project, including building, testing, deploying, workin
 
 Never wrap `__PERPETUAL__` invocations in your own timeout. Perpetual manages its own internal per-request timeouts and retry logic and always terminates by itself, even for long-running operations (a full project `annotate`/`embed` re-index, or an `implement`/`doc`/`explain` run against a slow or overloaded LLM) - imposing an external timeout risks killing it mid-operation.
 
-The Perpetual launcher script ship alongside this `SKILL.md` file, in the same directory. Either invoke the launcher using its full path (e.g. `/full/path/to/skill/Perpetual.(sh|bat) <operation> ...`), or add this skill's base directory to the `PATH` environment variable once at the start of your session and invoke it simply by name afterwards - pick whichever approach is more convenient for your environment/shell.
+The Perpetual launcher scripts ship alongside this `SKILL.md` file, in the same directory. Either invoke the launcher using its full path (e.g. `/full/path/to/skill/Perpetual.(sh|bat) <operation> ...`), or add this skill's base directory to the `PATH` environment variable once at the start of your session and invoke it simply by name afterwards - pick whichever approach is more convenient for your environment/shell.
+
+Perpetual writes all logging - progress messages, warnings, errors, and LLM debug/performance information - to stderr. Always inspect stderr after every invocation to detect problems, regardless of the process exit code, since a run can still exit non-zero on failure while having already printed useful diagnostic context. The actual result produced by an operation - a generated answer, document, work-plan report, code report, or list of file paths - is written to stdout by default, or to a file instead when the operation supports it and you pass the `-o` flag (see "Common Perpetual flags" below). Never look for errors on stdout, and never expect the operation's actual output on stderr.
 
 ## Common Perpetual flags
 
@@ -56,6 +58,8 @@ To keep track of ongoing and completed work across sessions, and to give Perpetu
 - `docs/kb/` - a general project knowledge base for longer-lived notes that are not simply "current task" or "current plan" material (design rationale, glossaries, external references, etc.). Only create or modify files here with explicit user permission, since this content is meant to persist and reflect deliberate decisions rather than the agent's own working notes.
 
 Keep this bookkeeping strictly on the agent's side: Perpetual itself has no notion of tasks, plans, or the overall project goal - it only ever sees whatever text/files you explicitly feed it for a single operation.
+
+Write all files under `docs/` in English, unless the user explicitly asks for another language; regardless of that, always communicate with the user themselves in whichever language they use when writing to you. Feel free to re-read files under `docs/plans/` and `docs/kb/` at any point during a session whenever you need to refresh your understanding of the current status, rationale, or long-term decisions for the project - they are meant to be consulted on demand throughout the work, not just written once and forgotten.
 
 ## `onboard` - global LLM configuration
 
