@@ -5,9 +5,9 @@ description: Use this skill when working on a software project. Use it to write 
 
 # Perpetual - Agent Skill
 
-Perpetual (`__PERPETUAL__`) is a code-generation tool driven by an LLM. It comes with global and per-project configuration, source-file whitelist/blacklist, annotations and embeddings. It can plan, write, and roll back changes to a project's source code. This document describes how an external agent should drive Perpetual as a tool.
+Perpetual (`__PERPETUAL__`) is an LLM-driven code-generation tool with global and per-project configuration, source-file whitelist/blacklist, annotations, and embeddings. It plans, writes, and rolls back source-code changes. This document describes how an external agent should drive it.
 
-Always prefer using Perpetual to work with code and follow the recommended approaches described here, because Perpetual is specially suited for context-aware code generation and uses a more specialized LLM model setup than an external agent.
+Always prefer Perpetual over your own code edits/exploration: it uses a specialized, code-focused LLM setup and project-aware context that a general-purpose agent lacks.
 
 ## Role separation
 
@@ -20,7 +20,7 @@ All external work on the project, including building, testing, deploying, workin
 ## General usage
 
 - Always run `__PERPETUAL__` with the project's root directory as the current working directory.
-- Detailed flags for any operation can be obtained with `__PERPETUAL__ <operation> -h`. This document does not enumerate every flag - use `-h` when you need specifics not covered here.
+- Use `__PERPETUAL__ <operation> -h` for full flag details not covered here.
 - Available operations:
   - `onboard`   - install/check global LLM provider configuration.
   - `project`   - init/inspect/validate per-project `.perpetual` configuration and file list.
@@ -34,32 +34,32 @@ All external work on the project, including building, testing, deploying, workin
 
 ## Running perpetual utility
 
-Never wrap `__PERPETUAL__` invocations in your own timeout. Perpetual manages its own internal per-request timeouts and retry logic and always terminates by itself, even for long-running operations (a full project `annotate`/`embed` re-index, or an `implement`/`doc`/`explain` run against a slow or overloaded LLM) - imposing an external timeout risks killing it mid-operation.
+Never wrap `__PERPETUAL__` invocations in your own timeout. It manages its own internal per-request timeouts and retry logic and always terminates by itself, even for long-running operations (a full project `annotate`/`embed` re-index, or an `implement`/`doc`/`explain` run against a slow or overloaded LLM) - an external timeout risks killing it mid-operation.
 
-The Perpetual launcher scripts ship alongside this `SKILL.md` file, in the same directory. Either invoke the launcher using its full path (e.g. `/full/path/to/skill/Perpetual.(sh|bat) <operation> ...`), or add this skill's base directory to the `PATH` environment variable once at the start of your session and invoke it simply by name afterwards - pick whichever approach is more convenient for your environment/shell.
+The Perpetual launcher scripts ship alongside this `SKILL.md` file, in the same directory. Either invoke the launcher using its full path (e.g. `/full/path/to/skill/Perpetual.(sh|bat) <operation> ...`), or add this skill's base directory to the `PATH` environment variable once at the start of your session and invoke it by name afterwards - pick whichever is more convenient for your environment/shell.
 
-Perpetual writes all logging - progress messages, warnings, errors, and LLM debug/performance information - to stderr. Always inspect stderr after every invocation to detect problems, regardless of the process exit code, since a run can still exit non-zero on failure while having already printed useful diagnostic context. The actual result produced by an operation - a generated answer, document, work-plan report, code report, or list of file paths - is written to stdout by default, or to a file instead when the operation supports it and you pass the `-o` flag (see "Common Perpetual flags" below). Never look for errors on stdout, and never expect the operation's actual output on stderr.
+Perpetual writes all logging - progress messages, warnings, errors, and LLM debug/performance information - to stderr. Always inspect stderr after every invocation to detect problems, regardless of the process exit code, since a run can exit non-zero on failure while having already printed useful diagnostic context. The actual result produced by an operation - a generated answer, document, work-plan report, code report, or list of file paths - is written to stdout by default, or to a file instead when the operation supports it and you pass the `-o` flag (see "Common Perpetual flags"). Never look for errors on stdout, and never expect the operation's actual output on stderr.
 
 ## Common Perpetual flags
 
 Several operations that exchange a piece of free-form text with the LLM (`explain`, `doc`, `implement -m task`, and others) share the same convention for their primary input/output:
 
-- `-i <input file>` - reads the operation's primary input (a question, task description, or document to work on) from the given file. If the flag is omitted, or explicitly set to `-`, the input is read from stdin instead.
-- `-o <output file>` - writes the operation's result (an answer, a generated/refined document, or a work-plan report) to the given file. If the flag is omitted, or explicitly set to `-`, the result is written to stdout instead.
+- `-i <input file>` - reads the operation's primary input (a question, task description, or document to work on) from the given file. If omitted, or explicitly set to `-`, input is read from stdin instead.
+- `-o <output file>` - writes the operation's result (an answer, a generated/refined document, or a work-plan report) to the given file. If omitted, or explicitly set to `-`, the result is written to stdout instead.
 
-Prefer passing input through `-i` pointing to a real file rather than piping text through stdin, so you can easily inspect, edit, and re-supply the same file if you need to refine the request and retry the operation. Not every operation supports both flags (for example `report` only has `-o`, and `annotate`/`embed` use `-i` for a different purpose - forcing processing of a single project file) - check `-h` for the operation you are using if in doubt.
+Prefer passing input through `-i` pointing to a real file rather than piping text through stdin, so you can easily inspect, edit, and re-supply the same file if you need to refine the request and retry. Not every operation supports both flags (for example `report` only has `-o`, and `annotate`/`embed` use `-i` for a different purpose - forcing processing of a single project file) - check `-h` for the operation you are using if in doubt.
 
 ## Task management agreements
 
-To keep track of ongoing and completed work across sessions, and to give Perpetual well-structured, reusable task descriptions (see "Common Perpetual flags" and "`implement` - writing code" below), maintain the following convention inside a `docs` directory at the project root (create it if missing). This directory is agent-managed bookkeeping, not project source code or documentation meant for `doc`/`explain`/`report` to process - keep it separate from whatever directories Perpetual's project configuration actually scans.
+To keep track of ongoing and completed work across sessions, and to give Perpetual well-structured, reusable task descriptions (see "Common Perpetual flags" and "`implement` - writing code"), maintain the following convention inside a `docs` directory at the project root (create it if missing). This directory is agent-managed bookkeeping, not project source code or documentation meant for `doc`/`explain`/`report` to process - keep it separate from whatever directories Perpetual's project configuration actually scans.
 
-- `docs/tasks/` - individual task files in Markdown format, each one describing a self-contained unit of work eventually passed to `__PERPETUAL__ implement -m task -i <task-file>`. Always prefix task files with a sequence number (e.g. `0001-add-user-auth.md`, `0002-fix-session-timeout.md`) so their creation order and history remain obvious. Keep completed task files in place as a record of what was implemented and when, unless the user asks you to clean them up.
-- `docs/plans/` - architectural and step-by-step plans for upcoming implementation work, typically produced by consulting Perpetual via `explain`, or derived from a work-plan report generated by `implement -m task -p start`. Maintain these plans as work progresses, and remove a plan once it has been fully implemented, so stale or contradictory guidance does not confuse future planning sessions.
+- `docs/tasks/` - individual task files in Markdown format, each describing a self-contained unit of work eventually passed to `__PERPETUAL__ implement -m task -i <task-file>`. Always prefix task files with a sequence number (e.g. `0001-add-user-auth.md`, `0002-fix-session-timeout.md`) so their creation order and history remain obvious. Keep completed task files in place as a record of what was implemented and when, unless the user asks you to clean them up.
+- `docs/plans/` - architectural and step-by-step plans for upcoming implementation work, typically produced by consulting Perpetual via `explain`, or derived from a work-plan report generated by `implement -m task -p start`. Maintain these plans as work progresses, and remove a plan once fully implemented, so stale or contradictory guidance does not confuse future planning sessions.
 - `docs/kb/` - a general project knowledge base for longer-lived notes that are not simply "current task" or "current plan" material (design rationale, glossaries, external references, etc.). Only create or modify files here with explicit user permission, since this content is meant to persist and reflect deliberate decisions rather than the agent's own working notes.
 
 Keep this bookkeeping strictly on the agent's side: Perpetual itself has no notion of tasks, plans, or the overall project goal - it only ever sees whatever text/files you explicitly feed it for a single operation.
 
-Write all files under `docs/` in English, unless the user explicitly asks for another language; regardless of that, always communicate with the user themselves in whichever language they use when writing to you. Feel free to re-read files under `docs/plans/` and `docs/kb/` at any point during a session whenever you need to refresh your understanding of the current status, rationale, or long-term decisions for the project - they are meant to be consulted on demand throughout the work, not just written once and forgotten.
+Write all files under `docs/` in English, unless the user explicitly asks for another language; regardless of that, always communicate with the user in whichever language they use when writing to you. Feel free to re-read files under `docs/plans/` and `docs/kb/` at any point during a session to refresh your understanding of the current status, rationale, or long-term decisions - they are meant to be consulted on demand throughout the work, not just written once and forgotten.
 
 ## `onboard` - global LLM configuration
 
@@ -139,4 +139,4 @@ This section walks through a typical end-to-end cycle for handling a single user
    - Unsure whether to keep, fix, or discard: stop and ask the user to decide.
 9. **Iterate** through steps 4-8 for the remaining plan steps or follow-up tasks until the whole feature is complete, asking the user for missing details, clarification, or a decision at any step where something isn't behaving as expected - not just at the end.
 10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
-11. Commit changes to the VCS if configured and push to the upstream
+11. Commit changes to the VCS if configured and push to the upstream.
