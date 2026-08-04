@@ -51,9 +51,18 @@ All external work on the project, including building, testing, deploying, workin
 - `.perpetual/description.md` gives Perpetual extra context about the project. Keep it concise and focused on the most important architectural concepts and decisions (purpose, key technologies, architecture, coding standards, project structure).
 - Because Perpetual only works with text/source files, it cannot see binary, resource, or media files directly. Use `description.md` to also list such files together with their purpose and relevant details, so that code Perpetual generates can correctly reference them. List them with paths relative to the project root.
 
+## Common Perpetual flags
+
+Several operations that exchange a piece of free-form text with the LLM (`explain`, `doc`, `implement -m task`, and others) share the same convention for their primary input/output:
+
+- `-i <input file>` - reads the operation's primary input (a question, task description, or document to work on) from the given file. If the flag is omitted, or explicitly set to `-`, the input is read from stdin instead.
+- `-o <output file>` - writes the operation's result (an answer, a generated/refined document, or a work-plan report) to the given file. If the flag is omitted, or explicitly set to `-`, the result is written to stdout instead.
+
+Prefer passing input through `-i` pointing to a real file rather than piping text through stdin, so you can easily inspect, edit, and re-supply the same file if you need to refine the request and retry the operation. Not every operation supports both flags (for example `report` only has `-o`, and `annotate`/`embed` use `-i` for a different purpose - forcing processing of a single project file) - check `-h` for the operation you are using if in doubt.
+
 ## `explain` - exploring and understanding the project
 
-- Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal` (or `-m full`) first.
+- Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal -i <question.md>` first. If `-i` is omitted, or set to `-`, `explain` reads the question from stdin instead - prefer supplying a file so the question can be reused or refined.
 - Only fall back to your own file-inspection tools if `explain` fails or does not provide enough information.
 
 ## `implement` - writing code
@@ -62,7 +71,7 @@ All external work on the project, including building, testing, deploying, workin
 - Prefer `-m task` mode for describing what needs to be done in natural language.
 - Prefer to save your tasks to temporary markdown files and pass them to Perpetual with the `-i` flag, so you can always update the task and retry in case of errors or suboptimal results.
 - Prefer the two-step workflow:
-  1. `__PERPETUAL__ implement -m task -p start -i <path to the task file>` - generates and shows the work plan and the list of files scheduled for change, without writing any code yet (you can save this report to a file instead of stdout with the `-o` flag).
+  1. `__PERPETUAL__ implement -m task -p start -i <task.md>` - generates and shows the work plan and the list of files scheduled for change, without writing any code yet (you can save this report to a file instead of stdout with the `-o` flag).
   2. Review the plan. If it looks wrong, refine your task and run `-p start` again (never edit the intermediate state file manually).
   3. Once satisfied, run `__PERPETUAL__ implement -m task -p finish` to actually apply the changes. Repeat the same `-m` value used in step 1.
 - Step-by-step execution (`-p start`/`-p finish`) is not available with `-m comment-fast`.
@@ -77,3 +86,4 @@ All external work on the project, including building, testing, deploying, workin
 - Only attempt to fix freshly generated code (via `implement` or direct edits) if you judge its overall quality to be good.
 - Bugs that arise later during normal development can be fixed through `implement` as usual; but flaws in code that was *just* generated should be discarded and regenerated rather than patched.
 - If unsure whether to keep, fix, or discard results, stop and ask the user to decide.
+- Use `-h` if needed to understand other flags for the operation that you may use to revert or apply stash partially (only if needed).
