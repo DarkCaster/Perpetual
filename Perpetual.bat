@@ -105,5 +105,4 @@ if not defined TARGET_BIN (
     exit /b 1
 )
 
-"%TARGET_BIN%" %*
-exit /b %ERRORLEVEL%
+"%TARGET_BIN%" %* && exit 0 || exit 1
