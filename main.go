@@ -64,6 +64,9 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
 	signal.Notify(c, syscall.SIGPIPE)
+	signal.Notify(c, syscall.SIGHUP)
+	signal.Notify(c, syscall.SIGINT)
+	signal.Notify(c, syscall.SIGQUIT)
 	go func() {
 		defer shutdown()
 		<-c
