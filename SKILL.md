@@ -142,5 +142,5 @@ Example trigger: the user gives you a task to develop some feature.
 # Critically Important
 
 - Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
-- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual do it.
+- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it.
 - When writing tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
