@@ -73,7 +73,7 @@ Use other operations with user's permission.
 ### `project` - per-project configuration
 
 - You may run `__PERPETUAL__ project -m <test|list|check-read|check-ascii>` at any time to query the current state: `test` validates configuration, `list` shows files Perpetual can see, `check-read`/`check-ascii` verify file readability/encoding.
-- If `.perpetual` directory with configuration is missing or invalid, stop and ask user confirmation to run `__PERPETUAL__ project -m init -l <language>` to create a new one.
+- If `.perpetual` directory with configuration is missing or invalid, STOP and ask the user about next steps.
 - Before committing Perpetual-generated changes to VCS, run `__PERPETUAL__ project -m check-read` to verify consistency of the files Perpetual wrote; use `__PERPETUAL__ project -m save-utf` to fix files with encoding issues if needed.
 - You can add the `.perpetual` directory to your version control system. If you use Git, it already contains nessesary ignore definitions.
 
@@ -119,7 +119,7 @@ Example trigger: the user gives you a task to develop some feature.
 1. **Verify configuration is in place.** Run `__PERPETUAL__ onboard -m check` and `__PERPETUAL__ project -m test` to confirm that both the global LLM configuration and the per-project `.perpetual` configuration are present and valid.
 2. **Recover from missing or broken configuration.** If either check fails or reports errors, initialize the missing piece and ask the user to confirm before proceeding:
    - Global configuration missing/broken: run `__PERPETUAL__ onboard -m install -p <provider>` (see "`onboard` - global LLM configuration"); ask the user for the provider and, if needed, an API key - never guess or fabricate credentials.
-   - Per-project configuration missing/broken: run `__PERPETUAL__ project -m init -l <language>`, ask user's permission.
+   - Per-project configuration missing/broken: STOP and ask the user about next steps.
 3. **Record the task.** Before doing anything else, write the request down as a Markdown file under `docs/tasks/`, following "Task management agreements" - this keeps the task reusable and easy to refine across retries.
 4. **Size up the task and choose a strategy:**
    - Small, self-contained task: feed the task file straight into `__PERPETUAL__ implement -m task -i <task-file>` (or the `-p start`/`-p finish` workflow below).
@@ -130,10 +130,9 @@ Example trigger: the user gives you a task to develop some feature.
 8. **Decide the outcome and act on the repository:**
    - Tests/build pass and the result looks good: commit the changes through your normal VCS workflow.
    - Result is broken or unsatisfactory: prefer `__PERPETUAL__ stash -m rollback` over hand-patching, then revise the task/plan before retrying `implement`.
-   - Unsure whether to keep, fix, or discard: stop and ask the user to decide.
+   - Unsure whether to keep, fix, or discard: STOP and ask the user to decide.
 9. **Iterate** through steps 4-8 for the remaining plan steps or follow-up tasks until the whole feature is complete, asking the user for missing details, clarification, or a decision at any step where something isn't behaving as expected - not just at the end.
 10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
-11. Commit changes to the VCS if configured and push to the upstream.
 
 ## Critically Important
 
