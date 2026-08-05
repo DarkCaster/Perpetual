@@ -61,37 +61,28 @@ Keep this bookkeeping strictly on the agent's side: Perpetual itself has no noti
 
 Write all files under `docs/` in English, unless the user explicitly asks for another language; regardless of that, always communicate with the user in whichever language they use when writing to you. Feel free to re-read files under `docs/plans/` and `docs/kb/` at any point during a session to refresh your understanding of the current status, rationale, or long-term decisions - they are meant to be consulted on demand throughout the work, not just written once and forgotten.
 
-## `onboard` - global LLM configuration
+## Perpetual operations you will need to use during development
+
+Use other operations with user's permission.
+
+### `onboard` - global LLM configuration
 
 - Run `__PERPETUAL__ onboard -m check` to print the currently active environment configuration and validate it (provider selection, API keys/auth, models, etc.).
-- Run `__PERPETUAL__ onboard -m install -p <anthropic|openai|ollama|generic>` to write a fresh default global configuration for the chosen provider. Optional `-k` supplies an API key / `login:password`, `-km` sets the auth method (`Bearer`|`Basic`).
-- If `onboard -m check` reports missing variables or configuration errors, ask the user to manually edit the global env config files (you may assist them). Use the bundled `*.env.example` files (e.g. `anthropic.env.example`, `openai.env.example`, `ollama.env.example`, `generic.env.example`, `.env.example`) shipped alongside the Perpetual distribution as a reference for available settings - they document every supported option with comments.
-- Never guess or fabricate API keys/secrets; only the user should provide them.
+- If `onboard -m check` reports missing variables or configuration errors, stop and notify user.
 
-## `project` - per-project configuration
+### `project` - per-project configuration
 
-- Run `__PERPETUAL__ project -m init -l <language>` once per project to create the `.perpetual` directory with default prompts/config for the given language/project type.
 - You may run `__PERPETUAL__ project -m <test|list|check-read|check-ascii>` at any time to query the current state: `test` validates configuration, `list` shows files Perpetual can see, `check-read`/`check-ascii` verify file readability/encoding.
+- If `.perpetual` directory with configuration is missing or invalid, stop and ask user confirmation to run `__PERPETUAL__ project -m init -l <language>` to create a new one.
 - Before committing Perpetual-generated changes to VCS, run `__PERPETUAL__ project -m check-read` to verify consistency of the files Perpetual wrote; use `__PERPETUAL__ project -m save-utf` to fix files with encoding issues if needed.
-- As with `onboard`, consult the bundled `*.env.example` files for available global settings when helping the user configure the project's environment.
+- You can add the `.perpetual` directory to your version control system. If you use Git, it already contains nessesary ignore definitions.
 
-## Per-project `description.md`
-
-- `.perpetual/description.md` gives Perpetual extra context about the project. Keep it concise and focused on the most important architectural concepts and decisions (purpose, key technologies, architecture, coding standards, project structure).
-- Because Perpetual only works with text/source files, it cannot see binary, resource, or media files directly. Use `description.md` to also list such files together with their purpose and relevant details, so that code Perpetual generates can correctly reference them. List them with paths relative to the project root.
-
-## `annotate` - generate or refresh file annotations
-
-Perpetual uses per-file annotations (summaries) as part of the context it feeds itself when running `implement`, `doc`, `explain`, and `report -m brief`. These operations already call `annotate` internally to refresh annotations for changed files before doing their own work, so you normally do not need to run `annotate` manually.
-
-Run `__PERPETUAL__ annotate -m normal` yourself ONLY right after `__PERPETUAL__ project -m init`, to build the initial annotation baseline for the whole project, or whenever the user explicitly asks you to (re)annotate files.
-
-## `explain` - exploring and understanding the project
+### `explain` - exploring and understanding the project
 
 - Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal -i <question.md> -o <answer.md>` first.
-- Only fall back to your own file-inspection tools if `explain` fails or does not provide enough information.
+- Only fall back to your own file-inspection tools when `explain` fails or does not provide enough information.
 
-## `implement` - writing code
+### `implement` - writing code
 
 - Prefer writing and modifying project code exclusively through `__PERPETUAL__ implement`. Only edit files directly to fix the smallest residual errors found during a post-implementation audit, or when nothing else achieves the expected result.
 - Prefer `-m task` mode for describing what needs to be done in natural language.
@@ -105,14 +96,19 @@ Run `__PERPETUAL__ annotate -m normal` yourself ONLY right after `__PERPETUAL__ 
 - Use an iterative approach: request changes in relatively small, consistent, reviewable batches rather than one large task.
 - For larger changes, first use `explain` to produce a work plan, then feed parts of that plan incrementally into `implement`.
 
-## `stash` and fixing code
+### `stash` - reverting files modified with `implement` operation
 
-- Do not hesitate to use `__PERPETUAL__ stash -m rollback` to revert an `implement` run whose result you judge to be bad.
+- Use `__PERPETUAL__ stash -m rollback` to revert an `implement` run whose result you judge to be bad.
 - Prefer re-running `implement` from scratch over hand-patching freshly generated code.
 - Only attempt to fix freshly generated code (via `implement` or direct edits) if you judge its overall quality to be good.
 - Bugs that arise later during normal development can be fixed through `implement` as usual; but flaws in code that was *just* generated should be discarded and regenerated rather than patched.
 - If unsure whether to keep, fix, or discard results, stop and ask the user to decide.
 - Use `-h` if needed to understand other flags for the operation that you may use to revert or apply stash partially (only if needed).
+
+## Per-project `description.md`
+
+- `.perpetual/description.md` gives Perpetual extra context about the project. Keep it very concise and focused on the most important architectural concepts and decisions (purpose, key technologies, architecture, coding standards). It should not contain references to the regular source code files already handled by Perpetual.
+- Perpetual only works with text/source files - it cannot see binary, resource, or media files directly. Use `description.md` to list such files together with their purpose and relevant details, so that code Perpetual generates can correctly reference them. List them with paths relative to the project root.
 
 ## Typical pipeline
 
@@ -123,7 +119,7 @@ Example trigger: the user gives you a task to develop some feature.
 1. **Verify configuration is in place.** Run `__PERPETUAL__ onboard -m check` and `__PERPETUAL__ project -m test` to confirm that both the global LLM configuration and the per-project `.perpetual` configuration are present and valid.
 2. **Recover from missing or broken configuration.** If either check fails or reports errors, initialize the missing piece and ask the user to confirm before proceeding:
    - Global configuration missing/broken: run `__PERPETUAL__ onboard -m install -p <provider>` (see "`onboard` - global LLM configuration"); ask the user for the provider and, if needed, an API key - never guess or fabricate credentials.
-   - Per-project configuration missing/broken: run `__PERPETUAL__ project -m init -l <language>` (see "`project` - per-project configuration"); confirm the resulting project language/type and `description.md` content with the user.
+   - Per-project configuration missing/broken: run `__PERPETUAL__ project -m init -l <language>`, ask user's permission.
 3. **Record the task.** Before doing anything else, write the request down as a Markdown file under `docs/tasks/`, following "Task management agreements" - this keeps the task reusable and easy to refine across retries.
 4. **Size up the task and choose a strategy:**
    - Small, self-contained task: feed the task file straight into `__PERPETUAL__ implement -m task -i <task-file>` (or the `-p start`/`-p finish` workflow below).
@@ -133,7 +129,7 @@ Example trigger: the user gives you a task to develop some feature.
 7. **Verify externally.** Run the project's build, unit tests, linters, and any deployment/staging steps as needed - this is always the agent's/human's job, never Perpetual's (see "Role separation"). Optionally run `__PERPETUAL__ project -m check-read` if file integrity or encoding is a concern.
 8. **Decide the outcome and act on the repository:**
    - Tests/build pass and the result looks good: commit the changes through your normal VCS workflow.
-   - Result is broken or unsatisfactory: prefer `__PERPETUAL__ stash -m rollback` over hand-patching (see "`stash` and fixing code"), then revise the task/plan before retrying `implement`.
+   - Result is broken or unsatisfactory: prefer `__PERPETUAL__ stash -m rollback` over hand-patching, then revise the task/plan before retrying `implement`.
    - Unsure whether to keep, fix, or discard: stop and ask the user to decide.
 9. **Iterate** through steps 4-8 for the remaining plan steps or follow-up tasks until the whole feature is complete, asking the user for missing details, clarification, or a decision at any step where something isn't behaving as expected - not just at the end.
 10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
@@ -143,6 +139,7 @@ Example trigger: the user gives you a task to develop some feature.
 
 - Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
 - Always use proposed timeouts when launching Perpetual.
-- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it. Perpetual is smarter than you, delegate all coding work to it.
-- You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to fix the code, you should ask the Perpetual using the `explain` operation.
+- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it. Perpetual is smarter than you in coding: delegate all coding work to it.
+- You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to create task for bugfix, you should consult Perpetual using the `explain` operation.
 - When writing tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
+- If you see signs of context summation in your message history and the skill is not fully loaded, reload the skill.
