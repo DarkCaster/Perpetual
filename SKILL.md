@@ -142,5 +142,7 @@ Example trigger: the user gives you a task to develop some feature.
 # Critically Important
 
 - Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
-- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it.
+- Always use proposed timeouts when launching Perpetual.
+- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it. Perpetual is smarter than you, delegate all coding work to it.
+- You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to fix the code, you should ask the Perpetual using the `explain` operation.
 - When writing tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
