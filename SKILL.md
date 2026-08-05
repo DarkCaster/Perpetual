@@ -135,7 +135,7 @@ Example trigger: the user gives you a task to develop some feature.
 10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
 11. Commit changes to the VCS if configured and push to the upstream.
 
-# Critically Important
+## Critically Important
 
 - Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
 - Always use proposed timeouts when launching Perpetual.
