@@ -13,7 +13,7 @@ Always prefer Perpetual over your own code edits/exploration: it uses a speciali
 
 To ensure effective work, the following division of roles is used:
 
-Perpetual acts as both an expert and a programmer when working with the codebase. Perpetual manages most of the source code and implements current architectural tasks assigned to it by an agent (or a human). As an expert, Perpetual can develop both strategic and step-by-step plans, answer questions about the current code, and maintain documentation, so it can act as a universal expert that's also aware of the project source code. The agent should ALWAYS consult with Perpetual during project work, as it uses settings and LLM models optimized specifically for programming, so it can provide better answers that are better aligned with the project's source code. Perpetual automatically maintains and manages its own context, but does not store or manage strategic plans or the overall goal to be achieved. To keep Perpetual focused on writing code, it does not have access to any external tools or the internet, nor does it have access to binary or multimedia files. Perpetual typically does not have access to build and deployment scripts. Perpetual does not run build tools, VCS, or execute the unit tests it writes - that's the role of the external agent.
+Perpetual acts as both an expert and a programmer when working with the codebase. Perpetual manages most of the source code and implements current architectural tasks assigned to it by an agent (or a human). As an expert, Perpetual can develop both strategic and step-by-step plans, answer questions about the current code, and maintain documentation, so it can act as a universal expert that's also aware of the project source code. The agent should ALWAYS consult with Perpetual during project work, as it uses settings and LLM models optimized specifically for programming, so it can provide answers that are better aligned with the project's source code. Perpetual automatically maintains and manages its own context, but does not store or manage strategic plans or the overall goal to be achieved. To keep Perpetual focused on writing code, it does not have access to any external tools or the internet, nor does it have access to binary or multimedia files. Perpetual typically does not have access to build and deployment scripts. Perpetual does not run build tools, VCS, or execute the unit tests it writes - that's the role of the external agent.
 
 All external work on the project, including building, testing, deploying, working with the repository, as well as determining the current task and the general direction of development, is performed by the agent and the human. The agent should not normally write or modify code directly (except code not managed by Perpetual, like build or deploy scripts). The agent should get an expert opinion from Perpetual before assigning it a task, or when working on strategic plans for development.
 
@@ -34,7 +34,7 @@ All external work on the project, including building, testing, deploying, workin
 
 ## Running perpetual utility
 
-Never wrap `__PERPETUAL__` invocations in your own timeout. It manages its own internal per-request timeouts and retry logic and always terminates by itself, even for long-running operations (a full project `annotate`/`embed` re-index, or an `implement`/`doc`/`explain` run against a slow or overloaded LLM) - an external timeout risks killing it mid-operation.
+Never set timeout for `__PERPETUAL__` invocations. It manages its lifecycle and retry logic and always terminates by itself, even for long-running operations. If you must set one anyway for tooling reasons, a timeout like 7200 seconds or 120 minutes is a good safe value.
 
 The Perpetual launcher scripts ship alongside this `SKILL.md` file, in the same directory. Either invoke the launcher using its full path (e.g. `/full/path/to/skill/Perpetual.(sh|bat) <operation> ...`), or add this skill's base directory to the `PATH` environment variable once at the start of your session and invoke it by name afterwards - pick whichever is more convenient for your environment/shell.
 
@@ -53,7 +53,7 @@ Prefer passing input through `-i` pointing to a real file rather than piping tex
 
 To keep track of ongoing and completed work across sessions, and to give Perpetual well-structured, reusable task descriptions (see "Common Perpetual flags" and "`implement` - writing code"), maintain the following convention inside a `docs` directory at the project root (create it if missing). This directory is agent-managed bookkeeping, not project source code or documentation meant for `doc`/`explain`/`report` to process - keep it separate from whatever directories Perpetual's project configuration actually scans.
 
-- `docs/tasks/` - individual task files in Markdown format, each describing a self-contained unit of work eventually passed to `__PERPETUAL__ implement -m task -i <task-file>`. Always prefix task files with a sequence number (e.g. `0001-add-user-auth.md`, `0002-fix-session-timeout.md`) so their creation order and history remain obvious. Keep completed task files in place as a record of what was implemented and when, unless the user asks you to clean them up.
+- `docs/tasks/` - individual task files in Markdown format, each describing a self-contained unit of work eventually passed to `__PERPETUAL__ implement -m task -i <task-file>`. Always prefix task files with a sequence number (e.g. `0001-add-user-auth.md`, `0002-fix-session-logging.md`) so their creation order and history remain obvious. Keep completed task files in place as a record of what was implemented and when, unless the user asks you to clean them up.
 - `docs/plans/` - architectural and step-by-step plans for upcoming implementation work, typically produced by consulting Perpetual via `explain`, or derived from a work-plan report generated by `implement -m task -p start`. Maintain these plans as work progresses, and remove a plan once fully implemented, so stale or contradictory guidance does not confuse future planning sessions.
 - `docs/kb/` - a general project knowledge base for longer-lived notes that are not simply "current task" or "current plan" material (design rationale, glossaries, external references, etc.). Only create or modify files here with explicit user permission, since this content is meant to persist and reflect deliberate decisions rather than the agent's own working notes.
 
@@ -82,11 +82,9 @@ Write all files under `docs/` in English, unless the user explicitly asks for an
 
 ## `annotate` - generate or refresh file annotations
 
-Perpetual uses per-file annotations (summaries) as part of the context it feeds itself when running `implement`, `doc`, `explain`, and `report -m brief`. These operations already call `annotate` internally to refresh annotations for changed files before doing their own work (unless invoked with `-n`), so you normally do not need to run `annotate` manually.
+Perpetual uses per-file annotations (summaries) as part of the context it feeds itself when running `implement`, `doc`, `explain`, and `report -m brief`. These operations already call `annotate` internally to refresh annotations for changed files before doing their own work, so you normally do not need to run `annotate` manually.
 
-Run `__PERPETUAL__ annotate -m normal` yourself only right after `__PERPETUAL__ project -m init`, to build the initial annotation baseline for the whole project, or whenever the user explicitly asks you to (re)annotate files.
-
-As with any Perpetual operation, do not impose an external timeout on `annotate` - it manages its own request timeouts/retries internally and will terminate on its own even on large projects; if you must set one anyway for tooling reasons, a timeout of several hours is a safe upper bound.
+Run `__PERPETUAL__ annotate -m normal` yourself ONLY right after `__PERPETUAL__ project -m init`, to build the initial annotation baseline for the whole project, or whenever the user explicitly asks you to (re)annotate files.
 
 ## `explain` - exploring and understanding the project
 
@@ -120,7 +118,7 @@ As with any Perpetual operation, do not impose an external timeout on `annotate`
 
 This section walks through a typical end-to-end cycle for handling a single user-provided feature request or task, tying together the operations and conventions described above.
 
-> Example trigger: the user gives you a task to develop some feature.
+Example trigger: the user gives you a task to develop some feature.
 
 1. **Verify configuration is in place.** Run `__PERPETUAL__ onboard -m check` and `__PERPETUAL__ project -m test` to confirm that both the global LLM configuration and the per-project `.perpetual` configuration are present and valid.
 2. **Recover from missing or broken configuration.** If either check fails or reports errors, initialize the missing piece and ask the user to confirm before proceeding:
@@ -140,3 +138,8 @@ This section walks through a typical end-to-end cycle for handling a single user
 9. **Iterate** through steps 4-8 for the remaining plan steps or follow-up tasks until the whole feature is complete, asking the user for missing details, clarification, or a decision at any step where something isn't behaving as expected - not just at the end.
 10. **Maintain the bookkeeping.** Throughout and after the work, keep `docs/tasks/`, `docs/plans/`, and (only with explicit user permission) `docs/kb/` up to date per "Task management agreements": retain completed task files as history, remove plans once fully implemented, and perform any other cleanup/housekeeping the user requests.
 11. Commit changes to the VCS if configured and push to the upstream.
+
+# Critically Important
+
+- Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
+- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual do it.
