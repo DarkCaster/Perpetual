@@ -88,7 +88,7 @@ Run `__PERPETUAL__ annotate -m normal` yourself ONLY right after `__PERPETUAL__ 
 
 ## `explain` - exploring and understanding the project
 
-- Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal -i <question.md> -o answer.md` first.
+- Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal -i <question.md> -o <answer.md>` first.
 - Only fall back to your own file-inspection tools if `explain` fails or does not provide enough information.
 
 ## `implement` - writing code
