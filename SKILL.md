@@ -99,9 +99,7 @@ Use other operations with user's permission.
 ### `stash` - reverting files modified with `implement` operation
 
 - Use `__PERPETUAL__ stash -m rollback` to revert an `implement` run whose result you judge to be bad.
-- Prefer re-running `implement` from scratch over hand-patching freshly generated code.
-- Only attempt to fix freshly generated code (via `implement` or direct edits) if you judge its overall quality to be good.
-- Bugs that arise later during normal development can be fixed through `implement` as usual; but flaws in code that was *just* generated should be discarded and regenerated rather than patched.
+- Attempt to fix code via `implement`, if you judge its overall quality to be good otherwise revert the results with `stash`, update the task and retry.
 - If unsure whether to keep, fix, or discard results, stop and ask the user to decide.
 - Use `-h` if needed to understand other flags for the operation that you may use to revert or apply stash partially (only if needed).
 
@@ -141,4 +139,5 @@ Example trigger: the user gives you a task to develop some feature.
 - Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it. Perpetual is smarter than you in coding: delegate all coding work to it.
 - You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to create task for bugfix, you should consult Perpetual using the `explain` operation.
 - When writing tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
-- If you see signs of context summation in your message history and the skill is not fully loaded, reload the skill.
+- Don't add your own code snippets to tasks/steps that you've derived from the general plan - you can only add code snippets from the general step-by-step plan or at the explicit request of the user.
+- When writing tasks to fix failed tests or compilation errors - only add errors into the task, do not add your assumptions about root cause or solution to the task.
