@@ -19,18 +19,18 @@ import (
 // Do not include anything below to the summary, just omit it completely.
 
 type openAICacheManager struct {
-	breakpointIndex int
-	cacheConfig     string
-	cacheKey        string
-	allowCaching    bool
+	breakpointInices []int
+	cacheConfig      string
+	cacheKey         string
+	allowCaching     bool
 }
 
-func newOpenAICacheManager(breakpointIndex int, cacheConfig string, cacheKey string, allowCaching bool) requestTransformer {
+func newOpenAICacheManager(breakpointInices []int, cacheConfig string, cacheKey string, allowCaching bool) requestTransformer {
 	return &openAICacheManager{
-		breakpointIndex: breakpointIndex,
-		cacheConfig:     cacheConfig,
-		cacheKey:        cacheKey,
-		allowCaching:    allowCaching,
+		breakpointInices: breakpointInices,
+		cacheConfig:      cacheConfig,
+		cacheKey:         cacheKey,
+		allowCaching:     allowCaching,
 	}
 }
 
@@ -42,7 +42,7 @@ func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
 	// enable explicit caching
 	body["prompt_cache_key"] = p.cacheKey
 	body["prompt_cache_options"] = map[string]string{"mode": "explicit"}
-	if p.cacheConfig == "-1" || !p.allowCaching || p.breakpointIndex < 0 {
+	if p.cacheConfig == "-1" || !p.allowCaching || len(p.breakpointInices) < 1 {
 		// return body here without setting breakpoints, this will explicitly disable caching
 		return body
 	}
@@ -51,11 +51,15 @@ func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
 		body["prompt_cache_options"].(map[string]string)["ttl"] = p.cacheConfig
 	}
 	// mark particular message as cache breakpoint
-	if messages, ok := body["messages"].([]any); ok && len(messages) > p.breakpointIndex {
-		if message, ok := messages[p.breakpointIndex].(map[string]any); ok {
-			if content, ok := message["content"].(string); ok {
-				newContent := []map[string]any{{"type": "text", "text": content, "prompt_cache_breakpoint": map[string]string{"mode": "explicit"}}}
-				message["content"] = newContent
+	if messages, ok := body["messages"].([]any); ok {
+		for i, messageEl := range messages {
+			if indexIsCacheBreakpoint(p.breakpointInices, i) {
+				if message, ok := messageEl.(map[string]any); ok {
+					if content, ok := message["content"].(string); ok {
+						newContent := []map[string]any{{"type": "text", "text": content, "prompt_cache_breakpoint": map[string]string{"mode": "explicit"}}}
+						message["content"] = newContent
+					}
+				}
 			}
 		}
 	}

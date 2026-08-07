@@ -93,12 +93,27 @@ func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], f
 	}
 }
 
-func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMatcher[string], messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, int, error) {
-	var lastCacheBreakpoint = -1
+func indexIsCacheBreakpoint(indices []int, index int) bool {
+	for _, v := range indices {
+		if v == index {
+			return true
+		}
+	}
+	return false
+}
+
+func incrementCacheBreakpointIndices(indices []int, increment int) {
+	for i := 0; i < len(indices); i++ {
+		indices[i] += increment
+	}
+}
+
+func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMatcher[string], messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, []int, error) {
+	var cacheBreakpointIndices []int
 	var result []llms.MessageContent
 	for i, message := range messages {
 		if message.CacheBreakpoint {
-			lastCacheBreakpoint = i
+			cacheBreakpointIndices = append(cacheBreakpointIndices, i)
 		}
 		lastMessage := (i >= len(messages)-1)
 		var llmMessage llms.MessageContent
@@ -107,11 +122,11 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 		case UserRequest:
 			llmMessage.Role = llms.ChatMessageTypeHuman
 		case RealAIResponse:
-			return result, lastCacheBreakpoint, errors.New("cannot process real ai response, sending such message types are not supported for now")
+			return result, cacheBreakpointIndices, errors.New("cannot process real ai response, sending such message types are not supported for now")
 		case SimulatedAIResponse:
 			llmMessage.Role = llms.ChatMessageTypeAI
 		default:
-			return result, lastCacheBreakpoint, fmt.Errorf("invalid message type: %d", message.Type)
+			return result, cacheBreakpointIndices, fmt.Errorf("invalid message type: %d", message.Type)
 		}
 		if message.Type == SimulatedAIResponse && message.RawText != "" {
 			llmMessage.Parts = []llms.ContentPart{llms.TextContent{Text: message.RawText}}
@@ -183,7 +198,7 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 					builder.WriteString(fragment.FileNameTags.Right)
 					builder.WriteString("\n")
 				default:
-					return result, lastCacheBreakpoint, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)
+					return result, cacheBreakpointIndices, fmt.Errorf("invalid fragment type: %d, index: %d", fragment.Type, index)
 				}
 			}
 			if lastMessage {
@@ -194,9 +209,9 @@ func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMa
 		result = append(result, llmMessage)
 	}
 	if len(result) < 1 {
-		return result, lastCacheBreakpoint, errors.New("no messages was generated")
+		return result, cacheBreakpointIndices, errors.New("no messages was generated")
 	}
-	return result, lastCacheBreakpoint, nil
+	return result, cacheBreakpointIndices, nil
 }
 
 func RenderMessagesToAIStrings(filesToMdLangMappings utils.TextMatcher[string], messages []Message) ([]string, error) {

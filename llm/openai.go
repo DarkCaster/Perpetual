@@ -569,20 +569,20 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: systemPrompt}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	convertedMessages, cacheBreakpointIndices, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
 	//TODO: implement proper cache management inside the custom langchaingo library natively
-	if cacheBreakpointIndex >= 0 {
-		//because of adding system message
-		cacheBreakpointIndex += cacheBreakpointShift
+	if len(cacheBreakpointIndices) > 0 {
+		// we need to increment cache breakpoint indices because system message for the OpenAI API goes at the beginning of the message chain
+		incrementCacheBreakpointIndices(cacheBreakpointIndices, cacheBreakpointShift)
 	}
 	if p.CacheConfig != "" {
 		//prepend cache manager, it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndices, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
 	}
 
 	mitmClient := newMitmHTTPClient(collectors, transformers)
@@ -604,7 +604,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
 			p.RawMessageLogger("\n\n\n")
-			if i == cacheBreakpointIndex {
+			if indexIsCacheBreakpoint(cacheBreakpointIndices, i) {
 				p.RawMessageLogger("<Cache Breakpoint>")
 				p.RawMessageLogger("\n\n\n")
 			}

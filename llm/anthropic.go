@@ -228,14 +228,20 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPrompt}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
+	convertedMessages, cacheBreakpointIndices, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, "", "")
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
-	//NOTE: no need to increment cacheBreakpointIndex here, because system message placed separately - not inside "messages" array at the JSON API call
+
+	//NOTE: no need to run incrementCacheBreakpointIndices,
+	//because system message placed separately at the anthropic API call
 
 	if p.CacheConfig != "" {
+		cacheBreakpointIndex := -1
+		if len(cacheBreakpointIndices) > 0 {
+			cacheBreakpointIndex = cacheBreakpointIndices[len(cacheBreakpointIndices)-1]
+		}
 		//prepend anthropic cache manager, it should be the first request transformer, because other transformers may change actual message-history
 		transformers = append([]requestTransformer{newAnthropicCacheManager(cacheBreakpointIndex, p.CacheConfig, allowCaching)}, transformers...)
 	}
@@ -256,15 +262,13 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		return "", QueryInitFailed, err
 	}
 
-	if cacheBreakpointIndex >= 0 {
-		// increment it here because of adding system message to the message list, for proper position at the message log
-		cacheBreakpointIndex++
-	}
 	if p.RawMessageLogger != nil {
 		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
 			p.RawMessageLogger("\n\n\n")
-			if i == cacheBreakpointIndex {
+			// NOTE: we prepended system message to llmMessages,
+			// so use decremented index position to display proper position at the our message log
+			if indexIsCacheBreakpoint(cacheBreakpointIndices, i-1) {
 				p.RawMessageLogger("<Cache Breakpoint>")
 				p.RawMessageLogger("\n\n\n")
 			}

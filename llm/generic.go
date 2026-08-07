@@ -679,19 +679,20 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		llms.MessageContent{Role: llms.ChatMessageTypeSystem, Parts: []llms.ContentPart{llms.TextContent{Text: p.SystemPromptPrefix + p.SystemPrompt + p.SystemPromptSuffix}}})
 
 	// Convert messages to send into LangChain format
-	convertedMessages, cacheBreakpointIndex, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
+	convertedMessages, cacheBreakpointIndices, err := renderMessagesToGenericAILangChainFormat(p.FilesToMdLangMappings, messages, p.UserPromptPrefix, p.UserPromptSuffix)
 	if err != nil {
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
 
 	//TODO: implement proper cache management inside the custom langchaingo library natively
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex += cacheBreakpointShift
+	if len(cacheBreakpointIndices) > 0 {
+		// we need to increment cache breakpoint indices because system message for the OpenAI API goes at the beginning of the message chain
+		incrementCacheBreakpointIndices(cacheBreakpointIndices, cacheBreakpointShift)
 	}
 	if p.CacheConfig != "" {
 		//prepend openai cache manager (compatible with generic provider), it should be the first request transformer, because other transformers may change actual message-history
-		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
+		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndices, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
 	}
 
 	statusCodeCollector := newStatusCodeCollector()
@@ -713,7 +714,7 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
 			p.RawMessageLogger("\n\n\n")
-			if i == cacheBreakpointIndex {
+			if indexIsCacheBreakpoint(cacheBreakpointIndices, i) {
 				p.RawMessageLogger("<Cache Breakpoint>")
 				p.RawMessageLogger("\n\n\n")
 			}
