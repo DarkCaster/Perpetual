@@ -487,6 +487,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 
 	//"o*" reasoning models requires some extra setup
 	modelStr := strings.ToLower(p.Model)
+	cacheBreakpointShift := 1 //for regular system or developer messages
 	if strings.HasPrefix(modelStr, "o") {
 		//Parse model date
 		date := time.Now().UTC()
@@ -511,6 +512,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		} else {
 			//convert "system" message role into normal "user" message role with extra acknowledge
 			transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
+			cacheBreakpointShift++ //1 extra message from ack
 		}
 		//Remove unsupported parameters from top level: temperature, top_p, presence_penalty, frequency_penalty, logprobs, top_logprobs, logit_bias
 		transformers = append(transformers, newTopLevelBodyValuesRemover([]string{
@@ -568,10 +570,12 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
-	}
 
+	//TODO: implement proper cache management inside the custom langchaingo library natively
+	if cacheBreakpointIndex >= 0 {
+		//because of adding system message
+		cacheBreakpointIndex += cacheBreakpointShift
+	}
 	if p.CacheConfig != "" {
 		//prepend cache manager, it should be the first request transformer, because other transformers may change actual message-history
 		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
