@@ -122,6 +122,7 @@ func NewGenericLLMConnectorFromEnv(
 		return nil, errors.New("model is empty")
 	}
 	debug.Add("model", model)
+	cacheKey = model + cacheKey
 
 	maxTokensSegments, err := utils.GetEnvInt(fmt.Sprintf("%s_MAX_TOKENS_SEGMENTS", prefix))
 	if err != nil {
