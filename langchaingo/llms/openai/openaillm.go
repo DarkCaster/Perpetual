@@ -56,6 +56,13 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 
 	chatMsgs := make([]*ChatMessage, 0, len(messages))
 	for _, mc := range messages {
+		//TODO: Add native supprot for developer message type
+		//TODO: Add native support for no developer/system message type support: substitute with user message + simulated ai ack
+		//IMPORTANT mind the cache breakpoint index shift when using user message + ack
+		/*if mc.Role == llms.ChatMessageTypeSystem {
+			continue
+		}*/
+
 		msg := &ChatMessage{MultiContent: mc.Parts}
 		switch mc.Role {
 		case llms.ChatMessageTypeSystem:
