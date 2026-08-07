@@ -68,7 +68,7 @@ OPENAI_MODEL_OP_ANNOTATE="gpt-5.4-mini"
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
 OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.6-luna"
 OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.6-sol"
-OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.6-terra"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.6-luna"
 OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5.6-sol"
 OPENAI_MODEL_OP_DOC_STAGE1="gpt-5.6-luna"
 # OPENAI_MODEL_OP_DOC_STAGE2="gpt-5.6-terra"
@@ -131,9 +131,9 @@ OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="1" # stage 4 will benefit from cache c
 # Options for limiting output tokens for different operations and stages, must be set.
 # Must include extra space for additional tokens that may be needed for reasoning.
 OPENAI_MAX_TOKENS_OP_ANNOTATE="2048" # you shoud keep the summary short.
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="32768" # file-list for review (includes tokens for high-thinking of gpt-5.6-luna)
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE1="32768" # file-list for review (includes tokens for xhigh-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE2="32768" # work-plan generation
-OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="12288" # file-list for processing, include tokens for thinking
+OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE3="32768" # file-list for processing, (includes tokens for xhigh-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_IMPLEMENT_STAGE4="65536" # generated code output limit should be as big as possible
 OPENAI_MAX_TOKENS_OP_DOC_STAGE1="32768" # file-list for review, (includes tokens for high-thinking of gpt-5.6-luna)
 OPENAI_MAX_TOKENS_OP_DOC_STAGE2="65536" # generated document output limit should be as big as possible
@@ -170,9 +170,9 @@ OPENAI_ON_FAIL_RETRIES="5"
 # If using with unsupported model - unset global OPENAI_REASONING_EFFORT value.
 # Example values: none, minimal, low, medium, high, xhigh.
 OPENAI_REASONING_EFFORT_OP_ANNOTATE="none"
-OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="high"
+OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE1="xhigh"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE2="medium"
-OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="low"
+OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE3="xhigh"
 # OPENAI_REASONING_EFFORT_OP_IMPLEMENT_STAGE4="medium"
 OPENAI_REASONING_EFFORT_OP_DOC_STAGE1="high"
 OPENAI_REASONING_EFFORT_OP_DOC_STAGE2="high"
