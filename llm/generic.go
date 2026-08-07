@@ -88,10 +88,12 @@ func NewGenericLLMConnectorFromEnv(
 		debug.Add("subprofile", strings.ToUpper(subprofile))
 	}
 
+	cacheKey := operation
 	auth, err := utils.GetEnvString(fmt.Sprintf("%s_AUTH", prefix), fmt.Sprintf("%s_API_KEY", prefix))
 	if err != nil || auth == "" {
 		debug.Add("auth", "not set")
 	} else {
+		cacheKey = utils.CalculateSHA256ForString(auth)
 		debug.Add("auth", "set")
 	}
 
@@ -464,7 +466,7 @@ func NewGenericLLMConnectorFromEnv(
 		Debug:                 debug,
 		RateLimitDelayS:       0,
 		CacheConfig:           cacheConfig,
-		CacheKey:              operation,
+		CacheKey:              cacheKey,
 		MinCacheReps:          minCacheReps,
 	}, nil
 }

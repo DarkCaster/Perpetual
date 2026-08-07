@@ -77,6 +77,9 @@ func NewOpenAILLMConnectorFromEnv(
 	if token == "" {
 		return nil, errors.New("auth token is empty")
 	}
+	// Use anonymized token identifier as a prompt_cache_key
+	// So other operations would be also able to benefit from caching if using same model configuration (model name + reasoning effort)
+	cacheKey := utils.CalculateSHA256ForString(token)
 
 	envVars := []string{fmt.Sprintf("%s_MODEL_OP_%s", prefix, operation), fmt.Sprintf("%s_MODEL", prefix)}
 	if operation == "EMBED" {
@@ -293,7 +296,7 @@ func NewOpenAILLMConnectorFromEnv(
 		Debug:                        debug,
 		RateLimitDelayS:              0,
 		CacheConfig:                  cacheConfig,
-		CacheKey:                     operation,
+		CacheKey:                     cacheKey,
 		MinCacheReps:                 minCacheReps,
 	}, nil
 }

@@ -120,6 +120,11 @@ func CalculateSHA256(filePath string) (string, error) {
 	return fmt.Sprintf("%x", checksum), nil
 }
 
+func CalculateSHA256ForString(source string) string {
+	checksum := sha256.Sum256([]byte(source))
+	return fmt.Sprintf("%x", checksum)
+}
+
 // Used to produce completely new slice from another slice or single elements, where we need it.
 // This is a bit lame but simple approach that allow to mess safely with original slice afterwards.
 func NewSlice[T any](vars ...T) []T {
