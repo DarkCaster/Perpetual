@@ -661,12 +661,15 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		transformers = append(transformers, newUrlQueriesInjector(p.UrlQueriesToInject))
 	}
 
+	//for regular system or developer messages
+	cacheBreakpointShift := 1
 	if p.SystemPromptRole == DeveloperRole {
 		transformers = append(transformers, newSystemMessageTransformer("developer", ""))
 	}
 
 	if p.SystemPromptRole == UserRole {
 		transformers = append(transformers, newSystemMessageTransformer("user", p.SystemPromptAck))
+		cacheBreakpointShift++ //1 extra message from ack
 	}
 
 	llmMessages := utils.NewSlice(
@@ -678,10 +681,11 @@ func (p *GenericLLMConnector) Query(allowCaching bool, messages ...Message) (str
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
-	if cacheBreakpointIndex >= 0 {
-		cacheBreakpointIndex++ //because of adding system message
-	}
 
+	//TODO: implement proper cache management inside the custom langchaingo library natively
+	if cacheBreakpointIndex >= 0 {
+		cacheBreakpointIndex += cacheBreakpointShift
+	}
 	if p.CacheConfig != "" {
 		//prepend openai cache manager (compatible with generic provider), it should be the first request transformer, because other transformers may change actual message-history
 		transformers = append([]requestTransformer{newOpenAICacheManager(cacheBreakpointIndex, p.CacheConfig, p.CacheKey, allowCaching)}, transformers...)
