@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -604,7 +605,7 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		for i, m := range llmMessages {
 			p.RawMessageLogger(fmt.Sprint(m))
 			p.RawMessageLogger("\n\n\n")
-			if indexIsCacheBreakpoint(cacheBreakpointIndices, i) {
+			if slices.Contains(cacheBreakpointIndices, i) {
 				p.RawMessageLogger("<Cache Breakpoint>")
 				p.RawMessageLogger("\n\n\n")
 			}

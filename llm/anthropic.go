@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -268,7 +269,7 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 			p.RawMessageLogger("\n\n\n")
 			// NOTE: we prepended system message to llmMessages,
 			// so use decremented index position to display proper position at the our message log
-			if indexIsCacheBreakpoint(cacheBreakpointIndices, i-1) {
+			if slices.Contains(cacheBreakpointIndices, i-1) {
 				p.RawMessageLogger("<Cache Breakpoint>")
 				p.RawMessageLogger("\n\n\n")
 			}

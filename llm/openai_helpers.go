@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -53,7 +54,7 @@ func (p *openAICacheManager) ProcessBody(body map[string]any) map[string]any {
 	// mark particular message as cache breakpoint
 	if messages, ok := body["messages"].([]any); ok {
 		for i, messageEl := range messages {
-			if indexIsCacheBreakpoint(p.breakpointInices, i) {
+			if slices.Contains(p.breakpointInices, i) {
 				if message, ok := messageEl.(map[string]any); ok {
 					if content, ok := message["content"].(string); ok {
 						newContent := []map[string]any{{"type": "text", "text": content, "prompt_cache_breakpoint": map[string]string{"mode": "explicit"}}}
