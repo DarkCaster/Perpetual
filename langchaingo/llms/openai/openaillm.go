@@ -56,11 +56,6 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 
 	chatMsgs := make([]*ChatMessage, 0, len(messages))
 	for _, mc := range messages {
-		// Skip system messages for models that don't support them
-		if mc.Role == llms.ChatMessageTypeSystem {
-			continue
-		}
-
 		msg := &ChatMessage{MultiContent: mc.Parts}
 		switch mc.Role {
 		case llms.ChatMessageTypeSystem:
