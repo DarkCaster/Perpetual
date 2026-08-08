@@ -179,7 +179,11 @@ func Stage1(
 		break
 	}
 	// Filter all requested files through project file-list, return only files found in project file-list
-	return filterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, allProjectFiles, logger)
+	filesForReview := filterRequestedProjectFiles(projectRootDir, filesForReviewRaw, targetFiles, allProjectFiles, logger)
+	if len(allProjectFiles) > 0 && len(filesForReview)+len(targetFiles) == 0 {
+		logger.Errorln("Stage1 returned no project files relevant to the task, this may be a LLM error, ensure your task is correct and retry if needed")
+	}
+	return filesForReview
 }
 
 func filterRequestedProjectFiles(projectRootDir string, llmRequestedFiles []string, userRequestedFiles []string, projectFiles []string, logger logging.ILogger) []string {

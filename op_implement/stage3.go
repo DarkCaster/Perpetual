@@ -355,5 +355,9 @@ func Stage3(projectRootDir string,
 		logger.Warnln("File was filtered-out with project or user blacklist:", file)
 	}
 
+	if len(otherFilesToModify)+len(targetFilesToModify)+len(filesToDelete) == 0 {
+		logger.Warnln("Stage3 returned no files for creation, modification, or deletion")
+	}
+
 	return messages, otherFilesToModify, targetFilesToModify, filesToDelete
 }
