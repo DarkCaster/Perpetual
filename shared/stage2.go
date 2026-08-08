@@ -172,7 +172,7 @@ func Stage2(
 			// Request-size violations cannot be resolved by retrying or
 			// continuing the same request, so terminate immediately.
 			if status == llm.QueryRequestTooLarge {
-				logger.Panicln("LLM request size limit reached during stage2:", err)
+				logger.Panicln("LLM request size limit reached during stage2 (the task may be too big):", err)
 			}
 			if err != nil {
 				// Retry file on LLM error
