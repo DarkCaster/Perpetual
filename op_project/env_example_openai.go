@@ -66,9 +66,9 @@ OPENAI_BASE_URL="https://api.openai.com/v1"
 # Model selection for different operations and stages
 OPENAI_MODEL_OP_ANNOTATE="gpt-5.4-mini"
 OPENAI_MODEL_OP_EMBED="text-embedding-3-small" # remove this line to disable embedding and local similarity search
-OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.6-luna"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE1="gpt-5.6-luna" # combined with embeddings it should provide relevant results almost every time
 OPENAI_MODEL_OP_IMPLEMENT_STAGE2="gpt-5.6-sol"
-OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.6-luna"
+OPENAI_MODEL_OP_IMPLEMENT_STAGE3="gpt-5.6-sol" # this is an overkill, but caching should mitigate the expences
 OPENAI_MODEL_OP_IMPLEMENT_STAGE4="gpt-5.6-sol"
 OPENAI_MODEL_OP_DOC_STAGE1="gpt-5.6-luna"
 # OPENAI_MODEL_OP_DOC_STAGE2="gpt-5.6-terra"
@@ -132,9 +132,9 @@ OPENAI_CACHE="1"
 # If unset, uses default value 2.
 # OPENAI_CACHE_MINREPS_OP_ANNOTATE="2"
 # OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE1="2"
-OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE2="1" # stage 1 and stage 4 using same model configuration, setting value to 1 will always enable cache breakpoints
-# OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE3="2"
-OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="1" # stage 4 will benefit from cache created at stage 1, so set min repetitions to 1
+OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE2="1" # other stages using same model configuration, setting value to 1 will always enable cache breakpoints
+OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE3="1" # stage 3 will benefit from cache created at stage 2
+OPENAI_CACHE_MINREPS_OP_IMPLEMENT_STAGE4="1" # stage 4 will benefit from cache created at stage 3
 # OPENAI_CACHE_MINREPS_OP_DOC_STAGE1="2"
 # OPENAI_CACHE_MINREPS_OP_DOC_STAGE2="2"
 # OPENAI_CACHE_MINREPS_OP_EXPLAIN_STAGE1="2"
