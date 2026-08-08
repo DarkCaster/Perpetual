@@ -365,6 +365,11 @@ func Run(args []string, innerCall bool, logger logging.ILogger) {
 				if perfString := connector.GetPerfString(); perfString != "" {
 					logger.Traceln(perfString)
 				}
+				// Request-size violations are configuration or input errors and
+				// cannot be resolved by retrying the same request.
+				if status == llm.QueryRequestTooLarge {
+					logger.Panicf("LLM request size limit reached while annotating %s: %v", filePath, err)
+				}
 				// Check for general error on query
 				if err != nil {
 					logger.Errorf("LLM query failed with status %d, error: %s", status, err)

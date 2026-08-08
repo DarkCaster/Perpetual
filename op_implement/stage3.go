@@ -79,6 +79,11 @@ func Stage3(projectRootDir string,
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
+			// Request-size violations cannot be resolved by retrying the same
+			// request, so terminate immediately.
+			if status == llm.QueryRequestTooLarge {
+				logger.Panicln("LLM request size limit reached during stage3:", err)
+			}
 			if err != nil {
 				if onFailRetriesLeft < 1 {
 					logger.Panicln("LLM query failed:", err)

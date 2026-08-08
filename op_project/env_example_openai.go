@@ -76,6 +76,19 @@ OPENAI_MODEL_OP_EXPLAIN_STAGE1="gpt-5.6-luna"
 # OPENAI_MODEL_OP_EXPLAIN_STAGE2="gpt-5.6-terra"
 OPENAI_MODEL="gpt-5.6-terra"
 
+# Maximum request size in characters, calculated as the sum of all text content sent to the LLM. Unset or "0" disables the safeguard.
+# The program terminates without sending the request when its size reaches or exceeds the configured limit.
+# OPENAI_MAX_REQUEST_SIZE_OP_ANNOTATE="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE1="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE2="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE3="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE4="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_DOC_STAGE1="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_DOC_STAGE2="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_EXPLAIN_STAGE1="0"
+# OPENAI_MAX_REQUEST_SIZE_OP_EXPLAIN_STAGE2="0"
+# OPENAI_MAX_REQUEST_SIZE="0"
+
 # Text chunk/sequence size in characters (not tokens), used when generating embeddings.
 # Values too small or too large may lead to less effective search.
 # OPENAI_EMBED_DOC_CHUNK_SIZE="1024"

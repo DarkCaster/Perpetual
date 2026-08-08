@@ -31,6 +31,7 @@ type AnthropicLLMConnector struct {
 	FieldsToInject        map[string]any
 	IncrModeTries         int
 	MaxTokensSegments     int
+	MaxRequestSize        int
 	OnFailRetries         int
 	RawMessageLogger      func(v ...any)
 	Options               []llms.CallOption
@@ -101,6 +102,20 @@ func NewAnthropicLLMConnectorFromEnv(
 		maxTokensSegments = 3
 	}
 	debug.Add("segments", maxTokensSegments)
+
+	maxRequestSize, err := utils.GetEnvInt(
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE_OP_%s", prefix, operation),
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE", prefix),
+	)
+	if err != nil {
+		maxRequestSize = 0
+	}
+	if maxRequestSize < 0 {
+		return nil, fmt.Errorf("maximum request size provided for %s operation must not be negative: %d", operation, maxRequestSize)
+	}
+	if maxRequestSize > 0 {
+		debug.Add("max request size", maxRequestSize)
+	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
@@ -186,6 +201,7 @@ func NewAnthropicLLMConnectorFromEnv(
 		FieldsToInject:        fieldsToInject,
 		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
+		MaxRequestSize:        maxRequestSize,
 		OnFailRetries:         onFailRetries,
 		RawMessageLogger:      llmRawMessageLogger,
 		Options:               extraOptions,
@@ -234,6 +250,11 @@ func (p *AnthropicLLMConnector) Query(allowCaching bool, messages ...Message) (s
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
+
+	requestSize := calculateRequestSize(llmMessages)
+	if err := validateRequestSize(requestSize, p.MaxRequestSize); err != nil {
+		return "", QueryRequestTooLarge, err
+	}
 
 	//NOTE: no need to run incrementCacheBreakpointIndices,
 	//because system message placed separately at the anthropic API call

@@ -169,6 +169,11 @@ func Stage2(
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
+			// Request-size violations cannot be resolved by retrying or
+			// continuing the same request, so terminate immediately.
+			if status == llm.QueryRequestTooLarge {
+				logger.Panicln("LLM request size limit reached during stage2:", err)
+			}
 			if err != nil {
 				// Retry file on LLM error
 				if onFailRetriesLeft < 1 {

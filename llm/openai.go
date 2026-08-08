@@ -36,6 +36,7 @@ type OpenAILLMConnector struct {
 	ServiceTierFallbackActivated bool
 	IncrModeTries                int
 	MaxTokensSegments            int
+	MaxRequestSize               int
 	OnFailRetries                int
 	RawMessageLogger             func(v ...any)
 	Options                      []llms.CallOption
@@ -101,6 +102,20 @@ func NewOpenAILLMConnectorFromEnv(
 		maxTokensSegments = 3
 	}
 	debug.Add("segments", maxTokensSegments)
+
+	maxRequestSize, err := utils.GetEnvInt(
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE_OP_%s", prefix, operation),
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE", prefix),
+	)
+	if err != nil {
+		maxRequestSize = 0
+	}
+	if maxRequestSize < 0 {
+		return nil, fmt.Errorf("maximum request size provided for %s operation must not be negative: %d", operation, maxRequestSize)
+	}
+	if maxRequestSize > 0 {
+		debug.Add("max request size", maxRequestSize)
+	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
@@ -285,6 +300,7 @@ func NewOpenAILLMConnectorFromEnv(
 		ServiceTierFallbackActivated: false,
 		IncrModeTries:                incrModeTries,
 		MaxTokensSegments:            maxTokensSegments,
+		MaxRequestSize:               maxRequestSize,
 		OnFailRetries:                onFailRetries,
 		RawMessageLogger:             llmRawMessageLogger,
 		Options:                      extraOptions,
@@ -575,6 +591,14 @@ func (p *OpenAILLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
+
+	//no need to add logic for cases where system message converted to the developer, or to user message + ack
+	//difference is negligible, also we do not have access to the tokenizer
+	//so this is just a rough check
+	requestSize := calculateRequestSize(llmMessages)
+	if err := validateRequestSize(requestSize, p.MaxRequestSize); err != nil {
+		return "", QueryRequestTooLarge, err
+	}
 
 	//TODO: implement proper cache management inside the custom langchaingo library natively
 	if len(cacheBreakpointIndices) > 0 {

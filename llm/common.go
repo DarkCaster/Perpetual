@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/DarkCaster/Perpetual/langchaingo/llms"
 	"github.com/DarkCaster/Perpetual/utils"
@@ -97,6 +98,39 @@ func incrementCacheBreakpointIndices(indices []int, increment int) {
 	for i := 0; i < len(indices); i++ {
 		indices[i] += increment
 	}
+}
+
+// calculateRequestSize returns the number of UTF-8 runes in all text content
+// that will be passed to an LLM. Non-text content does not contribute to the
+// request size.
+func calculateRequestSize(messages []llms.MessageContent) int {
+	size := 0
+	for _, message := range messages {
+		for _, part := range message.Parts {
+			if text, ok := part.(llms.TextContent); ok {
+				size += utf8.RuneCountInString(text.Text)
+			}
+		}
+	}
+	return size
+}
+
+// validateRequestSize checks a calculated request size against the configured
+// maximum. A non-positive limit disables validation. Reaching the configured
+// limit is considered an error, so valid requests must be strictly smaller
+// than the limit.
+func validateRequestSize(requestSize, limit int) error {
+	if limit <= 0 {
+		return nil
+	}
+	if requestSize >= limit {
+		return fmt.Errorf(
+			"LLM request size limit reached: request contains %d UTF-8 runes, configured limit is %d",
+			requestSize,
+			limit,
+		)
+	}
+	return nil
 }
 
 func renderMessagesToGenericAILangChainFormat(filesToMdLangMappings utils.TextMatcher[string], messages []Message, msgPrefix, msgSuffix string) ([]llms.MessageContent, []int, error) {

@@ -289,3 +289,215 @@ func equalMessageContents(a, b []llms.MessageContent) bool {
 	}
 	return true
 }
+
+func TestProviderMaxRequestSizeConfiguration(t *testing.T) {
+	const operation = "REQUEST_SIZE_TEST"
+
+	type providerTest struct {
+		name       string
+		prefix     string
+		subprofile string
+		setup      func(t *testing.T, prefix string)
+		create     func(subprofile string) (int, error)
+	}
+
+	providers := []providerTest{
+		{
+			name:       "Anthropic",
+			prefix:     "ANTHROPIC99101",
+			subprofile: "99101",
+			setup: func(t *testing.T, prefix string) {
+				t.Helper()
+				t.Setenv(prefix+"_API_KEY", "test-key")
+				t.Setenv(prefix+"_MODEL", "test-model")
+				t.Setenv(prefix+"_MAX_TOKENS", "1024")
+			},
+			create: func(subprofile string) (int, error) {
+				connector, err := NewAnthropicLLMConnectorFromEnv(
+					subprofile,
+					operation,
+					"system prompt",
+					nil,
+					nil,
+				)
+				if err != nil {
+					return 0, err
+				}
+				return connector.MaxRequestSize, nil
+			},
+		},
+		{
+			name:       "OpenAI",
+			prefix:     "OPENAI99102",
+			subprofile: "99102",
+			setup: func(t *testing.T, prefix string) {
+				t.Helper()
+				t.Setenv(prefix+"_API_KEY", "test-key")
+				t.Setenv(prefix+"_MODEL", "test-model")
+			},
+			create: func(subprofile string) (int, error) {
+				connector, err := NewOpenAILLMConnectorFromEnv(
+					subprofile,
+					operation,
+					"system prompt",
+					"acknowledgement",
+					nil,
+					nil,
+				)
+				if err != nil {
+					return 0, err
+				}
+				return connector.MaxRequestSize, nil
+			},
+		},
+		{
+			name:       "Ollama",
+			prefix:     "OLLAMA99103",
+			subprofile: "99103",
+			setup: func(t *testing.T, prefix string) {
+				t.Helper()
+				t.Setenv(prefix+"_MODEL", "test-model")
+				t.Setenv(prefix+"_MAX_TOKENS", "1024")
+			},
+			create: func(subprofile string) (int, error) {
+				connector, err := NewOllamaLLMConnectorFromEnv(
+					subprofile,
+					operation,
+					"system prompt",
+					"acknowledgement",
+					nil,
+					nil,
+				)
+				if err != nil {
+					return 0, err
+				}
+				return connector.MaxRequestSize, nil
+			},
+		},
+		{
+			name:       "Generic",
+			prefix:     "GENERIC99104",
+			subprofile: "99104",
+			setup: func(t *testing.T, prefix string) {
+				t.Helper()
+				t.Setenv(prefix+"_MODEL", "test-model")
+				t.Setenv(prefix+"_BASE_URL", "https://example.invalid/v1")
+			},
+			create: func(subprofile string) (int, error) {
+				connector, err := NewGenericLLMConnectorFromEnv(
+					subprofile,
+					operation,
+					"system prompt",
+					"acknowledgement",
+					nil,
+					nil,
+				)
+				if err != nil {
+					return 0, err
+				}
+				return connector.MaxRequestSize, nil
+			},
+		},
+	}
+
+	testCases := []struct {
+		name           string
+		providerValue  string
+		operationValue string
+		setProvider    bool
+		setOperation   bool
+		expected       int
+		wantError      bool
+	}{
+		{
+			name:           "operation-specific value takes precedence",
+			providerValue:  "1000",
+			operationValue: "500",
+			setProvider:    true,
+			setOperation:   true,
+			expected:       500,
+		},
+		{
+			name:          "provider-wide value is used as fallback",
+			providerValue: "1000",
+			setProvider:   true,
+			expected:      1000,
+		},
+		{
+			name:           "operation-specific zero disables provider-wide limit",
+			providerValue:  "1000",
+			operationValue: "0",
+			setProvider:    true,
+			setOperation:   true,
+			expected:       0,
+		},
+		{
+			name:     "unset limit is disabled",
+			expected: 0,
+		},
+		{
+			name:           "invalid operation-specific value disables unset limit",
+			operationValue: "invalid",
+			setOperation:   true,
+			expected:       0,
+		},
+		{
+			name:           "invalid operation-specific value falls back to provider-wide value",
+			providerValue:  "1000",
+			operationValue: "invalid",
+			setProvider:    true,
+			setOperation:   true,
+			expected:       1000,
+		},
+		{
+			name:          "invalid provider-wide value disables limit",
+			providerValue: "invalid",
+			setProvider:   true,
+			expected:      0,
+		},
+		{
+			name:           "negative operation-specific value is rejected",
+			operationValue: "-1",
+			setOperation:   true,
+			wantError:      true,
+		},
+		{
+			name:          "negative provider-wide value is rejected",
+			providerValue: "-1",
+			setProvider:   true,
+			wantError:     true,
+		},
+	}
+
+	for _, provider := range providers {
+		for _, tc := range testCases {
+			t.Run(provider.name+"/"+tc.name, func(t *testing.T) {
+				provider.setup(t, provider.prefix)
+
+				if tc.setProvider {
+					t.Setenv(provider.prefix+"_MAX_REQUEST_SIZE", tc.providerValue)
+				}
+				if tc.setOperation {
+					t.Setenv(
+						provider.prefix+"_MAX_REQUEST_SIZE_OP_"+operation,
+						tc.operationValue,
+					)
+				}
+
+				actual, err := provider.create(provider.subprofile)
+				if tc.wantError {
+					if err == nil {
+						t.Fatalf("connector creation returned nil error, want error")
+					}
+					return
+				}
+				if err != nil {
+					t.Fatalf("connector creation returned error: %v", err)
+				}
+				if actual != tc.expected {
+					t.Fatalf("MaxRequestSize = %d, want %d", actual, tc.expected)
+				}
+			})
+		}
+	}
+}

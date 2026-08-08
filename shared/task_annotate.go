@@ -79,6 +79,11 @@ func TaskAnnotate(targetFiles []string, logger logging.ILogger) []string {
 			if perfString := connector.GetPerfString(); perfString != "" {
 				logger.Traceln(perfString)
 			}
+			// Request-size violations cannot be resolved by retrying the same
+			// request, so terminate immediately.
+			if status == llm.QueryRequestTooLarge {
+				logger.Panicf("LLM request size limit reached while creating task summary for %s: %v", filePath, err)
+			}
 			// Check for general error on query
 			if err != nil {
 				if onFailRetriesLeft < 1 {

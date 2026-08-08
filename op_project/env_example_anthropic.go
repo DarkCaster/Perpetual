@@ -39,6 +39,19 @@ ANTHROPIC_MODEL_OP_ANNOTATE="claude-haiku-4-5-20251001"
 # ANTHROPIC_MODEL_OP_EXPLAIN_STAGE2="claude-sonnet-5"
 ANTHROPIC_MODEL="claude-sonnet-5"
 
+# Maximum request size in characters, calculated as the sum of all text content sent to the LLM. Unset or "0" disables the safeguard.
+# The program terminates without sending the request when its size reaches or exceeds the configured limit.
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_ANNOTATE="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE1="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE2="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE3="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_IMPLEMENT_STAGE4="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_DOC_STAGE1="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_DOC_STAGE2="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_EXPLAIN_STAGE1="0"
+# ANTHROPIC_MAX_REQUEST_SIZE_OP_EXPLAIN_STAGE2="0"
+# ANTHROPIC_MAX_REQUEST_SIZE="0"
+
 # Incremental mode support (on by default or if value is unset)
 # Ask LLM to generate file-changes in a compact search-and-replace blocks instead of the whole file at once
 # Can significantly improve performance and lower the API costs, but may cause errors with particular LLM model, so you can disable it if needed

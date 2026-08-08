@@ -46,6 +46,7 @@ type OllamaLLMConnector struct {
 	IncrModeTries         int
 	MaxTokens             int
 	MaxTokensSegments     int
+	MaxRequestSize        int
 	OnFailRetries         int
 	Seed                  int
 	RawMessageLogger      func(v ...any)
@@ -123,6 +124,20 @@ func NewOllamaLLMConnectorFromEnv(
 		maxTokensSegments = 3
 	}
 	debug.Add("segments", maxTokensSegments)
+
+	maxRequestSize, err := utils.GetEnvInt(
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE_OP_%s", prefix, operation),
+		fmt.Sprintf("%s_MAX_REQUEST_SIZE", prefix),
+	)
+	if err != nil {
+		maxRequestSize = 0
+	}
+	if maxRequestSize < 0 {
+		return nil, fmt.Errorf("maximum request size provided for %s operation must not be negative: %d", operation, maxRequestSize)
+	}
+	if maxRequestSize > 0 {
+		debug.Add("max request size", maxRequestSize)
+	}
 
 	onFailRetries, err := utils.GetEnvInt(fmt.Sprintf("%s_ON_FAIL_RETRIES_OP_%s", prefix, operation), fmt.Sprintf("%s_ON_FAIL_RETRIES", prefix))
 	if err != nil {
@@ -440,6 +455,7 @@ func NewOllamaLLMConnectorFromEnv(
 		IncrModeTries:         incrModeTries,
 		MaxTokensSegments:     maxTokensSegments,
 		MaxTokens:             maxTokens,
+		MaxRequestSize:        maxRequestSize,
 		OnFailRetries:         onFailRetries,
 		Seed:                  seed,
 		RawMessageLogger:      llmRawMessageLogger,
@@ -731,6 +747,14 @@ func (p *OllamaLLMConnector) Query(allowCaching bool, messages ...Message) (stri
 		return "", QueryInitFailed, err
 	}
 	llmMessages = append(llmMessages, convertedMessages...)
+
+	//no need to add logic for cases where system message converted to the developer, or to user message + ack
+	//difference is negligible, also we do not have access to the tokenizer
+	//so this is just a rough check
+	requestSize := calculateRequestSize(llmMessages)
+	if err := validateRequestSize(requestSize, p.MaxRequestSize); err != nil {
+		return "", QueryRequestTooLarge, err
+	}
 
 	if p.RawMessageLogger != nil {
 		for _, m := range llmMessages {

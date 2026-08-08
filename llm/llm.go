@@ -20,6 +20,7 @@ const (
 	QueryInitFailed
 	QueryMaxTokens
 	QueryFailed
+	QueryRequestTooLarge
 )
 
 type EmbedMode int
