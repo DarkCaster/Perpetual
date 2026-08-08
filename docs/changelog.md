@@ -53,7 +53,8 @@ Improve local trimmed-down fork of langchaingo library:
 - In comment mode (`-m comment`), generate code marked with `###IMPLEMENT###` comments; this mode uses planning and can make changes to other files. For a faster variant that works only within the marked files and skips planning entirely, use `-m comment-fast`.
 - Added file deletion support to the `implement` operation; this should be useful for code refactoring or cleanup tasks. Stage 3 can now request file deletions using delete tags, and generated stashes can record and apply deleted file states. Added `delete_tags` and `delete_tags_rx` configuration entries for `project.json` used for file deletion support.
 - Added optional 2-step approach for `implement` operation (controlled with `-p` flag). Suitable when using perpetual from external agent or UI: the 1st step generates a work plan for the task and presents it to the user/agent; the 2nd step performs the actual code generation according to the plan.
-- Added support for explicit prompt caching for OpenAI, Generic and Anthropic providers. Disabled by default, you can try using it to reduce costs (provider and model dependent).
+- Added support for explicit prompt caching for OpenAI, Generic and Anthropic providers. Use it to reduce costs (more effective if using same model/provider for different operations).
+- Added optional per-provider/per-operation maximum request size safeguard env-options (see example `*.env` files)
 - Updated `.env.example` for the Anthropic provider with support for new models.
 - Added adaptive thinking support for the Anthropic provider with a settable budget.
 - Updated `.env.example` for the OpenAI provider: set up new models for different operations and stages.
