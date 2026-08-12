@@ -5,17 +5,30 @@ description: Use this skill when working on a software project. Use it to write 
 
 # Perpetual - Agent Skill
 
-Perpetual (`__PERPETUAL__`) is an LLM-driven code-generation tool with global and per-project configuration, source-file whitelist/blacklist, annotations, and embeddings. It plans, writes, and rolls back source-code changes. This document describes how an external agent should drive it.
+Perpetual (`__PERPETUAL__`) is an LLM-driven code-generation tool with global and per-project configuration, source-file whitelists/blacklists, annotations, and embeddings. It plans, writes, and rolls back source-code changes.
 
-Always prefer Perpetual over your own code edits/exploration: it uses a specialized, code-focused LLM setup and project-aware context that a general-purpose agent lacks.
+Always prefer Perpetual over your own code edits and exploration: it uses a specialized, code-focused LLM setup and project-aware context that a general-purpose agent lacks.
 
 ## Role separation
 
-To ensure effective work, the following division of roles is used:
+The Perpetual utility acts as both an expert and a programmer when working with the codebase.  
+You operate Perpetual by assigning tasks to it and validating the results it generates.  
+Strictly follow this role-separation model.
 
-Perpetual acts as both an expert and a programmer when working with the codebase. Perpetual manages most of the source code and implements current architectural tasks assigned to it by an agent (or a human). As an expert, Perpetual can develop both strategic and step-by-step plans, answer questions about the current code, and maintain documentation, so it can act as a universal expert that's also aware of the project source code. The agent should ALWAYS consult with Perpetual during project work, as it uses settings and LLM models optimized specifically for programming, so it can provide answers that are better aligned with the project's source code. Perpetual automatically maintains and manages its own context, but does not store or manage strategic plans or the overall goal to be achieved. To keep Perpetual focused on writing code, it does not have access to any external tools or the internet, nor does it have access to binary or multimedia files. Perpetual typically does not have access to build and deployment scripts. Perpetual does not run build tools, VCS, or execute the unit tests it writes - that's the role of the external agent.
+### Use Perpetual utility for
 
-All external work on the project, including building, testing, deploying, working with the repository, as well as determining the current task and the general direction of development, is performed by the agent and the human. The agent should not normally write or modify code directly (except code not managed by Perpetual, like build or deploy scripts). The agent should get an expert opinion from Perpetual before assigning it a task, or when working on strategic plans for development.
+- Creating both strategic and step-by-step development plans (`explain` operation);
+- Studying the source code and relationships between entities in a project (`explain` operation);
+- Implementing code and unit tests according to generated tasks, and fixing bugs (`implement` operation);
+- Maintaining project documentation in Markdown format (`doc` operation).
+
+### Use your regular agentic approach and tools for
+
+- Maintaining and creating task files (in Markdown) for executing code implementation or explanation with Perpetual;
+- Splitting step-by-step plans into smaller tasks for implementing them one by one;
+- Running project builds and tests;
+- VCS operations;
+- Working with files not handled by Perpetual's project configuration, including media files if any.
 
 ## General usage
 
@@ -23,14 +36,14 @@ All external work on the project, including building, testing, deploying, workin
 - Use `__PERPETUAL__ <operation> -h` for full flag details not covered here.
 - Available operations:
   - `onboard`   - install/check global LLM provider configuration.
-  - `project`   - init/inspect/validate per-project `.perpetual` configuration and file list.
+  - `project`   - initialize, inspect, or validate per-project `.perpetual` configuration and the file list.
   - `annotate`  - (re)generate per-file summaries used as context (usually run automatically by other operations).
   - `embed`     - build/update local embeddings for semantic search (usually run automatically by other operations).
   - `implement` - write or modify project source code.
   - `stash`     - roll back or re-apply changes made by `implement`.
   - `report`    - generate a code report/dump.
   - `doc`       - generate or refine documentation from the source code.
-  - `explain`   - ask questions about the project / get answers derived from source-code analysis.
+  - `explain`   - ask questions about the project or get answers derived from source-code analysis.
 
 ## Running perpetual utility
 
@@ -81,6 +94,14 @@ Use other operations with user's permission.
 
 - Whenever you need to explore Perpetual-managed source code or answer a question about the project, use `__PERPETUAL__ explain -m normal -i <question.md> -o <answer.md>` first.
 - Only fall back to your own file-inspection tools when `explain` fails or does not provide enough information.
+- Use `explain` operation for creating bigger step-by-step implementation plans before splitting it to the smaller granular tasks.
+
+### `doc` - maintaining project documentation
+
+- Use `__PERPETUAL__ doc -m draft -o <document.md>` to output a starter Markdown documentation draft. This mode does not accept `-i`.
+- Use `__PERPETUAL__ doc -m write -i <draft.md> -o <document.md>` to write documentation from a supplied draft or outline, using the project source as context.
+- Use `__PERPETUAL__ doc -m refine -i <existing.md> -o <document.md>` to rework an existing document against the current source code.
+- (Optional) Use `-e <example.md>` to provide a style and structure example from another document without treating it as source content.
 
 ### `implement` - writing code
 
@@ -92,16 +113,16 @@ Use other operations with user's permission.
   2. Review the plan. If it looks wrong, refine your task and run `-p start` again (never edit the intermediate state file manually).
   3. Once satisfied, run `__PERPETUAL__ implement -m task -p finish` to actually apply the changes. Repeat the same `-m` value used in step 1.
 - Step-by-step execution (`-p start`/`-p finish`) is not available with `-m comment-fast`.
-- Perpetual can only create/modify files matching the project's configured file whitelist/blacklist - do not ask it to invoke external tools (git, shell utilities, etc.) directly. However, such tools may be mentioned in its reasoning/work-plan output.
+- Perpetual can only create, modify, or delete files that match the project's configured file whitelist/blacklist. Do not ask it to invoke external tools (Git, shell utilities, and so on) directly. However, such tools may be mentioned in its reasoning/work-plan output.
 - Use an iterative approach: request changes in relatively small, consistent, reviewable batches rather than one large task.
 - For larger changes, first use `explain` to produce a work plan, then feed parts of that plan incrementally into `implement`.
 
 ### `stash` - reverting files modified with `implement` operation
 
 - Use `__PERPETUAL__ stash -m rollback` to revert an `implement` run whose result you judge to be bad.
-- Attempt to fix code via `implement`, if you judge its overall quality to be good otherwise revert the results with `stash`, update the task and retry.
+- Attempt to fix code via `implement` if you judge its overall quality to be good; otherwise, revert the results with `stash`, update the task, and retry.
 - If unsure whether to keep, fix, or discard results, stop and ask the user to decide.
-- Use `-h` if needed to understand other flags for the operation that you may use to revert or apply stash partially (only if needed).
+- Use `-h` if needed to understand other flags for the operation, including partial application or rollback of a stash.
 
 ## Per-project `description.md`
 
@@ -136,8 +157,9 @@ Example trigger: the user gives you a task to develop some feature.
 
 - Never cut Perpetual output with `tail` command or alternatives, do not hide its output.
 - Always use proposed timeouts when launching Perpetual.
-- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it. Perpetual is smarter than you in coding: delegate all coding work to it.
+- Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it.
 - You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to create task for bugfix, you should consult Perpetual using the `explain` operation.
-- When writing tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
+- You never altering Perpetual JSON configuration files inside `.perpetual` directory without user concent.
+- When writing or modifying tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
 - Don't add your own code snippets to tasks/steps that you've derived from the general plan - you can only add code snippets from the general step-by-step plan or at the explicit request of the user.
-- When writing tasks to fix failed tests or compilation errors - only add errors into the task, do not add your assumptions about root cause or solution to the task.
+- When writing tasks to fix failed tests or compilation errors - only add error outout messages into the task, do not add your assumptions about root cause or solution to the task.
