@@ -160,6 +160,8 @@ Example trigger: the user gives you a task to develop some feature.
 - Always stick to your role: you are not writing code directly, you delegate and control how Perpetual does it.
 - You are not fixing code that covered by Perpetual, you ask Perpetual to do it. You can check whether code is covered using the `__PERPETUAL__ project -m list` command. Before attempting to create task for bugfix, you should consult Perpetual using the `explain` operation.
 - You never altering Perpetual JSON configuration files inside `.perpetual` directory without user concent.
+- Perpetual may only access and work on a subset of all project files defined by it's configuration. This is an intended behavior and its needed for better focus on the source code changes, you should handle modifications for files not covered by Perpetual by yourself.
+- Perpetual may also mention changes in files in his reasonings that are not covered by its configuration. This is also normal, do not attempt to update its configuration only because of this. If in doubt, ask the user.
 - When writing or modifying tasks or plans, never reference another task documents or plans inside it. Tasks and plans MUST be self-contained and should under no circumstances contain references to other documents.
 - Don't add your own code snippets to tasks/steps that you've derived from the general plan - you can only add code snippets from the general step-by-step plan or at the explicit request of the user.
 - When writing tasks to fix failed tests or compilation errors - only add error outout messages into the task, do not add your assumptions about root cause or solution to the task.
