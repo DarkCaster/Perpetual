@@ -21,9 +21,15 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 
 # Roadmap
 
+General improvements:
+
+- Store already implemented file-changes at the `implement` stage 4 as separate messages in the message history to improve LLM caching
+
 Improve local trimmed-down fork of langchaingo library:
 
 - Implement missing features currently handled by `llm/mitmHTTPClient.go` - natively, inside the library;
+- Add support for sending requests via Socks5 proxy with optional auth;
+- (Maybe) Implement support for OpenAI Responses API - curently there are no significant advantages to using it (artificially structuring the message history on each step to reduce the context use negates the benefits of storing and transmitting encrypted reasonings, also not using tool-calling allowing us to use reasoning efforts with completions API).
 
 (Maybe) Improve incremental-mode file change generation for the `implement` operation (in addition to the current search-and-replace format):
 
