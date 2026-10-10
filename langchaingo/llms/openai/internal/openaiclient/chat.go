@@ -164,13 +164,13 @@ type ApproximateLocation struct {
 // Tool is a tool to use in a chat request.
 type Tool struct {
 	Type     ToolType           `json:"type"`
-	Function FunctionDefinition `json:"function,omitempty"`
+	Function FunctionDefinition `json:"function"`
 }
 
 // ToolChoice is a choice of a tool to use.
 type ToolChoice struct {
 	Type     ToolType     `json:"type"`
-	Function ToolFunction `json:"function,omitempty"`
+	Function ToolFunction `json:"function"`
 }
 
 // ToolFunction is a function to be called in a tool choice.
@@ -183,7 +183,7 @@ type ToolFunction struct {
 type ToolCall struct {
 	ID       string       `json:"id,omitempty"`
 	Type     ToolType     `json:"type"`
-	Function ToolFunction `json:"function,omitempty"`
+	Function ToolFunction `json:"function"`
 }
 
 type ResponseFormatJSONSchemaProperty struct {
@@ -392,7 +392,7 @@ type ChatCompletionResponse struct {
 	Choices           []*ChatCompletionChoice `json:"choices,omitempty"`
 	Model             string                  `json:"model,omitempty"`
 	Object            string                  `json:"object,omitempty"`
-	Usage             ChatUsage               `json:"usage,omitempty"`
+	Usage             ChatUsage               `json:"usage"`
 	SystemFingerprint string                  `json:"system_fingerprint"`
 }
 
@@ -428,7 +428,7 @@ type StreamedChatResponsePayload struct {
 			ToolCalls []*ToolCall `json:"tool_calls,omitempty"`
 			// This field is only used with the deepseek-reasoner model and represents the reasoning contents of the assistant message before the final answer.
 			ReasoningContent string `json:"reasoning_content,omitempty"`
-		} `json:"delta,omitempty"`
+		} `json:"delta"`
 		FinishReason FinishReason `json:"finish_reason,omitempty"`
 	} `json:"choices,omitempty"`
 	SystemFingerprint string `json:"system_fingerprint"`
