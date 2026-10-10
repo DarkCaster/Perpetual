@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [linux, windows, windows-7]
+        target: [linux, windows]
     permissions:
       contents: read
 
@@ -28,27 +28,10 @@ jobs:
       run: sudo apt-get -y install dos2unix wget
 
     - name: Set up Go
-      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       uses: actions/setup-go@v6
       with:
         check-latest: true
         go-version-file: go.mod
-
-    - name: Set up Go for Windows 7 Target
-      if: matrix.target == 'windows-7'
-      run: >
-        cd "$HOME" &&
-        wget -q "https://github.com/DarkCaster/Go-For-Win7-Target/releases/download/v1.25.0-0/go1.25.0-0.linux-amd64.tar.gz" &&
-        tar -xf *.tar.gz &&
-        rm *.tar.gz &&
-        echo "GOROOT=$HOME/go" >> $GITHUB_ENV &&
-        echo "GOPATH=$HOME/go_workspace" >> $GITHUB_ENV &&
-        echo "GOTOOLCHAIN=local" >> $GITHUB_ENV &&
-        echo "$HOME/go/bin" >> $GITHUB_PATH
-
-    - name: Update go.mod for windows-7
-      if: matrix.target == 'windows-7'
-      run: go mod edit -go=$(go version | awk '{print $3}' | sed 's/go//')
 
     - name: Go Env
       run: echo "PATH=$PATH" && echo "go location:" && which go && echo "go env:" && go env
@@ -83,16 +66,10 @@ jobs:
       if: matrix.target == 'windows'
       run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -trimpath -v -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_x86.exe github.com/DarkCaster/Perpetual
 
-    - name: Build windows-7 x86 binaries
-      if: matrix.target == 'windows-7'
-      run: env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -trimpath -x -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual_win7_x86.exe github.com/DarkCaster/Perpetual
-
     - name: Refresh example env-files
-      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       run: go build -trimpath -buildvcs=true -ldflags "-s -w -X=main.Version=${{ env.BUILD_VERSION }}" -o Perpetual.tmp github.com/DarkCaster/Perpetual && ./Perpetual.tmp project -m init -l go -ex
 
     - name: Preparing docs
-      if: ${{ matrix.target == 'windows' || matrix.target == 'linux' }}
       run: find . -type f -name "*.md" -print -exec sed 's|\.perpetual/\([^/*]*\)\.env\.example|env_examples/\1.env.example|g' -i {} \; && mkdir -v env_examples && cp -v .perpetual/*.env.example .perpetual/.env.example env_examples
 
     - name: Set launcher placeholder in SKILL.md (linux)
@@ -147,15 +124,6 @@ jobs:
           LICENSE
           SKILL.md
 
-    - name: Upload windows-7 binary
-      if: matrix.target == 'windows-7'
-      uses: actions/upload-artifact@v7
-      with:
-        name: windows7-binaries
-        include-hidden-files: false
-        path: |
-          Perpetual_*.exe
-
   release:
     needs: [build]
     runs-on: ubuntu-latest
@@ -167,7 +135,7 @@ jobs:
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
       uses: actions/download-artifact@v8
       with:
-        pattern: windows*-binaries
+        name: windows-binaries
         path: dist-windows
 
     - name: Download linux artefacts
@@ -183,10 +151,7 @@ jobs:
 
     - name: Create zip archive (windows)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      run: >
-        cd dist-windows/windows-binaries &&
-        mv ../windows7-binaries/*.exe . &&
-        zip -9 -r ../Windows_Binaries.zip *
+      run: cd dist-windows && zip -9 -r Windows_Binaries.zip *
 
     - name: Create zip archive (linux)
       if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
