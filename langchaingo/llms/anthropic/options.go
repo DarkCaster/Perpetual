@@ -16,7 +16,7 @@ import (
 func WithPromptCaching() llms.CallOption {
 	return func(opts *llms.CallOptions) {
 		if opts.Metadata == nil {
-			opts.Metadata = make(map[string]interface{})
+			opts.Metadata = make(map[string]any)
 		}
 		opts.Metadata["anthropic:beta_headers"] = []string{"prompt-caching-2024-07-31"}
 	}
@@ -35,7 +35,7 @@ func WithPromptCaching() llms.CallOption {
 func WithExtendedOutput() llms.CallOption {
 	return func(opts *llms.CallOptions) {
 		if opts.Metadata == nil {
-			opts.Metadata = make(map[string]interface{})
+			opts.Metadata = make(map[string]any)
 		}
 		// Add to existing headers if present
 		if existing, ok := opts.Metadata["anthropic:beta_headers"].([]string); ok {
@@ -59,7 +59,7 @@ func WithExtendedOutput() llms.CallOption {
 func WithInterleavedThinking() llms.CallOption {
 	return func(opts *llms.CallOptions) {
 		if opts.Metadata == nil {
-			opts.Metadata = make(map[string]interface{})
+			opts.Metadata = make(map[string]any)
 		}
 		// Add to existing headers if present
 		if existing, ok := opts.Metadata["anthropic:beta_headers"].([]string); ok {
@@ -81,7 +81,7 @@ func WithInterleavedThinking() llms.CallOption {
 func WithBetaHeader(header string) llms.CallOption {
 	return func(opts *llms.CallOptions) {
 		if opts.Metadata == nil {
-			opts.Metadata = make(map[string]interface{})
+			opts.Metadata = make(map[string]any)
 		}
 		// Add to existing headers if present
 		if existing, ok := opts.Metadata["anthropic:beta_headers"].([]string); ok {

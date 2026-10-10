@@ -75,7 +75,7 @@ func MaybeRemoveNewLines(texts []string, removeNewLines bool) []string {
 		return texts
 	}
 
-	for i := 0; i < len(texts); i++ {
+	for i := range texts {
 		texts[i] = strings.ReplaceAll(texts[i], "\n", " ")
 	}
 
@@ -114,7 +114,7 @@ func BatchedEmbed(ctx context.Context, embedder EmbedderClient, texts []string, 
 // If nums is empty, it returns 0.
 func minInt(nums []int) int {
 	var m int
-	for idx := 0; idx < len(nums); idx++ {
+	for idx := range nums {
 		item := nums[idx]
 		if idx == 0 {
 			m = item

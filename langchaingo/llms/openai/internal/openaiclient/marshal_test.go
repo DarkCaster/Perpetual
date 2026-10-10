@@ -49,7 +49,7 @@ func TestChatRequest_MarshalJSON(t *testing.T) {
 				t.Fatalf("failed to marshal: %v", err)
 			}
 
-			var result map[string]interface{}
+			var result map[string]any
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatalf("failed to unmarshal: %v", err)
 			}
@@ -103,7 +103,7 @@ func TestChatRequest_TemperatureMarshalJSON(t *testing.T) {
 				t.Fatalf("failed to marshal: %v", err)
 			}
 
-			var result map[string]interface{}
+			var result map[string]any
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatalf("failed to unmarshal: %v", err)
 			}
@@ -131,7 +131,7 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 	tests := []struct {
 		name    string
 		request ChatRequest
-		want    map[string]interface{}
+		want    map[string]any
 	}{
 		{
 			name: "no web search options",
@@ -146,7 +146,7 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 				Model:            "gpt-4o-search-preview",
 				WebSearchOptions: &WebSearchOptions{},
 			},
-			want: map[string]interface{}{},
+			want: map[string]any{},
 		},
 		{
 			name: "web search with search context size",
@@ -156,7 +156,7 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 					SearchContextSize: "high",
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"search_context_size": "high",
 			},
 		},
@@ -176,11 +176,11 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"search_context_size": "medium",
-				"user_location": map[string]interface{}{
+				"user_location": map[string]any{
 					"type": "approximate",
-					"approximate": map[string]interface{}{
+					"approximate": map[string]any{
 						"country": "US",
 						"city":    "San Francisco",
 						"region":  "California",
@@ -197,7 +197,7 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 				t.Fatalf("failed to marshal: %v", err)
 			}
 
-			var result map[string]interface{}
+			var result map[string]any
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatalf("failed to unmarshal: %v", err)
 			}
@@ -212,7 +212,7 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 					t.Fatal("expected web_search_options to be present")
 				}
 				// Check that it's properly serialized
-				webSearchMap, ok := webSearchOpts.(map[string]interface{})
+				webSearchMap, ok := webSearchOpts.(map[string]any)
 				if !ok {
 					t.Fatalf("web_search_options is not a map: %T", webSearchOpts)
 				}
@@ -223,11 +223,11 @@ func TestChatRequest_WebSearchOptionsMarshalJSON(t *testing.T) {
 					}
 				}
 				if tt.want["user_location"] != nil {
-					userLoc, ok := webSearchMap["user_location"].(map[string]interface{})
+					userLoc, ok := webSearchMap["user_location"].(map[string]any)
 					if !ok {
 						t.Fatalf("user_location is not a map: %T", webSearchMap["user_location"])
 					}
-					wantUserLoc := tt.want["user_location"].(map[string]interface{})
+					wantUserLoc := tt.want["user_location"].(map[string]any)
 					if userLoc["type"] != wantUserLoc["type"] {
 						t.Errorf("user_location.type: got %v, want %v", userLoc["type"], wantUserLoc["type"])
 					}

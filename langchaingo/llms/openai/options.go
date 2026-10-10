@@ -32,7 +32,7 @@ func WithMaxCompletionTokens(maxTokens int) llms.CallOption {
 func WithLegacyMaxTokensField() llms.CallOption {
 	return func(opts *llms.CallOptions) {
 		if opts.Metadata == nil {
-			opts.Metadata = make(map[string]interface{})
+			opts.Metadata = make(map[string]any)
 		}
 		opts.Metadata["openai:use_legacy_max_tokens"] = true
 	}

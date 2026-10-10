@@ -17,7 +17,7 @@ func TestMaxTokensFieldSerialization(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  openaiclient.ChatRequest
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name: "MaxCompletionTokens is serialized",
@@ -26,7 +26,7 @@ func TestMaxTokensFieldSerialization(t *testing.T) {
 				MaxCompletionTokens: 100,
 				Temperature:         0.7,
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"model":                 "gpt-4",
 				"max_completion_tokens": float64(100),
 				"temperature":           0.7,
@@ -40,7 +40,7 @@ func TestMaxTokensFieldSerialization(t *testing.T) {
 				MaxCompletionTokens: 200,
 				Temperature:         0.7,
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"model":                 "gpt-4",
 				"max_completion_tokens": float64(200),
 				"temperature":           0.7,
@@ -54,7 +54,7 @@ func TestMaxTokensFieldSerialization(t *testing.T) {
 				MaxTokens:   100,
 				Temperature: 0.7,
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"model":       "gpt-4",
 				"max_tokens":  float64(100),
 				"temperature": 0.7,
@@ -69,7 +69,7 @@ func TestMaxTokensFieldSerialization(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal to a map to check fields
-			var result map[string]interface{}
+			var result map[string]any
 			err = json.Unmarshal(data, &result)
 			require.NoError(t, err)
 

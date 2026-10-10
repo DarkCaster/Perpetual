@@ -63,7 +63,7 @@ type CallOptions struct {
 
 	// Metadata is a map of metadata to include in the request.
 	// The meaning of this field is specific to the backend in use.
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 
 	// ResponseMIMEType MIME type of the generated candidate text.
 	// Supported MIME types are: text/plain: (default) Text output.
@@ -315,7 +315,7 @@ func WithJSONMode() CallOption {
 
 // WithMetadata will add an option to set metadata to include in the request.
 // The meaning of this field is specific to the backend in use.
-func WithMetadata(metadata map[string]interface{}) CallOption {
+func WithMetadata(metadata map[string]any) CallOption {
 	return func(o *CallOptions) {
 		o.Metadata = metadata
 	}

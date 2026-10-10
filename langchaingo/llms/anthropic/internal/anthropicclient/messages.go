@@ -28,8 +28,8 @@ var (
 )
 
 type ChatMessage struct {
-	Role    string      `json:"role"`
-	Content interface{} `json:"content"`
+	Role    string `json:"role"`
+	Content any    `json:"content"`
 }
 
 type messagePayload struct {
@@ -84,10 +84,10 @@ type ImageSource struct {
 }
 
 type ToolUseContent struct {
-	Type  string                 `json:"type"`
-	ID    string                 `json:"id"`
-	Name  string                 `json:"name"`
-	Input map[string]interface{} `json:"input"`
+	Type  string         `json:"type"`
+	ID    string         `json:"id"`
+	Name  string         `json:"name"`
+	Input map[string]any `json:"input"`
 
 	inputData string `json:"-"` // Used to gather input data when streaming
 }
@@ -285,13 +285,13 @@ func parseStreamingMessageResponse(ctx context.Context, r *http.Response, payloa
 	return lastResponse, nil
 }
 
-func parseStreamEvent(data string) (map[string]interface{}, error) {
-	var event map[string]interface{}
+func parseStreamEvent(data string) (map[string]any, error) {
+	var event map[string]any
 	err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&event)
 	return event, err
 }
 
-func processStreamEvent(ctx context.Context, event map[string]interface{}, payload *messagePayload, response MessageResponsePayload, eventChan chan<- MessageEvent) (MessageResponsePayload, error) {
+func processStreamEvent(ctx context.Context, event map[string]any, payload *messagePayload, response MessageResponsePayload, eventChan chan<- MessageEvent) (MessageResponsePayload, error) {
 	eventType, ok := event["type"].(string)
 	if !ok {
 		return response, ErrInvalidEventType
@@ -319,13 +319,13 @@ func processStreamEvent(ctx context.Context, event map[string]interface{}, paylo
 	return response, nil
 }
 
-func handleMessageStartEvent(event map[string]interface{}, response MessageResponsePayload) (MessageResponsePayload, error) {
-	message, ok := event["message"].(map[string]interface{})
+func handleMessageStartEvent(event map[string]any, response MessageResponsePayload) (MessageResponsePayload, error) {
+	message, ok := event["message"].(map[string]any)
 	if !ok {
 		return response, ErrInvalidMessageField
 	}
 
-	usage, ok := message["usage"].(map[string]interface{})
+	usage, ok := message["usage"].(map[string]any)
 	if !ok {
 		return response, ErrInvalidUsageField
 	}
@@ -352,7 +352,7 @@ func handleMessageStartEvent(event map[string]interface{}, response MessageRespo
 	return response, nil
 }
 
-func handleContentBlockStartEvent(event map[string]interface{}, response MessageResponsePayload) (MessageResponsePayload, error) {
+func handleContentBlockStartEvent(event map[string]any, response MessageResponsePayload) (MessageResponsePayload, error) {
 	indexValue, ok := event["index"].(float64)
 	if !ok {
 		return response, ErrInvalidIndexField
@@ -377,10 +377,10 @@ func handleContentBlockStartEvent(event map[string]interface{}, response Message
 				Type: eventType,
 			})
 		case "tool_use":
-			input, ok := event["input"].(map[string]interface{})
+			input, ok := event["input"].(map[string]any)
 			if !ok {
 				// If the input is not provided, it may be coming in a future event.
-				input = make(map[string]interface{})
+				input = make(map[string]any)
 			}
 
 			response.Content = append(response.Content, &ToolUseContent{
@@ -401,14 +401,14 @@ func handleContentBlockStartEvent(event map[string]interface{}, response Message
 }
 
 // handleContentBlockDeltaEvent processes delta events for content blocks, handling both text and JSON deltas.
-func handleContentBlockDeltaEvent(ctx context.Context, event map[string]interface{}, response MessageResponsePayload, payload *messagePayload) (MessageResponsePayload, error) {
+func handleContentBlockDeltaEvent(ctx context.Context, event map[string]any, response MessageResponsePayload, payload *messagePayload) (MessageResponsePayload, error) {
 	indexValue, ok := event["index"].(float64)
 	if !ok {
 		return response, ErrInvalidIndexField
 	}
 	index := int(indexValue)
 
-	delta, ok := event["delta"].(map[string]interface{})
+	delta, ok := event["delta"].(map[string]any)
 	if !ok {
 		return response, ErrInvalidDeltaField
 	}
@@ -434,7 +434,7 @@ func handleContentBlockDeltaEvent(ctx context.Context, event map[string]interfac
 }
 
 // handleTextDelta processes text delta events for content blocks.
-func handleTextDelta(ctx context.Context, delta map[string]interface{}, response MessageResponsePayload, payload *messagePayload, index int) (MessageResponsePayload, error) {
+func handleTextDelta(ctx context.Context, delta map[string]any, response MessageResponsePayload, payload *messagePayload, index int) (MessageResponsePayload, error) {
 	text, ok := delta["text"].(string)
 	if !ok {
 		return response, ErrInvalidDeltaTextField
@@ -457,7 +457,7 @@ func handleTextDelta(ctx context.Context, delta map[string]interface{}, response
 }
 
 // handleJSONDelta processes JSON delta events for content blocks.
-func handleJSONDelta(delta map[string]interface{}, response MessageResponsePayload, index int) (MessageResponsePayload, error) {
+func handleJSONDelta(delta map[string]any, response MessageResponsePayload, index int) (MessageResponsePayload, error) {
 	partialJSON, ok := delta["partial_json"].(string)
 	if !ok {
 		return response, ErrInvalidDeltaPartialJSONField
@@ -472,7 +472,7 @@ func handleJSONDelta(delta map[string]interface{}, response MessageResponsePaylo
 }
 
 // handleThinkingDelta processes thinking delta events for content blocks.
-func handleThinkingDelta(ctx context.Context, delta map[string]interface{}, response MessageResponsePayload, payload *messagePayload, index int) (MessageResponsePayload, error) {
+func handleThinkingDelta(ctx context.Context, delta map[string]any, response MessageResponsePayload, payload *messagePayload, index int) (MessageResponsePayload, error) {
 	thinking, ok := delta["thinking"].(string)
 	if !ok {
 		return response, ErrInvalidDeltaTextField
@@ -496,7 +496,7 @@ func handleThinkingDelta(ctx context.Context, delta map[string]interface{}, resp
 	return response, nil
 }
 
-func handleContentBlockStop(event map[string]interface{}, response MessageResponsePayload) (MessageResponsePayload, error) {
+func handleContentBlockStop(event map[string]any, response MessageResponsePayload) (MessageResponsePayload, error) {
 	indexValue, ok := event["index"].(float64)
 	if !ok {
 		return response, ErrInvalidIndexField
@@ -509,7 +509,7 @@ func handleContentBlockStop(event map[string]interface{}, response MessageRespon
 	if toolUseContent, ok := response.Content[index].(*ToolUseContent); ok {
 		toolUseContent.inputData = strings.TrimSpace(toolUseContent.inputData)
 		if toolUseContent.inputData != "" {
-			var input map[string]interface{}
+			var input map[string]any
 			if err := json.Unmarshal([]byte(toolUseContent.inputData), &input); err != nil {
 				return response, fmt.Errorf("failed to unmarshal input data: %w", err)
 			}
@@ -520,8 +520,8 @@ func handleContentBlockStop(event map[string]interface{}, response MessageRespon
 	return response, nil
 }
 
-func handleMessageDeltaEvent(event map[string]interface{}, response MessageResponsePayload) (MessageResponsePayload, error) {
-	delta, ok := event["delta"].(map[string]interface{})
+func handleMessageDeltaEvent(event map[string]any, response MessageResponsePayload) (MessageResponsePayload, error) {
+	delta, ok := event["delta"].(map[string]any)
 	if !ok {
 		return response, ErrInvalidDeltaField
 	}
@@ -529,7 +529,7 @@ func handleMessageDeltaEvent(event map[string]interface{}, response MessageRespo
 		response.StopReason = stopReason
 	}
 
-	usage, ok := event["usage"].(map[string]interface{})
+	usage, ok := event["usage"].(map[string]any)
 	if !ok {
 		return response, ErrInvalidUsageField
 	}
@@ -549,7 +549,7 @@ func handleMessageDeltaEvent(event map[string]interface{}, response MessageRespo
 	return response, nil
 }
 
-func getString(m map[string]interface{}, key string) string {
+func getString(m map[string]any, key string) string {
 	value, ok := m[key].(string)
 	if !ok {
 		return ""
@@ -557,7 +557,7 @@ func getString(m map[string]interface{}, key string) string {
 	return value
 }
 
-func getFloat64(m map[string]interface{}, key string) (float64, error) {
+func getFloat64(m map[string]any, key string) (float64, error) {
 	value, ok := m[key].(float64)
 	if !ok {
 		return 0, ErrInvalidFieldType

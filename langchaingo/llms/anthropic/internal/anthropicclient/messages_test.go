@@ -64,7 +64,7 @@ func Test_parseStreamingMessageResponse_withInputJSONDeltas(t *testing.T) {
 	secondContent, ok := result.Content[1].(*ToolUseContent)
 	require.True(t, ok, "Second content block should be of type ToolUseContent")
 	require.Equal(t, "get_current_time", secondContent.Name, "Tool use name should match expected value")
-	require.Equal(t, map[string]interface{}{
+	require.Equal(t, map[string]any{
 		"format": "2006-01-02 15:04:05",
 	}, secondContent.Input, "Tool use input should match expected value")
 }

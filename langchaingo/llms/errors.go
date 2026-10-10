@@ -59,7 +59,7 @@ type Error struct {
 	Provider string
 
 	// Details contains provider-specific error details.
-	Details map[string]interface{}
+	Details map[string]any
 
 	// Cause is the underlying error, if any.
 	Cause error
@@ -106,7 +106,7 @@ func NewError(code ErrorCode, provider, message string) *Error {
 		Code:     code,
 		Provider: provider,
 		Message:  message,
-		Details:  make(map[string]interface{}),
+		Details:  make(map[string]any),
 	}
 }
 
@@ -117,9 +117,9 @@ func (e *Error) WithCause(cause error) *Error {
 }
 
 // WithDetail adds a detail to the error.
-func (e *Error) WithDetail(key string, value interface{}) *Error {
+func (e *Error) WithDetail(key string, value any) *Error {
 	if e.Details == nil {
-		e.Details = make(map[string]interface{})
+		e.Details = make(map[string]any)
 	}
 	e.Details[key] = value
 	return e

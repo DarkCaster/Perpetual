@@ -209,7 +209,7 @@ func toolsToTools(tools []llms.Tool) []anthropicclient.Tool {
 
 func processMessages(messages []llms.MessageContent) ([]anthropicclient.ChatMessage, string, error) {
 	chatMessages := make([]anthropicclient.ChatMessage, 0, len(messages))
-	systemPrompt := ""
+	var systemPrompt strings.Builder
 	for _, msg := range messages {
 		switch msg.Role {
 		case llms.ChatMessageTypeSystem:
@@ -217,7 +217,7 @@ func processMessages(messages []llms.MessageContent) ([]anthropicclient.ChatMess
 			if err != nil {
 				return nil, "", fmt.Errorf("anthropic: failed to handle system message: %w", err)
 			}
-			systemPrompt += content
+			systemPrompt.WriteString(content)
 		case llms.ChatMessageTypeHuman:
 			chatMessage, err := handleHumanMessage(msg)
 			if err != nil {
@@ -242,7 +242,7 @@ func processMessages(messages []llms.MessageContent) ([]anthropicclient.ChatMess
 			return nil, "", fmt.Errorf("anthropic: %w: %v", ErrUnsupportedMessageType, msg.Role)
 		}
 	}
-	return chatMessages, systemPrompt, nil
+	return chatMessages, systemPrompt.String(), nil
 }
 
 func handleSystemMessage(msg llms.MessageContent) (string, error) {
@@ -298,7 +298,7 @@ func handleAIMessage(msg llms.MessageContent) (anthropicclient.ChatMessage, erro
 	for _, part := range msg.Parts {
 		switch p := part.(type) {
 		case llms.ToolCall:
-			var inputStruct map[string]interface{}
+			var inputStruct map[string]any
 			if err := json.Unmarshal([]byte(p.FunctionCall.Arguments), &inputStruct); err != nil {
 				return anthropicclient.ChatMessage{}, fmt.Errorf("anthropic: failed to unmarshal tool call arguments: %w", err)
 			}

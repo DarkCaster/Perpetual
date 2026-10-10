@@ -250,7 +250,7 @@ func TestWithStreamingReasoningFunc(t *testing.T) {
 }
 
 func TestWithMetadata(t *testing.T) {
-	metadata := map[string]interface{}{
+	metadata := map[string]any{
 		"key1": "value1",
 		"key2": 42,
 		"key3": true,
@@ -272,10 +272,10 @@ func TestWithTools(t *testing.T) {
 			Function: &llms.FunctionDefinition{
 				Name:        "get_weather",
 				Description: "Get the current weather",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"type": "object",
-					"properties": map[string]interface{}{
-						"location": map[string]interface{}{
+					"properties": map[string]any{
+						"location": map[string]any{
 							"type":        "string",
 							"description": "The city and state",
 						},
@@ -377,14 +377,14 @@ func TestDeprecatedFunctionOptions(t *testing.T) {
 			{
 				Name:        "get_weather",
 				Description: "Get weather information",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"location": "string",
 				},
 			},
 			{
 				Name:        "calculate",
 				Description: "Perform calculations",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"expression": "string",
 				},
 			},
