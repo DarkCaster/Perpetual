@@ -95,7 +95,7 @@ func getMarkdownCodeBlockType(filesToMdLangMappings utils.TextMatcher[string], f
 }
 
 func incrementCacheBreakpointIndices(indices []int, increment int) {
-	for i := 0; i < len(indices); i++ {
+	for i := range indices {
 		indices[i] += increment
 	}
 }

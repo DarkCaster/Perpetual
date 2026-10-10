@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -222,13 +223,7 @@ func normalizeMissingRequirementNames(names ...string) []string {
 	}
 
 	last := result[len(result)-1]
-	hasOperationSpecificAlternative := false
-	for _, name := range result[:len(result)-1] {
-		if isOperationSpecificEnvName(name) {
-			hasOperationSpecificAlternative = true
-			break
-		}
-	}
+	hasOperationSpecificAlternative := slices.ContainsFunc(result[:len(result)-1], isOperationSpecificEnvName)
 
 	if hasOperationSpecificAlternative && !isOperationSpecificEnvName(last) {
 		return []string{last}
