@@ -24,7 +24,8 @@ Starting from **v3.0.0**, the following versioning policy is implemented:
 General improvements:
 
 - Store already implemented file-changes at the `implement` stage 4 as separate messages in the message history to improve LLM caching.
-- Add support for openai to retrying several times on selected service tier before switching to fallback.
+- Add support for OpenAI to retrying several times on selected service tier before switching to fallback.
+- Add flag to disable request size limits for invocation.
 
 Improve local trimmed-down fork of langchaingo library:
 
